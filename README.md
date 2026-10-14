@@ -125,20 +125,19 @@ Items in *italics* are legendary.
 
   Each combo is an exact adjacency rule. Hover a combo in the shop to see it.
 
-### Departments and route
+### Themes and aisle modifiers
 
-After every shop you pick the next aisle from 2–3 doors:
+Pick one **theme** on the start screen (`T` cycles). All aisles use it, and its enemies dominate the roster:
 
-| Department | Hazard |
+| Theme | Hazard |
 |---|---|
 | Main Aisle | none |
 | Frozen Foods | ice patches |
 | Bakery | oven vents |
 | Electronics | live cables that stun enemies |
 | Checkout Lanes | conveyor belts |
-| Clearance Bin | none, but extra enemies and a guaranteed legendary |
 
-Hazards hurt groceries too. The design, rules and example runs are in [docs/departments.md](docs/departments.md).
+Hazards hurt groceries too, and grow with the aisle number. After every shop you pick an **aisle modifier** from 2-3 doors: Regular, Rush Hour (more groceries and coins), Quiet (fewer of both), Aisle Event (guaranteed event, free reroll) or, rarely, Clearance Sale (tougher, guaranteed legendary). The Store Manager's summons are partly themed. Rules and numbers are in [docs/departments.md](docs/departments.md).
 
 ### Enemies
 

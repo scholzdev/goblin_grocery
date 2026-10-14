@@ -1,6 +1,6 @@
 import type { DepartmentId, EnemyId, WaveDef } from '../types';
 import { BOSS, ELITE, ELITE_EXCLUDED } from './enemies';
-import { DEPARTMENTS } from './departments';
+import { DEPARTMENTS, THEMES } from './departments';
 
 export const WAVES: WaveDef[] = [
   { index: 1, duration: 60, boss: false, total: 23, mix: { milk: 1 }, group: [2, 3], hpScale: 1.15, speedScale: 1, dmgScale: 1.5 },
@@ -20,7 +20,7 @@ export function enemyAppears(id: EnemyId): { first: number; last: number; depts:
   if (id === 'boss') return { first: BOSS_WAVE, last: BOSS_WAVE, depts: [] };
   const src = id === 'slice' ? 'melon' : id;
   const aisles = WAVES.filter((w) => !w.boss && (w.mix[src] ?? 0) > 0).map((w) => w.index);
-  const depts = Object.values(DEPARTMENTS).filter((d) => (d.mix[src] ?? 0) > 1).map((d) => d.id);
+  const depts = THEMES.filter((d) => (DEPARTMENTS[d].mix[src] ?? 0) > 1);
   return { first: aisles[0], last: aisles[aisles.length - 1], depts };
 }
 

@@ -9,15 +9,16 @@ import { rollEvent, outageDuration } from '../src/systems/events';
 import { EVENTS } from '../src/data/events';
 import { cart } from './cart';
 import { RECIPES } from '../src/data/recipes';
-import { DEPARTMENTS } from '../src/data/departments';
+import { DEPARTMENTS, DEPT_TUNING, THEMES } from '../src/data/departments';
+import { DOOR_POOL, MODIFIERS } from '../src/data/modifiers';
 import { BOSS_WAVE, ECONOMY, OVERTIME, SHIFTS, SHOP_LEVELS, WAVES, waveDef, bossTuning, eliteChance, enemyAppears } from '../src/data/waves';
-import { BOSS, CODEX_ENEMIES, ELITE, ELITE_EXCLUDED, ENEMIES } from '../src/data/enemies';
+import { BOSS, THEME_SUMMONS, CODEX_ENEMIES, ELITE, ELITE_EXCLUDED, ENEMIES } from '../src/data/enemies';
 import { DATA_DE } from '../src/i18n/data-de';
 import { BUFFS, ITEMS, PLAYER, STARTER_WEAPONS, TIER } from '../src/data/items';
 import { UNLOCKS } from '../src/data/unlocks';
 import { createLabRun, labAddItem, labDoor, cartUpgradeCost, shelfUpgradeCost, upgradeCart, upgradeShelf, chooseDoor, finishWave, leaveShop, startNextWave, buyOffer, toggleLock, mergeTargetFor, createRun, damagePlayer, mergeItems, moveItem, openShop, previewMerge, previewMove, repair, reroll, sellItem, upgradeCost, upgradeItem, upgradeShop } from '../src/state/run';
 import { OBSTACLES, hazardRects } from '../src/data/obstacles';
-import { ARENA, ENTRIES, PLAYER_START } from '../src/data/arena';
+import { ARENA, ENTRIES, PLAYER_START, edgeSolids } from '../src/data/arena';
 import { pushOutCapsule, pushOutCircle, segmentHitsRect, steerAround } from '../src/systems/obstacles';
 import type { Rect } from '../src/systems/obstacles';
 import type { Inventory, ItemInstance, ItemTypeId, Rotation, RunState } from '../src/types';
@@ -682,32 +683,31 @@ describe('legendaries / bundle / shop levels', () => {
 });
 
 describe('departments and routes', () => {
-  const shopAt = (wave: number, dept: RunState['department'] = 'main', lv = 1): RunState => {
-    const s = createRun(1);
-    s.wave = wave; s.department = dept; s.shopLevel = lv;
+  const shopAt = (wave: number, mod: RunState['modifier'] = 'none', lv = 1, theme: RunState['theme'] = 'main'): RunState => {
+    const s = createRun(1, 'toaster', 0, 'toaster', theme);
+    s.wave = wave; s.modifier = mod; s.shopLevel = lv;
     openShop(s, mulberry32(1));
     return s;
   };
-  it('aisle 1 is main', () => {
-    const s = createRun(3);
-    expect([s.department, s.route, s.doors]).toEqual(['main', ['main'], null]);
+  it('aisle 1 is the chosen theme with no modifier', () => {
+    expect([createRun(3).department, createRun(3).route, createRun(3).mods, createRun(3).doors]).toEqual(['main', ['main'], ['none'], null]);
+    const s = createRun(3, 'toaster', 0, 'toaster', 'bakery');
+    expect([s.theme, s.department, s.modifier, s.route, s.mods]).toEqual(['bakery', 'bakery', 'none', ['bakery'], ['none']]);
   });
-  it('no immediate repeat; 2 vs 3 distinct doors by loyalty', () => {
+  it('doors are distinct modifiers from the pool; 2 vs 3 by loyalty', () => {
     for (let seed = 0; seed < 300; seed++) {
-      for (const dept of ['main', 'frozen', 'bakery', 'electronics', 'checkout'] as const) {
-        const a = rollDoors(shopAt(2 + (seed % 4), dept, 2), mulberry32(seed));
-        const b = rollDoors(shopAt(2 + (seed % 4), dept, 3), mulberry32(seed));
-        expect(a).toHaveLength(2); expect(b).toHaveLength(3);
-        expect(a).not.toContain(dept); expect(b).not.toContain(dept);
-        expect(new Set(b).size).toBe(3);
-      }
+      const a = rollDoors(shopAt(2 + (seed % 4), 'none', 2), mulberry32(seed));
+      const b = rollDoors(shopAt(2 + (seed % 4), 'none', 3), mulberry32(seed));
+      expect(a).toHaveLength(2); expect(b).toHaveLength(3);
+      expect(new Set(a).size).toBe(2); expect(new Set(b).size).toBe(3);
+      for (const d of [...a, ...b]) expect([...DOOR_POOL, 'clearance']).toContain(d);
     }
   });
   it('clearance: never before shop 3, at most once, never after clearance, sometimes appears', () => {
     let seen = 0;
     for (let seed = 0; seed < 300; seed++) {
-      for (const wave of [1, 2]) expect(rollDoors(shopAt(wave, 'main', 3), mulberry32(seed))).not.toContain('clearance');
-      const d = rollDoors(shopAt(4, 'frozen', 3), mulberry32(seed));
+      for (const wave of [1, 2]) expect(rollDoors(shopAt(wave, 'none', 3), mulberry32(seed))).not.toContain('clearance');
+      const d = rollDoors(shopAt(4, 'rush', 3), mulberry32(seed));
       expect(d.filter((x) => x === 'clearance').length).toBeLessThanOrEqual(1);
       if (d.includes('clearance')) seen++;
       expect(rollDoors(shopAt(4, 'clearance', 3), mulberry32(seed))).not.toContain('clearance');
@@ -716,18 +716,18 @@ describe('departments and routes', () => {
     expect(seen).toBeLessThan(130);
   });
   it('after shop 7 only the boss; same seed same doors; no mutation', () => {
-    const s = shopAt(7, 'bakery');
+    const s = shopAt(7, 'rush', 1, 'bakery');
     const before = structuredClone(s);
     expect(rollDoors(s, mulberry32(1))).toEqual(['boss']);
     expect(s).toEqual(before);
-    const s2 = shopAt(4, 'main', 3);
+    const s2 = shopAt(4, 'none', 3);
     expect(rollDoors(s2, mulberry32(77))).toEqual(rollDoors(s2, mulberry32(77)));
   });
   it('leaveShop/chooseDoor flow; rejects bad ids and phases atomically', () => {
     const s = shopAt(2);
     const rng = mulberry32(5);
     const cd0 = structuredClone(s);
-    expect(chooseDoor(s, 'frozen').ok).toBe(false);
+    expect(chooseDoor(s, 'rush').ok).toBe(false);
     expect(s).toEqual(cd0);
     expect(leaveShop(s, rng).ok).toBe(true);
     expect(s.phase).toBe('route');
@@ -735,18 +735,22 @@ describe('departments and routes', () => {
     expect(leaveShop(s, rng).ok).toBe(false);
     const before = structuredClone(s);
     expect(chooseDoor(s, 'boss').ok).toBe(false);
-    expect(chooseDoor(s, s.department).ok).toBe(false);
+    expect(chooseDoor(s, 'frozen' as never).ok).toBe(false);
     expect(s).toEqual(before);
     const pick = s.doors![1];
     expect(chooseDoor(s, pick).ok).toBe(true);
-    expect([s.department, s.route, s.doors]).toEqual([pick, ['main', pick], null]);
+    expect([s.department, s.modifier, s.route, s.mods, s.doors]).toEqual(['main', pick, ['main', 'main'], ['none', pick], null]);
+    const t = createRun(1, 'toaster', 0, 'toaster', 'frozen');
+    Object.assign(t, { phase: 'route', doors: ['boss'] });
+    expect(chooseDoor(t, 'boss').ok).toBe(true);
+    expect([t.department, t.modifier, t.route.at(-1), t.mods.at(-1)]).toEqual(['boss', 'none', 'boss', 'none']);
     startNextWave(s);
     expect([s.phase, s.wave]).toEqual(['combat', 3]);
   });
-  it('forceLegendary guarantees a legendary at Lv1 / shop 3, incl. via clearance', () => {
+  it('forceLegendary guarantees a legendary at Lv1 / shop 3, incl. via the clearance modifier', () => {
     for (let seed = 0; seed < 200; seed++) {
       const s = createRun(1);
-      s.wave = 3; s.department = 'clearance';
+      s.wave = 3; s.modifier = 'clearance';
       openShop(s, mulberry32(seed));
       expect(s.shop!.forceLegendary).toBe(true);
       const o = s.shop!.offers;
@@ -754,7 +758,7 @@ describe('departments and routes', () => {
       expect(new Set(o.map((x) => x.type)).size).toBe(4);
     }
     const early = createRun(1);
-    early.department = 'clearance';
+    early.modifier = 'clearance';
     early.wave = 1;
     openShop(early, mulberry32(2));
     const t = early.shop!.offers.map((x) => x.type);
@@ -762,9 +766,11 @@ describe('departments and routes', () => {
     expect(t.some((x) => ITEMS[x].legendary)).toBe(true);
   });
   it('bias and legendaryBonus carried by shop and rerolls', () => {
-    const s = shopAt(3, 'electronics');
+    const s = shopAt(3, 'none', 1, 'electronics');
+    s.department = 'electronics';
+    openShop(s, mulberry32(1));
     expect(s.shop!.bias).toContain('battery');
-    expect(s.shop!.legendaryBonus).toBe(0.06);
+    expect(s.shop!.legendaryBonus).toBe(0.03);
     expect(s.shop!.forceLegendary).toBe(false);
     s.money = 100;
     expect(reroll(s, mulberry32(1)).ok).toBe(true);
@@ -789,32 +795,80 @@ describe('departments and routes', () => {
     }
     expect(killCoins(2, 1, () => 0.99)).toBe(2);
   });
-  it('finishWave bonus scaled by department', () => {
+  it('finishWave bonus scaled by the aisle modifier', () => {
     const s = createRun(1);
-    s.department = 'checkout';
+    s.modifier = 'rush';
     finishWave(s);
-    expect(s.coinLog).toEqual([{ label: 'Wave clear bonus', amount: 17 }]);
-    expect(s.money).toBe(17);
+    expect(s.coinLog).toEqual([{ label: 'Wave clear bonus', amount: 18 }]);
+    expect(s.money).toBe(18);
     const m = createRun(1);
     finishWave(m);
     expect(m.money).toBe(12);
   });
-  it('waveSpawnPlan applies dept multipliers only to existing enemy types', () => {
+  it('themes are flat: no multipliers, rosters only reference real enemies', () => {
+    expect(THEMES).toEqual(['main', 'frozen', 'bakery', 'electronics', 'checkout']);
+    for (const id of THEMES) {
+      const d = DEPARTMENTS[id];
+      expect([d.hpMult, d.speedMult, d.countMult, d.coinMult]).toEqual([1, 1, 1, 1]);
+      for (const k of Object.keys(d.mix)) expect(ENEMIES[k as keyof typeof ENEMIES]).toBeDefined();
+    }
+    expect(DEPARTMENTS.electronics.legendaryBonus).toBe(0.03);
+    expect(enemyAppears('baguette').depts).toEqual(['bakery']);
+    for (const id of CODEX_ENEMIES) expect(enemyAppears(id).depts.every((d) => THEMES.includes(d))).toBe(true);
+  });
+  it('waveSpawnPlan: theme roster boosts, basics stay at 1, everything else is off-theme', () => {
     const s = createRun(1);
-    s.wave = 2; s.department = 'frozen';
-    const p = waveSpawnPlan(s);
-    expect(p.mix).toEqual({ milk: 6, banana: 2, giftcard: WAVES[1].mix.giftcard });
-    expect(p.hpScale).toBeCloseTo(WAVES[1].hpScale * DEPARTMENTS.frozen.hpMult!);
-    expect(p.speedScale).toBeCloseTo(0.9);
+    s.wave = 5; s.department = s.theme = 'frozen';
+    const w = WAVES[4].mix, p = waveSpawnPlan(s);
+    for (const [k, v] of Object.entries(w) as [keyof typeof w, number][]) {
+      const boost = DEPARTMENTS.frozen.mix[k] ?? (DEPT_TUNING.basics.includes(k) ? 1 : DEPT_TUNING.offTheme);
+      expect(p.mix[k]).toBeCloseTo(v * boost);
+    }
+    expect(DEPT_TUNING.offTheme).toBe(0.35);
+    expect(p.total).toBe(WAVES[4].total);
+    expect(p.hpScale).toBeCloseTo(WAVES[4].hpScale);
     s.wave = 1;
     expect(Object.keys(waveSpawnPlan(s).mix)).toEqual(['milk']);
-    s.department = 'checkout';
-    s.wave = 2;
-    expect(waveSpawnPlan(s).total).toBe(Math.round(WAVES[1].total * 1.2));
-    expect(waveSpawnPlan(s).mix.banana).toBe(4);
     s.department = 'boss'; s.wave = 8;
     expect(waveSpawnPlan(s).total).toBe(6);
-    expect(DEPARTMENTS.main.countMult).toBe(1);
+  });
+  it('waveSpawnPlan: modifiers multiply count and hp on top', () => {
+    const s = createRun(1);
+    s.wave = 4;
+    const base = waveSpawnPlan(s);
+    s.modifier = 'rush';
+    expect(waveSpawnPlan(s).total).toBe(Math.round(WAVES[3].total * 1.4));
+    s.modifier = 'quiet';
+    expect(waveSpawnPlan(s).total).toBe(Math.round(WAVES[3].total * 0.7));
+    s.modifier = 'clearance';
+    expect(waveSpawnPlan(s).hpScale).toBeCloseTo(base.hpScale * 1.15);
+    expect(MODIFIERS.clearance.eliteBonus).toBe(0.15);
+  });
+  it('event modifier gives one free reroll in the next shop, then normal prices', () => {
+    const s = createRun(1);
+    s.wave = 2; s.modifier = 'event'; s.money = 100;
+    openShop(s, mulberry32(1));
+    expect(s.shop!.bonusFreeRerolls).toBe(1);
+    expect(currentRerollCost(s)).toBe(0);
+    expect(reroll(s, mulberry32(2)).ok).toBe(true);
+    expect([s.money, s.shop!.bonusFreeRerolls, s.shop!.rerolls]).toEqual([100, 0, 0]);
+    expect(currentRerollCost(s)).toBe(rerollCost(0));
+    const n = createRun(1); n.wave = 2; openShop(n, mulberry32(1));
+    expect(n.shop!.bonusFreeRerolls).toBe(0);
+  });
+  it('recordRun counts clearance modifier aisles as clearance clears', () => {
+    profile.stats.deptClears = {};
+    const s = createRun(1, 'toaster', 0, 'toaster', 'bakery');
+    s.route = ['bakery', 'bakery', 'bakery']; s.mods = ['none', 'clearance', 'rush'];
+    s.stats.wavesCleared = 2;
+    recordRun(s, false);
+    expect(profile.stats.deptClears).toEqual({ bakery: 2, clearance: 1 });
+  });
+  it('boss summons: themed pool exists for every theme and only uses real enemies', () => {
+    for (const id of THEMES) {
+      expect(THEME_SUMMONS[id]!.length).toBeGreaterThan(0);
+      for (const e of THEME_SUMMONS[id]!) expect(ENEMIES[e]).toBeDefined();
+    }
   });
 });
 
@@ -897,6 +951,7 @@ describe('shifts & overtime', () => {
     expect(rollDoors(s, mulberry32(1))).toEqual(['boss']);
     s.overtime = true; s.shop = { shopIndex: BOSS_WAVE + 2 } as never;
     expect(rollDoors(s, mulberry32(1))).not.toContain('boss');
+    expect(rollDoors(s, mulberry32(1)).every((d) => d in MODIFIERS)).toBe(true);
   });
   it('shift unlocks and recordRun bestShift', () => {
     profile.stats.bestShift = {};
@@ -1093,7 +1148,7 @@ describe('per-level scaling table', () => {
 });
 
 describe('Test Lab', () => {
-  const opts = { aisle: 6, dept: 'frozen' as const, shift: 2, starter: 'pan' as const, weapon: 'pan' as const, money: 321, cart: ECONOMY.cartSizes[2], shelf: ECONOMY.shelfSizes[1], shopLevel: SHOP_LEVELS.length, god: true, keep: true };
+  const opts = { aisle: 6, dept: 'frozen' as const, shift: 2, starter: 'pan' as const, weapon: 'pan' as const, money: 321, cart: ECONOMY.cartSizes[2], shelf: ECONOMY.shelfSizes[1], shopLevel: SHOP_LEVELS.length, god: true, keep: true, mod: 'rush' as const };
   it('createLabRun parks an empty run before the chosen aisle', () => {
     const s = createLabRun(1, opts);
     expect(s.wave).toBe(opts.aisle - 1);
@@ -1103,21 +1158,22 @@ describe('Test Lab', () => {
     expect([s.money, s.shift, s.shopLevel, s.lab, s.labGod]).toEqual([opts.money, opts.shift, opts.shopLevel, true, true]);
     expect(s.unlocked).toHaveLength(Object.keys(ITEMS).length);
     expect(s.overtime).toBeFalsy();
-    expect(labDoor(s)).toBe('frozen');
+    expect(labDoor(s)).toBe('rush');
+    expect([s.theme, s.department]).toEqual(['frozen', 'frozen']);
   });
   it('boss aisle forces the boss door; overtime aisles are overtime', () => {
     expect(labDoor(createLabRun(1, { ...opts, aisle: BOSS_WAVE }))).toBe('boss');
-    const o = createLabRun(1, { ...opts, aisle: BOSS_WAVE + 2, dept: 'boss' });
-    expect([o.overtime, labDoor(o)]).toEqual([true, 'main']);
+    const o = createLabRun(1, { ...opts, aisle: BOSS_WAVE + 2, mod: 'rush' });
+    expect([o.overtime, labDoor(o), o.theme]).toEqual([true, 'rush', 'frozen']);
   });
-  it('leaving a lab shop offers only the chosen department', () => {
+  it('leaving a lab shop offers only the chosen modifier', () => {
     const s = createLabRun(1, opts);
     openShop(s, mulberry32(1));
     expect(leaveShop(s, mulberry32(1)).ok).toBe(true);
-    expect(s.doors).toEqual([opts.dept]);
-    chooseDoor(s, opts.dept);
+    expect(s.doors).toEqual(['rush']);
+    chooseDoor(s, 'rush');
     startNextWave(s);
-    expect([s.wave, s.department]).toEqual([opts.aisle, opts.dept]);
+    expect([s.wave, s.department, s.modifier]).toEqual([opts.aisle, opts.dept, 'rush']);
   });
   it('labAddItem fills the first free shelf slot with the tier, fails when full, legendaries stay ★1', () => {
     const s = createLabRun(1, { ...opts, shelf: ECONOMY.shelfSlots });
@@ -1220,6 +1276,20 @@ describe('aisle obstacles', () => {
           expect(a.y - a.h / 2 - ARENA.top, tag + ' top').toBeGreaterThanOrEqual(70);
           expect(ARENA.bottom - (a.y + a.h / 2), tag + ' bottom').toBeGreaterThanOrEqual(55);
         });
+      }
+    }
+  });
+});
+
+describe('edge solids', () => {
+  const dist = (a: Rect, b: Rect) => Math.hypot(Math.max(0, Math.abs(a.x - b.x) - (a.w + b.w) / 2), Math.max(0, Math.abs(a.y - b.y) - (a.h + b.h) / 2));
+  it('keep spawns, start, hazards and layout props clear', () => {
+    for (const id of [...THEMES, 'boss' as const]) {
+      for (const s of edgeSolids(DEPARTMENTS[id].theme.props)) {
+        for (const e of ENTRIES) expect(dist(s, { ...e, w: 0, h: 0 }), `entry ${e.x},${e.y}`).toBeGreaterThan(0);
+        expect(dist(s, { ...PLAYER_START, w: 0, h: 0 })).toBeGreaterThan(100);
+        for (const h of hazardRects(id)) expect(dist(s, { ...h, w: 0, h: 0 }), `${id} hazard centre`).toBeGreaterThan(0); // edges may overlap, centres stay reachable
+        for (const lay of OBSTACLES[id]) for (const o of lay) expect(dist(s, o), `${id}:${o.kind}@${o.x},${o.y}`).toBeGreaterThanOrEqual(55); // cart walkway, same as the arena-bottom margin
       }
     }
   });

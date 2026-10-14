@@ -1,4 +1,5 @@
 // Shared contracts. Pure data shapes only — no Phaser, no DOM.
+import type { DoorId, ModifierId } from './data/modifiers';
 
 export type ItemTypeId =
   | 'toaster' | 'pan' | 'nailgun' | 'vacuum'
@@ -235,6 +236,8 @@ export interface ShopState {
   bias: ItemTypeId[];
   legendaryBonus: number;
   forceLegendary: boolean;
+  /** Free rerolls granted by the aisle modifier (event). */
+  bonusFreeRerolls: number;
   shopIndex: number;     // 1-based (after wave N)
 }
 
@@ -295,12 +298,18 @@ export interface RunState {
   shift: number;
   /** Set when the player keeps going after beating the boss (endless aisles). */
   overtime?: boolean;
-  /** Department of the current / last aisle. */
+  /** Theme (department) chosen on the start screen; fixed per run. */
+  theme: DepartmentId;
+  /** Department of the current / last aisle: the theme, or 'boss' on the boss aisle. */
   department: DepartmentId;
+  /** Modifier of the current / last aisle (aisle 1 = 'none'). */
+  modifier: ModifierId;
   /** Departments visited, in order (index 0 = aisle 1). */
   route: DepartmentId[];
+  /** Modifiers per aisle, parallel to `route`. */
+  mods: ModifierId[];
   /** Doors offered on the route screen, or null outside it. */
-  doors: DepartmentId[] | null;
+  doors: DoorId[] | null;
   stats: RunStats;
   /** Itemized coin sources since last shop opened, for the receipt. */
   coinLog: CoinLogEntry[];
@@ -312,6 +321,8 @@ export interface RunState {
   labGod?: boolean;
   /** Department every lab aisle is forced into. */
   labDept?: DepartmentId;
+  /** Modifier every lab aisle gets. */
+  labMod?: ModifierId;
   /** Aisle event forced in every lab aisle ('random' = normal roll). */
   labEvent?: 'random' | 'none' | 'wetFloor' | 'outage';
 }
@@ -321,6 +332,7 @@ export interface LabOpts {
   aisle: number; dept: DepartmentId; shift: number; starter: StarterId; weapon: StarterWeapon; money: number;
   cart: [number, number]; shelf: number; shopLevel: number; god: boolean; keep: boolean;
   event?: 'random' | 'none' | 'wetFloor' | 'outage';
+  mod?: ModifierId;
 }
 
 /** Result of a mutating rules operation. Never throws for gameplay-invalid input. */

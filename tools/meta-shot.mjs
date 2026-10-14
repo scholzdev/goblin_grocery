@@ -20,7 +20,7 @@ await page.click('[data-act="close-settings"]');
 await page.click('[data-act="wardrobe"]'); await page.waitForTimeout(200);
 await page.screenshot({ path: 'screenshots/wardrobe.png' });
 await page.click('[data-act="close-settings"]');
-await page.click('[data-act="play"]'); await page.click('[data-starter="toaster"]'); await page.waitForTimeout(2500);
+await page.click('[data-act="play"]'); await page.click('[data-starter="toaster"]'); await page.click('[data-act="start-run"]'); await page.waitForTimeout(2500);
 await page.screenshot({ path: 'screenshots/skin-combat.png' });
 await page.keyboard.press('F2');
 await page.waitForSelector('#shop:not(.hidden)', { timeout: 15000 });

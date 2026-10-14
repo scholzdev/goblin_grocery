@@ -1,4 +1,4 @@
-import type { EnemyId, ItemTypeId, RecipeId, RunState, StarterId } from '../types';
+import type { DepartmentId, EnemyId, ItemTypeId, RecipeId, RunState, StarterId } from '../types';
 import { STARTING_ITEMS, UNLOCKS, type CartSkin, type GoblinSkin, type ProfileStats, type Unlock } from '../data/unlocks';
 import { BOSS_WAVE, SHIFTS } from '../data/waves';
 
@@ -96,7 +96,8 @@ export function recordRun(s: RunState, won: boolean): Unlock[] {
   st.coins += s.stats.coinsEarned;
   st.bestWave = Math.max(st.bestWave, won ? BOSS_WAVE : s.wave);
   // route[i] is the department of aisle i+1; the first `wavesCleared` aisles were cleared.
-  s.route.slice(0, s.stats.wavesCleared).forEach((d) => (st.deptClears[d] = (st.deptClears[d] ?? 0) + 1));
+  const bump = (d: string) => (st.deptClears[d as DepartmentId] = (st.deptClears[d as DepartmentId] ?? 0) + 1);
+  s.route.slice(0, s.stats.wavesCleared).forEach((d, i) => { bump(d); if (s.mods[i] === 'clearance') bump('clearance'); });
   if (won) {
     st.deptClears.boss = (st.deptClears.boss ?? 0) + 1;
     st.bestShift[s.starter] = Math.max(st.bestShift[s.starter] ?? 0, s.shift);

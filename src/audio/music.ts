@@ -1,6 +1,7 @@
 import type Phaser from 'phaser';
 import type { AudioKey } from '../data/assets';
 import type { DepartmentId } from '../types';
+import type { ModifierId } from '../data/modifiers';
 import { settings } from '../state/settings';
 import { store } from '../state/store';
 
@@ -21,8 +22,8 @@ export function initMusic(g: Phaser.Game): void {
   store.on('shop-open', () => playMusic('music_main'));
 }
 
-export function musicFor(dept: DepartmentId, boss = false): AudioKey {
-  return boss ? 'music_boss' : (`music_${dept}` as AudioKey);
+export function musicFor(dept: DepartmentId, boss = false, modifier: ModifierId = 'none'): AudioKey {
+  return boss ? 'music_boss' : (`music_${modifier === 'clearance' ? 'clearance' : dept}` as AudioKey);
 }
 
 const vol = (v: Voice) => settings.master * settings.music * BASE * v.fade;

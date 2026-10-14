@@ -11,7 +11,8 @@ import { play, refreshVolumes, startMusic } from '../audio/sfx';
 import { initHud, hud, svg, relabelHud } from './hud';
 import { initTutorial, resetTutorial } from './tutorial';
 import { initShop, shopKey, gridHtml, combosHtml, starsHtml, rarityClass, inspectorHtml } from './shop';
-import { DEPARTMENTS } from '../data/departments';
+import { DEPARTMENTS, THEMES } from '../data/departments';
+import { MODIFIERS, type DoorId, type ModifierId } from '../data/modifiers';
 import { CART_SKINS, GOBLIN_SKINS, UNLOCKS, type CartSkin, type GoblinSkin, type Unlock } from '../data/unlocks';
 import { cartUnlocked, discoverRecipe, goblinUnlocked, profile, saveProfile, shiftUnlocked, starterUnlocked, unlockedItems } from '../state/profile';
 import { ITEM_IDS } from '../data/items';
@@ -39,10 +40,21 @@ const PICK_KEY = 'goblin-grocery.lastpick.v1';
 let pickedWeapon: StarterWeapon = (() => {
   try { const w = JSON.parse(localStorage.getItem(PICK_KEY) ?? '{}').weapon; return WEAPONS.includes(w) ? w : 'toaster'; } catch { return 'toaster'; }
 })();
-const pickWeapon = (w: StarterWeapon): void => {
-  pickedWeapon = w;
-  try { localStorage.setItem(PICK_KEY, JSON.stringify({ weapon: w })); } catch { /* storage unavailable */ }
+/** Run theme highlighted on the starter screen (remembered between runs). */
+let pickedTheme: DepartmentId = (() => {
+  try { const v = JSON.parse(localStorage.getItem(PICK_KEY) ?? '{}').theme; return THEMES.includes(v) ? v : 'main'; } catch { return 'main'; }
+})();
+/** Character highlighted on the starter screen (remembered between runs; falls back to the toaster goblin if still locked). */
+let pickedStarter: StarterId = (() => {
+  try { const v = JSON.parse(localStorage.getItem(PICK_KEY) ?? '{}').starter; return STARTERS.includes(v) && starterUnlocked(v) ? v : 'toaster'; } catch { return 'toaster'; }
+})();
+const savePick = (): void => {
+  try { localStorage.setItem(PICK_KEY, JSON.stringify({ weapon: pickedWeapon, theme: pickedTheme, starter: pickedStarter })); } catch { /* storage unavailable */ }
 };
+const pickStarter = (id: StarterId): void => { pickedStarter = id; savePick(); };
+const pickWeapon = (w: StarterWeapon): void => { pickedWeapon = w; savePick(); };
+const pickTheme = (d: DepartmentId): void => { pickedTheme = d; savePick(); };
+const modT = (id: ModifierId) => ({ name: t(`modName_${id}` as UIKey), short: t(`modShort_${id}` as UIKey), fx: t(`modFx_${id}` as UIKey), rw: t(`modRw_${id}` as UIKey) });
 
 export function initUi(g: Phaser.Game): void {
   game = g;
@@ -135,6 +147,13 @@ function render(): void {
   toggle('route', s.phase === 'route', routeHtml);
   if (s.phase !== 'title') choosingStarter = false;
   toggle('starter', s.phase === 'title' && choosingStarter, starterHtml);
+}
+
+/** Start the run with the highlighted loadout (the Start button is disabled while character or shift is locked). */
+function startPicked(): void {
+  if (!starterUnlocked(pickedStarter) || !shiftUnlocked(pickedStarter, pickedShift)) return;
+  startMusic();
+  flow.startRun(pickedStarter, pickedShift, pickedWeapon, pickedTheme);
 }
 
 function toggle(k: keyof typeof screens, show: boolean, html: () => string): void {
@@ -233,35 +252,50 @@ function portrait(id: StarterId): string {
 }
 
 function starterHtml(): string {
-  const card = (id: StarterId, key: number) => {
-    const st = PLAYER.starters[id], stT = starterT(id);
-    const gate = UNLOCKS.find((u) => u.kind === 'starter' && u.starter === id);
-    const away = !starterUnlocked(id);
-    const lock = away || !shiftUnlocked(id, pickedShift);
-    const why = away && gate ? `${unlockNeedT(gate.id)} (${gate.progress(profile.stats).join('/')})` : t('winShiftStarter', { n: pickedShift });
-    return `<button class="door starter-card" data-act="starter" data-starter="${id}" ${lock ? 'disabled' : ''} ${key === 1 ? 'data-focus' : ''}>
-      <span class="key">${key}</span><span class="who">${portrait(id)}</span><span class="dn">${stT.name}</span>
-      <span class="ln">${stT.blurb}</span>${st.perk ? `<span class="ln">${perkLines(st.perk).join('<br>')}</span>` : ''}
-      ${lock ? `<span class="ln">🔒 ${why}</span>` : ''}</button>`;
+  const id = pickedStarter, st = PLAYER.starters[id], stT = starterT(id);
+  const gate = UNLOCKS.find((u) => u.kind === 'starter' && u.starter === id);
+  const away = !starterUnlocked(id), shiftLock = !away && !shiftUnlocked(id, pickedShift);
+  const tile = (sid: StarterId, key: number) => {
+    const lock = !starterUnlocked(sid);
+    return `<button class="tile ${sid === id ? 'sel' : ''} ${lock ? 'locked' : ''}" data-act="starter" data-starter="${sid}" aria-pressed="${sid === id}" ${sid === id ? 'data-focus' : ''}>
+      <span class="key">${key}</span>${portrait(sid)}<span class="tn">${starterT(sid).name}</span>${lock ? '<span class="lk">🔒</span>' : ''}</button>`;
   };
-  const wpn = (id: StarterWeapon) => {
-    const it = ITEMS[id], w = it.weapon!;
+  const wpn = (wid: StarterWeapon) => {
+    const it = ITEMS[wid], w = it.weapon!;
     const stat = t('starterStat', { dmg: w.damage, cd: fmtNum(w.cooldown), rk: w.pattern === 'sweep' ? t('reach') : t('range'), range: w.range });
-    return `<button class="btn weapon-pick ${id === pickedWeapon ? 'coral' : ''}" data-act="weapon" data-weapon="${id}" aria-pressed="${id === pickedWeapon}">
-      <img src="${svg(`icon_${id}`)}" alt=""><span class="wp-text"><span class="wp-head"><b>${itemT(id).name}</b><span class="tagchip ${it.tags![0]}">${tagT(it.tags![0])}</span></span><span class="wp-stat">${stat}</span></span></button>`;
+    return `<button class="btn weapon-pick ${wid === pickedWeapon ? 'coral' : ''}" data-act="weapon" data-weapon="${wid}" aria-pressed="${wid === pickedWeapon}">
+      <img src="${svg(`icon_${wid}`)}" alt=""><span class="wp-text"><span class="wp-head"><b>${itemT(wid).name}</b><span class="tagchip ${it.tags![0]}">${tagT(it.tags![0])}</span></span><span class="wp-stat">${stat}</span></span></button>`;
   };
   const pills = SHIFTS.map((_sh, i) => {
-    const locked = !STARTERS.some((st) => shiftUnlocked(st, i));
+    const locked = !STARTERS.some((s2) => shiftUnlocked(s2, i));
     return `<button class="btn small ${i === pickedShift ? 'coral' : ''}" data-act="shift" data-shift="${i}" ${locked ? `disabled title="${t('winShiftUnlock', { n: i })}"` : `title="${shiftT(i).name}"`}>${locked ? '🔒' : i + 1}</button>`;
   }).join(' ');
-  return `<div class="route"><h2 class="display">${t('pickStarter')}</h2>
-    <div class="hint" style="margin:-4px 0 22px">${t('beginHint')}</div>
-    <div class="hint" style="margin:0 0 6px"><b>${t('shiftN', { n: pickedShift + 1, name: shiftT(pickedShift).name })}</b> · ${shiftT(pickedShift).blurb}</div>
-    <div class="hint" style="margin:0 0 18px">${pills}</div>
-    <div class="hint" style="margin:0 0 6px"><b>${t('startWeapon')}</b> · ${t('weaponKeyHint', { k: '<kbd>W</kbd>' })}</div>
-    <div class="hint weapon-row" style="margin:0 0 18px">${WEAPONS.map(wpn).join('')}</div>
-    <div class="doors">${STARTERS.map((id, i) => card(id, i + 1)).join('')}</div>
-    <div class="hint"><button class="btn small" data-act="close-starter">${t('back')}</button></div></div>`;
+  const themeBtn = (did: DepartmentId) => {
+    const d = DEPARTMENTS[did], dt = deptT(did);
+    return `<button class="btn weapon-pick ${did === pickedTheme ? 'coral' : ''}" data-act="theme" data-theme="${did}" aria-pressed="${did === pickedTheme}">
+      <img src="${svg(d.theme.icon)}" alt=""><span class="wp-text"><span class="wp-head"><b>${dt.short}</b></span><span class="wp-stat">${dt.blurb}</span></span></button>`;
+  };
+  const detail = `<div class="detail"><span class="who">${portrait(id)}</span><div class="dtxt"><div class="dn display">${stT.name}</div><div class="blurb">${stT.blurb}</div>
+      ${away ? `<div class="need">🔒 ${gate ? `${unlockNeedT(gate.id)} (${gate.progress(profile.stats).join('/')})` : t('charLocked')}</div>`
+        : st.perk ? `<ul>${perkLines(st.perk).map((l) => `<li>${l}</li>`).join('')}</ul>` : ''}</div></div>`;
+  const reason = away ? t('charLocked') : shiftLock ? t('winShiftStarter', { n: pickedShift }) : '';
+  return `<div class="route loadout-pick"><h2 class="display">${t('pickStarter')}</h2>
+    <div class="cols">
+      <section class="col"><h3 class="display">${t('goblin')}</h3>
+        <div class="tiles">${STARTERS.map((sid, i) => tile(sid, i + 1)).join('')}</div>${detail}</section>
+      <section class="col"><h3 class="display">${t('runSetup')}</h3>
+        <div class="lbl"><b>${t('pickTheme')}</b> <kbd>T</kbd></div>
+        <div class="stack">${THEMES.map(themeBtn).join('')}</div>
+        <div class="hint">${t('enemies')}: ${deptT(pickedTheme).enemiesText}</div>
+        <div class="lbl"><b>${t('startWeapon')}</b> <kbd>W</kbd></div>
+        <div class="weapon-row">${WEAPONS.map(wpn).join('')}</div>
+        <div class="lbl"><b>${t('shiftLabel')}</b></div>
+        <div class="pills">${pills}</div>
+        <div class="hint"><b>${shiftT(pickedShift).name}</b> · ${shiftT(pickedShift).blurb}</div></section>
+    </div>
+    <div class="bar"><button class="btn small" data-act="close-starter">${t('back')} <kbd>Esc</kbd></button>
+      <span class="why">${reason ? `🔒 ${reason}` : ''}</span>
+      <button class="btn coral start" data-act="start-run" ${reason ? 'disabled' : ''}>${t('startRun')} <kbd>Enter</kbd></button></div></div>`;
 }
 
 function routeHtml(): string {
@@ -270,23 +304,33 @@ function routeHtml(): string {
   const steps = Array.from({ length: BOSS_WAVE }, (_, i) => {
     const id = s.route[i] ?? (i === BOSS_WAVE - 1 ? 'boss' : null);
     const cls = i < s.route.length ? 'done' : i === s.route.length ? 'next' : '';
-    return `<div class="step ${cls}">${id ? `<img src="${svg(DEPARTMENTS[id].theme.icon)}" alt="${deptT(id).name}">` : `<span>${i + 1}</span>`}</div>`;
+    const m = s.mods[i];
+    return `<div class="step ${cls}" title="${id ? deptT(id).name : ''}">${id === 'boss' ? `<img src="${svg(DEPARTMENTS.boss.theme.icon)}" alt="${deptT('boss').name}">` : id ? (m && m !== 'none' ? MODIFIERS[m].icon : `<img src="${svg(DEPARTMENTS[id].theme.icon)}" alt="">`) : `<span>${i + 1}</span>`}</div>`;
   }).join('<i></i>');
-  const cards = doors.map((id, i) => {
-    const d = DEPARTMENTS[id], dt = deptT(id);
-    const stars = '★'.repeat(d.danger) + '☆'.repeat(3 - d.danger);
-    return `<button class="door ${id}" data-act="door" data-id="${id}" ${i === 0 ? 'data-focus' : ''} aria-label="${t('dangerAria', { name: dt.name, n: d.danger })}">
+  const cards = doors.map((id: DoorId, i) => {
+    if (id === 'boss') {
+      const d = DEPARTMENTS.boss, dt = deptT('boss');
+      return `<button class="door boss" data-act="door" data-id="boss" ${i === 0 ? 'data-focus' : ''} aria-label="${dt.name}">
       <span class="key">${i + 1}</span>
       <img src="${svg(d.theme.icon)}" alt="">
       <span class="dn">${dt.name}</span>
-      <span class="danger" title="${t('danger')}">${id === 'boss' ? t('boss') : stars}</span>
-      <span class="ln"><b>${t('hazard')}</b> ${dt.blurb}</span>
+      <span class="danger" title="${t('danger')}">${t('boss')}</span>
       <span class="ln"><b>${t('enemies')}</b> ${dt.enemiesText}</span>
       <span class="ln reward"><b>${t('reward')}</b> ${dt.rewardText}</span>
     </button>`;
+    }
+    const mt = modT(id), risk = MODIFIERS[id].risk;
+    return `<button class="door mod ${id}" data-act="door" data-id="${id}" ${i === 0 ? 'data-focus' : ''} aria-label="${t('dangerAria', { name: mt.name, n: risk })}">
+      <span class="key">${i + 1}</span>
+      <span class="modicon">${MODIFIERS[id].icon}</span>
+      <span class="dn">${mt.name}</span>
+      <span class="danger" title="${t('danger')}">${'★'.repeat(risk) + '☆'.repeat(3 - risk)}</span>
+      <span class="ln"><b>${t('enemies')}</b> ${mt.fx}</span>
+      <span class="ln reward"><b>${t('reward')}</b> ${mt.rw}</span>
+    </button>`;
   }).join('');
   return `<div class="route">
-    <h2 class="display">${doors[0] === 'boss' ? t('lastAisle') : t('pickAisle')}</h2>
+    <h2 class="display">${doors[0] === 'boss' ? t('lastAisle') : t('pickAisleIn', { name: deptT(s.theme).name })}</h2>
     <div class="progress">${steps}</div>
     <div class="doors">${cards}</div>
     <div class="hint">${t('clickDoor', { keys: doors.map((_, i) => `<kbd>${i + 1}</kbd>`).join(' ') })}</div>
@@ -344,22 +388,19 @@ function onClick(e: MouseEvent): void {
   play('click');
   switch (act) {
     case 'play': choosingStarter = true; render(); break;
-    case 'again': startMusic(); flow.startRun(store.state.starter, store.state.shift, store.state.weapon); break;
+    case 'again': startMusic(); flow.startRun(store.state.starter, store.state.shift, store.state.weapon, store.state.theme); break;
     case 'overtime': flow.overtime(); break;
     case 'shift': pickedShift = Number((e.target as HTMLElement).closest<HTMLElement>('[data-shift]')!.dataset.shift); screens.starter.innerHTML = starterHtml(); screens.starter.querySelector<HTMLElement>('[data-focus]')?.focus(); break;
     case 'weapon': pickWeapon((e.target as HTMLElement).closest<HTMLElement>('[data-weapon]')!.dataset.weapon as StarterWeapon); screens.starter.innerHTML = starterHtml(); screens.starter.querySelector<HTMLElement>('[data-focus]')?.focus(); break;
-    case 'starter': {
-      const st = (e.target as HTMLElement).closest<HTMLElement>('[data-starter]')!.dataset.starter as StarterId;
-      startMusic();
-      flow.startRun(st, pickedShift, pickedWeapon);
-      break;
-    }
+    case 'theme': pickTheme((e.target as HTMLElement).closest<HTMLElement>('[data-theme]')!.dataset.theme as DepartmentId); screens.starter.innerHTML = starterHtml(); screens.starter.querySelector<HTMLElement>('[data-focus]')?.focus(); break;
+    case 'starter': pickStarter((e.target as HTMLElement).closest<HTMLElement>('[data-starter]')!.dataset.starter as StarterId); screens.starter.innerHTML = starterHtml(); screens.starter.querySelector<HTMLElement>('[data-focus]')?.focus(); break;
+    case 'start-run': startPicked(); break;
     case 'close-starter': choosingStarter = false; render(); break;
     case 'resume': flow.resume(); break;
     case 'restart': flow.startRun(); break;
     case 'quit': flow.toTitle(); break;
     case 'exit': desktop?.quit(); break;
-    case 'door': flow.chooseDoor((e.target as HTMLElement).closest<HTMLElement>('[data-id]')!.dataset.id as DepartmentId); break;
+    case 'door': flow.chooseDoor((e.target as HTMLElement).closest<HTMLElement>('[data-id]')!.dataset.id as DoorId); break;
     case 'settings': openSettingsModal(); break;
     case 'replay-tutorial': resetTutorial(); (e.target as HTMLElement).closest('button')!.disabled = true; break;
     case 'close-settings':
@@ -477,9 +518,6 @@ function closeTitleSettings(): boolean {
   return !!m;
 }
 
-const labDeptOptions = (aisle: number, cur: DepartmentId) =>
-  (Object.keys(DEPARTMENTS) as DepartmentId[]).filter((d) => (d === 'boss') === (aisle === BOSS_WAVE))
-    .map((d) => `<option value="${d}" ${d === cur ? 'selected' : ''}>${deptT(d).name}</option>`).join('');
 
 function labHtml(o: LabOpts): string {
   const opts = (vals: (string | number)[], cur: string | number, label: (v: any) => string = String) => vals.map((v) => `<option value="${v}" ${String(v) === String(cur) ? 'selected' : ''}>${label(v)}</option>`).join('');
@@ -489,7 +527,8 @@ function labHtml(o: LabOpts): string {
   const shelves = [ECONOMY.shelfSlots, ...ECONOMY.shelfSizes];
   return `<h2>${t('lab')}</h2><div class="settings lab-form">
     ${row('aisle', t('labAisle'), opts(aisles, o.aisle, (a) => (a === BOSS_WAVE ? `${a} (${t('labBoss')})` : a > BOSS_WAVE ? `${a} (${t('labOvertime')})` : a)))}
-    ${row('dept', t('labDept'), labDeptOptions(o.aisle, o.dept))}
+    ${row('dept', t('labDept'), opts(THEMES, THEMES.includes(o.dept) ? o.dept : 'main', (d: DepartmentId) => deptT(d).name))}
+    ${row('mod', t('labMod'), opts(Object.keys(MODIFIERS), o.mod ?? 'none', (m: ModifierId) => modT(m).name))}
     ${row('shift', t('labShift'), opts(SHIFTS.map((_, i) => i), o.shift, (i) => `${i + 1}: ${shiftT(i).name}`))}
     ${row('starter', t('labStarter'), opts(STARTERS, o.starter, (s: StarterId) => starterT(s).name))}
     ${row('weapon', t('labWeapon'), opts(WEAPONS, o.weapon, (w: StarterWeapon) => itemT(w).name))}
@@ -509,7 +548,7 @@ function readLab(): LabOpts {
   return {
     aisle, dept: f('dept').value as DepartmentId, shift: Number(f('shift').value), starter: f('starter').value as StarterId, weapon: f('weapon').value as StarterWeapon,
     money: Math.max(0, Math.floor(Number(f('money').value)) || 0), cart: f('cart').value.split('x').map(Number) as [number, number],
-    shelf: Number(f('shelf').value), shopLevel: Number(f('shopLevel').value), event: f('event').value as LabOpts['event'], god: f('god').checked, keep: f('keep').checked,
+    shelf: Number(f('shelf').value), shopLevel: Number(f('shopLevel').value), event: f('event').value as LabOpts['event'], mod: f('mod').value as ModifierId, god: f('god').checked, keep: f('keep').checked,
   };
 }
 
@@ -536,10 +575,6 @@ function changeLanguage(l: Lang): void {
 
 function onInput(e: Event): void {
   const el = e.target as HTMLInputElement;
-  if (el.dataset.lab === 'aisle') {
-    const d = screens.title.querySelector<HTMLSelectElement>('[data-lab="dept"]')!;
-    d.innerHTML = labDeptOptions(Number(el.value), d.value as DepartmentId);
-  }
   const k = el.dataset.set as keyof typeof settings | undefined;
   if (!k) return;
   if (k === 'language') { changeLanguage(el.value as Lang); return; }
@@ -572,8 +607,10 @@ function onKey(e: KeyboardEvent): void {
   if (choosingStarter && s.phase === 'title') {
     if (e.key === 'Escape') { choosingStarter = false; render(); e.preventDefault(); return; }
     if (e.key.toLowerCase() === 'w') { pickWeapon(WEAPONS[(WEAPONS.indexOf(pickedWeapon) + 1) % WEAPONS.length]); play('click'); screens.starter.innerHTML = starterHtml(); return; }
+    if (e.key.toLowerCase() === 't') { pickTheme(THEMES[(THEMES.indexOf(pickedTheme) + 1) % THEMES.length]); play('click'); screens.starter.innerHTML = starterHtml(); return; }
     const pick = STARTERS[Number(e.key) - 1];
-    if (pick && starterUnlocked(pick) && shiftUnlocked(pick, pickedShift)) { startMusic(); flow.startRun(pick, pickedShift, pickedWeapon); return; }
+    if (pick) { pickStarter(pick); play('click'); screens.starter.innerHTML = starterHtml(); return; }
+    if (e.key === 'Enter' && !(e.target as HTMLElement).closest('[data-act="start-run"],[data-act="close-starter"]')) { startPicked(); e.preventDefault(); }
   }
   if (e.key === 'Escape') {
     if (flow.paused) flow.resume();

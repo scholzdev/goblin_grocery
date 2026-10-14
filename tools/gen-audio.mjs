@@ -162,13 +162,14 @@ S('enemy_death', () => {
 });
 
 S('shove', () => {
-  const r = rng(9), d = 0.25, o = buf(d);
-  const env = (t) => Math.sin(Math.PI * Math.min(1, t / d)) ** 1.5;
-  const rattle = mul(hp(white(d, r), 1400), (t) => (Math.sin(TAU * 55 * t) > 0.2 ? 1 : 0.15) * env(t));
-  mix(o, lp(rattle, 6000), 0, 0.7);
-  mix(o, mul(lp(pink(d, r), (t) => 400 + 2500 * Math.sin(Math.PI * t / d)), env), 0, 1.6);
-  for (const t0 of [0.03, 0.09, 0.15, 0.2]) mix(o, tone(0.03, () => 2200 + r() * 800, 'sine', decay(100, 0.0008)), t0, 0.2);
-  return o;
+  // Punchy cartoon cart dash: low thump + fast airy whoosh + rising zip + a quick wheel rattle.
+  const r = rng(9), d = 0.3, o = buf(d);
+  mix(o, tone(0.12, sweep(170, 50, 0.09), 'sine', decay(30, 0.001)), 0, 1.1);
+  const whooshEnv = (t) => (t < 0.025 ? t / 0.025 : Math.exp(-(t - 0.025) * 11));
+  mix(o, mul(bp(pink(d, r), 300, (t) => 900 + 4200 * Math.exp(-t * 9)), whooshEnv), 0, 2.2);
+  mix(o, tone(0.09, sweep(320, 1100, 0.08), 'tri', adsr(0.004, 0.03, 0.5, 0.04, 0.09)), 0.005, 0.22);
+  for (const [t0, f] of [[0.02, 2600], [0.055, 3100], [0.085, 2400]]) mix(o, tone(0.025, () => f, 'square', decay(140, 0.0005)), t0, 0.06);
+  return lp(o, 7000);
 });
 
 S('spawn', () => {

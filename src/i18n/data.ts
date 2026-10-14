@@ -6,6 +6,7 @@ import { ENEMIES } from '../data/enemies';
 import { DEPARTMENTS } from '../data/departments';
 import { SHIFTS } from '../data/waves';
 import { CART_SKINS, GOBLIN_SKINS, UNLOCKS } from '../data/unlocks';
+import { tierScaling } from '../systems/synergies';
 import type { CartSkin, GoblinSkin } from '../data/unlocks';
 import type { DepartmentId, EnemyId, ItemTypeId, RecipeId, StarterId } from '../types';
 
@@ -14,6 +15,11 @@ const de = () => lang() === 'de';
 export const itemT = (id: ItemTypeId) => {
   const { name, blurb, rules } = de() ? DATA_DE.items[id] : ITEMS[id];
   return { name, blurb, rules };
+};
+/** Item rules text with the per-level numbers ({0}, {1}, …: the tierScaling rows) filled in for `tier`. */
+export const itemRules = (id: ItemTypeId, tier = 1): string => {
+  const rows = tierScaling(id);
+  return itemT(id).rules.replace(/\{(\d)\}/g, (_, i) => rows[+i]?.values[tier - 1] ?? '');
 };
 export const recipeT = (id: RecipeId) => {
   const { name, short, summary, detail } = de() ? DATA_DE.recipes[id] : RECIPES[id];
@@ -39,4 +45,4 @@ export const goblinSkinT = (id: GoblinSkin) => (de() ? DATA_DE.goblinSkins[id] :
 export const cartSkinT = (id: CartSkin) => (de() ? DATA_DE.cartSkins[id] : CART_SKINS[id]);
 export const unlockNeedT = (id: string): string =>
   de() ? DATA_DE.unlocks[id] : UNLOCKS.find((u) => u.id === id)?.need ?? '';
-export const tagT = (tag: string): string => (de() ? DATA_DE.tags[tag] ?? tag : tag);
+export const tagT = (tag: string): string => (de() ? DATA_DE.tags[tag] ?? tag : tag.charAt(0).toUpperCase() + tag.slice(1));

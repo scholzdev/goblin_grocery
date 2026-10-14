@@ -4,7 +4,7 @@ const b = await chromium.launch({ channel: 'chrome', args: ['--disable-gpu-vsync
 const page = await b.newPage({ viewport: { width: 1920, height: 1080 } });
 await page.goto(process.argv[2] ?? 'http://localhost:5173/');
 await page.waitForSelector('#title:not(.hidden)');
-await page.click('[data-act="play"]'); await page.click('[data-starter="toaster"]'); await page.waitForTimeout(500);
+await page.click('[data-act="play"]'); await page.click('[data-starter="toaster"]'); await page.click('[data-act="start-run"]'); await page.waitForTimeout(500);
 await page.keyboard.press('F3'); await page.waitForTimeout(2500);
 await page.keyboard.press('F4'); await page.waitForTimeout(1500);
 const samples = [];

@@ -23,20 +23,25 @@ export class Hazards {
   private next = 0;
   private g: Phaser.GameObjects.Graphics;
 
-  constructor(private scene: ArenaScene, readonly kind: HazardKind) {
+  /** Aisle 1..7 drives the ramp: +1 spot per 3 aisles, belts 4% faster per aisle. Overtime uses the aisle-7 values. */
+  private speed: number;
+
+  constructor(private scene: ArenaScene, readonly kind: HazardKind, aisle = 1) {
+    const a = Math.min(Math.max(aisle, 1), 7) - 1, extra = Math.floor(a / 3);
+    this.speed = DEPT_TUNING.conveyor.speed * (1 + 0.04 * a);
     this.g = scene.add.graphics().setDepth(DEPTH.telegraph);
     const T = DEPT_TUNING;
     if (kind === 'ice') {
-      for (const p of ICE_SPOTS.slice(0, T.ice.patches)) {
+      for (const p of ICE_SPOTS.slice(0, T.ice.patches + extra)) {
         scene.add.image(p.x, p.y, 'hz_ice').setDepth(DEPTH.decal - 0.5);
         this.patches.push({ x: p.x, y: p.y, ...ICE_RADII });
       }
     } else if (kind === 'vents') {
-      for (const p of VENT_SPOTS.slice(0, T.vents.count)) {
+      for (const p of VENT_SPOTS.slice(0, T.vents.count + extra)) {
         this.timed.push({ ...p, img: scene.add.image(p.x, p.y, 'hz_vent').setDepth(DEPTH.decal - 0.5), phase: 'idle', t: 0, hitPlayer: false, hit: new Set(), w: T.vents.radius });
       }
     } else if (kind === 'cables') {
-      for (const c of CABLE_ROWS.slice(0, T.cables.count)) {
+      for (const c of CABLE_ROWS.slice(0, T.cables.count + extra)) {
         const img = scene.add.tileSprite((c.x0 + c.x1) / 2, c.y, c.x1 - c.x0, 36, 'hz_cable').setDepth(DEPTH.decal - 0.5);
         this.timed.push({ x: (c.x0 + c.x1) / 2, y: c.y, img, phase: 'idle', t: 0, hitPlayer: false, hit: new Set(), w: c.x1 - c.x0 });
       }
@@ -56,12 +61,12 @@ export class Hazards {
 
   /** Conveyor push for anything standing on a belt (world units per second, signed). */
   beltPush(x: number, y: number): number {
-    for (const b of this.belts) if (x > b.x0 && x < b.x1 && Math.abs(y - b.y) < DEPT_TUNING.conveyor.height / 2) return b.dir * DEPT_TUNING.conveyor.speed;
+    for (const b of this.belts) if (x > b.x0 && x < b.x1 && Math.abs(y - b.y) < DEPT_TUNING.conveyor.height / 2) return b.dir * this.speed;
     return 0;
   }
 
   update(dt: number, active: boolean): void {
-    for (const b of this.belts) b.img.tilePositionX -= b.dir * DEPT_TUNING.conveyor.speed * dt * (b.dir < 0 ? -1 : 1);
+    for (const b of this.belts) b.img.tilePositionX -= b.dir * this.speed * dt * (b.dir < 0 ? -1 : 1);
     this.g.clear();
     if (!this.timed.length) return;
     const cfg = this.kind === 'vents' ? DEPT_TUNING.vents : DEPT_TUNING.cables;

@@ -3,7 +3,7 @@ import { deptT, enemyT } from '../i18n/data';
 import { store } from '../state/store';
 import { flow } from '../flow';
 import { waveDef, eliteChance, bossTuning, ECONOMY, SHIFTS, WAVE_RAMP } from '../data/waves';
-import { SHOW_HP_BAR, EGG_BLAST, MELON_SLICES, ELITE, GIFTCARD, GUM } from '../data/enemies';
+import { SHOW_HP_BAR, EGG_BLAST, MELON_SLICES, ELITE, GIFTCARD, GUM, THEME_SUMMONS } from '../data/enemies';
 import { GumPuddles } from './gum';
 import { CRIT, ECHO, PLAYER, STARTER_LOOKS } from '../data/items';
 import { RECIPE_TUNING } from '../data/recipes';
@@ -28,13 +28,14 @@ const sk = (key: string): string =>
   GOBLIN_PARTS.includes(key) && profile.goblin !== 'classic' ? `${key}__${profile.goblin}`
     : CART_PARTS.includes(key) && profile.cart !== 'chrome' ? `${key}__${profile.cart}` : key;
 import { DEPARTMENTS, DEPT_TUNING } from '../data/departments';
+import { MODIFIERS } from '../data/modifiers';
 import { waveSpawnPlan } from '../systems/shop';
 import { killCoins } from '../systems/combat';
 import type { DepartmentDef } from '../types';
-import { OBSTACLES, OBSTACLE_KINDS, type Obstacle } from '../data/obstacles';
-import { pushOutCapsule, pushOutCircle, segmentHitsRect, steerAround } from '../systems/obstacles';
+import { OBSTACLES, OBSTACLE_KINDS } from '../data/obstacles';
+import { type Rect, pushOutCapsule, pushOutCircle, segmentHitsRect, steerAround } from '../systems/obstacles';
 
-import { ARENA, ENTRIES } from '../data/arena';
+import { ARENA, ENTRIES, SIDE_UNITS, DECO_SPOTS, edgeSolids } from '../data/arena';
 export { ARENA };
 
 interface Player {
@@ -57,7 +58,7 @@ export class ArenaScene extends Phaser.Scene {
   enraged = false;
   dept!: DepartmentDef;
   hazards!: Hazards;
-  obstacles: Obstacle[] = [];
+  obstacles: Rect[] = [];
   private vaulting = false;
   aisleEvent!: AisleEvents;
   private plan!: ReturnType<typeof waveSpawnPlan>;
@@ -111,8 +112,8 @@ export class ArenaScene extends Phaser.Scene {
     center();
     this.scale.on(Phaser.Scale.Events.RESIZE, center);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.scale.off(Phaser.Scale.Events.RESIZE, center));
-    this.hazards = new Hazards(this, s.phase === 'combat' ? this.dept.hazard : 'none');
-    const roll = s.phase === 'combat' ? rollEvent(this.dept.id, s.wave, s.shift, flow.rng, this.wave.boss, s.labEvent) : null;
+    this.hazards = new Hazards(this, s.phase === 'combat' ? this.dept.hazard : 'none', s.wave);
+    const roll = s.phase === 'combat' ? rollEvent(this.dept.id, s.wave, s.shift, flow.rng, this.wave.boss, s.labEvent && s.labEvent !== 'random' ? s.labEvent : MODIFIERS[s.modifier].forceEvent ? (flow.rng() < 0.5 ? 'wetFloor' : 'outage') : 'random') : null;
     this.aisleEvent = new AisleEvents(this, roll);
     if (roll) store.emit('tut:event');
     this.gum = new GumPuddles(this);
@@ -133,7 +134,7 @@ export class ArenaScene extends Phaser.Scene {
 
     if (s.phase === 'combat') {
       this.planWave();
-      playMusic(musicFor(this.dept.id, this.wave.boss));
+      playMusic(musicFor(this.dept.id, this.wave.boss, s.modifier));
       showBanner(this.wave.boss ? t('finalAisle') : deptT(this.dept.id).name, this.wave.boss ? t('managerAwaits') : this.dept.hazard === 'none' ? t('surviveCheckout') : deptT(this.dept.id).blurb);
     }
     if (import.meta.env.DEV) this.devHooks();
@@ -159,12 +160,11 @@ export class ArenaScene extends Phaser.Scene {
     [160, 528, 784, 1152].forEach((x, i) => this.add.image(x, 176, th.walls[i % th.walls.length]).setOrigin(0.5, 1).setDepth(DEPTH.world + 176));
     // Aisle back walls.
     for (const [i, x] of [344, 968].entries()) this.add.image(x, 70, th.walls[(i + 1) % th.walls.length]).setOrigin(0.5, 1).setScale(0.45, 0.5).setTint(0xb7a9d6).setDepth(1);
-    for (const [x, flip] of [[30, false], [1250, true]] as const) {
-      for (const by of [400, 810]) this.add.image(x, by, th.sides[0]).setOrigin(0.5, 1).setFlipX(flip).setDepth(DEPTH.world + by - 120);
-    }
+    SIDE_UNITS.xs.forEach((x, i) => {
+      for (const by of SIDE_UNITS.bottoms) this.add.image(x, by, th.sides[0]).setOrigin(0.5, 1).setFlipX(i === 1).setDepth(DEPTH.world + by - 120);
+    });
     // Same deco spots for every department; the department decides what stands there.
-    const spots: [number, number, number][] = [[210, 812, 1], [640, 812, 1], [1070, 812, 1], [1140, 250, 0.85], [150, 238, 0.85]];
-    spots.forEach(([x, y, sc], i) => this.add.image(x, y, th.props[i % th.props.length]).setOrigin(0.5, 0.95).setScale(sc).setDepth(DEPTH.world + y));
+    DECO_SPOTS.forEach(([x, y, sc], i) => this.add.image(x, y, th.props[i % th.props.length]).setOrigin(0.5, 0.95).setScale(sc).setDepth(DEPTH.world + y));
     for (const e of ENTRIES) this.markers.push(this.add.image(e.x, e.y, 'entry_marker').setDepth(DEPTH.decal).setAlpha(0.55).setScale(0.9));
   }
 
@@ -173,9 +173,10 @@ export class ArenaScene extends Phaser.Scene {
     this.obstacles = [];
     if (store.state.phase !== 'combat') return;
     const layouts = OBSTACLES[this.dept.id];
-    this.obstacles = layouts[Math.floor(flow.rng() * layouts.length)];
-    if (this.obstacles.length) store.emit('tut:obstacles');
-    for (const o of this.obstacles) {
+    const layout = layouts[Math.floor(flow.rng() * layouts.length)];
+    this.obstacles = [...layout, ...edgeSolids(this.dept.theme.props)];
+    if (layout.length) store.emit('tut:obstacles');
+    for (const o of layout) {
       this.add.image(o.x, o.y + o.h / 2, OBSTACLE_KINDS[o.kind].tex).setOrigin(0.5, 0.9).setDepth(DEPTH.world + o.y + o.h / 2);
     }
   }
@@ -343,7 +344,7 @@ export class ArenaScene extends Phaser.Scene {
         g.ids.forEach((id, k) => {
           noteEnemy(store.state, id);
           const a = (k / g.ids.length) * Math.PI * 2;
-          this.enemies.push(createEnemy(this, id, en.x + Math.cos(a) * 18 * Math.min(1, k), en.y + Math.sin(a) * 12 * Math.min(1, k), this.plan.hpScale * this.ramp(WAVE_RAMP.hp), this.plan.speedScale * this.ramp(WAVE_RAMP.speed), flow.rng() < eliteChance(id, this.wave, store.state.shift), this.plan.dmgScale));
+          this.enemies.push(createEnemy(this, id, en.x + Math.cos(a) * 18 * Math.min(1, k), en.y + Math.sin(a) * 12 * Math.min(1, k), this.plan.hpScale * this.ramp(WAVE_RAMP.hp), this.plan.speedScale * this.ramp(WAVE_RAMP.speed), flow.rng() < eliteChance(id, this.wave, store.state.shift) + (this.wave.boss ? 0 : MODIFIERS[store.state.modifier].eliteBonus), this.plan.dmgScale));
           if (this.enemies[this.enemies.length - 1].elite) store.emit('tut:elite');
         });
         this.fx.puff(en.x, en.y, 4);
@@ -371,7 +372,10 @@ export class ArenaScene extends Phaser.Scene {
     const T = bossTuning(store.state.shift);
     const entries = [this.pickEntry(), this.pickEntry()];
     for (let k = 0; k < 2; k++) {
-      const ids = Array.from({ length: Math.ceil(n / 2) }, () => T.summonTypes[Math.floor(flow.rng() * T.summonTypes.length)]);
+      const ids = Array.from({ length: Math.ceil(n / 2) }, () => {
+        const pool = flow.rng() < 0.5 ? THEME_SUMMONS[store.state.theme] ?? T.summonTypes : T.summonTypes;
+        return pool[Math.floor(flow.rng() * pool.length)];
+      });
       this.groups.push({ at: this.waveTime + 0.8, ids, entry: entries[k], told: true, done: false });
       this.tellEntry(entries[k]);
     }
@@ -548,9 +552,9 @@ export class ArenaScene extends Phaser.Scene {
     s.stats.kills++;
     noteEnemy(s, e.def.id, { elite: e.elite });
     const thief = e.def.id === 'giftcard';
-    const coins = thief ? Math.round(e.def.coins * GIFTCARD.coinMult * this.dept.coinMult * SHIFTS[store.state.shift].coinMult) : e === this.boss
+    const coins = thief ? Math.round(e.def.coins * GIFTCARD.coinMult * this.dept.coinMult * MODIFIERS[s.modifier].coinMult * SHIFTS[store.state.shift].coinMult) : e === this.boss
       ? bossTuning(store.state.shift).coins
-      : killCoins(e.def.coins * (e.elite ? ELITE.coinMult : 1), this.dept.coinMult * SHIFTS[store.state.shift].coinMult, flow.rng);
+      : killCoins(e.def.coins * (e.elite ? ELITE.coinMult : 1), this.dept.coinMult * MODIFIERS[s.modifier].coinMult * SHIFTS[store.state.shift].coinMult, flow.rng);
     // Bosses always pay out in full; regular groceries drop each coin only sometimes.
     for (let i = 0; i < coins; i++) if (thief || e.def.id === 'boss' || flow.rng() < ECONOMY.killCoinChance) this.dropCoin(e.x, e.y, enemyT(e.def.id).name);
     const B = DEPT_TUNING.bread;

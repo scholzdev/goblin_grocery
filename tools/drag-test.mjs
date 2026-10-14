@@ -5,7 +5,7 @@ const page = await b.newPage({ viewport: { width: 1440, height: 900 } });
 const errs = []; page.on('pageerror', (e) => errs.push(e.message)); page.on('console', (m) => m.type() === 'error' && errs.push(m.text()));
 await page.goto(process.argv[2] ?? 'http://localhost:5173/');
 await page.waitForSelector('#title:not(.hidden)');
-await page.click('[data-act="play"]'); await page.click('[data-starter="toaster"]'); await page.waitForTimeout(400);
+await page.click('[data-act="play"]'); await page.click('[data-starter="toaster"]'); await page.click('[data-act="start-run"]'); await page.waitForTimeout(400);
 await page.keyboard.press('F2');
 await page.waitForSelector('#shop:not(.hidden)', { timeout: 10000 });
 await page.evaluate(() => { window.__gg.store.state.money = 200; window.__gg.store.changed(); });

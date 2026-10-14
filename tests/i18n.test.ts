@@ -1,10 +1,13 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { setLang } from '../src/i18n/lang';
 import { DATA_DE } from '../src/i18n/data-de';
-import { cartSkinT, deptT, enemyT, goblinSkinT, itemT, recipeT, shiftT, starterT, tagT, unlockNeedT } from '../src/i18n/data';
+import { cartSkinT, deptT, enemyT, goblinSkinT, itemRules, itemT, recipeT, shiftT, starterT, tagT, unlockNeedT } from '../src/i18n/data';
+import { tierScaling } from '../src/systems/synergies';
 import { ITEMS, PLAYER } from '../src/data/items';
 import { RECIPES } from '../src/data/recipes';
 import { ENEMIES } from '../src/data/enemies';
+import { UI } from '../src/i18n/ui';
+import { MODIFIERS } from '../src/data/modifiers';
 import { DEPARTMENTS } from '../src/data/departments';
 import { SHIFTS } from '../src/data/waves';
 import { CART_SKINS, GOBLIN_SKINS, UNLOCKS } from '../src/data/unlocks';
@@ -27,6 +30,20 @@ describe('German data', () => {
     for (const t of ['ranged', 'melee', 'area', 'electric']) expect(DATA_DE.tags[t]).toBeTruthy();
   });
 
+  it('fills item rule placeholders for every level, EN and DE, with the same set', () => {
+    const ph = (x: string) => (x.match(/\{\d\}/g) ?? []).sort().join();
+    for (const id of Object.keys(ITEMS) as (keyof typeof ITEMS)[]) {
+      expect(ph(DATA_DE.items[id].rules), id).toBe(ph(ITEMS[id].rules));
+      for (const l of ['en', 'de'] as const) {
+        setLang(l);
+        for (const tier of [1, 2, 3]) expect(itemRules(id, tier), `${id} ${l} ★${tier}`).not.toMatch(/[{}]/);
+      }
+    }
+    setLang('en');
+    expect(itemRules('boot', 2)).toContain(tierScaling('boot')[0].values[1]);
+    expect(itemRules('boot', 2)).not.toBe(itemRules('boot', 1));
+  });
+
   it('keeps every number from the English item rules', () => {
     for (const id of Object.keys(ITEMS) as (keyof typeof ITEMS)[]) {
       const de = nums(DATA_DE.items[id].rules);
@@ -37,7 +54,7 @@ describe('German data', () => {
   it('accessors switch with the language', () => {
     expect(itemT('toaster').name).toBe('Toaster');
     expect(unlockNeedT('microwave')).toBe('Reach aisle 4');
-    expect(tagT('melee')).toBe('melee');
+    expect(tagT('melee')).toBe('Melee');
     setLang('de');
     expect(itemT('pan').name).toBe('Bratpfanne');
     expect(recipeT('toastMode').name).toBe('Toast-Modus');
@@ -49,5 +66,17 @@ describe('German data', () => {
     expect(cartSkinT('chrome').name).toBe('Filialwagen');
     expect(unlockNeedT('microwave')).toBe('Erreiche Gang 4');
     expect(tagT('melee')).toBe('Nahkampf');
+  });
+});
+
+describe('modifier texts', () => {
+  it('have German names/effects with the same numbers as English', () => {
+    for (const id of Object.keys(MODIFIERS)) {
+      for (const p of ['modName', 'modShort', 'modFx', 'modRw']) {
+        const k = `${p}_${id}` as keyof typeof UI.en;
+        expect(UI.de[k], k).toBeTruthy();
+        expect(nums(UI.de[k]), k).toEqual(nums(UI.en[k]));
+      }
+    }
   });
 });

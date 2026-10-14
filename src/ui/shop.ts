@@ -1,6 +1,6 @@
 import { store } from '../state/store';
 import { profile } from '../state/profile';
-import { ITEMS, ITEM_IDS, RARITY_COLORS, TIER } from '../data/items';
+import { ITEMS, ITEM_IDS, TIER } from '../data/items';
 import { RECIPES } from '../data/recipes';
 import { BOSS_WAVE, ECONOMY, SHOP_LEVELS } from '../data/waves';
 import { labAddItem, labClear, cartUpgradeCost, nextCartSize, shelfUpgradeCost, upgradeCart, upgradeShelf, buyOffer, mergeItems, mergeTargetFor, toggleLock, upgradeShop, shopUpgradeCost, moveItem, previewMerge, previewMove, repair, reroll, sellItem, type MoveTarget } from '../state/run';
@@ -10,14 +10,15 @@ import { currentRerollCost, sellPrice } from '../systems/shop';
 import { flow } from '../flow';
 import { play } from '../audio/sfx';
 import { svg } from './hud';
+import { settings } from '../state/settings';
+import { icons } from './icons';
 import { t, fmtNum } from '../i18n';
-import { itemT, recipeT, tagT } from '../i18n/data';
+import { itemRules, itemT, recipeT, tagT } from '../i18n/data';
 import type { Build, ItemInstance, ItemTypeId, RecipeId, Rotation, RunState } from '../types';
 
 // Cell pitch in design pixels (cell + 4px gap). 92 for the 5×4 cart; shrinks so bigger carts fit the same 460×368 area.
 let CELL = 92;
 const cellFor = (cols: number, rows: number) => Math.min(92, Math.floor(460 / cols), Math.floor(368 / rows));
-const idleInspector = () => `<div class="nm">${t('inspector')}</div><div class="muted">${t('idleHover')}</div><div style="margin-top:6px">${t('idleHelp')}</div>`;
 const RECIPE_ORDER = Object.keys(RECIPES) as RecipeId[];
 
 let root: HTMLElement;
@@ -39,6 +40,11 @@ let drag: Drag | null = null;
 let hoverUid: string | null = null;
 let hoverType: ItemTypeId | null = null;
 let hoverTier: number | undefined;
+let hoverSlot: number | null = null;
+let loyaltyOn = false;
+let card: HTMLElement | null = null; // floating item card (body-level, like the drag ghost)
+let cardHtml = '';
+let hint: HTMLElement | null = null; // drop-feedback bubble that follows the drag ghost
 let selectedUid: string | null = null;
 let labTier = 1;
 
@@ -48,7 +54,7 @@ export function initShop(ui: HTMLElement): void {
   root.className = 'interactive hidden';
   ui.append(root);
   store.on('change', () => { if (!drag) render(); });
-  store.on('shop-open', () => { ledger = []; hoverUid = null; hoverType = null; render(); });
+  store.on('shop-open', () => { ledger = []; hoverUid = null; hoverType = null; loyaltyOn = false; render(); });
   root.addEventListener('pointerdown', onPointerDown);
   root.addEventListener('click', onClick);
   root.addEventListener('pointerover', onHover);
@@ -61,6 +67,7 @@ export function initShop(ui: HTMLElement): void {
 export function shopKey(e: KeyboardEvent): boolean {
   if (store.state.phase !== 'shop') return false;
   if (drag && e.key === 'Escape') { cancelDrag(); return true; }
+  if (!drag && selectedUid && e.key === 'Escape') { selectedUid = null; refreshHover(); return true; }
   if (drag && (e.key === 'r' || e.key === 'R')) { rotateHeld(); return true; }
   return false;
 }
@@ -172,7 +179,7 @@ function render(): void {
   const s = store.state;
   const show = s.phase === 'shop' && !!s.shop;
   root.classList.toggle('hidden', !show);
-  if (!show) return;
+  if (!show) { hideCard(); return; }
   const shop = s.shop!;
   const earned = s.coinLog.map((l) => `<div class="line"><span>${esc(l.label)}</span><span>+${l.amount}</span></div>`).join('');
   const spent = ledger.map((l) => `<div class="line ${l.amount < 0 ? 'neg' : ''}"><span>${esc(l.label)}</span><span>${l.amount > 0 ? '+' : ''}${l.amount}</span></div>`).join('');
@@ -209,6 +216,7 @@ function render(): void {
       <button class="btn small gold" data-act="repair" style="margin-top:10px" ${shop.repairUsed || s.hp >= s.build.maxHp || s.money < ECONOMY.repairCost ? 'disabled' : ''}>
         ${shop.repairUsed ? t('repaired') : t('repairBtn', { hp: ECONOMY.repairHp, c: ECONOMY.repairCost })}</button>
       <div style="display:flex;justify-content:space-between;align-items:end;margin-top:12px"><div class="barcode"></div><small style="font-weight:800">${t('thanks')}</small></div>
+      <div class="shop-hint">${t('idleHover')}</div>
     </div>
     <div class="col-mid">
       <div class="cart-title sticker">${t('cartLoadout')}</div>
@@ -223,7 +231,6 @@ function render(): void {
       <div class="shelf" style="grid-template-columns:repeat(${s.inventory.shelf.length}, ${slotPx(s.inventory.shelf.length)}px)">${shelf}</div>
       <div class="sell" data-sell="1">${t('dropSell')}</div>
     </div>
-    <div class="inspector receipt"></div>
     <div class="bottom">
       <button class="btn coral next" data-act="next">${isLast ? t('faceManager') : t('nextAisle')} ▸</button>
     </div>
@@ -250,6 +257,19 @@ export function mergePartner(inst: ItemInstance): ItemInstance | null {
   return inv.shelf.find(same) ?? inv.placed.find(same) ?? null;
 }
 
+const ROW_ICONS = [icons.burst, icons.stopwatch];
+// Stat-tile icons per row of tierScaling(type) for non-weapons (first row first).
+const MOD_ICONS: Partial<Record<ItemTypeId, ((s?: number) => string)[]>> = {
+  fan: [icons.wind, icons.speed], fuel: [icons.flame], battery: [icons.speed, icons.bolt], ice: [icons.snow], hotsauce: [icons.flame],
+  pricegun: [icons.crosshair], popper: [icons.burst], doublebag: [icons.burst], multipack: [icons.plus, icons.burst],
+  tape: [icons.arrow, icons.crosshair, icons.wind], lunchbox: [icons.heart], magnet: [icons.magnet], bell: [icons.stopwatch],
+  energy: [icons.boot], coupon: [icons.coin], bubblewrap: [icons.shield], boot: [icons.boot, icons.burst],
+};
+const KIND_BY_TAG = { ranged: 'kindRanged', melee: 'kindMelee', area: 'kindArea' } as const;
+
+/** Long single-word names (e.g. "Preisauszeichner") shrink so the level pill stays inside the card. */
+const fitName = (n: string): number => (n.length > 14 ? 19 : n.length > 11 ? 22 : 26);
+
 export function inspectorHtml(type: ItemTypeId, uid: string | null, offerTier?: number): string {
   const s = store.state;
   const def = ITEMS[type];
@@ -258,35 +278,54 @@ export function inspectorHtml(type: ItemTypeId, uid: string | null, offerTier?: 
   const ws = uid ? s.build.weapons.find((x) => x.uid === uid) : null;
   const loc = uid ? findItem(s.inventory, uid) : null;
   const tier = loc?.inst.tier ?? offerTier ?? 1;
+  const rc = rarityClass(type, tier);
   const rarity = t(def.legendary ? 'rarLegendary' : tier === 3 ? 'rarEpic' : tier === 2 ? 'rarRare' : 'rarCommon');
-  const head = `<header><div class="nm">${itemT(type).name}${starsHtml(tier)}</div>
-    <div class="chips"><span class="chip ${rarityClass(type, tier)}">${rarity}</span><span class="chip">${kindLabel(type)}</span>${tagChips(type)}<span class="chip">${w}×${h}</span>
-    <span class="chip coin"><img class="coin-ico" src="${svg('coin')}" alt="">${loc ? t('sells', { n: sellPrice(type, tier) }) : def.price}</span></div></header>`;
+  const weaponTag = (def.tags ?? []).find((tg): tg is keyof typeof KIND_BY_TAG => tg in KIND_BY_TAG);
+  const kind = def.kind === 'weapon' && weaponTag ? t(KIND_BY_TAG[weaponTag]) : kindLabel(type);
+  const otherTags = (def.tags ?? []).filter((tg) => !(tg in KIND_BY_TAG));
+  const electric = !!(def.weapon && def.electrical);
+  const head = `<header><span class="ico-tile ${rc}"><img src="${svg(`icon_${type}`)}" alt=""></span>
+    <div class="hd"><div class="nm"><span style="font-size:${fitName(itemT(type).name)}px">${itemT(type).name}</span><b class="lv ${def.legendary ? 'leg' : `t${tier}`}">★${def.legendary ? '' : tier}</b></div>
+    <span class="sub ${rc}">${rarity} · ${kind}</span></div></header>
+    <div class="chips">${electric ? `<span class="chip elec">${icons.bolt(15)}${tagT('electric')}</span>` : ''}${otherTags.map((tg) => `<span class="chip">${tagT(tg)}</span>`).join('')}<span class="chip">${icons.grid(15)}${w}×${h}</span>
+    <span class="chip coin"><img class="coin-ico" src="${svg('coin')}" alt="">${loc ? t('sells', { n: sellPrice(type, tier) }) : def.price}</span></div>`;
 
   let body = '';
+  // Weapon stats: live values when in the cart, the base values at this level otherwise (shelf / offer).
+  const wd = def.weapon;
+  const tile = (ic: string, v: string, label: string, small = false) => `<div class="stat ${small ? 'sm' : ''}">${ic}<b>${v}</b><small>${label}</small></div>`;
+  if (ws || wd) {
+    const dmg = ws ? ws.damage : wd!.damage * TIER.weaponDamage(tier);
+    const cd = ws ? ws.cooldown : wd!.cooldown * TIER.weaponCooldown(tier);
+    const rng = ws ? ws.range : wd!.range;
+    const pat = ws?.pattern ?? wd!.pattern;
+    const cnt = ws?.count ?? wd!.count ?? 1;
+    body += `<div class="stats3">${tile(icons.burst(26), `${fmtNum(+dmg.toFixed(1))}${cnt > 1 ? ` ×${cnt}` : ''}`, t('statDamage'))}${tile(icons.stopwatch(26), `${fmtNum(cd.toFixed(2))} s`, t('statEvery'))}${tile(icons.crosshair(26), `${Math.round(rng)}`, t(pat === 'sweep' ? 'reachCap' : pat === 'pulse' || pat === 'aura' ? 'statRadius' : 'rangeCap'))}</div>`;
+  }
+  const modRows = wd ? [] : tierScaling(type).slice(0, 3);
+  if (modRows.length) body += `<div class="stats3">${modRows.map((r, i) => tile((MOD_ICONS[type]?.[i] ?? icons.burst)(26), r.values[tier - 1], r.label)).join('')}</div>`;
   if (ws) {
-    const kv: [string, string][] = [
-      [t('statDamage'), `${fmtNum(+ws.damage.toFixed(1))}${ws.count > 1 ? ` ×${ws.count}` : ''}`],
-      [t('statEvery'), `${fmtNum(ws.cooldown.toFixed(2))} s`],
-      [t(ws.pattern === 'sweep' ? 'reachCap' : ws.pattern === 'pulse' || ws.pattern === 'aura' ? 'statRadius' : 'rangeCap'), `${Math.round(ws.range)}`],
-    ];
+    const kv: [string, string][] = [];
     if (ws.pierce) kv.push([t('statPierce'), `+${ws.pierce}`]);
     if (ws.burn) kv.push([t('statBurn'), `${fmtNum(+ws.burn.dps.toFixed(1))}/s`]);
     if (ws.slow) kv.push([t('statSlow'), `${Math.round(ws.slow.pct * 100)}%`]);
     if (ws.critChance) kv.push([t('statCrit'), `${Math.round(ws.critChance * 100)}%`]);
     if (ws.echo) kv.push([t('statDouble'), `${Math.round(ws.echo * 100)}%`]);
-    body += `<div class="kv">${kv.map(([k, v]) => `<span>${k}</span><b>${v}</b>`).join('')}</div>`;
+    if (kv.length) body += `<div class="kv">${kv.map(([k, v]) => `<span>${k}</span><b>${v}</b>`).join('')}</div>`;
     const buffs = describeBuffs(ws, s.inventory);
-    if (buffs.length) body += `<h5>${t('boosts')}</h5><ul class="boosts">${buffs.map((b) => `<li>${esc(b)}</li>`).join('')}</ul>`;
-  } else if (def.weapon && loc?.where === 'shelf') body += `<p class="note">${t('onShelf')}</p>`;
+    if (buffs.length) body += `<ul class="boosts">${buffs.map((b) => `<li>${esc(b)}</li>`).join('')}</ul>`;
+  }
+  const callout = !ws && def.weapon && loc?.where === 'shelf'
+    ? `<div class="callout">${icons.crate(30)}<div><b>${t('shelfTitle')}</b><span>${t('shelfText')}</span></div></div>` : '';
 
-  body += `<p class="rules">${esc(itemT(type).rules)}</p>`; // per-level numbers are in the table below
+  body += `<p class="rules">${esc(itemRules(type, tier))}</p>`; // numbers follow the item's level
 
-  // Level scaling: ★1 / ★2 / ★3 values, the current level highlighted in its rarity colour.
+  // Level comparison: each level column tinted in its rarity colour, the current one stronger and labelled.
   const scale = tierScaling(type);
   if (scale.length) {
-    body += `<h5>${t('perLevel')}</h5><div class="scal" style="--rc:${RARITY_COLORS[tier as 1 | 2 | 3]}"><span></span>${[1, 2, 3].map((t) => `<em class="${t === tier ? 'cur' : ''}">★${t}</em>`).join('')}${scale.map((r) =>
-      `<span>${r.label}</span>${r.values.map((v, i) => `<i class="${i + 1 === tier ? 'cur' : ''}">${v}</i>`).join('')}`).join('')}</div>`;
+    const col = (lv: number) => `c${lv}${lv === tier ? ' cur' : ''}`;
+    body += `<h5>${t('perLevel')}</h5><div class="scal"><span></span>${[1, 2, 3].map((lv) => `<em class="${col(lv)}"><b class="lv t${lv}">★${lv}</b>${lv === tier ? `<u>${t('current')}</u>` : ''}</em>`).join('')}${scale.map((r, ri) =>
+      `<span>${wd ? (ROW_ICONS[ri]?.(16) ?? '') : ''}${r.label}</span>${r.values.map((v, i) => `<i class="${col(i + 1)}${ri === scale.length - 1 ? ' last' : ''}">${v}</i>`).join('')}`).join('')}</div>`;
   }
 
   // Combos this item belongs to: compact rows (partner icons · name · effect). Undiscovered ones are not shown at all.
@@ -306,28 +345,72 @@ export function inspectorHtml(type: ItemTypeId, uid: string | null, offerTier?: 
   let foot = '';
   if (loc && s.phase === 'shop') {
     const partner = mergePartner(loc.inst);
+    const piece = (n: number, dim = false) => `<span class="cmb ${dim ? 'dim' : ''}"><img src="${svg(`icon_${type}`)}" alt=""><b class="lv t${n}">★${n}</b></span>`;
+    const vis = `<div class="cvis">${piece(tier)}${icons.plus(18)}${piece(tier, !partner)}${icons.arrow(20)}${piece(tier + 1, true)}</div>`;
     if (def.legendary) foot = `<div class="foot-note">${t('legUnique')}</div>`;
     else if (tier >= TIER.max) foot = `<div class="foot-note">${t('maxLevel', { n: TIER.max })}</div>`;
-    else if (partner) foot = `<button class="btn green combine" data-act="combine" data-uid="${uid}" data-partner="${partner.uid}">${t('combineBtn', { a: tier, b: tier + 1 })}</button>`;
-    else foot = `<div class="foot-note">${t('getAnother', { a: tier, name: itemT(type).name, b: tier + 1 })}</div>`;
+    else if (partner) foot = `${vis}<button class="btn green combine" data-act="combine" data-uid="${uid}" data-partner="${partner.uid}">${t('combineBtn', { a: tier, b: tier + 1 })}</button>`;
+    else foot = `${vis}<div class="foot-note">${t('getAnother', { a: tier, name: itemT(type).name, b: tier + 1 })}</div>`;
   }
-  return `${head}<div class="ibody">${body}</div>${foot ? `<footer>${foot}</footer>` : ''}`;
+  return `${head}${callout}<div class="ibody">${body}</div>${foot ? `<footer>${foot}</footer>` : ''}`;
 }
 
 function refreshHover(): void {
-  const insp = root.querySelector<HTMLElement>('.inspector');
-  if (!insp) return;
+  if (!root) return;
   const s = store.state;
   root.querySelectorAll('.item.affect').forEach((n) => n.classList.remove('affect'));
   if (selectedUid && !findItem(s.inventory, selectedUid)) selectedUid = null;
+  if (drag?.ghost || s.phase !== 'shop') { hideCard(); return; }
+  if (loyaltyOn) { showCard(loyaltyHtml_(), root.querySelector('[data-act="loyalty"]'), false); return; }
   const focusUid = hoverUid ?? (hoverType ? null : selectedUid);
   const type = hoverType ?? (focusUid ? findItem(s.inventory, focusUid)?.inst.type : null);
-  if (!type) { insp.innerHTML = idleInspector(); return; }
-  insp.innerHTML = inspectorHtml(type, focusUid, hoverType ? hoverTier : undefined);
+  if (!type) { hideCard(); return; }
   if (focusUid) for (const [a, b] of s.build.adjacency) {
     const other = a === focusUid ? b : b === focusUid ? a : null;
     if (other) root.querySelector(`.grid .item[data-uid="${other}"]`)?.classList.add('affect');
   }
+  const anchor = focusUid ? root.querySelector<HTMLElement>(`.item[data-uid="${focusUid}"]`) : root.querySelector<HTMLElement>(`.card[data-offer="${hoverSlot}"]`);
+  showCard(inspectorHtml(type, focusUid, hoverType ? hoverTier : undefined), anchor, !!focusUid && focusUid === selectedUid && s.phase === 'shop');
+}
+
+/** Floating item card beside `anchor`; `pinned` (selected item) makes it clickable for the Combine button. */
+function showCard(html: string, anchor: HTMLElement | null, pinned: boolean): void {
+  if (!anchor) { hideCard(); return; }
+  if (!card) {
+    card = document.createElement('div');
+    card.className = 'inspector itemcard';
+    card.addEventListener('click', onClick);
+    card.addEventListener('pointerover', () => { // reaching the pinned card keeps it (not a neighbour's) on screen
+      if (card?.classList.contains('pinned') && (hoverUid !== selectedUid || hoverType || loyaltyOn)) { hoverUid = selectedUid; hoverType = null; loyaltyOn = false; refreshHover(); }
+    });
+    document.body.append(card);
+  }
+  if (!pinned) html = html.replace(/<button class="btn green combine"[^>]*>.*?<\/button>/, `<div class="foot-note">${t('clickToCombine')}</div>`); // only the pinned card is clickable
+  if (html !== cardHtml) { card.innerHTML = html; cardHtml = html; }
+  card.classList.toggle('pinned', pinned);
+  card.style.transition = settings.reducedMotion ? 'none' : '';
+  if (settings.reducedMotion) card.style.translate = '0 0';
+  const sc = scale(), m = 12;
+  card.style.maxHeight = `${(innerHeight - 2 * m) / sc}px`;
+  card.style.transform = `scale(${sc})`;
+  card.classList.toggle('tight', false);
+  if (card.scrollHeight > card.clientHeight + 1) card.classList.add('tight'); // too tall: tighten spacing before anything scrolls
+  const a = anchor.getBoundingClientRect(), w = card.offsetWidth * sc, h = card.offsetHeight * sc;
+  // Right of the anchor, flipped left when it doesn't fit; cart items go left so the deals stay visible.
+  const left = anchor.closest('.grid') ? a.left - 14 - w : -1;
+  let x = left >= m ? left : a.right + 14;
+  if (x + w > innerWidth - m) x = a.left - 14 - w;
+  x = Math.max(m, x);
+  const y = Math.min(Math.max(m, a.top + a.height / 2 - h / 2), innerHeight - m - h);
+  card.style.left = `${x}px`;
+  card.style.top = `${y}px`;
+  card.classList.add('show');
+}
+
+function hideCard(): void {
+  card?.remove();
+  card = null;
+  cardHtml = '';
 }
 
 function toast(msg: string): void {
@@ -347,7 +430,8 @@ function onClick(e: MouseEvent): void {
   if (s.phase !== 'shop') return;
   const el = e.target as HTMLElement;
   const act = el.closest<HTMLElement>('[data-act]')?.dataset.act;
-  const card = el.closest<HTMLElement>('[data-offer]');
+  const offer = el.closest<HTMLElement>('[data-offer]');
+  if (selectedUid && !el.closest('.item[data-uid], .inspector, button, [data-offer], .slot')) { selectedUid = null; refreshHover(); }
   const lock = el.closest<HTMLElement>('[data-lock]');
   if (lock) { toggleLock(s, Number(lock.dataset.lock)); play('click'); store.changed(); return; }
   const add = el.closest<HTMLElement>('[data-lab-add]'), tier = el.closest<HTMLElement>('[data-lab-tier]');
@@ -397,7 +481,7 @@ function onClick(e: MouseEvent): void {
     store.changed();
     return;
   }
-  if (card) buy(Number(card.dataset.offer));
+  if (offer) buy(Number(offer.dataset.offer));
 }
 
 function buy(slot: number): void {
@@ -416,16 +500,17 @@ function buy(slot: number): void {
 function onHover(e: PointerEvent): void {
   if (drag) return;
   const el = e.target as HTMLElement;
-  if (el.closest('.inspector')) return; // keep showing what the player is reading / clicking
   const item = el.closest<HTMLElement>('.item[data-uid]');
-  const card = el.closest<HTMLElement>('.card[data-type]');
-  if (el.closest('[data-act="loyalty"]')) { showLoyaltyInfo(); return; }
+  const offer = el.closest<HTMLElement>('.card[data-type]:not(.sold)');
+  const loyalty = !!el.closest('[data-act="loyalty"]');
   const uid = item?.dataset.uid ?? null;
-  const type = (card?.dataset.type as ItemTypeId) ?? null;
-  if (uid === hoverUid && type === hoverType) return;
+  const type = (offer?.dataset.type as ItemTypeId) ?? null;
+  if (uid === hoverUid && type === hoverType && loyalty === loyaltyOn) return;
   hoverUid = uid;
   hoverType = type;
-  hoverTier = card ? store.state.shop?.offers.find((o) => o.slot === Number(card.dataset.offer))?.tier : undefined;
+  loyaltyOn = loyalty;
+  hoverSlot = offer ? Number(offer.dataset.offer) : null;
+  hoverTier = offer ? store.state.shop?.offers.find((o) => o.slot === hoverSlot)?.tier : undefined;
   refreshHover();
 }
 
@@ -461,6 +546,10 @@ function startGhost(): void {
   drag.tier = tier ?? 1;
   document.body.append(g);
   drag.ghost = g;
+  hint = document.createElement('div');
+  hint.className = 'drag-hint';
+  document.body.append(hint);
+  hideCard();
   sizeGhost();
 }
 
@@ -482,6 +571,11 @@ function positionGhost(): void {
   const cellPx = CELL * scale();
   drag.ghost.style.left = `${drag.lastX - (drag.grab.x + 0.5) * cellPx}px`;
   drag.ghost.style.top = `${drag.lastY - (drag.grab.y + 0.5) * cellPx}px`;
+  if (hint) { // bubble to the right of the ghost, flipped left near the screen edge
+    const r = drag.ghost.getBoundingClientRect(), w = hint.offsetWidth;
+    hint.style.left = `${r.right + 12 + w > innerWidth ? Math.max(8, r.left - 12 - w) : r.right + 12}px`;
+    hint.style.top = `${Math.min(Math.max(8, r.top), innerHeight - 8 - hint.offsetHeight)}px`;
+  }
 }
 
 function rotateHeld(): void {
@@ -521,6 +615,7 @@ function updateTarget(): void {
   const slot = under?.closest<HTMLElement>('.slot');
   const sell = under?.closest<HTMLElement>('.sell');
   let preview: Build | null = null;
+  let sellHint = '';
   drag.target = null;
   const over = under?.closest<HTMLElement>('.item[data-uid]');
   const overInst = over && over.dataset.uid !== drag.uid ? findItem(s.inventory, over.dataset.uid!)?.inst : null;
@@ -529,10 +624,9 @@ function updateTarget(): void {
     const res = previewMerge(s, drag.uid, overInst.uid);
     drag.ghost?.classList.toggle('bad', !res.result.ok);
     if (res.result.ok) { drag.target = { where: 'merge', uid: overInst.uid }; preview = res.build; over!.classList.add('merge'); }
-    const insp = root.querySelector<HTMLElement>('.inspector');
-    if (insp) insp.innerHTML = res.result.ok
+    setHint(res.result.ok
       ? `<div class="nm">${t('mergeTitle', { n: (overInst.tier ?? 1) + 1 })}</div><div>${t('mergeBody', { name: itemT(drag.type).name })}</div>`
-      : `<div class="nm">${t('cantMerge')}</div><div>${esc(res.result.ok ? '' : res.result.reason)}</div>`;
+      : `<div class="nm">${t('cantMerge')}</div><div>${esc(res.result.ok ? '' : res.result.reason)}</div>`);
     const combos = root.querySelector('.combos');
     if (combos) combos.innerHTML = combosHtml(s.build, preview, relevantTypes());
     return;
@@ -561,20 +655,32 @@ function updateTarget(): void {
   } else if (sell) {
     sell.classList.add('ok');
     sell.textContent = t('sellFor', { name: itemT(drag.type).name, n: sellPrice(drag.type, drag.tier) });
+    sellHint = `<div class="nm">${t('sellFor', { name: itemT(drag.type).name, n: sellPrice(drag.type, drag.tier) })}</div>`;
     drag.target = { where: 'sell' };
   }
   if (!sell) { const z = root.querySelector('.sell'); if (z) z.textContent = t('dropSell'); }
   const combos = root.querySelector('.combos');
   if (combos) combos.innerHTML = combosHtml(s.build, preview, relevantTypes());
-  const insp = root.querySelector<HTMLElement>('.inspector');
-  if (insp) { insp.innerHTML = inspectorHtml(drag.type, drag.uid) + `<div class="muted" style="margin-top:4px"><kbd>R</kbd> ${t('rotate')} · <kbd>ESC</kbd> ${t('cancel')}</div>`; }
+  setHint(sellHint || `<div class="nm">${itemT(drag.type).name}${starsHtml(drag.tier)}</div>`);
+}
+
+function setHint(html: string): void {
+  if (!hint) return;
+  hint.innerHTML = `${html}<div class="muted"><kbd>R</kbd> ${t('rotate')} · <kbd>ESC</kbd> ${t('cancel')}</div>`;
+  positionGhost();
+}
+
+function endDrag(): void {
+  drag?.ghost?.remove();
+  hint?.remove();
+  hint = null;
 }
 
 function onPointerUp(): void {
   if (!drag) return;
   const d = drag;
+  endDrag();
   drag = null;
-  d.ghost?.remove();
   if (!d.ghost) { selectedUid = d.uid; render(); return; } // a click selects the item for the inspector
   const s = store.state;
   const tg = d.target;
@@ -621,16 +727,13 @@ function loyaltyHtml(s: RunState): string {
     <img src="${svg('loyalty_card')}" alt="">${cost === null ? t('loyaltyMax') : t('loyaltyBtn', { n: s.shopLevel + 1, p: cost })}</button>`;
 }
 
-function showLoyaltyInfo(): void {
+function loyaltyHtml_(): string {
   const s = store.state;
-  const insp = root.querySelector<HTMLElement>('.inspector');
-  if (!insp) return;
   const row = (lv: number) => {
     const L = SHOP_LEVELS[lv - 1];
     return `<div class="${lv === s.shopLevel ? 'buff' : 'muted'}">${t('loyaltyRow', { n: lv, a: pct(L.tier2), b: pct(L.tier3), c: pct(L.legendary) })}${L.freeReroll ? ` · ${t('freeReroll')}` : ''}</div>`;
   };
-  hoverUid = null; hoverType = null;
-  insp.innerHTML = `<div class="nm">${t('loyaltyCard')}</div><div>${t('loyaltyInfo')}</div>${[1, 2, 3, 4].map(row).join('')}`;
+  return `<header><div class="nm">${t('loyaltyCard')}</div></header><div class="ibody"><div>${t('loyaltyInfo')}</div>${[1, 2, 3, 4].map(row).join('')}</div>`;
 }
 
 /** Owned + currently offered types: decides which combo hints are worth showing. */
@@ -645,7 +748,7 @@ function toastLater(msg: string): void {
 
 function cancelDrag(): void {
   if (!drag) return;
-  drag.ghost?.remove();
+  endDrag();
   drag = null;
   render();
 }

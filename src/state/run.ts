@@ -1,6 +1,7 @@
 import { t } from '../i18n';
 import { ITEMS, ITEM_IDS, PLAYER, STARTER_WEAPONS, TIER } from '../data/items';
 import { DEPARTMENTS } from '../data/departments';
+import { MODIFIERS, type DoorId } from '../data/modifiers';
 import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS } from '../data/waves';
 import type { DepartmentId, Build, Inventory, ItemInstance, ItemTypeId, LabOpts, OpResult, Rotation, RunState, ShopOffer, StarterId, StarterWeapon } from '../types';
 import { canPlace, findItem, normalizeRotation } from '../systems/inventory';
@@ -15,11 +16,11 @@ export function newUid(state: RunState): string {
   return `i${state.nextUid++}`;
 }
 
-export function createRun(seed: number, starter: StarterId = 'toaster', shift = 0, weapon: StarterWeapon = 'toaster'): RunState {
+export function createRun(seed: number, starter: StarterId = 'toaster', shift = 0, weapon: StarterWeapon = 'toaster', theme: DepartmentId = 'main'): RunState {
   const inventory: Inventory = { cols: 5, rows: 4, placed: [], shelf: Array(ECONOMY.shelfSlots).fill(null) };
   const state: RunState = {
     phase: 'title', wave: 1, hp: PLAYER.maxHp, money: PLAYER.startMoney + (PLAYER.starters[starter].perk?.startMoney ?? 0), inventory,
-    build: undefined as unknown as Build, shop: null, shopLevel: 1, starter, weapon, shift, department: 'main', route: ['main'], doors: null, coinLog: [], nextUid: 1, seed,
+    build: undefined as unknown as Build, shop: null, shopLevel: 1, starter, weapon, shift, theme, department: theme, modifier: 'none', route: [theme], mods: ['none'], doors: null, coinLog: [], nextUid: 1, seed,
     stats: { kills: 0, coinsEarned: 0, damageByWeapon: {}, wavesCleared: 0, timeSeconds: 0, bossDefeated: false },
   };
   const w = STARTER_WEAPONS[weapon];
@@ -31,7 +32,7 @@ export function createRun(seed: number, starter: StarterId = 'toaster', shift = 
 
 /** Test Lab: a run parked in the shop before aisle `o.aisle`, with an empty cart and every item unlocked. */
 export function createLabRun(seed: number, o: LabOpts): RunState {
-  const s = createRun(seed, o.starter, o.shift, o.weapon);
+  const s = createRun(seed, o.starter, o.shift, o.weapon, o.dept === 'boss' || o.dept === 'clearance' ? 'main' : o.dept);
   s.inventory = { cols: o.cart[0], rows: o.cart[1], placed: [], shelf: Array(o.shelf).fill(null) };
   s.wave = o.aisle - 1;
   s.money = o.money;
@@ -40,16 +41,18 @@ export function createLabRun(seed: number, o: LabOpts): RunState {
   s.lab = true;
   s.labGod = o.god;
   s.labEvent = o.event ?? 'random';
-  s.labDept = o.aisle === BOSS_WAVE ? 'boss' : o.dept === 'boss' ? 'main' : o.dept;
+  s.labDept = o.aisle === BOSS_WAVE ? 'boss' : s.theme;
+  s.labMod = o.mod ?? 'none';
+  s.department = s.labDept;
   if (o.aisle > BOSS_WAVE) s.overtime = true;
   recomputeBuild(s);
   s.hp = s.build.maxHp;
   return s;
 }
 
-/** Department of the next lab aisle: the chosen one (the boss aisle is always the boss). */
-export const labDoor = (s: RunState): DepartmentId =>
-  s.wave + 1 === BOSS_WAVE && !s.overtime ? 'boss' : s.labDept === 'boss' ? 'main' : s.labDept ?? 'main';
+/** Door of the next lab aisle: the chosen modifier (the boss aisle is always the boss). */
+export const labDoor = (s: RunState): DoorId =>
+  s.wave + 1 === BOSS_WAVE && !s.overtime ? 'boss' : s.labMod ?? 'none';
 
 /** Free copy of `type` at `tier` (legendaries ★1) on the first empty shelf slot. */
 export function labAddItem(state: RunState, type: ItemTypeId, tier: number): OpResult {
@@ -209,10 +212,11 @@ export function sellItem(state: RunState, uid: string): OpResult {
 export function reroll(state: RunState, rng: Rng): OpResult {
   if (state.phase !== 'shop' || !state.shop) return fail(t('rShopClosed'));
   const cost = currentRerollCost(state);
+  const bonus = state.shop.bonusFreeRerolls > 0;
   if (state.money < cost) return fail(t('needCoins', { n: cost - state.money }));
   state.money -= cost;
   state.shop.offers = keepLocked(state.shop.offers, rollOffers(state, rng, state.shop.shopIndex, false, { bias: state.shop.bias, legendaryBonus: state.shop.legendaryBonus })); // guarantee is initial-roll only
-  if (cost === 0) state.shop.freeRerollUsed = true; else state.shop.rerolls++;
+  if (bonus) state.shop.bonusFreeRerolls--; else if (cost === 0) state.shop.freeRerollUsed = true; else state.shop.rerolls++;
   return OK;
 }
 
@@ -230,9 +234,10 @@ export function repair(state: RunState): OpResult {
 export function openShop(state: RunState, rng: Rng): void {
   state.phase = 'shop';
   const d = DEPARTMENTS[state.department];
-  const opts = { bias: [...d.shopBias], legendaryBonus: d.legendaryBonus, forceLegendary: d.forceLegendary };
+  const m = MODIFIERS[state.modifier];
+  const opts = { bias: [...d.shopBias], legendaryBonus: d.legendaryBonus, forceLegendary: d.forceLegendary || m.forceLegendary };
   const kept = state.shop?.offers ?? [];
-  state.shop = { offers: keepLocked(kept, rollOffers(state, rng, state.wave, state.wave === 1, opts)), rerolls: 0, repairUsed: false, freeRerollUsed: false, shopIndex: state.wave, ...opts };
+  state.shop = { offers: keepLocked(kept, rollOffers(state, rng, state.wave, state.wave === 1, opts)), rerolls: 0, repairUsed: false, freeRerollUsed: false, bonusFreeRerolls: m.freeRerolls, shopIndex: state.wave, ...opts };
 }
 
 /** Fresh offers, except slots holding a locked, unsold deal keep that deal. */
@@ -254,7 +259,7 @@ export function addCoins(state: RunState, amount: number, label: string): void {
 }
 
 export function finishWave(state: RunState): void {
-  addCoins(state, Math.round(ECONOMY.waveClearBonus * DEPARTMENTS[state.department].coinMult * SHIFTS[state.shift].coinMult), t('coinWaveClear'));
+  addCoins(state, Math.round(ECONOMY.waveClearBonus * DEPARTMENTS[state.department].coinMult * MODIFIERS[state.modifier].coinMult * SHIFTS[state.shift].coinMult), t('coinWaveClear'));
   state.stats.wavesCleared++;
   state.hp = Math.min(state.build.maxHp, state.hp + PLAYER.repairBetweenWaves);
   state.phase = 'checkout';
@@ -282,11 +287,13 @@ export function leaveShop(state: RunState, rng: Rng): OpResult {
   return OK;
 }
 
-export function chooseDoor(state: RunState, id: DepartmentId): OpResult {
+export function chooseDoor(state: RunState, id: DoorId): OpResult {
   if (state.phase !== 'route' || !state.doors) return fail(t('rNoDoors'));
   if (!state.doors.includes(id)) return fail(t('rDoorUnavailable'));
-  state.department = id;
-  state.route.push(id);
+  state.department = id === 'boss' ? 'boss' : state.theme;
+  state.modifier = id === 'boss' ? 'none' : id;
+  state.route.push(state.department);
+  state.mods.push(state.modifier);
   state.doors = null;
   return OK;
 }

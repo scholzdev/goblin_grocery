@@ -1,4 +1,4 @@
-import type { EnemyDef, EnemyId } from '../types';
+import type { DepartmentId, EnemyDef, EnemyId } from '../types';
 
 const base = {
   tell: 0, attackCooldown: 0, attackRange: 0, attackDamage: 0, projectileSpeed: 0, projectileLife: 0,
@@ -71,6 +71,11 @@ export const CODEX_ENEMIES: EnemyId[] = ['milk', 'banana', 'giftcard', 'soda', '
 
 /** Detergent Spitter volley: a fan of bubbles per attack. */
 export const SPITTER = { shots: 3, spreadDeg: 22 };
+
+/** Half of the Manager's summons come from the run's theme. */
+export const THEME_SUMMONS: Partial<Record<DepartmentId, EnemyId[]>> = {
+  main: ['cereal', 'beans'], frozen: ['expired', 'milk'], bakery: ['baguette', 'banana'], electronics: ['spitter', 'beans'], checkout: ['gum', 'banana'],
+};
 
 export const BOSS = {
   /** Coins dropped by the Manager (shift coin cuts don't apply: harder shifts pay more). */

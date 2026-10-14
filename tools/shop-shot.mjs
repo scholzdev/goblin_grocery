@@ -7,7 +7,7 @@ for (const [W, H] of [[1440, 900], [1280, 720]]) {
   const errs = []; page.on('pageerror', (e) => errs.push(e.message)); page.on('console', (m) => m.type() === 'error' && errs.push(m.text()));
   await page.goto(url);
   await page.waitForSelector('#title:not(.hidden)');
-  await page.click('[data-act="play"]'); await page.click('[data-starter="toaster"]'); await page.waitForTimeout(500);
+  await page.click('[data-act="play"]'); await page.click('[data-starter="toaster"]'); await page.click('[data-act="start-run"]'); await page.waitForTimeout(500);
   await page.keyboard.press('F2');
   await page.waitForSelector('#shop:not(.hidden)', { timeout: 10000 });
   await page.evaluate(() => {

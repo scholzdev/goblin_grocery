@@ -7,7 +7,7 @@ await page.goto(process.argv[2] ?? 'http://localhost:5173/');
 await page.waitForSelector('#title:not(.hidden)');
 await page.evaluate(() => { localStorage.setItem('goblin-grocery.settings.v1', JSON.stringify({ hintSeen: true })); });
 await page.reload(); await page.waitForSelector('#title:not(.hidden)');
-await page.click('[data-act="play"]'); await page.click('[data-starter="toaster"]'); await page.waitForTimeout(400);
+await page.click('[data-act="play"]'); await page.click('[data-starter="toaster"]'); await page.click('[data-act="start-run"]'); await page.waitForTimeout(400);
 await page.keyboard.press('F2');
 await page.waitForSelector('#shop:not(.hidden)', { timeout: 10000 });
 const info = await page.evaluate(() => {

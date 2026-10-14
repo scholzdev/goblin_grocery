@@ -19,7 +19,7 @@ const snap = () => page.evaluate(() => ({
 }));
 const rows = [];
 for (let i = 0; i < 4; i++) {
-  await page.click('[data-act="play"]'); await page.click('[data-starter="toaster"]');
+  await page.click('[data-act="play"]'); await page.click('[data-starter="toaster"]'); await page.click('[data-act="start-run"]');
   await page.waitForTimeout(2500);
   await page.keyboard.press('Escape'); await page.waitForTimeout(200);
   rows.push(await snap());

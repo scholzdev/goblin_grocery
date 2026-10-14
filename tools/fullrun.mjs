@@ -10,7 +10,7 @@ page.on('pageerror', (e) => errors.push(e.message));
 page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
 await page.goto(url);
 await page.waitForSelector('#title:not(.hidden)');
-await page.click('[data-act="play"]'); await page.click('[data-starter="toaster"]');
+await page.click('[data-act="play"]'); await page.click('[data-starter="toaster"]'); await page.click('[data-act="start-run"]');
 const st = () => page.evaluate(() => { const s = window.__gg.store.state; return { phase: s.phase, wave: s.wave, hp: Math.round(s.hp), money: s.money, kills: s.stats.kills, recipes: s.build.recipes.map((r) => r.id) }; });
 const dirs = [['d'], ['d', 's'], ['s'], ['s', 'a'], ['a'], ['a', 'w'], ['w'], ['w', 'd']];
 let i = 0;

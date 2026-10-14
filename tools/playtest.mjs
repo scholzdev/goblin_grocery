@@ -23,7 +23,7 @@ await page.goto(url);
 await page.waitForSelector('#title:not(.hidden)', { timeout: 20000 });
 await wait(400);
 await shot('01-title');
-await page.click('[data-act="play"]'); await page.click('[data-starter="toaster"]');
+await page.click('[data-act="play"]'); await page.click('[data-starter="toaster"]'); await page.click('[data-act="start-run"]');
 await wait(2500);
 await shot('02-wave1-start');
 // Drive the cart around in a loop for a while.

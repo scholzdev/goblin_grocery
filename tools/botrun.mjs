@@ -11,7 +11,7 @@ for (let r = 0; r < runs; r++) {
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
   await page.goto(url);
   await page.waitForSelector('#title:not(.hidden)');
-  await page.click('[data-act="play"]'); await page.click('[data-starter="toaster"]');
+  await page.click('[data-act="play"]'); await page.click('[data-starter="toaster"]'); await page.click('[data-act="start-run"]');
   await page.evaluate(() => {
     setInterval(() => {
       const a = window.__arena; const s = window.__gg.store.state;

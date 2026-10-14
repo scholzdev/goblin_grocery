@@ -7,7 +7,7 @@ const errs = []; win.on('pageerror', (e) => errs.push(e.message)); win.on('conso
 await win.waitForSelector('#title:not(.hidden)', { timeout: 30000 });
 console.log('url', win.url(), 'desktop bridge:', await win.evaluate(() => typeof window.desktop), 'quit btn:', await win.isVisible('[data-act="exit"]'));
 await win.screenshot({ path: 'screenshots/electron-title.png' });
-await win.click('[data-act="play"]'); await win.click('[data-starter="toaster"]');
+await win.click('[data-act="play"]'); await win.click('[data-starter="toaster"]'); await win.click('[data-act="start-run"]');
 await win.waitForTimeout(3000);
 await win.screenshot({ path: 'screenshots/electron-combat.png' });
 const audio = await win.evaluate(() => [...document.querySelectorAll('img')].length);

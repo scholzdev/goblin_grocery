@@ -7,7 +7,7 @@ await page.goto(process.argv[2] ?? 'http://localhost:5173/');
 await page.waitForSelector('#title:not(.hidden)');
 await page.click('[data-act="play"]'); await page.waitForTimeout(200);
 await page.screenshot({ path: 'screenshots/starter.png' });
-await page.click('[data-starter="toaster"]'); await page.waitForTimeout(500);
+await page.click('[data-starter="toaster"]'); await page.click('[data-act="start-run"]'); await page.waitForTimeout(500);
 await page.keyboard.press('F2');
 await page.waitForSelector('#shop:not(.hidden)', { timeout: 15000 });
 await page.evaluate(() => { const { store } = window.__gg; const s = store.state; s.money = 300; s.shop.offers[3] = { slot: 3, type: 'toaster', price: 12, sold: false, tier: 1 }; store.changed(); });

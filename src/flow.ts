@@ -1,6 +1,7 @@
 import type Phaser from 'phaser';
 import { store } from './state/store';
 import { chooseDoor, createLabRun, createRun, finishWave, leaveShop, openShop, recomputeBuild, startNextWave } from './state/run';
+import type { DoorId } from './data/modifiers';
 import type { DepartmentId, LabOpts } from './types';
 import { recordOvertime, recordRun, unlockedItems } from './state/profile';
 import type { Unlock } from './data/unlocks';
@@ -35,9 +36,9 @@ export const flow = {
     return game.scene.getScene('Arena');
   },
 
-  startRun(starter: StarterId = store.state?.starter ?? 'toaster', shift = store.state?.shift ?? 0, weapon: StarterWeapon = store.state?.weapon ?? 'toaster'): void {
+  startRun(starter: StarterId = store.state?.starter ?? 'toaster', shift = store.state?.shift ?? 0, weapon: StarterWeapon = store.state?.weapon ?? 'toaster', theme: DepartmentId = store.state?.theme ?? 'main'): void {
     const seed = (Date.now() ^ (Math.random() * 1e9)) >>> 0;
-    store.state = createRun(seed, starter, shift, weapon);
+    store.state = createRun(seed, starter, shift, weapon, theme);
     store.state.unlocked = unlockedItems();
     rng = mulberry32(seed);
     store.state.phase = 'combat';
@@ -96,7 +97,7 @@ export const flow = {
     if (s.lab) this.chooseDoor(s.doors![0]); else store.changed();
   },
 
-  chooseDoor(id: DepartmentId): void {
+  chooseDoor(id: DoorId): void {
     if (!chooseDoor(store.state, id).ok) return;
     startNextWave(store.state);
     this.restartArena();

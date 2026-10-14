@@ -8,7 +8,7 @@ page.on('pageerror', (e) => errors.push(e.message));
 page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
 await page.goto(url);
 await page.waitForSelector('#title:not(.hidden)');
-await page.click('[data-act="play"]'); await page.click('[data-starter="toaster"]');
+await page.click('[data-act="play"]'); await page.click('[data-starter="toaster"]'); await page.click('[data-act="start-run"]');
 await page.waitForTimeout(800);
 await page.keyboard.press('F3');
 for (let i = 0; i < 6; i++) {

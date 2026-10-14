@@ -1,8 +1,9 @@
-import { DEPARTMENTS, DEPT_TUNING, DOOR_POOL } from '../data/departments';
+import { DEPARTMENTS, DEPT_TUNING } from '../data/departments';
+import { DOOR_POOL, MODIFIERS, type DoorId } from '../data/modifiers';
 import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS, waveDef } from '../data/waves';
 import { PLAYER, ITEMS, ITEM_IDS, STARTER_WEAPONS, TIER } from '../data/items';
 import { RECIPES } from '../data/recipes';
-import type { DepartmentId, EnemyId, ItemTypeId, RunState, ShopOffer } from '../types';
+import type { EnemyId, ItemTypeId, RunState, ShopOffer } from '../types';
 import type { Rng } from './rng';
 
 export const sellPrice = (type: ItemTypeId, tier = 1): number => Math.floor(TIER.value(ITEMS[type].price, tier) / 2);
@@ -27,6 +28,7 @@ function weight(t: ItemTypeId, own: Set<ItemTypeId>): number {
 export function currentRerollCost(state: RunState): number {
   const sh = state.shop;
   if (!sh) return rerollCost(0);
+  if (sh.bonusFreeRerolls > 0) return 0;
   return SHOP_LEVELS[state.shopLevel - 1].freeReroll && !sh.freeRerollUsed ? 0 : rerollCost(sh.rerolls);
 }
 
@@ -56,20 +58,20 @@ export function rollOffers(state: RunState, rng: Rng, shopIndex: number, guarant
   return offers;
 }
 
-export function rollDoors(state: RunState, rng: Rng): DepartmentId[] {
+export function rollDoors(state: RunState, rng: Rng): DoorId[] {
   const idx = state.shop?.shopIndex ?? state.wave;
   if (idx + 1 >= BOSS_WAVE && !state.overtime) return ['boss'];
-  const pool = DOOR_POOL.filter((d) => d !== state.department);
+  const pool = [...DOOR_POOL];
   for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
   const doors = pool.slice(0, state.shopLevel >= DEPT_TUNING.threeDoorsAtLoyalty ? 3 : 2);
-  if (idx >= DEPT_TUNING.clearanceFromShop && state.department !== 'clearance' && rng() < DEPT_TUNING.clearanceChance) doors[doors.length - 1] = 'clearance';
+  if (idx >= DEPT_TUNING.clearanceFromShop && state.modifier !== 'clearance' && rng() < DEPT_TUNING.clearanceChance) doors[doors.length - 1] = 'clearance';
   return doors;
 }
 
 export function waveSpawnPlan(state: RunState): { total: number; mix: Partial<Record<EnemyId, number>>; hpScale: number; speedScale: number; dmgScale: number } {
-  const w = waveDef(state.wave), d = DEPARTMENTS[state.department], sh = SHIFTS[state.shift];
+  const w = waveDef(state.wave), d = DEPARTMENTS[state.department], sh = SHIFTS[state.shift], m = MODIFIERS[state.modifier];
   if (state.department === 'boss' || w.boss) return { total: w.total, mix: { ...w.mix }, hpScale: w.hpScale, speedScale: w.speedScale, dmgScale: w.dmgScale * sh.dmgMult };
-  const mix: Partial<Record<EnemyId, number>> = {};
-  for (const [k, v] of Object.entries(w.mix) as [EnemyId, number][]) mix[k] = v * (d.mix[k] ?? 1);
-  return { total: Math.round(w.total * d.countMult * sh.countMult), mix, hpScale: w.hpScale * d.hpMult * sh.hpMult, speedScale: w.speedScale * d.speedMult * sh.speedMult, dmgScale: w.dmgScale * sh.dmgMult };
+  const T = DEPT_TUNING, mix: Partial<Record<EnemyId, number>> = {};
+  for (const [k, v] of Object.entries(w.mix) as [EnemyId, number][]) mix[k] = v * (d.mix[k] ?? (T.basics.includes(k) ? 1 : T.offTheme));
+  return { total: Math.round(w.total * d.countMult * m.countMult * sh.countMult), mix, hpScale: w.hpScale * d.hpMult * m.hpMult * sh.hpMult, speedScale: w.speedScale * d.speedMult * sh.speedMult, dmgScale: w.dmgScale * sh.dmgMult };
 }
