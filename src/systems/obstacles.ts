@@ -48,21 +48,39 @@ export function segmentHitsRect(x0: number, y0: number, x1: number, y1: number, 
   return true;
 }
 
-/**
- * Direction for a chaser at (x, y) heading to (tx, ty): straight when the way is clear, otherwise towards the corner of the
- * blocking rect (grown by radius) that gives the shortest detour. Returns a unit vector.
- */
-export function steerAround(x: number, y: number, tx: number, ty: number, radius: number, rects: readonly Rect[]): Pt {
-  let dx = tx - x, dy = ty - y;
-  const hit = rects.find((r) => segmentHitsRect(x, y, tx, ty, r, radius));
-  if (hit) {
-    const b = box(hit, radius + 6);
-    let best = Infinity;
-    for (const c of [[b.l, b.t], [b.r, b.t], [b.l, b.b], [b.r, b.b]]) {
-      const cost = Math.hypot(c[0] - x, c[1] - y) + Math.hypot(tx - c[0], ty - c[1]);
-      if (cost < best) { best = cost; dx = c[0] - x; dy = c[1] - y; }
-    }
-  }
+const unit = (dx: number, dy: number): Pt => {
   const l = Math.hypot(dx, dy) || 1;
   return { x: dx / l, y: dy / l };
+};
+
+/**
+ * Direction for a chaser at (x, y) heading to (tx, ty): straight when the way is clear, otherwise along the shortest way
+ * around the blocking rect (grown by radius), via one corner or two neighbouring ones. Returns a unit vector.
+ * ponytail: only the first blocking rect counts; push-out handles a neighbour in the way. Grid A* if layouts get mazy.
+ */
+export function steerAround(x: number, y: number, tx: number, ty: number, radius: number, rects: readonly Rect[]): Pt {
+  const hit = rects.find((r) => segmentHitsRect(x, y, tx, ty, r, radius));
+  if (!hit) return unit(tx - x, ty - y);
+  const b = box(hit, radius + 6);
+  const cs: Pt[] = [{ x: b.l, y: b.t }, { x: b.r, y: b.t }, { x: b.r, y: b.b }, { x: b.l, y: b.b }]; // clockwise
+  const me = { x, y }, goal = { x: tx, y: ty };
+  const len = (a: Pt, c: Pt) => Math.hypot(c.x - a.x, c.y - a.y);
+  const clear = (a: Pt, c: Pt) => !segmentHitsRect(a.x, a.y, c.x, c.y, hit, radius);
+  let best = Infinity, aim = goal;
+  cs.forEach((c, i) => {
+    if (!clear(me, c)) return;
+    for (const n of [c, cs[(i + 1) % 4], cs[(i + 3) % 4]]) {
+      if (!clear(n, goal)) continue;
+      const cost = len(me, c) + len(c, n) + len(n, goal);
+      // Standing on the corner already: head for the next waypoint instead of a zero vector.
+      if (cost < best) { best = cost; aim = len(me, c) > 2 ? c : n === c ? goal : n; }
+    }
+  });
+  if (best === Infinity) { // pushed into the padding (crowding): fall back to the cheapest corner
+    for (const c of cs) {
+      const cost = len(me, c) + len(c, goal);
+      if (cost < best) { best = cost; aim = c; }
+    }
+  }
+  return unit(aim.x - x, aim.y - y);
 }

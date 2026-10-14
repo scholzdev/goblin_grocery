@@ -523,7 +523,7 @@ function labHtml(o: LabOpts): string {
   const opts = (vals: (string | number)[], cur: string | number, label: (v: any) => string = String) => vals.map((v) => `<option value="${v}" ${String(v) === String(cur) ? 'selected' : ''}>${label(v)}</option>`).join('');
   const row = (name: string, label: string, html: string) => `<label>${label}<select data-lab="${name}">${html}</select></label>`;
   const aisles = Array.from({ length: 15 }, (_, i) => i + 1);
-  const carts = [[5, 4], ...ECONOMY.cartSizes].map(([c, r]) => `${c}x${r}`);
+  const carts = [[4, 4], ...ECONOMY.cartSizes].map(([c, r]) => `${c}x${r}`);
   const shelves = [ECONOMY.shelfSlots, ...ECONOMY.shelfSizes];
   return `<h2>${t('lab')}</h2><div class="settings lab-form">
     ${row('aisle', t('labAisle'), opts(aisles, o.aisle, (a) => (a === BOSS_WAVE ? `${a} (${t('labBoss')})` : a > BOSS_WAVE ? `${a} (${t('labOvertime')})` : a)))}

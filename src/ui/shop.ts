@@ -16,7 +16,7 @@ import { t, fmtNum } from '../i18n';
 import { itemRules, itemT, recipeT, tagT } from '../i18n/data';
 import type { Build, ItemInstance, ItemTypeId, RecipeId, Rotation, RunState } from '../types';
 
-// Cell pitch in design pixels (cell + 4px gap). 92 for the 5×4 cart; shrinks so bigger carts fit the same 460×368 area.
+// Cell pitch in design pixels (cell + 4px gap). 92 for the 4×4 and 5×4 carts; shrinks so bigger carts fit the same 460×368 area.
 let CELL = 92;
 const cellFor = (cols: number, rows: number) => Math.min(92, Math.floor(460 / cols), Math.floor(368 / rows));
 const RECIPE_ORDER = Object.keys(RECIPES) as RecipeId[];

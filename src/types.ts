@@ -72,7 +72,7 @@ export interface ItemInstance {
 }
 
 export interface Inventory {
-  cols: number; // 5
+  cols: number; // 4
   rows: number; // 4
   placed: ItemInstance[];
   /** Fixed-length staging shelf; null = empty slot. */

@@ -17,7 +17,7 @@ export function newUid(state: RunState): string {
 }
 
 export function createRun(seed: number, starter: StarterId = 'toaster', shift = 0, weapon: StarterWeapon = 'toaster', theme: DepartmentId = 'main'): RunState {
-  const inventory: Inventory = { cols: 5, rows: 4, placed: [], shelf: Array(ECONOMY.shelfSlots).fill(null) };
+  const inventory: Inventory = { cols: 4, rows: 4, placed: [], shelf: Array(ECONOMY.shelfSlots).fill(null) };
   const state: RunState = {
     phase: 'title', wave: 1, hp: PLAYER.maxHp, money: PLAYER.startMoney + (PLAYER.starters[starter].perk?.startMoney ?? 0), inventory,
     build: undefined as unknown as Build, shop: null, shopLevel: 1, starter, weapon, shift, theme, department: theme, modifier: 'none', route: [theme], mods: ['none'], doors: null, coinLog: [], nextUid: 1, seed,

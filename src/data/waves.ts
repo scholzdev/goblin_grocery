@@ -3,7 +3,7 @@ import { BOSS, ELITE, ELITE_EXCLUDED } from './enemies';
 import { DEPARTMENTS, THEMES } from './departments';
 
 export const WAVES: WaveDef[] = [
-  { index: 1, duration: 60, boss: false, total: 23, mix: { milk: 1 }, group: [2, 3], hpScale: 1.15, speedScale: 1, dmgScale: 1.5 },
+  { index: 1, duration: 60, boss: false, total: 34, mix: { milk: 1 }, group: [2, 3], hpScale: 1.15, speedScale: 1, dmgScale: 1.5 },
   { index: 2, duration: 60, boss: false, total: 34, mix: { milk: 3, banana: 2, giftcard: 0.3 }, group: [2, 4], hpScale: 1.15, speedScale: 1, dmgScale: 1.6 },
   { index: 3, duration: 60, boss: false, total: 44, mix: { milk: 3, banana: 2, soda: 1, beans: 0.5, gum: 0.6, giftcard: 0.3 }, group: [3, 4], hpScale: 1.24, speedScale: 1, dmgScale: 1.8 },
   { index: 4, duration: 60, boss: false, total: 55, mix: { milk: 3, banana: 2, soda: 1, spitter: 1.5, turkey: 0.6, beans: 0.6, gum: 0.8, cereal: 0.5, expired: 0.6, giftcard: 0.3 }, group: [3, 5], hpScale: 1.8, speedScale: 1.04, dmgScale: 2.0 },
@@ -70,8 +70,8 @@ export const ECONOMY = {
   /** Each coin a kill would drop actually drops with this chance (longer waves = more kills, so fewer coins each). */
   killCoinChance: 0.4,
   /** Store services (always on sale until maxed). Cart grows right/down, so placed items never move. */
-  cartSizes: [[6, 4], [6, 5], [7, 5]] as [number, number][],
-  cartPrices: [18, 28, 40],
+  cartSizes: [[5, 4], [6, 4], [6, 5], [7, 5]] as [number, number][],
+  cartPrices: [12, 18, 28, 40],
   shelfSizes: [5, 6],
   shelfPrices: [10, 16],
 };

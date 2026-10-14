@@ -1036,7 +1036,7 @@ describe('aoe / multi-hit modules', () => {
 });
 
 describe('store services (bigger cart / shelf)', () => {
-  it('cart grows 5x4 → 6x4 → 6x5 → 7x5, charges exactly, keeps items, then maxes out', () => {
+  it('cart grows 4x4 → 5x4 → 6x4 → 6x5 → 7x5, charges exactly, keeps items, then maxes out', () => {
     const s = shopRun();
     s.money = 200;
     const placed = structuredClone(s.inventory.placed);
@@ -1255,6 +1255,18 @@ describe('aisle obstacles', () => {
     expect(clear.x).toBeCloseTo(1);
     const bent = steerAround(0, 100, 220, 100, 20, [r]);
     expect(Math.abs(bent.y)).toBeGreaterThan(0.3);
+  });
+  it('steerAround walks a chaser all the way round a rect instead of stalling at a corner', () => {
+    for (const [sx, sy, tx, ty] of [[100, 40, 100, 160], [20, 100, 180, 100], [100, 160, 100, 40], [30, 60, 170, 140]]) {
+      let x = sx, y = sy;
+      for (let i = 0; i < 400 && Math.hypot(tx - x, ty - y) > 5; i++) {
+        const d = steerAround(x, y, tx, ty, 12, [r]);
+        x += d.x * 3; y += d.y * 3;
+        const q = pushOutCircle(x, y, 12, r);
+        if (q) { x = q.x; y = q.y; }
+      }
+      expect(Math.hypot(tx - x, ty - y)).toBeLessThanOrEqual(5);
+    }
   });
 
   it('every department has layouts that stay clear of start, entries, hazards and each other', () => {
