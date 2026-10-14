@@ -42,6 +42,7 @@ let hoverUid: string | null = null;
 let hoverType: ItemTypeId | null = null;
 let hoverTier: number | undefined;
 let hoverSlot: number | null = null;
+let hoverSet: SetId | null = null;
 let loyaltyOn = false;
 let card: HTMLElement | null = null; // floating item card (body-level, like the drag ghost)
 let cardHtml = '';
@@ -55,7 +56,7 @@ export function initShop(ui: HTMLElement): void {
   root.className = 'interactive hidden';
   ui.append(root);
   store.on('change', () => { if (!drag) render(); });
-  store.on('shop-open', () => { ledger = []; hoverUid = null; hoverType = null; loyaltyOn = false; render(); });
+  store.on('shop-open', () => { ledger = []; hoverUid = null; hoverType = null; hoverSet = null; loyaltyOn = false; render(); });
   root.addEventListener('pointerdown', onPointerDown);
   root.addEventListener('click', onClick);
   root.addEventListener('pointerover', onHover);
@@ -197,17 +198,46 @@ function setBonus(id: SetId, lv: 1 | 2): string {
 }
 
 const SET_IDS: SetId[] = ['kitchen', 'cleaning', 'tools', 'snacks', 'checkout', 'heat', 'frost', 'blast', 'electric'];
-/** Compact sets block: only sets with >=1 type in the cart, count of distinct types, reached bonuses + dimmed next level. */
+const setPips = (id: SetId, n: number): string => `<span class="pips set-${id}">${Array.from({ length: SETS.thresholds[1] }, (_, k) => `<i class="${k < n ? 'on' : ''}"></i>`).join('')}</span>`;
+const setTiers = (id: SetId, lv: number): string => ([1, 2] as const).map((l) => `<div class="tier ${l <= lv ? '' : 'locked'}"><em>${SETS.thresholds[l - 1]}</em><span>${esc(setBonus(id, l))}</span></div>`).join('');
+const setCount = (id: SetId): number => new Set(store.state.inventory.placed.filter((p) => setsOf(p.type).includes(id)).map((p) => p.type)).size;
+const setLv = (n: number): number => (n >= SETS.thresholds[1] ? 2 : n >= SETS.thresholds[0] ? 1 : 0);
+
+/** Set coupons (inside the receipt): sets with >=1 type in the cart; full coupon at lv>=1, collapsed one-liner at lv0. */
 export function setsHtml(): string {
-  const inv = store.state.inventory;
-  const have = SET_IDS.map((id) => [id, new Set(inv.placed.filter((p) => setsOf(p.type).includes(id)).map((p) => p.type)).size] as const).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]);
+  const t1 = SETS.thresholds[0];
+  const have = SET_IDS.map((id) => ({ id, n: setCount(id) })).filter((x) => x.n > 0).map((x) => ({ ...x, lv: setLv(x.n) })).sort((a, b) => b.lv - a.lv || b.n - a.n);
   if (!have.length) return '';
-  const [t1, t2] = SETS.thresholds;
-  return `<div class="sh">${t('setsTitle')}</div>` + have.map(([id, n]) => {
-    const lv = n >= t2 ? 2 : n >= t1 ? 1 : 0;
-    const lines = ([1, 2] as const).map((l) => `<div class="${l <= lv ? '' : 'next'}">${esc(setBonus(id, l))}</div>`).join('');
-    return `<div class="set ${lv ? 'on' : ''}" title="${t('setsHint')}"><span class="chip set-${id}">${tagT(id)} ${n}/${lv === 2 ? t2 : lv === 1 ? t2 : t1}</span><div class="sl">${lines}</div></div>`;
+  return `<div class="cut">${t('setsTitle')}</div>` + have.map(({ id, n, lv }) => {
+    const hd = `<div class="hd"><span class="chip set-${id}">${tagT(id)}</span>${lv ? '' : `<span class="need">${t('setNeed', { n: t1 - n })}</span>`}${setPips(id, n)}</div>`;
+    return `<div class="coupon set-${id} ${lv ? '' : 'dim'}" data-set="${id}">${hd}${lv ? setTiers(id, lv) : ''}</div>`;
   }).join('');
+}
+
+/** Hover card for one set: progress, both tiers, and every item type that counts toward it (owned ones in colour). */
+function setCardHtml(id: SetId): string {
+  const n = setCount(id), have = new Set(store.state.inventory.placed.map((p) => p.type));
+  const members = ITEM_IDS.filter((ty) => setsOf(ty).includes(id)).map((ty) => `<img class="${have.has(ty) ? '' : 'missing'}" src="${svg(`icon_${ty}`)}" alt="${itemT(ty).name}" title="${itemT(ty).name}">`).join('');
+  return `<div class="setcard set-${id}"><div class="hd"><span class="chip set-${id}">${tagT(id)}</span><span class="cnt">${t('setProgress', { n, m: SETS.thresholds[1] })}</span>${setPips(id, n)}</div>${setTiers(id, setLv(n))}<div class="mem">${t('setMembers')}</div><div class="members">${members}</div></div>`;
+}
+
+/** Overflow fallback (never scroll): hide dim coupons from the end until the receipt fits, add a "+N more" line. */
+function fitSets(): void {
+  const col = root.querySelector<HTMLElement>('.col-left');
+  const sets = root.querySelector<HTMLElement>('.sets');
+  if (!col || !sets) return;
+  sets.querySelectorAll('.more').forEach((e) => e.remove());
+  const dim = [...sets.querySelectorAll<HTMLElement>('.coupon.dim')];
+  dim.forEach((e) => (e.style.display = ''));
+  // .receipt::after (zigzag) is absolute, so scrollHeight is useless: compare the last child's real bottom to #shop and col-left
+  const over = () => { const b = (col.lastElementChild as HTMLElement).getBoundingClientRect().bottom; return b > Math.min(root.getBoundingClientRect().bottom - 16, col.getBoundingClientRect().bottom); };
+  if (!over()) return;
+  const more = document.createElement('div');
+  more.className = 'more';
+  sets.appendChild(more);
+  let n = 0;
+  for (let i = dim.length - 1; i >= 0 && over(); i--) { dim[i].style.display = 'none'; n++; more.textContent = t('setsMore', { n }); }
+  if (!n) more.remove();
 }
 
 function render(): void {
@@ -250,14 +280,14 @@ function render(): void {
       <div class="hpbox"><img src="${svg('heart')}" width="26" alt=""><div class="hpbar"><i style="width:${(100 * s.hp) / s.build.maxHp}%"></i></div><span>${Math.ceil(s.hp)}/${s.build.maxHp}</span></div>
       <button class="btn small gold" data-act="repair" style="margin-top:10px" ${shop.repairUsed || s.hp >= s.build.maxHp || s.money < ECONOMY.repairCost ? 'disabled' : ''}>
         ${shop.repairUsed ? t('repaired') : t('repairBtn', { hp: ECONOMY.repairHp, c: ECONOMY.repairCost })}</button>
-      <div style="display:flex;justify-content:space-between;align-items:end;margin-top:12px"><div class="barcode"></div><small style="font-weight:800">${t('thanks')}</small></div>
+      <div class="sets">${setsHtml()}</div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:12px"><div class="barcode"></div><small style="font-weight:800;text-align:center">${t('thanks')}</small></div>
       <div class="shop-hint">${t('idleHover')}</div>
     </div>
     <div class="col-mid">
       <div class="cart-title sticker">${t('cartLoadout')}</div>
       <div class="grid-wrap"><div class="grid" style="width:${s.inventory.cols * cellFor(s.inventory.cols, s.inventory.rows)}px;height:${s.inventory.rows * cellFor(s.inventory.cols, s.inventory.rows)}px;margin:0 auto">${gridHtml(s)}</div></div>
       <div class="combos">${combosHtml(s.build, null, relevantTypes())}</div>
-      <div class="sets">${setsHtml()}</div>
     </div>
     <div class="col-right">
       <div class="offers-head"><h3>${t('todaysDeals')}</h3><button class="btn small" data-act="reroll" ${s.money < currentRerollCost(s) ? 'disabled' : ''}>${t('reroll')} · ${currentRerollCost(s) || t('free')}</button></div>
@@ -272,6 +302,7 @@ function render(): void {
     </div>
     ${s.lab ? labPanel() : ''}
     <div class="toast" style="opacity:0"></div>`;
+  fitSets();
   refreshHover();
 }
 
@@ -394,9 +425,14 @@ export function inspectorHtml(type: ItemTypeId, uid: string | null, offerTier?: 
 function refreshHover(): void {
   if (!root) return;
   const s = store.state;
-  root.querySelectorAll('.item.affect').forEach((n) => n.classList.remove('affect'));
+  root.querySelectorAll('.item.affect, .item.setlit').forEach((n) => n.classList.remove('affect', 'setlit'));
   if (selectedUid && !findItem(s.inventory, selectedUid)) selectedUid = null;
   if (drag?.ghost || s.phase !== 'shop') { hideCard(); return; }
+  if (hoverSet) { // set coupon hover: glow member items, card to the right of the receipt
+    for (const p of s.inventory.placed) if (setsOf(p.type).includes(hoverSet)) root.querySelector(`.grid .item[data-uid="${p.uid}"]`)?.classList.add('setlit');
+    showCard(setCardHtml(hoverSet), root.querySelector(`.coupon[data-set="${hoverSet}"]`), false);
+    return;
+  }
   if (loyaltyOn) { showCard(loyaltyHtml_(), root.querySelector('[data-act="loyalty"]'), false); return; }
   const focusUid = hoverUid ?? (hoverType ? null : selectedUid);
   const type = hoverType ?? (focusUid ? findItem(s.inventory, focusUid)?.inst.type : null);
@@ -429,10 +465,20 @@ function showCard(html: string, anchor: HTMLElement | null, pinned: boolean): vo
   const sc = scale(), m = 12;
   card.style.maxHeight = `${(innerHeight - 2 * m) / sc}px`;
   card.style.transform = `scale(${sc})`;
+  const isSet = anchor.classList.contains('coupon'), colR = root.querySelector('.col-left')?.getBoundingClientRect();
+  card.style.width = isSet && colR ? `${colR.width / sc}px` : ''; // set cards: same width as the receipt
   card.classList.toggle('tight', false);
   if (card.scrollHeight > card.clientHeight + 1) card.classList.add('tight'); // too tall: tighten spacing before anything scrolls
   const a = anchor.getBoundingClientRect(), w = card.offsetWidth * sc, h = card.offsetHeight * sc;
   // Right of the anchor, flipped left when it doesn't fit; cart items go left so the deals stay visible.
+  if (isSet && colR) { // over the receipt: bottom 6px above the coupon, else 6px below it
+    const top = root.getBoundingClientRect().top + 8;
+    const ya = a.top - 6 - h;
+    card.style.left = `${colR.left}px`;
+    card.style.top = `${ya >= top ? ya : a.bottom + 6}px`;
+    card.classList.add('show');
+    return;
+  }
   const left = anchor.closest('.grid') ? a.left - 14 - w : -1;
   let x = left >= m ? left : a.right + 14;
   if (x + w > innerWidth - m) x = a.left - 14 - w;
@@ -544,8 +590,10 @@ function onHover(e: PointerEvent): void {
   const offer = el.closest<HTMLElement>('.card[data-type]:not(.sold)');
   const loyalty = !!el.closest('[data-act="loyalty"]');
   const uid = item?.dataset.uid ?? null;
+  const set = (el.closest<HTMLElement>('.coupon[data-set]')?.dataset.set as SetId) ?? null;
   const type = (offer?.dataset.type as ItemTypeId) ?? null;
-  if (uid === hoverUid && type === hoverType && loyalty === loyaltyOn) return;
+  if (uid === hoverUid && type === hoverType && loyalty === loyaltyOn && set === hoverSet) return;
+  hoverSet = set;
   hoverUid = uid;
   hoverType = type;
   loyaltyOn = loyalty;
@@ -670,7 +718,7 @@ function updateTarget(): void {
     const combos = root.querySelector('.combos');
     if (combos) combos.innerHTML = combosHtml(s.build, preview, relevantTypes());
     const sets = root.querySelector('.sets');
-    if (sets) sets.innerHTML = setsHtml();
+    if (sets) { sets.innerHTML = setsHtml(); fitSets(); }
     return;
   }
   if (under && grid.contains(under)) {
@@ -704,7 +752,7 @@ function updateTarget(): void {
   const combos = root.querySelector('.combos');
   if (combos) combos.innerHTML = combosHtml(s.build, preview, relevantTypes());
   const sets = root.querySelector('.sets');
-  if (sets) sets.innerHTML = setsHtml();
+  if (sets) { sets.innerHTML = setsHtml(); fitSets(); }
   setHint(sellHint || `<div class="nm">${itemT(drag.type).name}${starsHtml(drag.tier)}</div>`);
 }
 

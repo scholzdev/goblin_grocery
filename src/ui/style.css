@@ -485,9 +485,9 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .celebrate span { font-size: 12px; font-weight: 800; opacity: 0.75; }
 @keyframes pop-in { 0% { opacity: 0; transform: translateX(-50%) scale(0.6); } 10% { opacity: 1; transform: translateX(-50%) scale(1.06); } 18% { transform: translateX(-50%) scale(1); } 85% { opacity: 1; } 100% { opacity: 0; transform: translateX(-50%) translateY(-16px); } }
 
-.combo.empty { grid-column: 1 / -1; border-style: dashed; text-align: center; }
-.combo.empty .eff { white-space: normal; }
-.combo.empty .hint { font-size: 13px; font-weight: 700; opacity: 0.7; }
+.combo.empty, .combo.empty > div { height: auto; overflow: visible; -webkit-line-clamp: unset; white-space: normal; text-overflow: clip; }
+.combo.empty { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; gap: 1px; text-align: center; padding: 6px 10px; font-size: 13px; border-style: dashed; }
+.combo.empty .hint { font-size: 12px; font-weight: 700; opacity: 0.7; line-height: 1.2; }
 .combo .icons .q { width: 34px; height: 34px; display: grid; place-items: center; font: 400 20px var(--display); border: 2px dashed var(--green-deep); border-radius: 6px; }
 
 /* Item details: the body must be allowed to shrink inside the flex column, or it clips instead of scrolling. */
@@ -633,16 +633,33 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .chip.set-heat { background: #ffd9c9; color: #b8381c; }
 .chip.set-frost { background: #d4ecff; color: #2a6aa8; }
 .chip.set-blast { background: #ffd6ec; color: #a8286e; }
+.set-electric { --sc: #8a6200; }
+.set-kitchen { --sc: #9a5412; }
+.set-cleaning { --sc: #1f7a70; }
+.set-tools { --sc: #5b4a3a; }
+.set-snacks { --sc: #6b7a12; }
+.set-checkout { --sc: #3f7a1f; }
+.set-heat { --sc: #b8381c; }
+.set-frost { --sc: #2a6aa8; }
+.set-blast { --sc: #a8286e; }
 .inspector .chip.act { box-shadow: 0 0 0 2px var(--plum); }
-#shop .sets { margin: 8px auto 0; width: 488px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; max-height: 100px; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; }
-#shop .sets .sh { font-family: var(--display); font-size: 15px; line-height: 1; }
-#shop .sets .set { display: flex; align-items: center; gap: 8px; padding: 4px 8px; border: 2px dashed rgba(48, 32, 63, 0.3); border-radius: 10px; font-size: 12px; font-weight: 800; line-height: 1.2; }
-#shop .sets .set.on { border: 2px solid var(--plum); background: var(--paper); }
-#shop .sets .chip { flex: none; width: 92px; text-align: center; }
-#shop .sets .sl { min-width: 0; flex: 1; }
-#shop .sets .sl > div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#shop .sets .chip { font-size: 11px; font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase; padding: 1px 8px; border-radius: 999px; }
-#shop .sets .next { opacity: 0.45; }
+#shop .sets { margin-top: 10px; }
+#shop .sets .cut { display: flex; align-items: center; gap: 6px; font-family: var(--display); font-size: 15px; line-height: 1; margin-bottom: 6px; }
+#shop .sets .cut::before, #shop .sets .cut::after { content: ''; flex: 1; border-top: 2px dashed rgba(48, 32, 63, 0.35); }
+#shop .sets .cut::before { content: '✂'; flex: none; border: 0; font-size: 11px; margin-right: -2px; }
+#shop .coupon { border: 2px dashed var(--plum); border-radius: 8px; padding: 5px 7px 6px; margin-bottom: 6px; background: #fff; }
+#shop .coupon.dim { border-color: rgba(48, 32, 63, 0.3); background: transparent; padding: 4px 7px; }
+#shop .coupon .hd { display: flex; gap: 6px; align-items: center; }
+#shop .coupon .chip { font-size: 10.5px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; padding: 1px 7px; border-radius: 999px; }
+#shop .coupon .need { font-size: 10.5px; font-weight: 700; opacity: 0.6; }
+#shop .pips { margin-left: auto; display: flex; gap: 2px; }
+#shop .pips i { width: 12px; height: 5px; border-radius: 3px; background: rgba(48, 32, 63, 0.15); }
+#shop .pips i.on { background: var(--sc); }
+#shop .tier { display: flex; gap: 5px; align-items: baseline; font-size: 11.5px; font-weight: 800; line-height: 1.2; margin-top: 3px; }
+#shop .tier em { font-style: normal; font-size: 10px; padding: 0 4px; border-radius: 4px; background: var(--plum); color: var(--gold); flex: none; }
+#shop .tier.locked { color: rgba(48, 32, 63, 0.45); }
+#shop .tier.locked em { background: transparent; border: 1.5px solid rgba(48, 32, 63, 0.3); color: rgba(48, 32, 63, 0.5); }
+#shop .sets .more { text-align: center; font-size: 11px; font-weight: 800; opacity: 0.6; }
 
 .inspector .chip.coin img { width: 17px; height: 17px; }
 .inspector .callout { display: flex; align-items: center; gap: 10px; margin: 8px 14px 0; padding: 7px 12px; border: 2px solid #f1cf85; border-radius: 12px; background: #fff0c9; }
@@ -684,3 +701,19 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .inspector.itemcard.pinned { pointer-events: auto; }
 .inspector.itemcard.tight .stat b { font-size: 17px; }
 .inspector.itemcard.tight .scal i { padding: 4px 2px; }
+
+/* set coupon hover: member items glow, card contents */
+.item.setlit { outline: 3px solid var(--gold); outline-offset: 1px; box-shadow: 0 0 12px 2px var(--gold); z-index: 3; }
+.inspector.itemcard:has(.setcard) { width: 300px; padding: 10px 12px 12px; }
+.setcard .hd { display: flex; gap: 8px; align-items: center; margin-bottom: 4px; }
+.setcard .chip { font-size: 11px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; padding: 1px 8px; border-radius: 999px; }
+.setcard .cnt { font-size: 12px; font-weight: 800; opacity: 0.7; }
+.setcard .pips { margin-left: auto; display: flex; gap: 2px; }
+.setcard .pips i { width: 12px; height: 5px; border-radius: 3px; background: rgba(48, 32, 63, 0.15); } .setcard .pips i.on { background: var(--sc); }
+.setcard .tier { display: flex; gap: 6px; align-items: baseline; font-size: 13px; font-weight: 800; line-height: 1.2; margin-top: 4px; }
+.setcard .tier em { font-style: normal; font-size: 11px; padding: 0 5px; border-radius: 4px; background: var(--plum); color: var(--gold); flex: none; }
+.setcard .tier.locked { color: rgba(48, 32, 63, 0.45); }
+.setcard .tier.locked em { background: transparent; border: 1.5px solid rgba(48, 32, 63, 0.3); color: rgba(48, 32, 63, 0.5); }
+.setcard .mem { margin-top: 8px; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.6; }
+.setcard .members { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 3px; }
+.setcard .members img { width: 32px; height: 32px; padding: 2px; border-radius: 6px; background: rgba(48, 32, 63, 0.08); } .setcard .members img.missing { filter: grayscale(1); opacity: 0.55; background: none; }
