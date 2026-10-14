@@ -27,7 +27,7 @@ describe('German data', () => {
     expect(DATA_DE.shifts).toHaveLength(SHIFTS.length);
     DATA_DE.shifts.forEach((s) => expect(nonEmpty(s)).toBe(true));
     for (const u of UNLOCKS) expect(DATA_DE.unlocks[u.id], u.id).toBeTruthy();
-    for (const t of ['ranged', 'melee', 'area', 'electric']) expect(DATA_DE.tags[t]).toBeTruthy();
+    for (const t of ['ranged', 'melee', 'area', 'electric', 'kitchen', 'cleaning', 'tools', 'snacks', 'checkout', 'heat', 'frost', 'blast']) expect(DATA_DE.tags[t]).toBeTruthy();
   });
 
   it('fills item rule placeholders for every level, EN and DE, with the same set', () => {

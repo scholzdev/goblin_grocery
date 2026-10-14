@@ -3,6 +3,8 @@ import type { WeaponStats } from '../types';
 import { RECIPE_TUNING } from '../data/recipes';
 import { newHitTracker, shieldBlocks, tryHit, isSpent, pickRicochetTarget, type HitTracker } from '../systems/combat';
 import { ITEMS, MULTIPACK, PUDDLE } from '../data/items';
+import { SETS } from '../data/sets';
+import { store } from '../state/store';
 import { SHIELD } from '../data/enemies';
 import { applyBurn } from '../systems/combat';
 import { play } from '../audio/sfx';
@@ -388,7 +390,7 @@ export class Arsenal {
           sc.stunEnemy(e, RECIPE_TUNING.blackIce.freeze);
           sc.fx.frostBurst(e.x, e.y - 20, 4);
         }
-        applySlowFx(e, now);
+        applySlowFx(e, now, store.state.build.sets.frost > 0);
         sc.damageEnemy(e, pd.stats.damage, pd.stats, { quiet: true });
       }
     }
@@ -529,7 +531,7 @@ export class Arsenal {
         if (s.ricochet) {
           const next = pickRicochetTarget(s, sc.enemies.filter((x) => x.alive && x.state !== 'spawn'), s.tracker.hits, 230);
           // Confetti Cannon: every bounce goes off like a party popper.
-          if (st.recipes.includes('confettiCannon')) sc.popperBlast(s.x, s.y, { damage: s.damage * RECIPE_TUNING.confettiCannon.damageMult, radius: RECIPE_TUNING.confettiCannon.radius });
+          if (st.recipes.includes('confettiCannon')) sc.popperBlast(s.x, s.y, { damage: s.damage * RECIPE_TUNING.confettiCannon.damageMult, radius: RECIPE_TUNING.confettiCannon.radius * (store.state.build.sets.blast ? SETS.blast.radiusMult : 1) });
           if (next) {
             const a = Math.atan2(next.y - s.y, next.x - s.x);
             s.vx = Math.cos(a) * sp; s.vy = Math.sin(a) * sp;
@@ -590,6 +592,6 @@ export class Arsenal {
 }
 
 import { applySlow } from '../systems/combat';
-function applySlowFx(e: Enemy, now: number): void {
-  applySlow(e.status, PUDDLE.slow, now);
+function applySlowFx(e: Enemy, now: number, frost: boolean): void {
+  applySlow(e.status, frost ? { ...PUDDLE.slow, pct: Math.min(SETS.frost.slowCap, PUDDLE.slow.pct + SETS.frost.slowBonus) } : PUDDLE.slow, now);
 }

@@ -150,6 +150,6 @@ const unlocks: Record<string, string> = {
   'cart-gold': 'Besiege den Filialleiter',
 };
 
-const tags: Record<string, string> = { ranged: 'Fernkampf', melee: 'Nahkampf', area: 'Fläche', electric: 'Elektrisch' };
+const tags: Record<string, string> = { ranged: 'Fernkampf', melee: 'Nahkampf', area: 'Fläche', electric: 'Elektrisch', kitchen: 'Küche', cleaning: 'Putzen', tools: 'Werkzeug', snacks: 'Snacks', checkout: 'Kasse', heat: 'Hitze', frost: 'Frost', blast: 'Knall' };
 
 export const DATA_DE = { items, recipes, enemies, departments, shifts, starters, goblinSkins, cartSkins, unlocks, tags };

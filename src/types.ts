@@ -15,6 +15,10 @@ export type Rotation = 0 | 1 | 2 | 3;
 export type RecipeId = 'toastMode' | 'nailstorm' | 'coldStorage' | 'expressCheckout' | 'brainFreeze' | 'tvDinner' | 'clearanceSale' | 'greaseFire' | 'pressurePoint' | 'mistMachine'
   | 'fiveAlarm' | 'sizzlingSkillet' | 'frostbiteNails' | 'staticCling' | 'reheat' | 'smoothieShield'
   | 'confettiCannon' | 'blackIce' | 'shrapnel' | 'pressureWasher' | 'powerSurge' | 'priceCheck';
+/** Set-bonus tags: one family per item, optional element; 'electric' = the `electrical` flag. See data/sets.ts. */
+export type FamilyTag = 'kitchen' | 'cleaning' | 'tools' | 'snacks' | 'checkout';
+export type ElementTag = 'heat' | 'frost' | 'blast';
+export type SetId = FamilyTag | ElementTag | 'electric';
 /** Weapon role tags (shown on cards; Electric is the separate `electrical` flag). */
 export type WeaponTag = 'ranged' | 'melee' | 'area';
 export type BuffId = 'fan' | 'fuel' | 'battery' | 'ice' | 'hotsauce' | 'pricegun' | 'tape' | 'popper' | 'echo' | 'multipack';
@@ -47,6 +51,8 @@ export interface ItemDef {
   cells: Cell[];
   price: number;
   electrical: boolean;
+  family: FamilyTag;
+  element?: ElementTag;
   /** Short one-line description for cards. */
   blurb: string;
   /** Longer rules text for tooltips. */
@@ -114,6 +120,11 @@ export interface WeaponStats {
   pierce: number;          // extra enemies a projectile may pass through (0 = hits one)
   homing: boolean;         // curve toward nearby target after first hit
   burn: BurnEffect | null;
+  /** Heat L2: chance to set a non-burning weapon's hit on fire. */
+  ignite: { chance: number; burn: BurnEffect } | null;
+  /** Electric set: chance per hit to arc to `chainJumps` nearby enemies (chained hits never re-chain). */
+  chainChance: number;
+  chainJumps: number;
   slow: SlowEffect | null;
   frostRing: boolean;
   expressSweep: boolean;   // pan: extra sweep on successful shove
@@ -157,6 +168,10 @@ export interface Build {
   invulnBonus: number;     // bubble wrap: extra seconds of post-hit invulnerability
   regen: number;           // HP per second during combat (snack bag)
   recipes: ActiveRecipe[];
+  /** Set-bonus level per set (0/1/2), counted over distinct placed types. */
+  sets: Record<SetId, 0 | 1 | 2>;
+  priceMult: number;       // checkout L1: shop price multiplier
+  shoveStun: number;       // tools L2: seconds the dash stuns (0 = off)
   /** Deduplicated adjacent pairs, uid order a < b. */
   adjacency: [string, string][];
 }

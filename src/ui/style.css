@@ -623,6 +623,27 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .inspector .chips { padding: 4px 14px 0; margin: 0; gap: 6px; }
 .inspector .chip { white-space: nowrap; text-transform: none; font-size: 13px; font-weight: 800; letter-spacing: 0; padding: 5px 7px; flex: 1; justify-content: center; gap: 5px; background: rgba(48, 32, 63, 0.07); }
 .inspector .chip.elec { background: #fff1c2; }
+/* set chips (inspector + sets panel); .act = set currently active */
+.chip.set-electric { background: #fff1c2; color: #8a6200; }
+.chip.set-kitchen { background: #ffe2c2; color: #9a5412; }
+.chip.set-cleaning { background: #cdf2ee; color: #1f7a70; }
+.chip.set-tools { background: #dfdbd6; color: #5b4a3a; }
+.chip.set-snacks { background: #f1f5b8; color: #6b7a12; }
+.chip.set-checkout { background: #d6f0c4; color: #3f7a1f; }
+.chip.set-heat { background: #ffd9c9; color: #b8381c; }
+.chip.set-frost { background: #d4ecff; color: #2a6aa8; }
+.chip.set-blast { background: #ffd6ec; color: #a8286e; }
+.inspector .chip.act { box-shadow: 0 0 0 2px var(--plum); }
+#shop .sets { margin: 8px auto 0; width: 488px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; max-height: 100px; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; }
+#shop .sets .sh { font-family: var(--display); font-size: 15px; line-height: 1; }
+#shop .sets .set { display: flex; align-items: center; gap: 8px; padding: 4px 8px; border: 2px dashed rgba(48, 32, 63, 0.3); border-radius: 10px; font-size: 12px; font-weight: 800; line-height: 1.2; }
+#shop .sets .set.on { border: 2px solid var(--plum); background: var(--paper); }
+#shop .sets .chip { flex: none; width: 92px; text-align: center; }
+#shop .sets .sl { min-width: 0; flex: 1; }
+#shop .sets .sl > div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#shop .sets .chip { font-size: 11px; font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase; padding: 1px 8px; border-radius: 999px; }
+#shop .sets .next { opacity: 0.45; }
+
 .inspector .chip.coin img { width: 17px; height: 17px; }
 .inspector .callout { display: flex; align-items: center; gap: 10px; margin: 8px 14px 0; padding: 7px 12px; border: 2px solid #f1cf85; border-radius: 12px; background: #fff0c9; }
 .inspector .callout > div { border-left: 2px solid rgba(48, 32, 63, 0.15); padding-left: 10px; line-height: 1.2; }

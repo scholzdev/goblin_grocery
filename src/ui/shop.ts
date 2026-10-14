@@ -14,7 +14,8 @@ import { settings } from '../state/settings';
 import { icons } from './icons';
 import { t, fmtNum } from '../i18n';
 import { itemRules, itemT, recipeT, tagT } from '../i18n/data';
-import type { Build, ItemInstance, ItemTypeId, RecipeId, Rotation, RunState } from '../types';
+import { SETS, setsOf } from '../data/sets';
+import type { Build, ItemInstance, ItemTypeId, RecipeId, Rotation, RunState, SetId } from '../types';
 
 // Cell pitch in design pixels (cell + 4px gap). 92 for the 4×4 and 5×4 carts; shrinks so bigger carts fit the same 460×368 area.
 let CELL = 92;
@@ -175,6 +176,40 @@ export function combosHtml(build: Build, preview?: Build | null, relevant: ItemT
   }).join('');
 }
 
+const pc = (x: number): string => fmtNum(Math.round(x * 100));
+/** Bonus text for one set level, numbers straight from SETS. */
+function setBonus(id: SetId, lv: 1 | 2): string {
+  const k = `set_${id}${lv}` as const, i = lv - 1;
+  const v = ((): Record<string, string | number | undefined> => {
+    switch (id) {
+      case 'kitchen': return lv === 1 ? { v: pc(SETS.kitchen.damageMult - 1) } : { v: pc(SETS.kitchen.healChance), n: SETS.kitchen.heal };
+      case 'cleaning': return lv === 1 ? { v: pc(SETS.cleaning.rangeMult - 1) } : { v: pc(SETS.cleaning.knockbackMult - 1), n: fmtNum(SETS.cleaning.puddleExtra) };
+      case 'tools': return lv === 1 ? { v: pc(SETS.tools.cooldownDiv - 1) } : { v: SETS.tools.shoveDamageMult, n: fmtNum(SETS.tools.shoveStun) };
+      case 'snacks': return { v: lv === 1 ? SETS.snacks.maxHp : fmtNum(SETS.snacks.regen) };
+      case 'checkout': return lv === 1 ? { v: pc(1 - SETS.checkout.priceMult) } : { v: 1, n: SETS.checkout.interestPer, m: SETS.checkout.interestCap };
+      case 'heat': return lv === 1 ? { v: fmtNum(SETS.heat.burnExtra) } : { v: fmtNum(SETS.heat.burnMult), n: pc(SETS.heat.igniteChance) };
+      case 'frost': return lv === 1 ? { v: pc(SETS.frost.slowBonus), n: pc(SETS.frost.slowCap) } : { v: pc(SETS.frost.stunMinSlow), n: fmtNum(SETS.frost.stun), m: pc(SETS.frost.stunChance) };
+      case 'electric': return { v: pc(SETS.electric.chance[i]), n: SETS.electric.jumps[i], m: pc(SETS.electric.damageMult) };
+      case 'blast': return lv === 1 ? { v: pc(SETS.blast.radiusMult - 1) } : { v: pc(SETS.blast.killChance), n: SETS.blast.damage };
+    }
+  })();
+  return t(k, v as Record<string, string | number>);
+}
+
+const SET_IDS: SetId[] = ['kitchen', 'cleaning', 'tools', 'snacks', 'checkout', 'heat', 'frost', 'blast', 'electric'];
+/** Compact sets block: only sets with >=1 type in the cart, count of distinct types, reached bonuses + dimmed next level. */
+export function setsHtml(): string {
+  const inv = store.state.inventory;
+  const have = SET_IDS.map((id) => [id, new Set(inv.placed.filter((p) => setsOf(p.type).includes(id)).map((p) => p.type)).size] as const).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]);
+  if (!have.length) return '';
+  const [t1, t2] = SETS.thresholds;
+  return `<div class="sh">${t('setsTitle')}</div>` + have.map(([id, n]) => {
+    const lv = n >= t2 ? 2 : n >= t1 ? 1 : 0;
+    const lines = ([1, 2] as const).map((l) => `<div class="${l <= lv ? '' : 'next'}">${esc(setBonus(id, l))}</div>`).join('');
+    return `<div class="set ${lv ? 'on' : ''}" title="${t('setsHint')}"><span class="chip set-${id}">${tagT(id)} ${n}/${lv === 2 ? t2 : lv === 1 ? t2 : t1}</span><div class="sl">${lines}</div></div>`;
+  }).join('');
+}
+
 function render(): void {
   const s = store.state;
   const show = s.phase === 'shop' && !!s.shop;
@@ -222,6 +257,7 @@ function render(): void {
       <div class="cart-title sticker">${t('cartLoadout')}</div>
       <div class="grid-wrap"><div class="grid" style="width:${s.inventory.cols * cellFor(s.inventory.cols, s.inventory.rows)}px;height:${s.inventory.rows * cellFor(s.inventory.cols, s.inventory.rows)}px;margin:0 auto">${gridHtml(s)}</div></div>
       <div class="combos">${combosHtml(s.build, null, relevantTypes())}</div>
+      <div class="sets">${setsHtml()}</div>
     </div>
     <div class="col-right">
       <div class="offers-head"><h3>${t('todaysDeals')}</h3><button class="btn small" data-act="reroll" ${s.money < currentRerollCost(s) ? 'disabled' : ''}>${t('reroll')} · ${currentRerollCost(s) || t('free')}</button></div>
@@ -283,11 +319,11 @@ export function inspectorHtml(type: ItemTypeId, uid: string | null, offerTier?: 
   const weaponTag = (def.tags ?? []).find((tg): tg is keyof typeof KIND_BY_TAG => tg in KIND_BY_TAG);
   const kind = def.kind === 'weapon' && weaponTag ? t(KIND_BY_TAG[weaponTag]) : kindLabel(type);
   const otherTags = (def.tags ?? []).filter((tg) => !(tg in KIND_BY_TAG));
-  const electric = !!(def.weapon && def.electrical);
+  const setChips = setsOf(type).map((id) => `<span class="chip set-${id}${s?.build?.sets?.[id] ? ' act' : ''}">${id === 'electric' ? icons.bolt(15) : ''}${tagT(id)}</span>`).join('');
   const head = `<header><span class="ico-tile ${rc}"><img src="${svg(`icon_${type}`)}" alt=""></span>
     <div class="hd"><div class="nm"><span style="font-size:${fitName(itemT(type).name)}px">${itemT(type).name}</span><b class="lv ${def.legendary ? 'leg' : `t${tier}`}">★${def.legendary ? '' : tier}</b></div>
     <span class="sub ${rc}">${rarity} · ${kind}</span></div></header>
-    <div class="chips">${electric ? `<span class="chip elec">${icons.bolt(15)}${tagT('electric')}</span>` : ''}${otherTags.map((tg) => `<span class="chip">${tagT(tg)}</span>`).join('')}<span class="chip">${icons.grid(15)}${w}×${h}</span>
+    <div class="chips">${setChips}${otherTags.map((tg) => `<span class="chip">${tagT(tg)}</span>`).join('')}<span class="chip">${icons.grid(15)}${w}×${h}</span>
     <span class="chip coin"><img class="coin-ico" src="${svg('coin')}" alt="">${loc ? t('sells', { n: sellPrice(type, tier) }) : def.price}</span></div>`;
 
   let body = '';
@@ -406,6 +442,10 @@ function showCard(html: string, anchor: HTMLElement | null, pinned: boolean): vo
   card.style.top = `${y}px`;
   card.classList.add('show');
 }
+
+/** Read-only item card outside the shop (title Catalog): base stats at ★1, no run state needed. */
+export const showItemCard = (type: ItemTypeId, anchor: HTMLElement): void => showCard(inspectorHtml(type, null), anchor, false);
+export const hideItemCard = (): void => hideCard();
 
 function hideCard(): void {
   card?.remove();
@@ -629,6 +669,8 @@ function updateTarget(): void {
       : `<div class="nm">${t('cantMerge')}</div><div>${esc(res.result.ok ? '' : res.result.reason)}</div>`);
     const combos = root.querySelector('.combos');
     if (combos) combos.innerHTML = combosHtml(s.build, preview, relevantTypes());
+    const sets = root.querySelector('.sets');
+    if (sets) sets.innerHTML = setsHtml();
     return;
   }
   if (under && grid.contains(under)) {
@@ -661,6 +703,8 @@ function updateTarget(): void {
   if (!sell) { const z = root.querySelector('.sell'); if (z) z.textContent = t('dropSell'); }
   const combos = root.querySelector('.combos');
   if (combos) combos.innerHTML = combosHtml(s.build, preview, relevantTypes());
+  const sets = root.querySelector('.sets');
+  if (sets) sets.innerHTML = setsHtml();
   setHint(sellHint || `<div class="nm">${itemT(drag.type).name}${starsHtml(drag.tier)}</div>`);
 }
 

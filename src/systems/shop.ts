@@ -41,7 +41,8 @@ export function rollOffers(state: RunState, rng: Rng, shopIndex: number, guarant
   const own = new Set<ItemTypeId>([...placed.map((p) => p.type), ...shelf.filter((s) => !!s).map((s) => s!.type)]);
   const lv = SHOP_LEVELS[Math.max(0, Math.min(SHOP_LEVELS.length, state.shopLevel) - 1)];
   const offers: ShopOffer[] = [];
-  const add = (type: ItemTypeId, tier: number) => offers.push({ slot: offers.length, type, tier, price: Math.max(1, Math.round(TIER.value(ITEMS[type].price, tier) * (PLAYER.starters[state.starter ?? 'toaster'].perk?.priceMult ?? 1))), sold: false });
+  // Checkout set discount is baked in at roll time: offers already on the table keep their price until the next reroll.
+  const add = (type: ItemTypeId, tier: number) => offers.push({ slot: offers.length, type, tier, price: Math.max(1, Math.round(TIER.value(ITEMS[type].price, tier) * (PLAYER.starters[state.starter ?? 'toaster'].perk?.priceMult ?? 1) * (state.build?.priceMult ?? 1))), sold: false });
   if (guarantee) for (const t of STARTER_WEAPONS[state.weapon ?? 'toaster'].guarantee) add(t, 1);
   // Locked items (meta-progression) never show up.
   const allowed = (t: ItemTypeId) => !state.unlocked || state.unlocked.includes(t);

@@ -7,6 +7,7 @@ import type { DepartmentId, Build, Inventory, ItemInstance, ItemTypeId, LabOpts,
 import { canPlace, findItem, normalizeRotation } from '../systems/inventory';
 import type { Rng } from '../systems/rng';
 import { currentRerollCost, rollDoors, rollOffers, sellPrice } from '../systems/shop';
+import { SETS } from '../data/sets';
 import { computeBuild } from '../systems/synergies';
 
 const fail = (reason: string): OpResult => ({ ok: false, reason });
@@ -260,6 +261,8 @@ export function addCoins(state: RunState, amount: number, label: string): void {
 
 export function finishWave(state: RunState): void {
   addCoins(state, Math.round(ECONOMY.waveClearBonus * DEPARTMENTS[state.department].coinMult * MODIFIERS[state.modifier].coinMult * SHIFTS[state.shift].coinMult), t('coinWaveClear'));
+  const interest = state.build.sets.checkout === 2 ? Math.min(SETS.checkout.interestCap, Math.floor(state.money / SETS.checkout.interestPer)) : 0;
+  if (interest > 0) addCoins(state, interest, t('coinInterest'));
   state.stats.wavesCleared++;
   state.hp = Math.min(state.build.maxHp, state.hp + PLAYER.repairBetweenWaves);
   state.phase = 'checkout';

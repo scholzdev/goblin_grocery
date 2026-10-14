@@ -8,6 +8,7 @@ import { mulberry32 } from '../src/systems/rng';
 import { rollEvent, outageDuration } from '../src/systems/events';
 import { EVENTS } from '../src/data/events';
 import { cart } from './cart';
+import { setLevels } from '../src/data/sets';
 import { RECIPES } from '../src/data/recipes';
 import { DEPARTMENTS, DEPT_TUNING, THEMES } from '../src/data/departments';
 import { DOOR_POOL, MODIFIERS } from '../src/data/modifiers';
@@ -85,8 +86,8 @@ describe('adjacency', () => {
   });
   it('double-edge contact does not double the buff', () => {
     const t = it_('toaster', 0, 0), h = it_('hotsauce', 0, 1), h2 = it_('hotsauce', 1, 1);
-    expect(w0(inv(t, h)).damage).toBeCloseTo(7 * 1.25 * 1.06);
-    expect(w0(inv(t, h, h2)).damage).toBeCloseTo(7 * 1.25 * 1.06);
+    expect(w0(inv(t, h)).damage).toBeCloseTo(7 * 1.25 * 1.06 * 1.1);
+    expect(w0(inv(t, h, h2)).damage).toBeCloseTo(7 * 1.25 * 1.06 * 1.1);
     expect(w0(inv(it_('toaster', 0, 0), it_('fan', 0, 1, 1))).projectileSpeed).toBeCloseTo(520 * 1.3);
   });
   it('two identical fans on one toaster apply fan once', () => {
@@ -107,7 +108,7 @@ describe('recipes', () => {
     expect(w.count).toBe(3);
     expect(w.spreadDeg).toBe(22);
     expect(w.damage).toBeCloseTo(7 * 1.12 * 0.75);
-    expect(w.burn).toEqual({ dps: 2.5, duration: 2, tick: 0.5 });
+    expect(w.burn).toEqual({ dps: 2.5, duration: 3, tick: 0.5 });
     expect(w.projectileSpeed).toBeCloseTo(520 * 1.3);
     expect(b.recipes).toHaveLength(1);
     expect(b.recipes[0].supportUids).toHaveLength(2);
@@ -115,7 +116,7 @@ describe('recipes', () => {
   it('toast mode with hot sauce = 7*1.25*bundle*0.6', () => {
     const w = w0(inv(toaster(), it_('fan', 0, 1), it_('fuel', 3, 1), it_('hotsauce', 1, 2)));
     expect(w.recipes).toContain('toastMode');
-    expect(w.damage).toBeCloseTo(7 * 1.25 * 1.18 * 0.75);
+    expect(w.damage).toBeCloseTo(7 * 1.25 * 1.18 * 0.75 * 1.1);
   });
   it('only one support touching the toaster: no recipe even if supports touch each other', () => {
     // fan (0,1)-(0,2); fuel rotated horizontal at (0,3)-(1,3): touches fan, not the toaster
@@ -149,7 +150,7 @@ describe('recipes', () => {
     expect(nl.recipes).toContain('nailstorm');
     expect(nl.pierce).toBe(1);
     expect(nl.homing).toBe(true);
-    expect(nl.cooldown).toBeCloseTo(1.1 / batE);
+    expect(nl.cooldown).toBeCloseTo(1.1 / batE / 1.08);
     const p = w0(inv(it_('pan', 0, 0), it_('bell', 1, 0)));
     expect(p.recipes).toContain('expressCheckout');
     expect(p.expressSweep).toBe(true);
@@ -484,7 +485,7 @@ describe('tiers', () => {
     expect(s.inventory.shelf[0]).toBeNull();
     const t = s.inventory.placed.find((p) => p.uid === 'i1')!;
     expect([t.x, t.y, t.tier]).toEqual([1, 1, 2]);
-    expect(s.build.weapons.find((w) => w.uid === 'i1')!.damage).toBeCloseTo(7 * 1.5);
+    expect(s.build.weapons.find((w) => w.uid === 'i1')!.damage).toBeCloseTo(7 * 1.5 * 1.1);
     // dragged placed item frees its cells
     const s2 = shopRun();
     s2.inventory.placed.push(it_('toaster', 0, 3));
@@ -591,7 +592,7 @@ describe('legendaries / bundle / shop levels', () => {
     const near = w0(inv(it_('toaster', 0, 1), it_('powerstrip', 0, 0), it_('powerstrip', 0, 2)));
     expect(near.cooldown).toBeCloseTo(0.9 / BUFFS.powerstripAdjacent);
     const bat = w0(inv(it_('toaster', 0, 1), it_('powerstrip', 0, 0), it_('battery', 2, 1)));
-    expect(bat.cooldown).toBeCloseTo(0.9 / BUFFS.powerstripAdjacent / batE);
+    expect(bat.cooldown).toBeCloseTo(0.9 / BUFFS.powerstripAdjacent / batE / 1.08);
     expect(w0(inv(it_('pan', 0, 0), it_('powerstrip', 1, 0))).cooldown).toBeCloseTo(1.15);
   });
   it('goldstar boosts adjacent fan only', () => {
@@ -1010,7 +1011,7 @@ describe('aoe / multi-hit modules', () => {
     const w = w0(inv(it_('cooker', 0, 0), it_('fuel', 2, 0)));
     expect(w.recipes).toContain('pressurePoint');
     expect(w.firePool).toBe(true);
-    expect(w.burn).toEqual({ dps: 2.5, duration: 2, tick: 0.5 });
+    expect(w.burn).toEqual({ dps: 2.5, duration: 3, tick: 0.5 });
     expect(w0(inv(it_('cooker', 0, 0))).firePool).toBe(false);
     const sp = w0(inv(it_('spray', 0, 0), it_('fuel', 1, 0)));
     expect(sp.burn!.dps).toBe(2.5); // universal fuel
@@ -1020,7 +1021,7 @@ describe('aoe / multi-hit modules', () => {
     const m = w0(inv(it_('spray', 0, 0), it_('fan', 1, 0)));
     expect(m.recipes).toContain('mistMachine');
     expect(m.arcDeg).toBe(120);
-    expect(m.range).toBeCloseTo(170 * 1.3 * 1.4);
+    expect(m.range).toBeCloseTo(170 * 1.3 * 1.4 * 1.15);
     expect(w0(inv(it_('spray', 0, 0), it_('fan', 1, 0), it_('tape', 0, 2))).arcDeg).toBe(150);
   });
   it('200 rolls over every item type: no duplicates', () => {
@@ -1090,7 +1091,7 @@ describe('universal utilities and 2 combos per weapon', () => {
   it('fuel burns on a pan; fan adds 30% reach; battery normal vs electric', () => {
     expect(cw('pan', ['fuel']).burn!.dps).toBe(2.5);
     expect(cw('pan', ['fan']).range).toBeCloseTo(ITEMS.pan.weapon!.range * 1.3);
-    expect(cw('vacuum', ['fan']).range).toBeCloseTo(150 * 1.3);
+    expect(cw('vacuum', ['fan']).range).toBeCloseTo(150 * 1.3 * 1.15);
     expect(cw('pan', ['fan']).projectileSpeed).toBe(0);
     expect(cw('pan', ['battery']).cooldown).toBeCloseTo(1.15 / BUFFS.battery.rateMult);
     expect(cw('toaster', ['battery']).cooldown).toBeCloseTo(0.9 / batE);
@@ -1397,5 +1398,73 @@ describe('armored / shield / healer / thief enemies', () => {
     }
     expect(ELITE_EXCLUDED).toContain('giftcard');
     expect(new Set(CODEX_ENEMIES).size).toBe(Object.keys(ENEMIES).length);
+  });
+});
+
+describe('set bonuses', () => {
+  const b = (...types: ItemTypeId[]) => computeBuild(inv(...types.map((t, i) => it_(t, i % 5, Math.floor(i / 5) * 2))));
+  const bw = (...types: ItemTypeId[]) => b(...types).weapons.find((w) => w.type === types[0])!;
+  it('setLevels counts distinct types, ignores duplicates and the shelf', () => {
+    const sh = inv(it_('toaster', 0, 0), it_('toaster', 2, 0), it_('pan', 0, 1));
+    expect(setLevels(sh.placed).kitchen).toBe(1);
+    sh.shelf[0] = it_('microwave', 0, 0);
+    expect(setLevels(sh.placed).kitchen).toBe(1);
+    sh.placed.push(it_('hotsauce', 4, 0));
+    expect(setLevels(sh.placed)).toMatchObject({ kitchen: 2, heat: 2, electric: 0, tools: 0 });
+    expect(setLevels([]).kitchen).toBe(0);
+  });
+  it('kitchen L1 damage, cleaning L1 range, tools L1 cooldown, snacks L1 maxHp', () => {
+    expect(bw('pan', 'toaster').damage).toBeCloseTo(9 * 1.1 * 1.06); // kitchen L1 x bundle (1 neighbour)
+    expect(bw('mop', 'fan').range).toBeCloseTo(ITEMS.mop.weapon!.range * 1.3 * 1.15);
+    expect(bw('toaster', 'tape', 'magnet').cooldown).toBeCloseTo(0.9 / 1.08);
+    expect(b('lunchbox', 'energy').maxHp).toBe(PLAYER.maxHp + Math.round(BUFFS.lunchboxHp) + 10);
+  });
+  it('heat L1 burn duration, frost L1 slow +0.1 capped at 0.6, blast L1 popper radius', () => {
+    expect(w0(inv(it_('pan', 0, 0), it_('fuel', 1, 0))).burn).toEqual({ dps: 2.5, duration: 3, tick: 0.5 });
+    expect(w0(inv(it_('pan', 0, 0), it_('ice', 1, 0))).slow!.pct).toBe(0.25); // frost needs 2 types
+    expect(computeBuild(inv(it_('fizz', 0, 0), it_('ice', 2, 0))).weapons[0].slow!.pct).toBeCloseTo(0.35);
+    expect(computeBuild(inv(it_('vacuum', 0, 0), it_('ice', 2, 0), it_('mop', 0, 3))).weapons.find((w) => w.type === 'vacuum')!.slow!.pct).toBe(0.6); // coldStorage 0.5 + 0.1, frost 2 types
+    expect(computeBuild(inv(it_('toaster', 0, 0), it_('popper', 2, 0), it_('multipack', 3, 0))).weapons[0].popper!.radius).toBeCloseTo(70 * 1.15);
+  });
+  it('tools L2 doubles dash damage and stuns; snacks L2 regen stacks with snack bag', () => {
+    const t3 = b('nailgun', 'tape', 'boot');
+    expect(t3.shoveDamage).toBe((PLAYER.shove.damage + BUFFS.bootDamage) * 2);
+    expect(t3.shoveStun).toBe(0.3);
+    expect(b('nailgun', 'tape').shoveStun).toBe(0);
+    expect(b('lunchbox', 'energy', 'fizz').regen).toBeCloseTo(0.3);
+    expect(b('lunchbox', 'energy', 'snackbag').regen).toBeCloseTo(BUFFS.snackRegen + 0.3);
+  });
+  it('heat L2: burn dps x1.4 and heat weapons without fuel ignite', () => {
+    const w = bw('toaster', 'pan', 'microwave');
+    expect(w.burn).toBeNull();
+    expect(w.ignite).toEqual({ chance: 0.15, burn: { dps: 2.5 * 1.4, duration: 3, tick: 0.5 } });
+    expect(bw('toaster', 'pan').ignite).toBeNull();
+    const f = w0(inv(it_('pan', 0, 0), it_('fuel', 1, 0), it_('toaster', 0, 3)));
+    expect(f.burn).toEqual({ dps: 2.5 * 1.4, duration: 3, tick: 0.5 });
+    expect(f.ignite).toBeNull();
+  });
+  it('electric: non-zap electrical weapons chain, microwave does not', () => {
+    expect(bw('toaster', 'nailgun').chainChance).toBe(0.1);
+    expect(bw('toaster', 'nailgun', 'battery').chainJumps).toBe(2);
+    expect(bw('microwave', 'toaster').chainChance).toBe(0);
+    expect(bw('pan', 'toaster').chainChance).toBe(0);
+  });
+  it('checkout L1 discounts rolled offers; L2 pays capped interest after the clear bonus', () => {
+    const s = shopRun();
+    s.inventory.placed.push(it_('bell', 0, 3), it_('coupon', 1, 3));
+    s.build = computeBuild(s.inventory);
+    expect(s.build.priceMult).toBe(0.92);
+    const cheap = rollOffers(s, mulberry32(5), 1, false), full = rollOffers({ ...s, build: { ...s.build, priceMult: 1 } }, mulberry32(5), 1, false);
+    expect(cheap.every((o, i) => o.price <= full[i].price)).toBe(true);
+    expect(cheap.some((o, i) => o.price < full[i].price)).toBe(true);
+    s.money = 0; finishWave(s);
+    expect(s.coinLog.some((c) => c.label === 'Interest')).toBe(false);
+    s.inventory.placed.push(it_('pricegun', 2, 3));
+    s.build = computeBuild(s.inventory);
+    const s2 = { ...s, coinLog: [], money: 100 } as RunState; finishWave(s2);
+    expect(s2.coinLog.find((c) => c.label === 'Interest')!.amount).toBe(5);
+    const s3 = { ...s, coinLog: [], money: 0 } as RunState; finishWave(s3);
+    const clear = s3.coinLog.find((c) => c.label === 'Wave clear bonus')!.amount;
+    expect(s3.coinLog.find((c) => c.label === 'Interest')?.amount ?? 0).toBe(Math.floor(clear / 10));
   });
 });

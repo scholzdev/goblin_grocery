@@ -1,6 +1,6 @@
 # Tags-Draft: Familien + Elemente
 
-Status: Entwurf, nichts implementiert. Grundlage: alle 31 Items aus `src/data/items.ts`.
+Status: implementiert auf Branch `item-tags` (Werte in `src/data/sets.ts`). Grundlage: alle 31 Items aus `src/data/items.ts`.
 
 ## Regeln
 
@@ -72,11 +72,11 @@ Kälte und Nass sind zu **Frost** zusammengelegt. Kälte allein wäre nur `ice` 
 
 | Familie | 2 Typen | 3 Typen |
 |---|---|---|
-| **Küche** | Küchenwaffen +10 % Schaden | Kills durch Küchenwaffen: 5 % Chance auf einen Imbiss-Drop, der 3 HP heilt |
+| **Küche** | Küchenwaffen +10 % Schaden | Kills durch Küchenwaffen: 5 % Chance auf direkt +3 HP |
 | **Putzen** | Putzwaffen +15 % Reichweite/Fläche | Putzwaffen-Treffer +40 % Rückstoß, Pfützen halten +1 s |
 | **Werkzeug** | Alle Waffen +8 % Angriffstempo | Dash/Schubser: Schaden ×2, betäubt 0.3 s |
 | **Snacks** | +10 max HP | Regeneration 0.3 HP/s im Kampf (stapelt mit `snackbag`) |
-| **Kasse** | Shop-Preise −8 % | Zinsen: +1 Münze pro 10 Münzen am Aisle-Ende (max. +5) |
+| **Kasse** | Shop-Preise −8 % (neue Angebote, ab Reroll oder nächstem Shop) | Zinsen: +1 Münze pro 10 Münzen am Aisle-Ende (max. +5) |
 
 Begründung: Küche und Putzen sind waffenlastig, deshalb sind ihre Boni Kampfwerte. Werkzeug, Snacks und Kasse bestehen fast nur aus Modulen und Passiven, deshalb geben sie Mobilität, Überleben und Wirtschaft. So zwingt kein Set zu einem bestimmten Waffen-Stack.
 
@@ -85,8 +85,8 @@ Begründung: Küche und Putzen sind waffenlastig, deshalb sind ihre Boni Kampfwe
 | Element | 2 Typen | 3 Typen |
 |---|---|---|
 | **Hitze** | Brennen hält +1 s (2 → 3 s) | Brennen 2.5 → 3.5 dps. Hitze-Waffen setzen auch ohne `fuel` mit 15 % Chance in Brand |
-| **Frost** | Alle Slows +10 Prozentpunkte (Obergrenze bleibt 60 %) | Treffer auf Gegner mit ≥ 40 % Slow: 10 % Chance auf 0.5 s Einfrieren (Boss immun) |
-| **Elektro** | Treffer von Elektrowaffen: 10 % Chance, auf 1 Gegner im Umkreis 120 überzuspringen (50 % Schaden) | 20 % Chance, 2 Sprünge |
+| **Frost** | Alle Slows +10 Prozentpunkte (Obergrenze bleibt 60 %) | Direkte Treffer auf Gegner mit ≥ 35 % Slow: 10 % Chance auf 0.5 s Einfrieren (Boss immun, nicht bei Aura- oder Pfützen-Ticks) |
+| **Elektro** | Treffer von Elektrowaffen (nicht Mikrowelle, nicht Aura-Ticks): 10 % Chance, auf 1 Gegner im Umkreis 120 überzuspringen (50 % Schaden) | 20 % Chance, 2 Sprünge |
 | **Knall** | Explosionsradius ×1.15 (popper, cooker, microwave-Splash, confettiCannon) | Kills: 10 % Chance auf eine Mini-Explosion (6 Schaden, r 60, keine Kette) |
 
 Elektro gibt bewusst **kein** Tempo, weil Batterie und Power Strip das schon tun. Stattdessen Kettenblitz, ein neuer Effekt mit den bestehenden Mitteln: direkter Schaden auf ein Nachbarziel, wie bei tvDinner und staticCling.

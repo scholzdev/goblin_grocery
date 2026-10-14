@@ -10,7 +10,7 @@ import { LAB, loadLab, saveLab } from '../lab';
 import { play, refreshVolumes, startMusic } from '../audio/sfx';
 import { initHud, hud, svg, relabelHud } from './hud';
 import { initTutorial, resetTutorial } from './tutorial';
-import { initShop, shopKey, gridHtml, combosHtml, starsHtml, rarityClass, inspectorHtml } from './shop';
+import { initShop, shopKey, gridHtml, combosHtml, starsHtml, rarityClass, inspectorHtml, showItemCard, hideItemCard } from './shop';
 import { DEPARTMENTS, THEMES } from '../data/departments';
 import { MODIFIERS, type DoorId, type ModifierId } from '../data/modifiers';
 import { CART_SKINS, GOBLIN_SKINS, UNLOCKS, type CartSkin, type GoblinSkin, type Unlock } from '../data/unlocks';
@@ -104,6 +104,11 @@ export function initUi(g: Phaser.Game): void {
   document.addEventListener('visibilitychange', () => { if (document.hidden) flow.pause('blur'); });
   ui.addEventListener('click', onClick);
   ui.addEventListener('input', onInput);
+  // Catalog: hovering an item icon shows the shop's item card.
+  screens.title.addEventListener('pointerover', (e) => {
+    const el = (e.target as HTMLElement).closest<HTMLElement>('[data-card]');
+    if (el) showItemCard(el.dataset.card as ItemTypeId, el); else hideItemCard();
+  });
   // Tab view: hovering an item shows the same stats panel as the shop inspector.
   screens.loadout.addEventListener('pointerover', (e) => {
     const it = (e.target as HTMLElement).closest<HTMLElement>('.item[data-uid]');
@@ -264,7 +269,7 @@ function starterHtml(): string {
     const it = ITEMS[wid], w = it.weapon!;
     const stat = t('starterStat', { dmg: w.damage, cd: fmtNum(w.cooldown), rk: w.pattern === 'sweep' ? t('reach') : t('range'), range: w.range });
     return `<button class="btn weapon-pick ${wid === pickedWeapon ? 'coral' : ''}" data-act="weapon" data-weapon="${wid}" aria-pressed="${wid === pickedWeapon}">
-      <img src="${svg(`icon_${wid}`)}" alt=""><span class="wp-text"><span class="wp-head"><b>${itemT(wid).name}</b><span class="tagchip ${it.tags![0]}">${tagT(it.tags![0])}</span></span><span class="wp-stat">${stat}</span></span></button>`;
+      <img src="${svg(`icon_${wid}`)}" alt=""><span class="wp-text"><span class="wp-head"><b>${itemT(wid).name}</b>${it.tags?.[0] ? `<span class="tagchip ${it.tags[0]}">${tagT(it.tags[0])}</span>` : ''}</span><span class="wp-stat">${stat}</span></span></button>`;
   };
   const pills = SHIFTS.map((_sh, i) => {
     const locked = !STARTERS.some((s2) => shiftUnlocked(s2, i));
@@ -479,7 +484,7 @@ function codexHtml(tab: 'combos' | 'items' | 'enemies'): string {
     const cards = ids.map((id) => {
       const r = RECIPES[id], rt = recipeT(id);
       const known = profile.recipes.includes(id);
-      const icons = [r.weapon, ...r.supports].map((ty, i) => (known || i === 0) ? `<img src="${svg(`icon_${ty}`)}" alt="${itemT(ty).name}">` : '<span class="q">?</span>').join('<b>+</b>');
+      const icons = [r.weapon, ...r.supports].map((ty, i) => (known || i === 0) ? `<img src="${svg(`icon_${ty}`)}" alt="${itemT(ty).name}" data-card="${ty}">` : '<span class="q">?</span>').join('<b>+</b>');
       return known
         ? `<div class="codex-card known"><div class="icons">${icons}</div><div class="nm">${rt.name}</div><div class="eff">${rt.short}</div><div class="det">${rt.detail}</div></div>`
         : `<div class="codex-card"><div class="icons">${icons}</div><div class="nm">???</div><div class="det">${r.supports.length === 1 ? t('comboHintOne', { item: itemT(r.weapon).name }) : t('comboHintMany', { item: itemT(r.weapon).name, n: r.supports.length })}</div></div>`;
@@ -487,9 +492,9 @@ function codexHtml(tab: 'combos' | 'items' | 'enemies'): string {
     return `<h2>${t('catalog')}</h2>${tabs}<div class="codex-grid">${cards}</div>`;
   }
   const tiles = ITEM_IDS.map((ty) => {
-    if (unlocked.has(ty)) return `<div class="codex-item ${ITEMS[ty].legendary ? 'legendary' : ''}"><img src="${svg(`icon_${ty}`)}" alt=""><span>${itemT(ty).name}</span></div>`;
+    if (unlocked.has(ty)) return `<div class="codex-item ${ITEMS[ty].legendary ? 'legendary' : ''}" data-card="${ty}"><img src="${svg(`icon_${ty}`)}" alt=""><span>${itemT(ty).name}</span></div>`;
     const u = UNLOCKS.find((x) => x.kind === 'item' && x.item === ty)!;
-    return `<div class="codex-item locked" title="${unlockNeedT(u.id)}"><img src="${svg(`icon_${ty}`)}" alt=""><span>${unlockNeedT(u.id)}</span>${bar(u.progress(profile.stats))}</div>`;
+    return `<div class="codex-item locked" data-card="${ty}"><img src="${svg(`icon_${ty}`)}" alt=""><span>${unlockNeedT(u.id)}</span>${bar(u.progress(profile.stats))}</div>`;
   }).join('');
   return `<h2>${t('catalog')}</h2>${tabs}<div class="codex-items">${tiles}</div>`;
 }
@@ -514,6 +519,7 @@ function wardrobeHtml(): string {
 function closeTitleSettings(): boolean {
   const m = screens.title.querySelector('.settings-modal');
   m?.remove();
+  hideItemCard();
   if (m) screens.title.querySelector<HTMLElement>('[data-act="settings"]')?.focus();
   return !!m;
 }

@@ -5,10 +5,11 @@ import { flow } from '../flow';
 import { waveDef, eliteChance, bossTuning, ECONOMY, SHIFTS, WAVE_RAMP } from '../data/waves';
 import { SHOW_HP_BAR, EGG_BLAST, MELON_SLICES, ELITE, GIFTCARD, GUM, THEME_SUMMONS } from '../data/enemies';
 import { GumPuddles } from './gum';
-import { CRIT, ECHO, PLAYER, STARTER_LOOKS } from '../data/items';
+import { CRIT, ECHO, ITEMS, PLAYER, STARTER_LOOKS } from '../data/items';
+import { SETS } from '../data/sets';
 import { RECIPE_TUNING } from '../data/recipes';
 import { addCoins, damagePlayer } from '../state/run';
-import { applyBurn, applySlow, armorDamage, newHitTracker, tryHit, type HitTracker } from '../systems/combat';
+import { applyBurn, applySlow, armorDamage, newHitTracker, pickRicochetTarget, tryHit, type HitTracker } from '../systems/combat';
 import type { EnemyId, WaveDef, WeaponStats } from '../types';
 import { play, setWheel } from '../audio/sfx';
 import { musicFor, playMusic } from '../audio/music';
@@ -440,11 +441,12 @@ export class ArenaScene extends Phaser.Scene {
     return hit;
   }
 
-  damageEnemy(e: Enemy, dmg: number, stats: WeaponStats | null, o: { kb?: number; kbX?: number; kbY?: number; isDot?: boolean; label?: string; quiet?: boolean; echo?: boolean; fromPopper?: boolean }): void {
+  damageEnemy(e: Enemy, dmg: number, stats: WeaponStats | null, o: { kb?: number; kbX?: number; kbY?: number; isDot?: boolean; label?: string; quiet?: boolean; echo?: boolean; fromPopper?: boolean; chained?: boolean }): void {
     if (!e.alive) return;
     const baseDmg = dmg;
     const now = this.time.now / 1000;
     const s = store.state;
+    const sets = s.build.sets;
     // Five-Alarm Toast: toast scorches enemies that are already burning.
     if (stats?.recipes.includes('fiveAlarm') && stats.pattern === 'toast' && e.status.burnUntil > now) dmg *= RECIPE_TUNING.fiveAlarm.vsBurning;
     // Price Check mark: +30% from every source while marked.
@@ -468,9 +470,12 @@ export class ArenaScene extends Phaser.Scene {
     const key = o.isDot ? 'burn' : stats?.uid ?? o.label ?? 'shove';
     s.stats.damageByWeapon[key] = (s.stats.damageByWeapon[key] ?? 0) + dmg;
     if (stats?.burn) applyBurn(e.status, stats.burn, now);
+    if (!o.isDot && stats?.ignite && !stats.burn && Math.random() < stats.ignite.chance) applyBurn(e.status, stats.ignite.burn, now); // Heat L2
     if (stats?.slow) applySlow(e.status, stats.slow, now);
+    // Frost L2: direct hits on well-slowed enemies sometimes freeze them briefly (not aura/puddle ticks, see SETS).
+    if (!o.isDot && stats && stats.pattern !== 'aura' && stats.pattern !== 'puddle' && sets.frost === 2 && e.status.slowUntil > now && e.status.slowPct >= SETS.frost.stunMinSlow && Math.random() < SETS.frost.stunChance) this.stunEnemy(e, SETS.frost.stun);
     if (o.kb) {
-      const k = o.kb * (1 - e.def.knockbackResist) * (this.hazards.onIce(e.x, e.y) ? DEPT_TUNING.ice.knockbackMult : 1);
+      const k = o.kb * (1 - e.def.knockbackResist) * (this.hazards.onIce(e.x, e.y) ? DEPT_TUNING.ice.knockbackMult : 1) * (stats && sets.cleaning === 2 && ITEMS[stats.type].family === 'cleaning' ? SETS.cleaning.knockbackMult : 1);
       e.kx += (o.kbX ?? 0) * k * 3; e.ky += (o.kbY ?? 0) * k * 3;
     }
     if (!o.isDot && !o.quiet) {
@@ -489,15 +494,35 @@ export class ArenaScene extends Phaser.Scene {
       this.fx.number(e.x, e.y - e.sprite.displayHeight * 0.9, dmg, crit ? '#F45F52' : o.isDot ? '#F5BD45' : '#FFF2D5', crit ? 28 : o.isDot ? 16 : 22);
     }
     // Double Bag: one delayed second strike per direct hit (echoes never echo).
-    if (stats && stats.echo > 0 && !o.isDot && !o.echo && !o.fromPopper) {
+    if (stats && stats.echo > 0 && !o.isDot && !o.echo && !o.fromPopper && !o.chained) {
       this.time.delayedCall(ECHO.delay * 1000, () => {
         if (!e.alive || !this.combatActive()) return;
         this.fx.popImage('fx_echo', e.x + Phaser.Math.Between(-12, 12), e.y - 40, 0.6);
         this.damageEnemy(e, baseDmg * stats.echo, stats, { echo: true, quiet: o.quiet });
       });
     }
+    // Electric set: direct hits may arc to nearby enemies (not aura/puddle ticks; chained hits never chain or echo again).
+    if (stats && stats.chainChance > 0 && !o.isDot && stats.pattern !== 'aura' && stats.pattern !== 'puddle' && !o.chained && Math.random() < stats.chainChance) {
+      const hit = new Set([e.id]);
+      let from: Enemy = e;
+      for (let j = 0; j < stats.chainJumps; j++) {
+        const n = pickRicochetTarget(from, this.enemies.filter((x) => x.alive && x.state !== 'spawn'), hit, SETS.electric.range);
+        if (!n) break;
+        hit.add(n.id);
+        this.fx.spark(n.x, n.y - 30, 4, 0x9be8ff);
+        this.damageEnemy(n, baseDmg * SETS.electric.damageMult, stats, { chained: true, quiet: o.quiet });
+        from = n;
+      }
+    }
     if (e.hp <= 0) {
       this.killEnemy(e, true);
+      // Kitchen L2: kitchen weapon kills sometimes heal. Blast L2: weapon kills sometimes pop (popper blasts never re-trigger).
+      if (stats && sets.kitchen === 2 && ITEMS[stats.type].family === 'kitchen' && Math.random() < SETS.kitchen.healChance) {
+        s.hp = Math.min(s.build.maxHp, s.hp + SETS.kitchen.heal);
+        this.fx.number(this.player.x, this.player.y - 90, SETS.kitchen.heal, '#8FCB57', 20);
+        store.changed();
+      }
+      if (stats && sets.blast === 2 && !o.fromPopper && Math.random() < SETS.blast.killChance) this.popperBlast(e.x, e.y, { damage: SETS.blast.damage, radius: SETS.blast.radius });
       // Party Popper: kills explode; popper kills never pop again.
       if (stats?.popper && !o.fromPopper) this.popperBlast(e.x, e.y, stats.popper);
     }
@@ -770,6 +795,7 @@ export class ArenaScene extends Phaser.Scene {
         if (!tryHit(p.shoveTracker, e.id)) continue;
         p.shoveHit = true;
         this.damageEnemy(e, s.build.shoveDamage, null, { kb: PLAYER.shove.knockback, kbX: p.shoveDX, kbY: p.shoveDY, label: 'shove' });
+        if (s.build.shoveStun > 0) this.stunEnemy(e, s.build.shoveStun);
       }
       if (wall) p.shoveT = 0;
       if (p.shoveT <= 0) {
