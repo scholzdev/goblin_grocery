@@ -1,0 +1,75 @@
+import { DEPARTMENTS, DEPT_TUNING, DOOR_POOL } from '../data/departments';
+import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS, waveDef } from '../data/waves';
+import { PLAYER, ITEMS, ITEM_IDS, STARTER_WEAPONS, TIER } from '../data/items';
+import { RECIPES } from '../data/recipes';
+import type { DepartmentId, EnemyId, ItemTypeId, RunState, ShopOffer } from '../types';
+import type { Rng } from './rng';
+
+export const sellPrice = (type: ItemTypeId, tier = 1): number => Math.floor(TIER.value(ITEMS[type].price, tier) / 2);
+export const rerollCost = (rerollsDone: number): number => ECONOMY.rerollBase * (rerollsDone + 1);
+
+const anyWeapon = (o: Set<ItemTypeId>) => [...o].some((t) => ITEMS[t].kind === 'weapon');
+const ENHANCES: Partial<Record<ItemTypeId, (own: Set<ItemTypeId>) => boolean>> = {
+  fan: anyWeapon, fuel: anyWeapon, battery: anyWeapon, ice: anyWeapon, hotsauce: anyWeapon, pricegun: anyWeapon, tape: anyWeapon,
+  popper: anyWeapon, doublebag: anyWeapon, multipack: anyWeapon,
+  magnet: (o) => o.has('nailgun'),
+  bell: (o) => o.has('pan'),
+  lunchbox: (o) => o.has('microwave'),
+  coupon: (o) => o.has('fizz'),
+};
+
+function weight(t: ItemTypeId, own: Set<ItemTypeId>): number {
+  if (ITEMS[t].kind === 'weapon') return own.has(t) ? 1.6 : 1.3;
+  if (Object.values(RECIPES).some((r) => own.has(r.weapon) && r.supports.includes(t))) return 2.2;
+  return ENHANCES[t]?.(own) ? 1.8 : 1;
+}
+
+export function currentRerollCost(state: RunState): number {
+  const sh = state.shop;
+  if (!sh) return rerollCost(0);
+  return SHOP_LEVELS[state.shopLevel - 1].freeReroll && !sh.freeRerollUsed ? 0 : rerollCost(sh.rerolls);
+}
+
+/** `guarantee`: shop 1's initial roll includes the starting weapon's two suggested items at ★1 (default: only when shopIndex is 1). */
+export interface RollOpts { bias?: ItemTypeId[]; legendaryBonus?: number; forceLegendary?: boolean }
+
+export function rollOffers(state: RunState, rng: Rng, shopIndex: number, guarantee = shopIndex === 1, opts: RollOpts = {}): ShopOffer[] {
+  const bias = opts.bias ?? [], bonus = opts.legendaryBonus ?? 0;
+  const { placed, shelf } = state.inventory;
+  const own = new Set<ItemTypeId>([...placed.map((p) => p.type), ...shelf.filter((s) => !!s).map((s) => s!.type)]);
+  const lv = SHOP_LEVELS[Math.max(0, Math.min(SHOP_LEVELS.length, state.shopLevel) - 1)];
+  const offers: ShopOffer[] = [];
+  const add = (type: ItemTypeId, tier: number) => offers.push({ slot: offers.length, type, tier, price: Math.max(1, Math.round(TIER.value(ITEMS[type].price, tier) * (PLAYER.starters[state.starter ?? 'toaster'].perk?.priceMult ?? 1))), sold: false });
+  if (guarantee) for (const t of STARTER_WEAPONS[state.weapon ?? 'toaster'].guarantee) add(t, 1);
+  // Locked items (meta-progression) never show up.
+  const allowed = (t: ItemTypeId) => !state.unlocked || state.unlocked.includes(t);
+  const pool = ITEM_IDS.filter((t) => allowed(t) && !ITEMS[t].legendary && !offers.some((o) => o.type === t));
+  const legends = ITEM_IDS.filter((t) => allowed(t) && ITEMS[t].legendary);
+  while (offers.length < ECONOMY.offerCount) {
+    const needLegend = !!opts.forceLegendary && offers.length === ECONOMY.offerCount - 1 && !offers.some((o) => ITEMS[o.type].legendary);
+    if (legends.length && (needLegend || (shopIndex >= 2 && rng() < lv.legendary + bonus))) { add(legends.splice(Math.floor(rng() * legends.length), 1)[0], 1); continue; }
+    const ws = pool.map((t) => (guarantee ? 1 : weight(t, own)) * (bias.includes(t) ? DEPT_TUNING.biasWeight : 1));
+    let r = rng() * ws.reduce((a, b) => a + b, 0), i = 0;
+    while (i < pool.length - 1 && (r -= ws[i]) >= 0) i++;
+    add(pool.splice(i, 1)[0], rng() < lv.tier3 ? 3 : rng() < lv.tier2 ? 2 : 1);
+  }
+  return offers;
+}
+
+export function rollDoors(state: RunState, rng: Rng): DepartmentId[] {
+  const idx = state.shop?.shopIndex ?? state.wave;
+  if (idx + 1 >= BOSS_WAVE && !state.overtime) return ['boss'];
+  const pool = DOOR_POOL.filter((d) => d !== state.department);
+  for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  const doors = pool.slice(0, state.shopLevel >= DEPT_TUNING.threeDoorsAtLoyalty ? 3 : 2);
+  if (idx >= DEPT_TUNING.clearanceFromShop && state.department !== 'clearance' && rng() < DEPT_TUNING.clearanceChance) doors[doors.length - 1] = 'clearance';
+  return doors;
+}
+
+export function waveSpawnPlan(state: RunState): { total: number; mix: Partial<Record<EnemyId, number>>; hpScale: number; speedScale: number; dmgScale: number } {
+  const w = waveDef(state.wave), d = DEPARTMENTS[state.department], sh = SHIFTS[state.shift];
+  if (state.department === 'boss' || w.boss) return { total: w.total, mix: { ...w.mix }, hpScale: w.hpScale, speedScale: w.speedScale, dmgScale: w.dmgScale * sh.dmgMult };
+  const mix: Partial<Record<EnemyId, number>> = {};
+  for (const [k, v] of Object.entries(w.mix) as [EnemyId, number][]) mix[k] = v * (d.mix[k] ?? 1);
+  return { total: Math.round(w.total * d.countMult * sh.countMult), mix, hpScale: w.hpScale * d.hpMult * sh.hpMult, speedScale: w.speedScale * d.speedMult * sh.speedMult, dmgScale: w.dmgScale * sh.dmgMult };
+}

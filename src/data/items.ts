@@ -1,0 +1,272 @@
+import type { Cell, ItemDef, ItemTypeId, Perk, StarterId, StarterWeapon, WeaponBase } from '../types';
+
+const rect = (w: number, h: number): Cell[] => {
+  const cells: Cell[] = [];
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) cells.push({ x, y });
+  return cells;
+};
+
+const weapon = (w: Partial<WeaponBase> & Pick<WeaponBase, 'pattern' | 'damage' | 'cooldown' | 'range'>): WeaponBase => ({
+  projectileSpeed: 0, count: 1, burstInterval: 0, arcDeg: 0, pull: 0, tick: 0, duration: 0, bounces: 0, chain: 0, aoe: 0, ...w,
+});
+
+export const ITEMS: Record<ItemTypeId, ItemDef> = {
+  toaster: {
+    id: 'toaster', tags: ['ranged'], name: 'Toaster', kind: 'weapon', cells: rect(2, 1), price: 12, electrical: true,
+    blurb: 'Lobs hot toast at the nearest grocery.',
+    rules: 'Fires toast for 7 damage every 0.9 s. 440 range. Each toast hits one enemy.',
+    weapon: weapon({ pattern: 'toast', damage: 7, cooldown: 0.9, range: 440, projectileSpeed: 520 }),
+  },
+  pan: {
+    id: 'pan', tags: ['melee'], name: 'Frying Pan', kind: 'weapon', cells: rect(1, 3), price: 10, electrical: false,
+    blurb: 'Big clangy sweep around the cart.',
+    rules: 'Sweeps toward nearby enemies for 9 damage every 1.15 s. 150 reach. Hits each enemy once per swing.',
+    weapon: weapon({ pattern: 'sweep', damage: 9, cooldown: 1.15, range: 150, arcDeg: 150 }),
+  },
+  nailgun: {
+    id: 'nailgun', tags: ['ranged'], name: 'Nail Gun', kind: 'weapon', cells: rect(2, 1), price: 16, electrical: true,
+    blurb: 'Rat-a-tat three-nail bursts.',
+    rules: 'Fires a three-nail burst every 1.1 s. 3 damage per nail. 480 range.',
+    weapon: weapon({ pattern: 'burst', damage: 3, cooldown: 1.1, range: 480, projectileSpeed: 760, count: 3, burstInterval: 0.08 }),
+  },
+  vacuum: {
+    id: 'vacuum', tags: ['area'], name: 'Vacuum', kind: 'weapon', cells: rect(2, 2), price: 18, electrical: true,
+    blurb: 'Sucks groceries closer. Sucks coins closer too.',
+    rules: 'Pulses every 1.3 s for 4 damage, drawing nearby enemies slightly inward. +60 coin pickup radius.',
+    weapon: weapon({ pattern: 'pulse', damage: 4, cooldown: 1.3, range: 150, pull: 26 }),
+  },
+  fan: {
+    id: 'fan', name: 'Desk Fan', kind: 'module', cells: rect(1, 2), price: 9, electrical: false, buff: 'fan',
+    blurb: 'Whoosh. More range for whatever it touches.',
+    rules: 'Any adjacent weapon gains +30% range or reach (projectiles also fly 30% faster).',
+  },
+  fuel: {
+    id: 'fuel', name: 'Fuel Can', kind: 'module', cells: rect(1, 2), price: 11, electrical: false, buff: 'fuel',
+    blurb: 'Questionable. Sets every hit on fire.',
+    rules: 'Any adjacent weapon sets enemies on fire: 2.5 damage/s for 2 s (refreshes, never stacks).',
+  },
+  battery: {
+    id: 'battery', name: 'Battery', kind: 'module', cells: rect(1, 1), price: 8, electrical: false, buff: 'battery',
+    blurb: 'Zap! Faster attacks, electric gadgets most of all.',
+    rules: 'Any adjacent weapon attacks 12% faster; Electric weapons 18% faster.',
+  },
+  magnet: {
+    id: 'magnet', name: 'Magnet', kind: 'passive', cells: rect(1, 1), price: 7, electrical: false,
+    blurb: 'Coins come to you.',
+    rules: '+60 coin pickup radius (does not stack). Enables Nailstorm next to a Nail Gun.',
+  },
+  ice: {
+    id: 'ice', name: 'Ice Pack', kind: 'module', cells: rect(1, 2), price: 8, electrical: false, buff: 'ice',
+    blurb: 'Chilly hits slow groceries down.',
+    rules: 'Adjacent weapon hits slow enemies by 25% for 1 s. Repeated hits refresh.',
+  },
+  hotsauce: {
+    id: 'hotsauce', name: 'Hot Sauce', kind: 'module', cells: rect(1, 1), price: 7, electrical: false, buff: 'hotsauce',
+    blurb: 'Extra spicy damage.',
+    rules: 'Adjacent weapons gain +25% hit damage.',
+  },
+  lunchbox: {
+    id: 'lunchbox', name: 'Lunchbox', kind: 'passive', cells: rect(2, 1), price: 9, electrical: false,
+    blurb: 'A packed lunch. +15 max HP.',
+    rules: '+15 maximum HP while equipped (does not stack, does not heal). Enables TV Dinner.',
+  },
+  bell: {
+    id: 'bell', name: 'Shopping Bell', kind: 'passive', cells: rect(1, 1), price: 7, electrical: false,
+    blurb: 'Ding! Shove more often.',
+    rules: 'Shove cooldown −0.5 s (does not stack). Enables Express Checkout next to a Frying Pan.',
+  },
+  boot: {
+    id: 'boot', name: 'Running Boot', kind: 'passive', cells: rect(1, 1), price: 9, electrical: false,
+    blurb: 'Clearance-rack sprinter. Dash like you stole it.',
+    rules: 'Space dash goes 35% farther and deals +6 damage. Scales with level.',
+  },
+  microwave: {
+    id: 'microwave', tags: ['area'], name: 'Microwave', kind: 'weapon', cells: rect(2, 2), price: 20, electrical: true,
+    blurb: 'Ding! Nukes a grocery from across the aisle.',
+    rules: 'Every 2.4 s zaps an enemy within 380 for 24 damage, splashing everything within 70. Electrical.',
+    weapon: weapon({ pattern: 'zap', damage: 24, cooldown: 2.4, range: 380, aoe: 70 }),
+  },
+  blender: {
+    id: 'blender', tags: ['melee', 'area'], name: 'Blender', kind: 'weapon', cells: rect(1, 2), price: 15, electrical: true,
+    blurb: 'Whirring blades around the cart.',
+    rules: 'Shreds every enemy within 85 for 2 damage every 0.3 s (each enemy once per tick). Electrical.',
+    weapon: weapon({ pattern: 'aura', damage: 2, cooldown: 0.3, range: 85 }),
+  },
+  fizz: {
+    id: 'fizz', tags: ['ranged'], name: 'Fizz Cannon', kind: 'weapon', cells: rect(2, 1), price: 14, electrical: false,
+    blurb: 'Shaken soda fires ricocheting bottle caps.',
+    rules: 'Fires a bottle cap for 6 damage every 1.0 s that bounces to 2 more enemies (never the same one twice). 420 range.',
+    weapon: weapon({ pattern: 'ricochet', damage: 6, cooldown: 1.0, range: 420, projectileSpeed: 620, bounces: 2 }),
+  },
+  mop: {
+    id: 'mop', tags: ['area'], name: 'Mop', kind: 'weapon', cells: [{ x: 0, y: 0 }, { x: 0, y: 1 }, { x: 0, y: 2 }, { x: 1, y: 2 }], price: 11, electrical: false,
+    blurb: 'Leaves slippery soap puddles behind you.',
+    rules: 'Every 1.6 s drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip: 25% slow and 3 damage every 0.5 s.',
+    weapon: weapon({ pattern: 'puddle', damage: 3, cooldown: 1.6, range: 60, tick: 0.5, duration: 3 }),
+  },
+  pricegun: {
+    id: 'pricegun', name: 'Price Gun', kind: 'module', cells: [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }], price: 12, electrical: false, buff: 'pricegun',
+    blurb: 'Marks groceries 50% OFF. Critical hits!',
+    rules: 'Adjacent weapons gain a 15% chance to crit for double damage (not burn). Enables Clearance Sale.',
+  },
+  tape: {
+    id: 'tape', name: 'Duct Tape', kind: 'module', cells: rect(1, 1), price: 9, electrical: false, buff: 'tape',
+    blurb: 'Fixes everything. Makes it bigger, too.',
+    rules: 'Any adjacent weapon: projectiles pierce +1, sweeps and cones +30° arc, areas +20% radius, beams +20% length.',
+  },
+  coupon: {
+    id: 'coupon', name: 'Coupon Book', kind: 'passive', cells: rect(1, 1), price: 8, electrical: false,
+    blurb: 'Extra savings on every kill.',
+    rules: 'Kills have a 30% chance to drop +1 coin (does not stack). Enables Clearance Sale.',
+  },
+  bubblewrap: {
+    id: 'bubblewrap', name: 'Bubble Wrap', kind: 'passive', cells: rect(3, 1), price: 10, electrical: false,
+    blurb: 'Pop-proof padding for your cart.',
+    rules: 'Take 1 less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack).',
+  },
+  energy: {
+    id: 'energy', name: 'Energy Drink', kind: 'passive', cells: rect(1, 1), price: 8, electrical: false,
+    blurb: 'Zoom zoom. Faster cart.',
+    rules: '+12% movement speed (does not stack).',
+  },
+  powerstrip: {
+    id: 'powerstrip', name: 'Power Strip', kind: 'module', cells: rect(3, 1), price: 32, electrical: false, legendary: true,
+    blurb: 'Plugs the whole cart in at once.',
+    rules: 'Every electrical weapon in the cart gains +20% attack rate; electrical weapons touching it gain +40% instead.',
+  },
+  goldstar: {
+    id: 'goldstar', name: 'Gold Star Sticker', kind: 'module', cells: rect(1, 1), price: 28, electrical: false, legendary: true,
+    blurb: 'Teacher\'s pet. Everything nearby tries harder.',
+    rules: 'Modules and passives touching it work one tier higher (up to ★4 strength). Weapons touching it get +1 Bundle Deal item.',
+  },
+  laser: {
+    id: 'laser', tags: ['ranged'], name: 'Self-Checkout Laser', kind: 'weapon', cells: rect(2, 2), price: 36, electrical: true, legendary: true,
+    blurb: 'Unexpected item in the bagging area. ZAP.',
+    rules: 'Every 1.6 s fires a barcode beam (620 long) that hits every enemy in the line once for 20 damage. Electrical.',
+    weapon: weapon({ pattern: 'laser', damage: 20, cooldown: 1.6, range: 620 }),
+  },
+  snackbag: {
+    id: 'snackbag', name: 'Family-Size Snack Bag', kind: 'passive', cells: rect(2, 2), price: 30, electrical: false, legendary: true,
+    blurb: 'Bottomless. Probably.',
+    rules: '+20 max HP and regenerate 1 HP every 4 s during combat (does not stack).',
+  },
+  cooker: {
+    id: 'cooker', tags: ['area'], name: 'Pressure Cooker', kind: 'weapon', cells: rect(2, 2), price: 18, electrical: false,
+    blurb: 'Lobs a whistling pot. KABOOM.',
+    rules: 'Every 2.6 s lobs a pot at the densest group within 420. It explodes for 16 damage to everything within 90, with knockback.',
+    weapon: weapon({ pattern: 'mortar', damage: 16, cooldown: 2.6, range: 420, aoe: 90, projectileSpeed: 380 }),
+  },
+  spray: {
+    id: 'spray', tags: ['melee'], name: 'Spray Bottle', kind: 'weapon', cells: rect(1, 2), price: 12, electrical: false,
+    blurb: 'Pssht pssht pssht. Hits everything in front.',
+    rules: 'Every 0.55 s sprays a 70° cone (170 reach) for 3 damage to every enemy inside (each once per spray).',
+    weapon: weapon({ pattern: 'cone', damage: 3, cooldown: 0.55, range: 170, arcDeg: 70 }),
+  },
+  popper: {
+    id: 'popper', name: 'Party Popper', kind: 'module', cells: rect(1, 1), price: 10, electrical: false, buff: 'popper',
+    blurb: 'Every kill is a celebration.',
+    rules: 'Enemies killed by adjacent weapons explode in confetti: 6 damage within 70. Popper explosions never chain.',
+  },
+  doublebag: {
+    id: 'doublebag', name: 'Double Bag', kind: 'module', cells: rect(2, 1), price: 12, electrical: false, buff: 'echo',
+    blurb: 'Twice the bag, twice the whack.',
+    rules: 'Direct hits from adjacent weapons strike a second time 0.12 s later for 50% damage.',
+  },
+  multipack: {
+    id: 'multipack', name: 'Multipack', kind: 'module', cells: rect(1, 1), price: 13, electrical: false, buff: 'multipack',
+    blurb: 'Buy one, fire two.',
+    rules: 'Any adjacent weapon: projectiles +1, sweeps/cones/mortars attack one extra time, other weapons +20% damage.',
+  },
+};
+
+export const ITEM_IDS = Object.keys(ITEMS) as ItemTypeId[];
+export const WEAPON_IDS = ITEM_IDS.filter((id) => ITEMS[id].kind === 'weapon');
+
+/** Global tuning for the player and build. */
+export const PLAYER = {
+  maxHp: 40,
+  speed: 250,
+  radius: 22,
+  /** Hitbox is a capsule along the ground from the goblin (back) to the cart nose (front), mirrored with facing. */
+  body: { back: 42, front: 46 }, // a bit inside the sprite so near-misses feel fair
+  invuln: 0.6,
+  pickupRadius: 70,
+  shove: { distance: 130, time: 0.16, cooldown: 3, damage: 6, knockback: 160, protect: 0.35 },
+  repairBetweenWaves: 6,
+  startMoney: 0,
+  /** Characters (perks + looks only). The starting weapon is picked separately: see STARTER_WEAPONS. */
+  starters: {
+    toaster: { name: 'Toast Goblin', blurb: 'The all-rounder. No perks, no downsides.' },
+    pan: { name: 'Line Cook', blurb: 'Tough from the kitchen line, a bit slow on the floor.', perk: { maxHp: 5, moveSpeedMult: 0.95 } },
+    coupon: { name: 'Coupon Clipper', blurb: 'Haggles everything, but bruises easily.', perk: { priceMult: 0.85, startMoney: 12, maxHp: -8 } },
+    night: { name: 'Night Shift', blurb: 'Fast on their feet, tired arms.', perk: { shoveCooldown: -1, moveSpeedMult: 1.08, damageMult: 0.9 } },
+  } as Record<StarterId, { name: string; blurb: string; perk?: Perk }>,
+};
+
+/** Starting weapons the player can pick for any character. Shop 1 guarantees two items that suit it. */
+export const STARTER_WEAPONS: Record<StarterWeapon, { x: number; y: number; rot: 0; guarantee: ItemTypeId[] }> = {
+  toaster: { x: 1, y: 1, rot: 0, guarantee: ['fan', 'fuel'] },
+  pan: { x: 2, y: 0, rot: 0, guarantee: ['bell', 'hotsauce'] },
+};
+
+/** Accessory layers drawn over the goblin head/torso per starter (SVG keys). */
+export const STARTER_LOOKS: Record<StarterId, { head?: string; torso?: string }> = {
+  toaster: { head: 'acc_toast_hat' },
+  pan: { head: 'acc_chef_hat', torso: 'acc_apron' },
+  coupon: { head: 'acc_visor' },
+  night: { head: 'acc_headlamp' },
+};
+
+export const BUFFS = {
+  fan: { speedMult: 1.3, rangeMult: 1.3 },
+  fuel: { dps: 2.5, duration: 2, tick: 0.5 },
+  battery: { rateMult: 1.12, electricMult: 1.5 }, // electric weapons get 1.5x the bonus
+  ice: { pct: 0.25, duration: 1 },
+  hotsauce: { damageMult: 1.25 },
+  pricegun: { critChance: 0.15 },
+  tape: { pierce: 1, arcDeg: 30, radiusMult: 1.2 },
+  magnetPickup: 60,
+  vacuumPickup: 60,
+  lunchboxHp: 15,
+  bellShove: 0.5,
+  bootDistance: 0.35,
+  bootDamage: 6,
+  energySpeed: 0.12,
+  couponChance: 0.3,
+  bubbleArmor: 1,
+  bubbleInvuln: 0.25,
+  powerstripAll: 1.2,
+  powerstripAdjacent: 1.4,
+  snackHp: 20,
+  snackRegen: 0.25, // HP per second
+};
+
+/** Bundle Deal: each weapon gains +6% damage per distinct item type touching it. */
+export const BUNDLE = { perItem: 0.06 };
+
+/** Rarity is shown by border color: ★1 common, ★2 rare, ★3 epic, legendary unique items. */
+export const RARITY_COLORS = { 1: '#30203F', 2: '#2FA597', 3: '#8A5CD6', legendary: '#F5BD45' } as const;
+
+/** Item tiers (★1..★3). Percent-style bonuses scale by tierMult; weapons get damage + rate. */
+export const TIER = {
+  max: 3,
+  /** Multiplier applied to the bonus part of a module/passive effect (e.g. +30% → +45% at ★2). */
+  mult: (t: number) => 1 + 0.5 * (t - 1),
+  weaponDamage: (t: number) => 1 + 0.5 * (t - 1),
+  weaponCooldown: (t: number) => 1 - 0.1 * (t - 1),
+  /** Total coin value of an item at tier t (★2 = two copies). Sell = floor(value / 2). */
+  value: (price: number, t: number) => price * 2 ** (t - 1),
+  /** Cost to buy the next tier directly: equals the current value. */
+  upgradeCost: (price: number, t: number) => price * 2 ** (t - 1),
+};
+
+export const CRIT = { mult: 2 };
+/** Party Popper explosion (scales with module tier via TIER.mult on damage). */
+export const POPPER = { damage: 6, radius: 70 };
+/** Double Bag second strike. */
+export const ECHO = { fraction: 0.5, delay: 0.12 };
+/** Multipack: extra projectile, or one extra repeat for non-projectile attacks. */
+export const MULTIPACK = { extra: 1, repeatDelay: 0.18 };
+export const PUDDLE = { slow: { pct: 0.25, duration: 0.5 } };
+
+export const PROJECTILE_PATTERNS = new Set(['toast', 'burst', 'ricochet']);

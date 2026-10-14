@@ -1,0 +1,651 @@
+import { store } from '../state/store';
+import { profile } from '../state/profile';
+import { ITEMS, ITEM_IDS, RARITY_COLORS, TIER } from '../data/items';
+import { RECIPES } from '../data/recipes';
+import { BOSS_WAVE, ECONOMY, SHOP_LEVELS } from '../data/waves';
+import { labAddItem, labClear, cartUpgradeCost, nextCartSize, shelfUpgradeCost, upgradeCart, upgradeShelf, buyOffer, mergeItems, mergeTargetFor, toggleLock, upgradeShop, shopUpgradeCost, moveItem, previewMerge, previewMove, repair, reroll, sellItem, type MoveTarget } from '../state/run';
+import { findItem, rotateCells, footprint } from '../systems/inventory';
+import { describeBuffs, tierScaling } from '../systems/synergies';
+import { currentRerollCost, sellPrice } from '../systems/shop';
+import { flow } from '../flow';
+import { play } from '../audio/sfx';
+import { svg } from './hud';
+import { t, fmtNum } from '../i18n';
+import { itemT, recipeT, tagT } from '../i18n/data';
+import type { Build, ItemInstance, ItemTypeId, RecipeId, Rotation, RunState } from '../types';
+
+// Cell pitch in design pixels (cell + 4px gap). 92 for the 5×4 cart; shrinks so bigger carts fit the same 460×368 area.
+let CELL = 92;
+const cellFor = (cols: number, rows: number) => Math.min(92, Math.floor(460 / cols), Math.floor(368 / rows));
+const idleInspector = () => `<div class="nm">${t('inspector')}</div><div class="muted">${t('idleHover')}</div><div style="margin-top:6px">${t('idleHelp')}</div>`;
+const RECIPE_ORDER = Object.keys(RECIPES) as RecipeId[];
+
+let root: HTMLElement;
+let ledger: { label: string; amount: number }[] = [];
+let toastTimer = 0;
+
+interface Drag {
+  uid: string;
+  type: ItemTypeId;
+  rot: Rotation;
+  grab: { x: number; y: number }; // grabbed cell inside the rotated footprint
+  tier: number;
+  ghost: HTMLElement | null;
+  startX: number; startY: number;
+  lastX: number; lastY: number;
+  target: MoveTarget | { where: 'sell' } | { where: 'merge'; uid: string } | null;
+}
+let drag: Drag | null = null;
+let hoverUid: string | null = null;
+let hoverType: ItemTypeId | null = null;
+let hoverTier: number | undefined;
+let selectedUid: string | null = null;
+let labTier = 1;
+
+export function initShop(ui: HTMLElement): void {
+  root = document.createElement('div');
+  root.id = 'shop';
+  root.className = 'interactive hidden';
+  ui.append(root);
+  store.on('change', () => { if (!drag) render(); });
+  store.on('shop-open', () => { ledger = []; hoverUid = null; hoverType = null; render(); });
+  root.addEventListener('pointerdown', onPointerDown);
+  root.addEventListener('click', onClick);
+  root.addEventListener('pointerover', onHover);
+  window.addEventListener('pointermove', onPointerMove);
+  window.addEventListener('pointerup', onPointerUp);
+  window.addEventListener('pointercancel', () => cancelDrag());
+}
+
+/** Returns true when the key was consumed (R rotate / Escape cancel while dragging). */
+export function shopKey(e: KeyboardEvent): boolean {
+  if (store.state.phase !== 'shop') return false;
+  if (drag && e.key === 'Escape') { cancelDrag(); return true; }
+  if (drag && (e.key === 'r' || e.key === 'R')) { rotateHeld(); return true; }
+  return false;
+}
+
+// ───────────────────────────── rendering ─────────────────────────────
+
+const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+
+/** Border color class: ★1 common, ★2 rare, ★3 epic, gold for legendaries. */
+export const rarityClass = (type: ItemTypeId, tier = 1): string => (ITEMS[type].legendary ? 'legendary' : `r${tier}`);
+
+/** "Weapon · Ranged", "Utility", "Passive": the role split shown everywhere. */
+export function kindLabel(type: ItemTypeId): string {
+  const d = ITEMS[type];
+  return t(d.kind === 'weapon' ? 'kindWeapon' : d.kind === 'module' ? 'kindUtility' : 'kindPassive');
+}
+
+/** Weapon tags (ranged / melee / area, electric) as small chips. */
+export function tagChips(type: ItemTypeId): string {
+  const d = ITEMS[type];
+  const tags = [...(d.tags ?? []), ...(d.weapon && d.electrical ? ['electric'] : [])];
+  return tags.length ? `<span class="tags">${tags.map((tg) => `<span class="tagchip ${tg}">${tagT(tg)}</span>`).join('')}</span>` : '';
+}
+
+export const starsHtml = (tier = 1): string =>
+  tier > 1 ? `<span class="stars t${tier}" aria-label="${t('levelAria', { n: tier })}">★${tier}</span>` : '';
+
+/**
+ * Inner markup shared by placed items and the drag ghost. Non-rectangular footprints draw one joined
+ * shape (tiles bridge the 4px gutters toward same-item neighbours) and keep icon/label/stars inside the
+ * shape's best-connected "anchor" cell, so nothing spills over items sitting in the empty corners.
+ */
+function itemInner(type: ItemTypeId, rot: Rotation, tier = 1, cellPx = CELL): { html: string; w: number; h: number; shaped: boolean } {
+  const def = ITEMS[type];
+  const cells = rotateCells(def.cells, rot);
+  const w = Math.max(...cells.map((c) => c.x)) + 1, h = Math.max(...cells.map((c) => c.y)) + 1;
+  const shaped = cells.length !== w * h;
+  const content = `<img src="${svg(`icon_${type}`)}" alt="${itemT(type).name}"><span class="tag">${itemT(type).name}</span>${starsHtml(tier)}`;
+  if (!shaped) return { w, h, shaped, html: content };
+  const has = (x: number, y: number) => cells.some((c) => c.x === x && c.y === y);
+  const n = (c: { x: number; y: number }) => [has(c.x + 1, c.y), has(c.x, c.y + 1), has(c.x - 1, c.y), has(c.x, c.y - 1)];
+  const anchor = [...cells].sort((a, b) => n(b).filter(Boolean).length - n(a).filter(Boolean).length)[0];
+  const r = 10, gut = 4, size = cellPx - gut;
+  const tiles = cells.map((c) => {
+    const [R, D, L, U] = n(c);
+    const radius = `${U || L ? 0 : r}px ${U || R ? 0 : r}px ${D || R ? 0 : r}px ${D || L ? 0 : r}px`;
+    const bw = (side: boolean) => (side ? 0 : 3);
+    return `<i class="icell" style="left:${c.x * cellPx}px;top:${c.y * cellPx}px;width:${size + (R ? gut : 0)}px;height:${size + (D ? gut : 0)}px;` +
+      `border-width:${bw(U)}px ${bw(R)}px ${bw(D)}px ${bw(L)}px;border-radius:${radius}"></i>`;
+  }).join('');
+  return { w, h, shaped, html: `${tiles}<div class="anchor" style="left:${anchor.x * cellPx}px;top:${anchor.y * cellPx}px;width:${size}px;height:${size}px">${content}</div>` };
+}
+
+function itemEl(it: ItemInstance, build: Build, extra = '', compact = false): string {
+  const def = ITEMS[it.type];
+  const full = itemInner(it.type, it.rot, it.tier);
+  // Shelf slots hold whole items regardless of footprint: draw them as one tile.
+  const inner = compact ? { ...full, shaped: false, html: full.html.replace(/<i class="icell"[^>]*><\/i>/g, '') } : full;
+  const on = build.recipes.some((r) => r.weaponUid === it.uid || r.supportUids.includes(it.uid));
+  const canCombine = store.state.phase === 'shop' && !!mergePartner(it);
+  return `<div class="item ${def.kind} ${rarityClass(it.type, it.tier)} ${canCombine ? 'mergeable' : ''} ${inner.shaped ? 'shaped' : ''} ${on ? 'recipe-on' : ''} ${it.uid === selectedUid ? 'selected' : ''} ${extra}" data-uid="${it.uid}"
+    style="left:${it.x * CELL}px;top:${it.y * CELL}px;width:${inner.w * CELL - 4}px;height:${inner.h * CELL - 4}px">${inner.html}</div>`;
+}
+
+export function gridHtml(s: RunState): string {
+  CELL = cellFor(s.inventory.cols, s.inventory.rows);
+  let cells = '';
+  for (let y = 0; y < s.inventory.rows; y++)
+    for (let x = 0; x < s.inventory.cols; x++) cells += `<div class="cell" data-cx="${x}" data-cy="${y}" style="left:${x * CELL}px;top:${y * CELL}px;width:${CELL - 4}px;height:${CELL - 4}px"></div>`;
+  return cells + s.inventory.placed.map((it) => itemEl(it, s.build)).join('');
+}
+
+export function combosHtml(build: Build, preview?: Build | null, relevant: ItemTypeId[] = []): string {
+  const now = new Set(build.recipes.map((r) => r.id));
+  const next = preview ? new Set(preview.recipes.map((r) => r.id)) : null;
+  const inv = store.state.inventory;
+  const owned = new Set([...inv.placed.map((i) => i.type), ...inv.shelf.flatMap((i) => (i ? [i.type] : []))]);
+  // Only four fit: active / previewed first, then the combos you're closest to completing.
+  const have = new Set(relevant);
+  const score = (id: RecipeId) => (now.has(id) ? 100 : 0) + (next?.has(id) ? 50 : 0) +
+    [RECIPES[id].weapon, ...RECIPES[id].supports].filter((t) => have.has(t)).length * 10 + (have.has(RECIPES[id].weapon) ? 5 : 0);
+  // Only combos already in the Catalog are shown; an undiscovered one only appears as a mystery while a drop would trigger it.
+  const known = (id: RecipeId) => profile.recipes.includes(id) || now.has(id);
+  const ids = [...RECIPE_ORDER].filter((id) => known(id) || next?.has(id)).sort((a, b) => score(b) - score(a)).slice(0, 4);
+  if (!ids.length) return `<div class="combo empty"><div class="eff">${t('noCombos')}</div><div class="hint">${t('noCombosHint')}</div></div>`;
+  return ids.map((id) => {
+    if (!known(id)) {
+      const r = RECIPES[id];
+      return `<div class="combo preview mystery"><div class="ch"><span class="name">???</span><span class="chip">${t('dropDiscover')}</span></div>
+        <div class="icons"><img src="${svg(`icon_${r.weapon}`)}" alt="">${r.supports.map(() => '<b>+</b><span class="q">?</span>').join('')}</div>
+        <div class="eff">${t('comboWaiting')}</div></div>`;
+    }
+    const r = RECIPES[id];
+    const parts = [r.weapon, ...r.supports];
+    let cls = now.has(id) ? 'on' : '';
+    if (next && next.has(id) && !now.has(id)) cls = 'preview';
+    if (next && !next.has(id) && now.has(id)) cls = 'lose';
+    const got = parts.filter((t) => owned.has(t)).length;
+    const chip = cls === 'on' ? t('active') : cls === 'preview' ? t('dropActivate') : cls === 'lose' ? t('willBreak') : t('owned', { a: got, b: parts.length });
+    const icons = parts.map((ty) => `<img class="${owned.has(ty) || cls === 'on' ? '' : 'missing'}" src="${svg(`icon_${ty}`)}" alt="${itemT(ty).name}" title="${itemT(ty).name}">`).join('<b>+</b>');
+    return `<div class="combo ${cls}" title="${esc(recipeT(id).name)}: ${esc(recipeT(id).detail)}">
+      <div class="ch"><span class="name">${recipeT(id).name}</span><span class="chip">${chip}</span></div>
+      <div class="icons">${icons}</div>
+      <div class="eff">${esc(recipeT(id).short)}</div></div>`;
+  }).join('');
+}
+
+function render(): void {
+  const s = store.state;
+  const show = s.phase === 'shop' && !!s.shop;
+  root.classList.toggle('hidden', !show);
+  if (!show) return;
+  const shop = s.shop!;
+  const earned = s.coinLog.map((l) => `<div class="line"><span>${esc(l.label)}</span><span>+${l.amount}</span></div>`).join('');
+  const spent = ledger.map((l) => `<div class="line ${l.amount < 0 ? 'neg' : ''}"><span>${esc(l.label)}</span><span>${l.amount > 0 ? '+' : ''}${l.amount}</span></div>`).join('');
+  const offers = shop.offers.map((o) => {
+    const def = ITEMS[o.type];
+    const lv = o.sold ? null : mergeTargetFor(s.inventory, o.type, o.tier);
+    const why = o.sold ? '' : s.money < o.price ? t('needCoins', { n: o.price - s.money }) : s.inventory.shelf.every(Boolean) ? t('shelfFull') : '';
+    // Cards have width to spare but not height: show tall footprints lying down.
+    const tall = Math.max(...def.cells.map((c) => c.y)) > Math.max(...def.cells.map((c) => c.x));
+    const cells = tall ? def.cells.map((c) => ({ x: c.y, y: c.x })) : def.cells;
+    const w = Math.max(...cells.map((c) => c.x)) + 1;
+    const fp = cells.map((c) => `<i style="grid-column:${c.x + 1};grid-row:${c.y + 1}"></i>`).join('');
+    const rar = def.legendary ? t('legendaryKind', { k: kindLabel(o.type) }) : o.tier === 3 ? t('epicKind', { k: kindLabel(o.type) }) : o.tier === 2 ? t('rareKind', { k: kindLabel(o.type) }) : kindLabel(o.type);
+    return `<div class="card ${rarityClass(o.type, o.tier)} ${o.sold ? 'sold' : ''} ${why ? 'blocked' : ''} ${lv ? 'lvl' : ''} ${o.locked ? 'locked' : ''}" data-offer="${o.slot}" data-type="${o.type}" ${o.sold ? `data-sold="${t('soldStamp')}"` : ''} role="button" tabindex="0"
+      aria-label="${t('buyAria', { rar, name: itemT(o.type).name, price: o.price })}">
+      <span class="kind">${rar}</span><img class="art" src="${svg(`icon_${o.type}`)}" alt="">
+      <div class="nm">${itemT(o.type).name}</div><div class="fp" style="grid-template-columns:repeat(${w},10px)">${fp}</div>
+      ${o.sold ? '' : `<button class="lock" data-lock="${o.slot}" title="${o.locked ? t('unlockTip') : t('lockTip')}" aria-label="${o.locked ? t('unlockAria') : t('lockAria')}">${o.locked ? '🔒' : '🔓'}</button>`}
+      <span class="price-tag"><img class="coin-ico" src="${svg('coin')}" alt="">${o.price}</span>
+      ${lv ? `<span class="lvlup" title="${t('combinesTip', { name: itemT(o.type).name })}">${t('combinesTag', { n: (lv.tier ?? 1) + 1 })}</span>` : ''}
+      <div class="why">${why}</div></div>`;
+  }).join('');
+  const shelf = s.inventory.shelf.map((it, i) => `<div class="slot" data-slot="${i}">${it ? itemEl({ ...it, x: 0, y: 0, rot: 0 }, s.build, '', true).replace(/style="[^"]*"/, '') : ''}</div>`).join('');
+  const isLast = shop.shopIndex + 1 >= BOSS_WAVE && !s.overtime;
+  root.innerHTML = `
+    <div class="col-left receipt">
+      <h3>Goblin Grocery</h3>
+      <div class="sub">${s.lab && s.stats.wavesCleared === 0 ? t('receiptLab', { n: String(s.wave + 1).padStart(2, '0') }) : t('receiptCleared', { n: String(shop.shopIndex).padStart(2, '0'), k: s.stats.kills })}</div>
+      <hr class="dash">
+      <div class="lines">${earned || `<div class="line"><span>${t('noCoins')}</span><span>0</span></div>`}${spent ? '<hr class="dash">' + spent : ''}</div>
+      <hr class="dash">
+      <div class="total"><span>${t('wallet')}</span><span><img class="coin-ico" src="${svg('coin')}" alt=""> ${s.money}</span></div>
+      <div class="hpbox"><img src="${svg('heart')}" width="26" alt=""><div class="hpbar"><i style="width:${(100 * s.hp) / s.build.maxHp}%"></i></div><span>${Math.ceil(s.hp)}/${s.build.maxHp}</span></div>
+      <button class="btn small gold" data-act="repair" style="margin-top:10px" ${shop.repairUsed || s.hp >= s.build.maxHp || s.money < ECONOMY.repairCost ? 'disabled' : ''}>
+        ${shop.repairUsed ? t('repaired') : t('repairBtn', { hp: ECONOMY.repairHp, c: ECONOMY.repairCost })}</button>
+      <div style="display:flex;justify-content:space-between;align-items:end;margin-top:12px"><div class="barcode"></div><small style="font-weight:800">${t('thanks')}</small></div>
+    </div>
+    <div class="col-mid">
+      <div class="cart-title sticker">${t('cartLoadout')}</div>
+      <div class="grid-wrap"><div class="grid" style="width:${s.inventory.cols * cellFor(s.inventory.cols, s.inventory.rows)}px;height:${s.inventory.rows * cellFor(s.inventory.cols, s.inventory.rows)}px;margin:0 auto">${gridHtml(s)}</div></div>
+      <div class="combos">${combosHtml(s.build, null, relevantTypes())}</div>
+    </div>
+    <div class="col-right">
+      <div class="offers-head"><h3>${t('todaysDeals')}</h3><button class="btn small" data-act="reroll" ${s.money < currentRerollCost(s) ? 'disabled' : ''}>${t('reroll')} · ${currentRerollCost(s) || t('free')}</button></div>
+      <div class="offers">${offers}</div>
+      <div class="head-btns services">${loyaltyHtml(s)}${serviceHtml(s)}</div>
+      <div class="shelf-head"><h3>${t('stagingShelf')}</h3><small style="font-weight:800">${t('shelfNoFight')}</small></div>
+      <div class="shelf" style="grid-template-columns:repeat(${s.inventory.shelf.length}, ${slotPx(s.inventory.shelf.length)}px)">${shelf}</div>
+      <div class="sell" data-sell="1">${t('dropSell')}</div>
+    </div>
+    <div class="inspector receipt"></div>
+    <div class="bottom">
+      <button class="btn coral next" data-act="next">${isLast ? t('faceManager') : t('nextAisle')} ▸</button>
+    </div>
+    ${s.lab ? labPanel() : ''}
+    <div class="toast" style="opacity:0"></div>`;
+  refreshHover();
+}
+
+function labPanel(): string {
+  const icons = ITEM_IDS.map((ty) => `<button class="lab-item ${rarityClass(ty, labTier)}" data-lab-add="${ty}" title="${esc(itemT(ty).name)}" aria-label="${t('labAddAria', { name: esc(itemT(ty).name) })}"><img src="${svg(`icon_${ty}`)}" alt=""></button>`).join('');
+  const tiers = [1, 2, 3].map((n) => `<button class="btn small ${n === labTier ? 'coral' : ''}" data-lab-tier="${n}">★${n}</button>`).join('');
+  return `<div class="lab-panel receipt"><div class="lab-head"><h3>${t('labPanel')}</h3>${tiers}</div>
+    <div class="lab-items">${icons}</div>
+    <div class="lab-btns"><button class="btn small" data-act="lab-clear">${t('labClear')}</button><button class="btn small" data-act="lab-money">${t('labFill')}</button><button class="btn small" data-act="lab-reroll">${t('labRerollFree')}</button></div></div>`;
+}
+
+/** Another owned copy (cart or shelf) that can be combined into `inst`: same type and tier, below max. */
+export function mergePartner(inst: ItemInstance): ItemInstance | null {
+  const inv = store.state.inventory;
+  const tier = inst.tier ?? 1;
+  if (ITEMS[inst.type].legendary || tier >= TIER.max) return null;
+  const same = (o: ItemInstance | null): o is ItemInstance => !!o && o.uid !== inst.uid && o.type === inst.type && (o.tier ?? 1) === tier;
+  // Prefer consuming a shelf copy so the cart layout stays as it is.
+  return inv.shelf.find(same) ?? inv.placed.find(same) ?? null;
+}
+
+export function inspectorHtml(type: ItemTypeId, uid: string | null, offerTier?: number): string {
+  const s = store.state;
+  const def = ITEMS[type];
+  const cells = def.cells;
+  const w = Math.max(...cells.map((c) => c.x)) + 1, h = Math.max(...cells.map((c) => c.y)) + 1;
+  const ws = uid ? s.build.weapons.find((x) => x.uid === uid) : null;
+  const loc = uid ? findItem(s.inventory, uid) : null;
+  const tier = loc?.inst.tier ?? offerTier ?? 1;
+  const rarity = t(def.legendary ? 'rarLegendary' : tier === 3 ? 'rarEpic' : tier === 2 ? 'rarRare' : 'rarCommon');
+  const head = `<header><div class="nm">${itemT(type).name}${starsHtml(tier)}</div>
+    <div class="chips"><span class="chip ${rarityClass(type, tier)}">${rarity}</span><span class="chip">${kindLabel(type)}</span>${tagChips(type)}<span class="chip">${w}×${h}</span>
+    <span class="chip coin"><img class="coin-ico" src="${svg('coin')}" alt="">${loc ? t('sells', { n: sellPrice(type, tier) }) : def.price}</span></div></header>`;
+
+  let body = '';
+  if (ws) {
+    const kv: [string, string][] = [
+      [t('statDamage'), `${fmtNum(+ws.damage.toFixed(1))}${ws.count > 1 ? ` ×${ws.count}` : ''}`],
+      [t('statEvery'), `${fmtNum(ws.cooldown.toFixed(2))} s`],
+      [t(ws.pattern === 'sweep' ? 'reachCap' : ws.pattern === 'pulse' || ws.pattern === 'aura' ? 'statRadius' : 'rangeCap'), `${Math.round(ws.range)}`],
+    ];
+    if (ws.pierce) kv.push([t('statPierce'), `+${ws.pierce}`]);
+    if (ws.burn) kv.push([t('statBurn'), `${fmtNum(+ws.burn.dps.toFixed(1))}/s`]);
+    if (ws.slow) kv.push([t('statSlow'), `${Math.round(ws.slow.pct * 100)}%`]);
+    if (ws.critChance) kv.push([t('statCrit'), `${Math.round(ws.critChance * 100)}%`]);
+    if (ws.echo) kv.push([t('statDouble'), `${Math.round(ws.echo * 100)}%`]);
+    body += `<div class="kv">${kv.map(([k, v]) => `<span>${k}</span><b>${v}</b>`).join('')}</div>`;
+    const buffs = describeBuffs(ws, s.inventory);
+    if (buffs.length) body += `<h5>${t('boosts')}</h5><ul class="boosts">${buffs.map((b) => `<li>${esc(b)}</li>`).join('')}</ul>`;
+  } else if (def.weapon && loc?.where === 'shelf') body += `<p class="note">${t('onShelf')}</p>`;
+
+  body += `<p class="rules">${esc(itemT(type).rules)}</p>`; // per-level numbers are in the table below
+
+  // Level scaling: ★1 / ★2 / ★3 values, the current level highlighted in its rarity colour.
+  const scale = tierScaling(type);
+  if (scale.length) {
+    body += `<h5>${t('perLevel')}</h5><div class="scal" style="--rc:${RARITY_COLORS[tier as 1 | 2 | 3]}"><span></span>${[1, 2, 3].map((t) => `<em class="${t === tier ? 'cur' : ''}">★${t}</em>`).join('')}${scale.map((r) =>
+      `<span>${r.label}</span>${r.values.map((v, i) => `<i class="${i + 1 === tier ? 'cur' : ''}">${v}</i>`).join('')}`).join('')}</div>`;
+  }
+
+  // Combos this item belongs to: compact rows (partner icons · name · effect). Undiscovered ones are not shown at all.
+  const combos = RECIPE_ORDER.filter((id) => RECIPES[id].weapon === type || RECIPES[id].supports.includes(type));
+  const seen = combos.filter((id) => profile.recipes.includes(id) || !!ws?.recipes.includes(id));
+  if (seen.length) {
+    body += `<h5>${t('combos')}</h5>` + seen.map((id) => {
+      const r = RECIPES[id], rt = recipeT(id);
+      const on = !!ws?.recipes.includes(id);
+      const partners = [r.weapon, ...r.supports].filter((ty) => ty !== type);
+      const icons = partners.map((ty) => `<img src="${svg(`icon_${ty}`)}" alt="" title="${itemT(ty).name}">`).join('');
+      return `<div class="combo-row ${on ? 'on' : ''}" title="${t('needsTouching', { names: esc(partners.map((ty) => itemT(ty).name).join(' + ')) })}"><span class="ci">${icons}</span><span><b>${rt.name}</b><small>${esc(rt.short)}</small></span>${on ? `<em>${t('on')}</em>` : ''}</div>`;
+    }).join('');
+  }
+
+  // Footer: combine (the only way to level up) — one click when a partner exists.
+  let foot = '';
+  if (loc && s.phase === 'shop') {
+    const partner = mergePartner(loc.inst);
+    if (def.legendary) foot = `<div class="foot-note">${t('legUnique')}</div>`;
+    else if (tier >= TIER.max) foot = `<div class="foot-note">${t('maxLevel', { n: TIER.max })}</div>`;
+    else if (partner) foot = `<button class="btn green combine" data-act="combine" data-uid="${uid}" data-partner="${partner.uid}">${t('combineBtn', { a: tier, b: tier + 1 })}</button>`;
+    else foot = `<div class="foot-note">${t('getAnother', { a: tier, name: itemT(type).name, b: tier + 1 })}</div>`;
+  }
+  return `${head}<div class="ibody">${body}</div>${foot ? `<footer>${foot}</footer>` : ''}`;
+}
+
+function refreshHover(): void {
+  const insp = root.querySelector<HTMLElement>('.inspector');
+  if (!insp) return;
+  const s = store.state;
+  root.querySelectorAll('.item.affect').forEach((n) => n.classList.remove('affect'));
+  if (selectedUid && !findItem(s.inventory, selectedUid)) selectedUid = null;
+  const focusUid = hoverUid ?? (hoverType ? null : selectedUid);
+  const type = hoverType ?? (focusUid ? findItem(s.inventory, focusUid)?.inst.type : null);
+  if (!type) { insp.innerHTML = idleInspector(); return; }
+  insp.innerHTML = inspectorHtml(type, focusUid, hoverType ? hoverTier : undefined);
+  if (focusUid) for (const [a, b] of s.build.adjacency) {
+    const other = a === focusUid ? b : b === focusUid ? a : null;
+    if (other) root.querySelector(`.grid .item[data-uid="${other}"]`)?.classList.add('affect');
+  }
+}
+
+function toast(msg: string): void {
+  const t = root.querySelector<HTMLElement>('.toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.remove('show');
+  void t.offsetWidth;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+}
+
+// ───────────────────────────── actions ─────────────────────────────
+
+function onClick(e: MouseEvent): void {
+  const s = store.state;
+  if (s.phase !== 'shop') return;
+  const el = e.target as HTMLElement;
+  const act = el.closest<HTMLElement>('[data-act]')?.dataset.act;
+  const card = el.closest<HTMLElement>('[data-offer]');
+  const lock = el.closest<HTMLElement>('[data-lock]');
+  if (lock) { toggleLock(s, Number(lock.dataset.lock)); play('click'); store.changed(); return; }
+  const add = el.closest<HTMLElement>('[data-lab-add]'), tier = el.closest<HTMLElement>('[data-lab-tier]');
+  if (tier) { labTier = Number(tier.dataset.labTier); store.changed(); return; }
+  if (add && s.lab) { const r = labAddItem(s, add.dataset.labAdd as ItemTypeId, labTier); if (r.ok) play('buy'); else toast(r.reason); store.changed(); return; }
+  if (s.lab && act === 'lab-clear') { labClear(s); play('click'); store.changed(); return; }
+  if (s.lab && act === 'lab-money') { s.money += 999; play('buy'); store.changed(); return; }
+  if (s.lab && act === 'lab-reroll') { s.money += currentRerollCost(s); reroll(s, flow.rng); play('click'); store.changed(); return; }
+  if (act === 'next') { play('click'); selectedUid = null; flow.leaveShop(); return; }
+  if (act === 'loyalty') {
+    const cost = shopUpgradeCost(s);
+    const r = upgradeShop(s);
+    if (r.ok) { ledger.push({ label: t('ledgerLoyalty', { n: s.shopLevel }), amount: -(cost ?? 0) }); play('upgrade'); toast(t('toastLoyalty', { n: s.shopLevel })); } else toast(r.reason);
+    store.changed();
+    return;
+  }
+  if (act === 'reroll') {
+    const cost = currentRerollCost(s);
+    const r = reroll(s, flow.rng);
+    if (r.ok) { ledger.push({ label: cost ? t('ledgerReroll') : t('ledgerFreeReroll'), amount: -cost }); play('click'); } else toast(r.reason);
+    store.changed();
+    return;
+  }
+  if (act === 'repair') {
+    const r = repair(s);
+    if (r.ok) { ledger.push({ label: t('ledgerRepair', { hp: ECONOMY.repairHp }), amount: -ECONOMY.repairCost }); play('buy'); } else toast(r.reason);
+    store.changed();
+    return;
+  }
+  if (act === 'cart' || act === 'shelf') {
+    const cost = act === 'cart' ? cartUpgradeCost(s) : shelfUpgradeCost(s);
+    const r = act === 'cart' ? upgradeCart(s) : upgradeShelf(s);
+    if (r.ok) {
+      ledger.push({ label: act === 'cart' ? t('ledgerCart', { c: s.inventory.cols, r: s.inventory.rows }) : t('ledgerShelf'), amount: -(cost ?? 0) });
+      play('upgrade');
+    } else toast(r.reason);
+    store.changed();
+    return;
+  }
+  if (act === 'combine') {
+    const btn = el.closest<HTMLElement>('[data-act="combine"]')!;
+    const uid = btn.dataset.uid!, partner = btn.dataset.partner!;
+    const it = findItem(s.inventory, uid)?.inst;
+    const r = mergeItems(s, partner, uid);
+    if (r.ok && it) { ledger.push({ label: t('ledgerCombined', { name: itemT(it.type).name, n: it.tier ?? 1 }), amount: 0 }); play('upgrade'); selectedUid = uid; }
+    else if (!r.ok) toast(r.reason);
+    store.changed();
+    return;
+  }
+  if (card) buy(Number(card.dataset.offer));
+}
+
+function buy(slot: number): void {
+  const s = store.state;
+  const offer = s.shop?.offers.find((o) => o.slot === slot);
+  if (!offer || offer.sold) return; // repeated clicks on a sold card do nothing
+  const into = mergeTargetFor(s.inventory, offer.type, offer.tier);
+  const r = buyOffer(s, slot);
+  if (!r.ok) { toast(r.reason); play('click', { rate: 0.6 }); store.changed(); return; }
+  ledger.push({ label: itemT(offer.type).name, amount: -offer.price });
+  play('buy');
+  store.changed();
+  toast(t(into ? 'toastBoughtMerge' : 'toastBought', { name: itemT(offer.type).name }));
+}
+
+function onHover(e: PointerEvent): void {
+  if (drag) return;
+  const el = e.target as HTMLElement;
+  if (el.closest('.inspector')) return; // keep showing what the player is reading / clicking
+  const item = el.closest<HTMLElement>('.item[data-uid]');
+  const card = el.closest<HTMLElement>('.card[data-type]');
+  if (el.closest('[data-act="loyalty"]')) { showLoyaltyInfo(); return; }
+  const uid = item?.dataset.uid ?? null;
+  const type = (card?.dataset.type as ItemTypeId) ?? null;
+  if (uid === hoverUid && type === hoverType) return;
+  hoverUid = uid;
+  hoverType = type;
+  hoverTier = card ? store.state.shop?.offers.find((o) => o.slot === Number(card.dataset.offer))?.tier : undefined;
+  refreshHover();
+}
+
+// ───────────────────────────── drag & drop ─────────────────────────────
+
+const scale = (): number => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--s')) || 1;
+
+function onPointerDown(e: PointerEvent): void {
+  if (e.button !== 0 || store.state.phase !== 'shop') return;
+  const itemEl = (e.target as HTMLElement).closest<HTMLElement>('.item[data-uid]');
+  if (!itemEl) return;
+  const found = findItem(store.state.inventory, itemEl.dataset.uid!);
+  if (!found) return;
+  e.preventDefault();
+  const rect = itemEl.getBoundingClientRect();
+  const cellPx = CELL * scale();
+  const rot = found.where === 'grid' ? found.inst.rot : 0;
+  const cells = rotateCells(ITEMS[found.inst.type].cells, rot);
+  // Grabbed cell = the footprint cell under the pointer (clamped onto the footprint).
+  let gx = Math.floor((e.clientX - rect.left) / (found.where === 'grid' ? cellPx : rect.width / (Math.max(...cells.map((c) => c.x)) + 1)));
+  let gy = Math.floor((e.clientY - rect.top) / (found.where === 'grid' ? cellPx : rect.height / (Math.max(...cells.map((c) => c.y)) + 1)));
+  if (!cells.some((c) => c.x === gx && c.y === gy)) ({ x: gx, y: gy } = cells[0]);
+  drag = { uid: found.inst.uid, type: found.inst.type, rot, tier: found.inst.tier ?? 1, grab: { x: gx, y: gy }, ghost: null, startX: e.clientX, startY: e.clientY, lastX: e.clientX, lastY: e.clientY, target: null };
+}
+
+function startGhost(): void {
+  if (!drag) return;
+  play('click');
+  root.querySelectorAll(`.item[data-uid="${drag.uid}"]`).forEach((n) => n.classList.add('lifted'));
+  const g = document.createElement('div');
+  g.className = `item ghost ${ITEMS[drag.type].kind}`;
+  const tier = findItem(store.state.inventory, drag.uid)?.inst.tier;
+  drag.tier = tier ?? 1;
+  document.body.append(g);
+  drag.ghost = g;
+  sizeGhost();
+}
+
+function sizeGhost(): void {
+  if (!drag?.ghost) return;
+  const inner = itemInner(drag.type, drag.rot, drag.tier);
+  const { w, h } = inner;
+  drag.ghost.innerHTML = inner.html;
+  drag.ghost.classList.toggle('shaped', inner.shaped);
+  const sc = scale();
+  drag.ghost.style.width = `${w * CELL - 4}px`;
+  drag.ghost.style.height = `${h * CELL - 4}px`;
+  drag.ghost.style.transform = `scale(${sc})`;
+  positionGhost();
+}
+
+function positionGhost(): void {
+  if (!drag?.ghost) return;
+  const cellPx = CELL * scale();
+  drag.ghost.style.left = `${drag.lastX - (drag.grab.x + 0.5) * cellPx}px`;
+  drag.ghost.style.top = `${drag.lastY - (drag.grab.y + 0.5) * cellPx}px`;
+}
+
+function rotateHeld(): void {
+  if (!drag) return;
+  const def = ITEMS[drag.type];
+  const before = rotateCells(def.cells, drag.rot);
+  const idx = before.findIndex((c) => c.x === drag!.grab.x && c.y === drag!.grab.y);
+  drag.rot = ((drag.rot + 1) % 4) as Rotation;
+  // Rotate the grab cell along with the footprint (cw: (x,y) → (h-1-y, x)).
+  const h = Math.max(...before.map((c) => c.y)) + 1;
+  const g = before[Math.max(0, idx)];
+  drag.grab = { x: h - 1 - g.y, y: g.x };
+  if (!rotateCells(def.cells, drag.rot).some((c) => c.x === drag!.grab.x && c.y === drag!.grab.y)) drag.grab = rotateCells(def.cells, drag.rot)[0];
+  play('click', { rate: 1.3 });
+  sizeGhost();
+  updateTarget();
+}
+
+function onPointerMove(e: PointerEvent): void {
+  if (!drag) return;
+  drag.lastX = e.clientX;
+  drag.lastY = e.clientY;
+  if (!drag.ghost) {
+    if (Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < 5) return;
+    startGhost();
+  }
+  positionGhost();
+  updateTarget();
+}
+
+function updateTarget(): void {
+  if (!drag) return;
+  const s = store.state;
+  root.querySelectorAll('.cell.ok, .cell.bad, .slot.ok, .sell.ok, .item.affect').forEach((n) => n.classList.remove('ok', 'bad', 'affect'));
+  const under = document.elementFromPoint(drag.lastX, drag.lastY) as HTMLElement | null;
+  const grid = root.querySelector<HTMLElement>('.grid')!;
+  const slot = under?.closest<HTMLElement>('.slot');
+  const sell = under?.closest<HTMLElement>('.sell');
+  let preview: Build | null = null;
+  drag.target = null;
+  const over = under?.closest<HTMLElement>('.item[data-uid]');
+  const overInst = over && over.dataset.uid !== drag.uid ? findItem(s.inventory, over.dataset.uid!)?.inst : null;
+  root.querySelector('.item.merge')?.classList.remove('merge');
+  if (overInst && overInst.type === drag.type) {
+    const res = previewMerge(s, drag.uid, overInst.uid);
+    drag.ghost?.classList.toggle('bad', !res.result.ok);
+    if (res.result.ok) { drag.target = { where: 'merge', uid: overInst.uid }; preview = res.build; over!.classList.add('merge'); }
+    const insp = root.querySelector<HTMLElement>('.inspector');
+    if (insp) insp.innerHTML = res.result.ok
+      ? `<div class="nm">${t('mergeTitle', { n: (overInst.tier ?? 1) + 1 })}</div><div>${t('mergeBody', { name: itemT(drag.type).name })}</div>`
+      : `<div class="nm">${t('cantMerge')}</div><div>${esc(res.result.ok ? '' : res.result.reason)}</div>`;
+    const combos = root.querySelector('.combos');
+    if (combos) combos.innerHTML = combosHtml(s.build, preview, relevantTypes());
+    return;
+  }
+  if (under && grid.contains(under)) {
+    const r = grid.getBoundingClientRect();
+    const cellPx = r.width / (s.inventory.cols * CELL - 0) * CELL;
+    const px = Math.floor((drag.lastX - r.left) / cellPx), py = Math.floor((drag.lastY - r.top) / cellPx);
+    const target: MoveTarget = { where: 'grid', x: px - drag.grab.x, y: py - drag.grab.y, rot: drag.rot };
+    const res = previewMove(s, drag.uid, target);
+    drag.target = target;
+    const cells = footprint({ uid: drag.uid, type: drag.type, x: target.x, y: target.y, rot: drag.rot });
+    for (const c of cells) root.querySelector(`.cell[data-cx="${c.x}"][data-cy="${c.y}"]`)?.classList.add(res.result.ok ? 'ok' : 'bad');
+    drag.ghost?.classList.toggle('bad', !res.result.ok);
+    if (res.build) {
+      preview = res.build;
+      for (const [a, b] of res.build.adjacency) {
+        const other = a === drag.uid ? b : b === drag.uid ? a : null;
+        if (other) root.querySelector(`.grid .item[data-uid="${other}"]`)?.classList.add('affect');
+      }
+    }
+  } else if (slot) {
+    const target: MoveTarget = { where: 'shelf', slot: Number(slot.dataset.slot) };
+    const res = previewMove(s, drag.uid, target);
+    if (res.result.ok) { slot.classList.add('ok'); drag.target = target; preview = res.build; }
+  } else if (sell) {
+    sell.classList.add('ok');
+    sell.textContent = t('sellFor', { name: itemT(drag.type).name, n: sellPrice(drag.type, drag.tier) });
+    drag.target = { where: 'sell' };
+  }
+  if (!sell) { const z = root.querySelector('.sell'); if (z) z.textContent = t('dropSell'); }
+  const combos = root.querySelector('.combos');
+  if (combos) combos.innerHTML = combosHtml(s.build, preview, relevantTypes());
+  const insp = root.querySelector<HTMLElement>('.inspector');
+  if (insp) { insp.innerHTML = inspectorHtml(drag.type, drag.uid) + `<div class="muted" style="margin-top:4px"><kbd>R</kbd> ${t('rotate')} · <kbd>ESC</kbd> ${t('cancel')}</div>`; }
+}
+
+function onPointerUp(): void {
+  if (!drag) return;
+  const d = drag;
+  drag = null;
+  d.ghost?.remove();
+  if (!d.ghost) { selectedUid = d.uid; render(); return; } // a click selects the item for the inspector
+  const s = store.state;
+  const tg = d.target;
+  let ok = false;
+  if (tg && tg.where === 'sell') {
+    const price = sellPrice(d.type, d.tier);
+    const r = sellItem(s, d.uid);
+    ok = r.ok;
+    if (r.ok) { ledger.push({ label: t('ledgerSold', { name: itemT(d.type).name }), amount: price }); play('sell'); } else toastLater(r.reason);
+  } else if (tg && tg.where === 'merge') {
+    const r = mergeItems(s, d.uid, tg.uid);
+    ok = r.ok;
+    if (r.ok) { play('upgrade'); ledger.push({ label: t('ledgerMerged', { name: itemT(d.type).name }), amount: 0 }); hoverUid = tg.uid; } else toastLater(r.reason);
+  } else if (tg) {
+    const r = moveItem(s, d.uid, tg);
+    ok = r.ok;
+    if (r.ok) play('click', { rate: 0.8 }); else toastLater(r.reason);
+  }
+  if (ok && tg?.where === 'merge') { selectedUid = tg.uid; hoverUid = tg.uid; }
+  else hoverUid = ok && tg?.where !== 'sell' ? d.uid : null;
+  render(); // invalid drop: re-render restores the original position, nothing else changed
+  store.changed();
+}
+
+const pct = (x: number) => `${Math.round(x * 100)}%`;
+
+const slotPx = (n: number) => (n <= 4 ? 86 : Math.floor((372 - (n - 1) * 8) / n));
+
+/** Store services: grow the cart or the staging shelf (prices rise each time). */
+function serviceHtml(s: RunState): string {
+  const cc = cartUpgradeCost(s), size = nextCartSize(s), sc = shelfUpgradeCost(s);
+  const cart = cc === null
+    ? `<button class="btn small svc" disabled>${t('cartMax')}</button>`
+    : `<button class="btn small svc" data-act="cart" ${s.money < cc ? 'disabled' : ''} title="${t('cartTip', { c: size![0], r: size![1] })}">${t('cartBtn', { c: size![0], r: size![1], p: cc })}</button>`;
+  const shelf = sc === null
+    ? `<button class="btn small svc" disabled>${t('shelfMax')}</button>`
+    : `<button class="btn small svc" data-act="shelf" ${s.money < sc ? 'disabled' : ''} title="${t('shelfTip')}">${t('shelfBtn', { p: sc })}</button>`;
+  return cart + shelf;
+}
+
+function loyaltyHtml(s: RunState): string {
+  const cost = shopUpgradeCost(s);
+  return `<button class="btn small loyalty" data-act="loyalty" ${cost === null || s.money < cost ? 'disabled' : ''}>
+    <img src="${svg('loyalty_card')}" alt="">${cost === null ? t('loyaltyMax') : t('loyaltyBtn', { n: s.shopLevel + 1, p: cost })}</button>`;
+}
+
+function showLoyaltyInfo(): void {
+  const s = store.state;
+  const insp = root.querySelector<HTMLElement>('.inspector');
+  if (!insp) return;
+  const row = (lv: number) => {
+    const L = SHOP_LEVELS[lv - 1];
+    return `<div class="${lv === s.shopLevel ? 'buff' : 'muted'}">${t('loyaltyRow', { n: lv, a: pct(L.tier2), b: pct(L.tier3), c: pct(L.legendary) })}${L.freeReroll ? ` · ${t('freeReroll')}` : ''}</div>`;
+  };
+  hoverUid = null; hoverType = null;
+  insp.innerHTML = `<div class="nm">${t('loyaltyCard')}</div><div>${t('loyaltyInfo')}</div>${[1, 2, 3, 4].map(row).join('')}`;
+}
+
+/** Owned + currently offered types: decides which combo hints are worth showing. */
+function relevantTypes(): ItemTypeId[] {
+  const s = store.state;
+  return [...s.inventory.placed.map((i) => i.type), ...s.inventory.shelf.flatMap((i) => (i ? [i.type] : [])), ...(s.shop?.offers.map((o) => o.type) ?? [])];
+}
+
+function toastLater(msg: string): void {
+  setTimeout(() => toast(msg), 0);
+}
+
+function cancelDrag(): void {
+  if (!drag) return;
+  drag.ghost?.remove();
+  drag = null;
+  render();
+}
