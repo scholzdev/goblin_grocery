@@ -13,10 +13,11 @@ import { initTutorial, resetTutorial } from './tutorial';
 import { initShop, shopKey, gridHtml, combosHtml, starsHtml, rarityClass, inspectorHtml, showItemCard, hideItemCard } from './shop';
 import { DEPARTMENTS, THEMES } from '../data/departments';
 import { MODIFIERS, type DoorId, type ModifierId } from '../data/modifiers';
-import { CART_SKINS, GOBLIN_SKINS, UNLOCKS, type CartSkin, type GoblinSkin, type Unlock } from '../data/unlocks';
-import { cartUnlocked, discoverRecipe, goblinUnlocked, profile, saveProfile, shiftUnlocked, starterUnlocked, unlockedItems } from '../state/profile';
+import { CART_SKINS, GOBLIN_SKINS, UNLOCKS, type CartSkin, type GoblinSkin } from '../data/unlocks';
+import { cartUnlocked, discoverRecipe, goblinUnlocked, isNew, markSeen, newCount, profile, saveProfile, shiftUnlocked, starterUnlocked, unlockedItems } from '../state/profile';
 import { ITEM_IDS } from '../data/items';
 import type { DepartmentId, EnemyId, ItemTypeId, LabOpts, Perk, RecipeId, StarterId, StarterWeapon } from '../types';
+import type { Fresh } from '../state/profile';
 import { t, fmtNum, setLang, LANGS, type Lang, type UIKey } from '../i18n';
 import { newSetLevels, setsOf } from '../data/sets';
 import { ZONES } from '../data/zones';
@@ -198,7 +199,7 @@ function titleHtml(): string {
       <span class="tag sticker">${t('tagline')}</span></div>
     <div class="menu">
       <button class="btn coral" data-act="play" data-focus>${t('play')}</button>
-      <button class="btn" data-act="codex">${t('catalog')} <small class="count">${profile.recipes.length}/${Object.keys(RECIPES).length}</small></button>
+      <button class="btn" data-act="codex">${t('catalog')} <small class="count">${profile.recipes.length}/${Object.keys(RECIPES).length}</small>${newBadge(newCount())}</button>
       <button class="btn" data-act="wardrobe">${t('wardrobe')}</button>
       <button class="btn" data-act="settings">${t('settings')}</button>
       ${LAB ? `<button class="btn gold" data-act="lab">${t('lab')}</button>` : ''}
@@ -363,10 +364,37 @@ function routeHtml(): string {
   </div>`;
 }
 
-function unlockChip(u: Unlock): string {
-  const img = u.kind === 'item' ? `icon_${u.item}` : u.kind === 'starter' ? 'goblin_head' : u.kind === 'goblin' ? `goblin_head__${u.skin}` : `cart_back__${u.skin}`;
-  const name = u.kind === 'item' ? itemT(u.item).name : u.kind === 'starter' ? starterT(u.starter).name : u.kind === 'goblin' ? goblinSkinT(u.skin).name : cartSkinT(u.skin).name;
-  return `<span class="uchip"><img src="${svg(img)}" alt="">${name}</span>`;
+interface FreshCard { icon: string; name: string; kind: UIKey }
+/** Run-end "Newly unlocked" cards: starters, items, skins, combos, enemies. */
+function freshCards(f: Fresh): FreshCard[] {
+  const us = f.unlocks.map((id) => UNLOCKS.find((u) => u.id === id)).filter((u): u is NonNullable<typeof u> => !!u);
+  const of = <K extends string>(k: K) => us.filter((u) => u.kind === k);
+  return [
+    ...of('starter').map((u) => ({ icon: 'goblin_head', name: starterT((u as any).starter).name, kind: 'kindStarter' as UIKey })),
+    ...of('item').map((u) => ({ icon: `icon_${(u as any).item}`, name: itemT((u as any).item).name, kind: 'kindItem' as UIKey })),
+    ...of('goblin').map((u) => ({ icon: `goblin_head__${(u as any).skin}`, name: goblinSkinT((u as any).skin).name, kind: 'kindGoblin' as UIKey })),
+    ...of('cart').map((u) => ({ icon: `cart_back__${(u as any).skin}`, name: cartSkinT((u as any).skin).name, kind: 'kindCart' as UIKey })),
+    ...f.recipes.map((r) => ({ icon: `icon_${RECIPES[r].weapon}`, name: recipeT(r).name, kind: 'kindCombo' as UIKey })),
+    ...f.enemies.map((e) => ({ icon: e === 'boss' ? 'boss_a' : `enemy_${e}_a`, name: enemyT(e).name, kind: 'kindEnemy' as UIKey })),
+  ];
+}
+
+function freshHtml(res: NonNullable<typeof flow.lastResult>): string {
+  const cards = freshCards(res.fresh), shown = cards.slice(0, 8);
+  const first = !res.shown, still = settings.reducedMotion || matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (first) {
+    res.shown = true;
+    (still ? shown.slice(0, 1) : shown).forEach((_, i) => setTimeout(() => play('ding', { rate: 1 + i * 0.05, volume: 0.5 }), 150 + i * 120));
+  }
+  const grid = shown.length ? `<div class="cut display">${t('newUnlocked')}</div><div class="ugrid">${shown.map((c, i) =>
+    `<div class="ucard ${first && !still ? 'anim' : ''}" style="--i:${i}"><span class="utile"><img src="${svg(c.icon)}" alt=""></span><span class="utxt"><b class="display">${c.name}</b><small>${t(c.kind)}</small></span><i class="newtag sticker">${t('newTag')}</i></div>`).join('')}</div>${cards.length > shown.length ? `<div class="umore">${t('moreN', { n: cards.length - shown.length })}</div>` : ''}` : '';
+  const rows = res.near.map((n) => {
+    const u = UNLOCKS.find((x) => x.id === n.id)!;
+    const icon = u.kind === 'item' ? `icon_${u.item}` : u.kind === 'starter' ? 'goblin_head' : u.kind === 'goblin' ? `goblin_head__${u.skin}` : `cart_back__${u.skin}`;
+    const name = u.kind === 'item' ? itemT(u.item).name : u.kind === 'starter' ? starterT(u.starter).name : u.kind === 'goblin' ? goblinSkinT(u.skin).name : cartSkinT(u.skin).name;
+    return `<div class="nrow"><img src="${svg(icon)}" alt=""><span class="ntxt"><b>${name}</b><small>${unlockNeedT(n.id)}</small>${bar([n.cur, n.need])}</span></div>`;
+  }).join('');
+  return `${grid}${rows ? `<div class="almost"><h5 class="sec">${t('almostThere')}</h5>${rows}</div>` : ''}`;
 }
 
 const DMG_LABELS: Record<string, UIKey> = { burn: 'dmgBurn', shove: 'dmgShove', 'Oven vent': 'dmgVent', 'Live cable': 'dmgCable', 'Party Popper': 'dmgPopper', 'Egg Carton': 'dmgEgg' };
@@ -382,11 +410,13 @@ function endHtml(): string {
     return `<div class="line"><span>${name}</span><span>${Math.round(v)}</span></div>`;
   }).join('');
   const mins = Math.floor(s.stats.timeSeconds / 60), secs = Math.floor(s.stats.timeSeconds % 60);
-  return `<div class="endcard receipt">
+  const fresh = res ? freshHtml(res) : '';
+  return `<div class="endcard receipt ${fresh ? 'cols' : ''}">
     <h2 class="display" style="font-size:46px;margin:0;color:${won ? 'var(--green-deep)' : 'var(--coral)'}">${won ? t('paidInFull') : s.overtime ? t('overtimeOver') : t('wipedOut')}</h2>
     <div style="text-align:center;font-weight:800">${won ? t('managerReturned') : t('cartStopped', { where: s.wave === BOSS_WAVE ? t('theFinalAisle') : t('aisleLc', { n: s.wave }) })}</div>
     <div style="text-align:center;font-weight:800">${t('shiftN', { n: s.shift + 1, name: shiftT(s.shift).name })}</div>
     <hr class="dash">
+    <div class="endbody"><div class="endl">
     <div class="line"><span>${t('aislesCleared')}</span><span>${Math.min(s.stats.wavesCleared, BOSS_WAVE - 1)}/${BOSS_WAVE - 1}${won ? t('plusBoss') : ''}</span></div>
     ${s.overtime ? `<div class="line"><span>${t('aislesPast')}</span><span>${Math.max(0, s.wave - BOSS_WAVE - 1)}</span></div>` : ''}
     <div class="line"><span>${t('groceriesReturned')}</span><span>${s.stats.kills}</span></div>
@@ -400,8 +430,8 @@ function endHtml(): string {
     <hr class="dash">
     <div class="score">${t('pts', { n: res?.score ?? 0 })}</div>
     ${res?.newBest ? `<span class="newbest sticker">${t('newBest')}</span>` : ''}
-    ${res?.unlocks.length ? `<div class="unlocks"><div class="display">${t('unlocked')}</div>${res.unlocks.map(unlockChip).join('')}</div>` : ''}
-    ${s.lab ? `<div class="row"><button class="btn coral" data-act="lab-back" data-focus>${t('backToLab')}</button><button class="btn" data-act="quit">${t('titleBtn')}</button></div>` : `${won ? `<div class="row"><button class="btn coral overtime" data-act="overtime" data-focus>${t('keepGoing')}</button></div>` : ''}<div class="row"><button class="btn ${won ? '' : 'coral'}" data-act="again" ${won ? '' : 'data-focus'}>${t('shopAgain')}</button><button class="btn" data-act="quit">${t('titleBtn')}</button></div>`}
+    </div>${fresh ? `<div class="endr">${fresh}</div>` : ''}</div>
+    ${s.lab ? `<div class="row"><button class="btn coral" data-act="lab-back" data-focus>${t('backToLab')}</button><button class="btn" data-act="quit">${t('titleBtn')}</button></div>` : `${won ? `<div class="row"><button class="btn coral overtime" data-act="overtime" data-focus>${t('keepGoing')}</button></div>` : ''}<div class="row"><button class="btn ${won ? '' : 'coral'}" data-act="again" ${won ? '' : 'data-focus'}>${t('shopAgain')}</button><button class="btn" data-act="end-catalog">${t('catalog')}</button><button class="btn" data-act="quit">${t('titleBtn')}</button></div>`}
     <div style="display:flex;justify-content:center;margin-top:12px"><div class="barcode" style="width:180px"></div></div>
   </div>`;
 }
@@ -425,6 +455,7 @@ function onClick(e: MouseEvent): void {
     case 'resume': flow.resume(); break;
     case 'restart': flow.startRun(); break;
     case 'quit': flow.toTitle(); break;
+    case 'end-catalog': flow.toTitle(); openTitleModal(codexHtml(newCount('item:') && !newCount('recipe:') ? 'items' : !newCount('recipe:') && newCount('enemy:') ? 'enemies' : 'combos')); break;
     case 'exit': desktop?.quit(); break;
     case 'door': flow.chooseDoor((e.target as HTMLElement).closest<HTMLElement>('[data-id]')!.dataset.id as DoorId); break;
     case 'settings': openSettingsModal(); break;
@@ -480,12 +511,23 @@ function openTitleModal(inner: string): void {
 
 const bar = ([v, n]: [number, number]) => `<span class="pbar"><i style="width:${(100 * v) / n}%"></i></span><span class="pnum">${v}/${n}</span>`;
 
+const newBadge = (n: number) => (n ? `<i class="newdot">${n}</i>` : '');
+const newTag = (key: string) => (isNew(key) ? `<i class="newtag sticker">${t('newTag')}</i>` : '');
+const TAB_PREFIX = { combos: 'recipe:', items: 'item:', enemies: 'enemy:' } as const;
+
+/** Catalog tab; entries shown here count as seen afterwards. */
 function codexHtml(tab: 'combos' | 'items' | 'enemies'): string {
+  const html = codexTab(tab);
+  markSeen(TAB_PREFIX[tab]);
+  return html;
+}
+
+function codexTab(tab: 'combos' | 'items' | 'enemies'): string {
   const ids = Object.keys(RECIPES) as RecipeId[];
   const unlocked = new Set(unlockedItems());
-  const tabs = `<div class="tabs"><button class="tab ${tab === 'combos' ? 'on' : ''}" data-act="codex-tab" data-tab="combos">${t('tabCombos')} ${profile.recipes.length}/${ids.length}</button>
-    <button class="tab ${tab === 'items' ? 'on' : ''}" data-act="codex-tab" data-tab="items">${t('tabItems')} ${unlocked.size}/${ITEM_IDS.length}</button>
-    <button class="tab ${tab === 'enemies' ? 'on' : ''}" data-act="codex-tab" data-tab="enemies">${t('tabEnemies')}</button></div>`;
+  const tabs = `<div class="tabs"><button class="tab ${tab === 'combos' ? 'on' : ''}" data-act="codex-tab" data-tab="combos">${t('tabCombos')} ${profile.recipes.length}/${ids.length}${tab !== 'combos' ? newBadge(newCount('recipe:')) : ''}</button>
+    <button class="tab ${tab === 'items' ? 'on' : ''}" data-act="codex-tab" data-tab="items">${t('tabItems')} ${unlocked.size}/${ITEM_IDS.length}${tab !== 'items' ? newBadge(newCount('item:')) : ''}</button>
+    <button class="tab ${tab === 'enemies' ? 'on' : ''}" data-act="codex-tab" data-tab="enemies">${t('tabEnemies')}${tab !== 'enemies' ? newBadge(newCount('enemy:')) : ''}</button></div>`;
   if (tab === 'enemies') {
     const cards = CODEX_ENEMIES.map((id) => {
       const d = ENEMIES[id], rec = profile.enemies[id], ap = enemyAppears(id);
@@ -495,7 +537,7 @@ function codexHtml(tab: 'combos' | 'items' | 'enemies'): string {
       const aisles = ap.first === ap.last ? t('aisleLc', { n: ap.first }) : t('aislesRange', { a: ap.first, b: ap.last });
       const depts = ap.depts.map((x) => deptT(x).name);
       const best = id === 'boss' ? Math.max(-1, ...Object.values(profile.stats.bestShift).map((n) => n ?? -1)) : -1;
-      return `<div class="codex-card known enemy"><div class="icons"><img src="${art}" alt=""></div><div class="nm">${et.name}</div><div class="eff">${t('enemyStat', { hp: d.hp, dmg: d.contactDamage, spd })}</div><div class="det">${et.blurb}</div>
+      return `<div class="codex-card known enemy">${newTag(`enemy:${id}`)}<div class="icons"><img src="${art}" alt=""></div><div class="nm">${et.name}</div><div class="eff">${t('enemyStat', { hp: d.hp, dmg: d.contactDamage, spd })}</div><div class="det">${et.blurb}</div>
         <div class="det">${t('appears', { aisles })}${depts.length ? ` \u00b7 ${depts.join(', ')}` : ''}</div>
         <div class="det">${t('returned', { n: rec?.kills ?? 0 })}${rec?.elites ? ` ${t('eliteCount', { n: rec.elites })}` : ''}${best >= 0 ? ` \u00b7 ${t('beatenOn', { name: shiftT(best).name })}` : ''}</div></div>`;
     }).join('');
@@ -507,13 +549,13 @@ function codexHtml(tab: 'combos' | 'items' | 'enemies'): string {
       const known = profile.recipes.includes(id);
       const icons = [r.weapon, ...r.supports].map((ty, i) => (known || i === 0) ? `<img src="${svg(`icon_${ty}`)}" alt="${itemT(ty).name}" data-card="${ty}">` : '<span class="q">?</span>').join('<b>+</b>');
       return known
-        ? `<div class="codex-card known"><div class="icons">${icons}</div><div class="nm">${rt.name}</div><div class="eff">${rt.short}</div><div class="det">${rt.detail}</div></div>`
+        ? `<div class="codex-card known">${newTag(`recipe:${id}`)}<div class="icons">${icons}</div><div class="nm">${rt.name}</div><div class="eff">${rt.short}</div><div class="det">${rt.detail}</div></div>`
         : `<div class="codex-card"><div class="icons">${icons}</div><div class="nm">???</div><div class="det">${r.supports.length === 1 ? t('comboHintOne', { item: itemT(r.weapon).name }) : t('comboHintMany', { item: itemT(r.weapon).name, n: r.supports.length })}</div></div>`;
     }).join('');
     return `<h2>${t('catalog')}</h2>${tabs}<div class="codex-grid">${cards}</div>`;
   }
   const tiles = ITEM_IDS.map((ty) => {
-    if (unlocked.has(ty)) return `<div class="codex-item ${ITEMS[ty].legendary ? 'legendary' : ''}" data-card="${ty}"><img src="${svg(`icon_${ty}`)}" alt=""><span>${itemT(ty).name}</span></div>`;
+    if (unlocked.has(ty)) return `<div class="codex-item ${ITEMS[ty].legendary ? 'legendary' : ''}" data-card="${ty}">${newTag(`item:${ty}`)}<img src="${svg(`icon_${ty}`)}" alt=""><span>${itemT(ty).name}</span></div>`;
     const u = UNLOCKS.find((x) => x.kind === 'item' && x.item === ty)!;
     return `<div class="codex-item locked" data-card="${ty}"><img src="${svg(`icon_${ty}`)}" alt=""><span>${unlockNeedT(u.id)}</span>${bar(u.progress(profile.stats))}</div>`;
   }).join('');
@@ -541,6 +583,9 @@ function closeTitleSettings(): boolean {
   const m = screens.title.querySelector('.settings-modal');
   m?.remove();
   hideItemCard();
+  const cb = screens.title.querySelector<HTMLElement>('[data-act="codex"]');
+  cb?.querySelector('.newdot')?.remove();
+  cb?.insertAdjacentHTML('beforeend', newBadge(newCount()));
   if (m) screens.title.querySelector<HTMLElement>('[data-act="settings"]')?.focus();
   return !!m;
 }

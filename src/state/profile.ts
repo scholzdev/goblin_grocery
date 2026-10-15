@@ -13,13 +13,14 @@ export interface Profile {
   goblin: GoblinSkin;
   cart: CartSkin;
   enemies: Partial<Record<EnemyId, { seen: number; kills: number; elites: number }>>;
+  seen: string[];        // catalog entries already viewed (`item:x`, `recipe:x`, `enemy:x`)
 }
 
 const KEY = 'goblin-grocery.profile.v1';
 const fresh = (): Profile => ({
   v: 1,
   stats: { runs: 0, wins: 0, losses: 0, kills: 0, coins: 0, bestWave: 0, combos: 0, deptClears: {}, bestShift: {}, bestOvertime: 0 },
-  recipes: [], unlocked: [], goblin: 'classic', cart: 'chrome', enemies: {},
+  recipes: [], unlocked: [], goblin: 'classic', cart: 'chrome', enemies: {}, seen: [],
 });
 
 function load(): Profile {
@@ -28,7 +29,7 @@ function load(): Profile {
     if (!raw) return fresh();
     const p = JSON.parse(raw) as Profile;
     const f = fresh();
-    return { ...f, ...p, stats: { ...f.stats, ...p.stats, deptClears: { ...p.stats?.deptClears }, bestShift: { ...p.stats?.bestShift } }, enemies: { ...p.enemies } };
+    return { ...f, ...p, stats: { ...f.stats, ...p.stats, deptClears: { ...p.stats?.deptClears }, bestShift: { ...p.stats?.bestShift } }, enemies: { ...p.enemies }, seen: [...(p.seen ?? [])] };
   } catch {
     return fresh();
   }
@@ -112,5 +113,44 @@ export const shiftUnlocked = (starter: string, n: number): boolean => n <= 0 || 
 /** Overtime defeat: only the new best is tracked (the run itself was counted at victory). */
 export function recordOvertime(aisles: number): void {
   profile.stats.bestOvertime = Math.max(profile.stats.bestOvertime, aisles);
+  saveProfile();
+}
+
+/** What a run added to the profile: unlock ids, discovered combos, first-sighted enemies. */
+export interface Fresh { unlocks: string[]; recipes: RecipeId[]; enemies: EnemyId[] }
+export interface Near { id: string; ratio: number; cur: number; need: number }
+export const emptyFresh = (): Fresh => ({ unlocks: [], recipes: [], enemies: [] });
+export type ProfileSnap = { unlocked: string[]; recipes: RecipeId[]; enemies: string[] };
+
+const seenEnemies = () => (Object.keys(profile.enemies) as EnemyId[]).filter((e) => profile.enemies[e]?.seen);
+export const snapProfile = (): ProfileSnap => ({ unlocked: [...profile.unlocked], recipes: [...profile.recipes], enemies: seenEnemies() });
+
+/** Profile changes since `snap` (the sub-enemy 'slice' isn't worth a card); also queues them as NEW for the catalog. */
+export function freshSince(snap: ProfileSnap): Fresh {
+  const f: Fresh = {
+    unlocks: profile.unlocked.filter((id) => !snap.unlocked.includes(id)),
+    recipes: profile.recipes.filter((r) => !snap.recipes.includes(r)),
+    enemies: seenEnemies().filter((e) => e !== 'slice' && !snap.enemies.includes(e)),
+  };
+  for (const id of f.unlocks) { const u = UNLOCKS.find((x) => x.id === id); if (u?.kind === 'item') pending.add(`item:${u.item}`); }
+  f.recipes.forEach((r) => pending.add(`recipe:${r}`));
+  f.enemies.forEach((e) => pending.add(`enemy:${e}`));
+  return f;
+}
+
+/** The (up to 3) locked unlocks closest to done. */
+export function nearUnlocks(): Near[] {
+  return UNLOCKS.filter((u) => !isUnlocked(u)).map((u) => { const [cur, need] = u.progress(profile.stats); return { id: u.id, ratio: cur / need, cur, need }; })
+    .filter((n) => n.ratio > 0 && n.ratio < 1).sort((a, b) => b.ratio - a.ratio).slice(0, 3);
+}
+
+/** Catalog entries earned but not yet viewed (kept across runs, not across reloads). */
+const pending = new Set<string>();
+export const isNew = (key: string): boolean => pending.has(key) && !profile.seen.includes(key);
+export const newCount = (prefix = ''): number => [...pending].filter((k) => k.startsWith(prefix) && isNew(k)).length;
+export function markSeen(prefix: string): void {
+  const ks = [...pending].filter((k) => k.startsWith(prefix) && isNew(k));
+  if (!ks.length) return;
+  profile.seen.push(...ks);
   saveProfile();
 }

@@ -3,8 +3,7 @@ import { store } from './state/store';
 import { chooseDoor, createLabRun, createRun, finishWave, leaveShop, openShop, recomputeBuild, startNextWave } from './state/run';
 import type { DoorId } from './data/modifiers';
 import type { DepartmentId, LabOpts } from './types';
-import { recordOvertime, recordRun, unlockedItems } from './state/profile';
-import type { Unlock } from './data/unlocks';
+import { emptyFresh, freshSince, nearUnlocks, recordOvertime, recordRun, snapProfile, unlockedItems, type Fresh, type Near, type ProfileSnap } from './state/profile';
 import { mulberry32, type Rng } from './systems/rng';
 import { submitRun } from './state/settings';
 import { BOSS_WAVE } from './data/waves';
@@ -16,12 +15,14 @@ let game: Phaser.Game;
 let rng: Rng = Math.random;
 /** Last lab setup and the loadout as combat started, for "Back to Lab". */
 let labOpts: LabOpts | null = null;
+/** Profile as the run (or overtime) began, to diff for the end screen's "Newly unlocked". */
+let runSnap: ProfileSnap | null = null;
 let labSnap: { inventory: RunState['inventory']; money: number; nextUid: number } | null = null;
 
 export const flow = {
   paused: false,
   pauseReason: '' as '' | 'menu' | 'blur' | 'loadout',
-  lastResult: null as null | { score: number; newBest: boolean; unlocks: Unlock[] },
+  lastResult: null as null | { score: number; newBest: boolean; fresh: Fresh; near: Near[]; shown?: boolean },
 
   init(g: Phaser.Game): void {
     game = g;
@@ -40,6 +41,7 @@ export const flow = {
     const seed = (Date.now() ^ (Math.random() * 1e9)) >>> 0;
     store.state = createRun(seed, starter, shift, weapon, theme);
     store.state.unlocked = unlockedItems();
+    runSnap = snapProfile();
     rng = mulberry32(seed);
     store.state.phase = 'combat';
     this.lastResult = null;
@@ -116,6 +118,7 @@ export const flow = {
   overtime(): void {
     const s = store.state;
     s.overtime = true;
+    runSnap = snapProfile();
     this.lastResult = null;
     this.endWave();
   },
@@ -130,7 +133,7 @@ export const flow = {
     stopLoops();
     const score = scoreOf(s, won);
     if (s.lab) { // lab runs never touch the profile or the best receipts
-      this.lastResult = { score, newBest: false, unlocks: [] };
+      this.lastResult = { score, newBest: false, fresh: emptyFresh(), near: [] };
       play(won ? 'victory' : 'defeat');
       store.changed();
       store.emit('run-end');
@@ -139,14 +142,17 @@ export const flow = {
     if (s.overtime) { // the run was already counted at victory
       const past = Math.max(0, s.wave - BOSS_WAVE - 1);
       recordOvertime(past);
-      this.lastResult = { score, newBest: false, unlocks: [] };
+      this.lastResult = { score, newBest: false, fresh: runSnap ? freshSince(runSnap) : emptyFresh(), near: nearUnlocks() };
       play('defeat');
       store.changed();
       store.emit('run-end');
       return;
     }
     const newBest = submitRun({ score, wave: s.wave, won, date: new Date().toISOString().slice(0, 10) });
-    this.lastResult = { score, newBest, unlocks: recordRun(s, won) };
+    const got = recordRun(s, won).map((u) => u.id);
+    const fresh = runSnap ? freshSince(runSnap) : emptyFresh();
+    fresh.unlocks = [...new Set([...fresh.unlocks, ...got])];
+    this.lastResult = { score, newBest, fresh, near: nearUnlocks() };
     play(won ? 'victory' : 'defeat');
     store.changed();
     store.emit('run-end');
