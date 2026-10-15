@@ -503,24 +503,13 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .card .lvlup { position: absolute; left: 50%; bottom: -11px; translate: -50% 0; white-space: nowrap; z-index: 2; padding: 3px 10px; border-radius: 999px; border: 2px solid var(--plum); background: var(--gold); color: var(--plum); font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; animation: lvl-bob 1.2s ease-in-out infinite; }
 @keyframes lvl-bob { 50% { transform: translateY(-2px); } }
 
-/* Set stickers: what buying this card does for your sets (left edge, above the merge badge, clear of the lock) */
-.card .setstks { position: absolute; top: -10px; left: 10px; right: 44px; display: flex; gap: 4px; z-index: 4; }
-.setstk { display: inline-flex; line-height: 1.1; rotate: -4deg; border: 2px dashed var(--plum); border-radius: 6px; padding: 1px 6px; font-size: 10px; font-weight: 800; white-space: nowrap; background: var(--paper); color: var(--plum); }
-.setstk:nth-child(even) { rotate: 3deg; }
-.setstk b { font-family: var(--display); font-size: 11px; font-weight: 400; }
-.setstk.up { border-style: solid; box-shadow: 0 0 0 2px var(--gold); animation: stk-wob 1.6s ease-in-out infinite; }
-.setstk.set-electric { background: #fff1c2; color: #8a6200; }
-.setstk.set-kitchen { background: #ffe2c2; color: #9a5412; }
-.setstk.set-cleaning { background: #cdf2ee; color: #1f7a70; }
-.setstk.set-tools { background: #dfdbd6; color: #5b4a3a; }
-.setstk.set-snacks { background: #f1f5b8; color: #6b7a12; }
-.setstk.set-checkout { background: #d6f0c4; color: #3f7a1f; }
-.setstk.set-heat { background: #ffd9c9; color: #b8381c; }
-.setstk.set-frost { background: #d4ecff; color: #2a6aa8; }
-.setstk.set-blast { background: #ffd6ec; color: #a8286e; }
-@keyframes stk-wob { 50% { scale: 1.08; } }
-@media (prefers-reduced-motion: reduce) { .setstk.up { animation: none; } }
-.reduced-motion .setstk.up { animation: none; }
+/* Set badges on offer cards: one round icon per set this item feeds (up = unlocks a bonus, solid = set started, new = starts the set) */
+.card .seticons { position: absolute; left: 8px; top: 10px; display: flex; flex-direction: column; gap: 5px; z-index: 4; }
+.seticon { position: relative; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--sb); color: var(--sc); border: 2px solid var(--sc); box-sizing: border-box; }
+.seticon.new { border-style: dashed; opacity: 0.45; }
+.seticon.up { box-shadow: 0 0 0 2.5px var(--gold); }
+.seticon u { position: absolute; right: -4px; top: -4px; width: 14px; height: 14px; border-radius: 50%; background: var(--gold); border: 1.5px solid var(--plum); color: var(--plum); font: 400 10px/10px var(--display); text-decoration: none; text-align: center; box-sizing: border-box; }
+.sico { flex: none; }
 
 
 /* Weapon tags as chips in the inspector header */
@@ -648,15 +637,15 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .chip.set-heat { background: #ffd9c9; color: #b8381c; }
 .chip.set-frost { background: #d4ecff; color: #2a6aa8; }
 .chip.set-blast { background: #ffd6ec; color: #a8286e; }
-.set-electric { --sc: #8a6200; }
-.set-kitchen { --sc: #9a5412; }
-.set-cleaning { --sc: #1f7a70; }
-.set-tools { --sc: #5b4a3a; }
-.set-snacks { --sc: #6b7a12; }
-.set-checkout { --sc: #3f7a1f; }
-.set-heat { --sc: #b8381c; }
-.set-frost { --sc: #2a6aa8; }
-.set-blast { --sc: #a8286e; }
+.set-electric { --sc: #8a6200; --sb: #fff1c2; }
+.set-kitchen { --sc: #9a5412; --sb: #ffe2c2; }
+.set-cleaning { --sc: #1f7a70; --sb: #cdf2ee; }
+.set-tools { --sc: #5b4a3a; --sb: #dfdbd6; }
+.set-snacks { --sc: #6b7a12; --sb: #f1f5b8; }
+.set-checkout { --sc: #3f7a1f; --sb: #d6f0c4; }
+.set-heat { --sc: #b8381c; --sb: #ffd9c9; }
+.set-frost { --sc: #2a6aa8; --sb: #d4ecff; }
+.set-blast { --sc: #a8286e; --sb: #ffd6ec; }
 .inspector .chip.act { box-shadow: 0 0 0 2px var(--plum); }
 #shop .sets { margin-top: 10px; }
 #shop .sets .cut { display: flex; align-items: center; gap: 6px; font-family: var(--display); font-size: 15px; line-height: 1; margin-bottom: 6px; }
@@ -674,6 +663,14 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 #shop .tier em { font-style: normal; font-size: 10px; padding: 0 4px; border-radius: 4px; background: var(--plum); color: var(--gold); flex: none; }
 #shop .tier.locked { color: rgba(48, 32, 63, 0.45); }
 #shop .tier.locked em { background: transparent; border: 1.5px solid rgba(48, 32, 63, 0.3); color: rgba(48, 32, 63, 0.5); }
+#shop .coupon .chip { display: inline-flex; align-items: center; gap: 4px; }
+#shop .coupon .arrow { font-family: var(--display); font-size: 13px; color: var(--sc); }
+#shop .coupon.faded { opacity: 0.45; }
+#shop .coupon.hot { border-style: solid; border-color: var(--sc); box-shadow: 0 0 0 3px var(--gold); }
+#shop .coupon.ghost { border-color: var(--sc); background: var(--sb); }
+#shop .pips i.ghost { background: transparent; outline: 1.5px dashed var(--sc); outline-offset: -1.5px; }
+#shop .tier.new { background: #fff0c9; border-radius: 4px; }
+#shop .tier.new em { background: var(--gold); color: var(--plum); }
 #shop .sets .more { text-align: center; font-size: 11px; font-weight: 800; opacity: 0.6; }
 
 .inspector .chip.coin img { width: 17px; height: 17px; }

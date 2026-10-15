@@ -21,3 +21,17 @@ export const icons = {
   coin: (s?: number) => ico('<circle cx="12" cy="12" r="9" fill="#f5bd45"/><path d="m12 7 1.5 3.2 3.5.4-2.6 2.4.7 3.4L12 14.6 8.9 16.4l.7-3.4L7 10.6l3.5-.4z" fill="#f2655a" stroke-width="1.2"/>', s),
   arrow: (s?: number) => ico('<path d="M4 9h9V5l8 7-8 7v-4H4z" fill="#8b7aa8"/>', s),
 };
+
+const SET_ICON: Record<string, string> = {
+  kitchen: '<circle cx="9.5" cy="12" r="7"/><path d="M15.5 12H22" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round"/>',
+  cleaning: '<path d="M12 2.5S5 10 5 14.5a7 7 0 0 0 14 0C19 10 12 2.5 12 2.5z"/>',
+  tools: '<path d="M15 2.5a6 6 0 0 0-5.6 8L3.2 16.7a2.4 2.4 0 0 0 3.4 3.4l6.2-6.2A6 6 0 0 0 21.5 9l-3.6 3.6-3-.8-.8-3L17.7 5.2A6 6 0 0 0 15 2.5z"/>',
+  snacks: '<path fill-rule="evenodd" d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM8.5 8.5a1.4 1.4 0 1 0 0 2.8 1.4 1.4 0 0 0 0-2.8zM14.5 7.5a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6zM13 13.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM8 14.5a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4z"/>',
+  checkout: '<path fill-rule="evenodd" d="M3 3h9l9 9-9 9-9-9zM7.5 6a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/>',
+  heat: '<path d="M12 2c1 4 6 6 6 12a6 6 0 0 1-12 0c0-3 2-4 3-7 1 1 2 2 2 3 1-2 1-5 1-8z"/>',
+  frost: '<path d="M12 2.5v19M3.8 7.2l16.4 9.6M3.8 16.8 20.2 7.2M9.5 4.5 12 7l2.5-2.5M9.5 19.5 12 17l2.5 2.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>',
+  blast: '<path d="m12 2 2.2 5.2L19 4.5l-1.4 5.6L22 12l-4.4 1.9L19 19.5l-4.8-2.7L12 22l-2.2-5.2L5 19.5l1.4-5.6L2 12l4.4-1.9L5 4.5l4.8 2.7z"/>',
+  electric: '<path d="M13 2 5 13.5h6L10 22l9-12h-6.5z"/>',
+};
+/** Bold single-colour set icon (inline SVG, tints with the surrounding `color`). */
+export const setIcon = (id: string, size = 14): string => `<svg class="sico" width="${size}" height="${size}" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${SET_ICON[id] ?? ''}</svg>`;
