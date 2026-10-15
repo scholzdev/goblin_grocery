@@ -1,5 +1,5 @@
 import type { DepartmentId, EnemyId, WaveDef } from '../types';
-import { BOSS, ELITE, ELITE_EXCLUDED } from './enemies';
+import { BOSS, ELITE, ELITE_EXCLUDED, bossFor, isBossId } from './enemies';
 import { DEPARTMENTS, THEMES } from './departments';
 
 export const WAVES: WaveDef[] = [
@@ -17,7 +17,7 @@ export const BOSS_WAVE = WAVES.length;
 
 /** Where an enemy shows up: aisle range from WAVES mixes (slice rides along with melon, boss = last aisle) and departments that favour it. */
 export function enemyAppears(id: EnemyId): { first: number; last: number; depts: DepartmentId[] } {
-  if (id === 'boss') return { first: BOSS_WAVE, last: BOSS_WAVE, depts: [] };
+  if (isBossId(id)) return { first: BOSS_WAVE, last: BOSS_WAVE, depts: id === 'boss' ? [] : THEMES.filter((d) => bossFor(d) === id) };
   const src = id === 'slice' ? 'melon' : id;
   const aisles = WAVES.filter((w) => !w.boss && (w.mix[src] ?? 0) > 0).map((w) => w.index);
   const depts = THEMES.filter((d) => (DEPARTMENTS[d].mix[src] ?? 0) > 1);

@@ -2,6 +2,10 @@
 export interface Rect { x: number; y: number; w: number; h: number }
 export interface Pt { x: number; y: number }
 
+/** Whether two centre-based rects overlap once `a` is grown by `pad` on every side. */
+export const rectsOverlap = (a: Rect, b: Rect, pad = 0): boolean =>
+  Math.abs(a.x - b.x) < (a.w + b.w) / 2 + pad && Math.abs(a.y - b.y) < (a.h + b.h) / 2 + pad;
+
 /** Box (min/max) of a centre-based rect grown by `pad`. */
 const box = (r: Rect, pad = 0) => ({ l: r.x - r.w / 2 - pad, r: r.x + r.w / 2 + pad, t: r.y - r.h / 2 - pad, b: r.y + r.h / 2 + pad });
 

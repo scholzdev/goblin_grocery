@@ -101,7 +101,7 @@ Weapons fire automatically. Losing window focus pauses the game, and you need to
 
 ## Run structure
 
-There are 7 aisles of 60 s each (enemies spawned later in an aisle are tougher, and groups get denser), then the boss, The Store Manager, in aisle 8. The boss enrages after 60 s. You get a shop after every aisle:
+There are 7 aisles of 60 s each (enemies spawned later in an aisle are tougher, and groups get denser), then the theme's boss in aisle 8 (The Store Manager in the Main Aisle, otherwise one of four themed bosses, see Enemies). The boss enrages after 60 s. Aisle 4 also has a mid-shift boss: a giant grocery that arrives after 8 s, ends the aisle when it falls and drops 3 crates (pick 1). You get a shop after every aisle:
 
 - 4 offers
 - rerolls that cost 2, 4, 6…
@@ -173,7 +173,12 @@ Hazards hurt groceries too, and grow with the aisle number. After every shop you
 | Egg Carton | walks up, swells, then explodes in a ground ring (kill it first); aisles 5+ |
 | Watermelon | tanky; splits into 3 fast Melon Slices when killed; aisles 6+ |
 | Frozen Turkey | slow, very tanky, hits hard; aisles 4+ |
-| The Store Manager | boss: receipt volleys, conveyor charge and summons; faster at half HP; enrages after 60 s |
+| The Store Manager | Main Aisle boss (1500 HP): receipt volleys, conveyor charge and summons; faster at half HP; enrages after 60 s |
+| The Walk-In Freezer | Frozen boss (1700 HP, slow): Cold Snap marks 3 circles that slam and leave slowing slush; hailstorm volleys, long sliding charge, expired-milk summons |
+| The Industrial Oven | Bakery boss (1450 HP): Flame Burst ring of slow toast to weave through, tight toast fans, baguette and banana summons |
+| The Smart-TV Wall | Electronics boss (1500 HP, slowest): Cable Zap strips of live cable (telegraphed), wide fast fans, spitter and bean summons |
+| The Self-Checkout Kiosk | Checkout boss (1550 HP): Conveyor Shift shoves you sideways toward it for 2.4 s, then charges; gum and gift card summons |
+| Giant groceries (aisle 4) | mid-shift boss, 450 HP: one of two variants per theme (stampeder: soda / turkey / baguette / spitter / banana; skirmisher: cereal / expired milk / egg / beans / gum), picked at random; `MINI_BOSS.variants` |
 
 ## Obstacles
 
@@ -192,7 +197,7 @@ The Test Lab has an **Event** option to force one (or none).
 
 Pick a **Shift** (1-5, `SHIFTS` in `src/data/waves.ts`) on the start screen. Higher shifts multiply enemy HP, speed and count, cut coin income, and toughen the boss (more receipt volleys, tougher summons, earlier enrage; `boss` overrides on `SHIFTS`). Shift N unlocks per character by winning Shift N-1 with it.
 
-After beating the Store Manager, **Keep going: Overtime** continues the same run: normal departments only, endless aisles that scale off the last regular wave (`waveDef`). The run is counted once at victory; an Overtime defeat only updates `bestOvertime` (aisles past the Manager).
+After beating the boss, **Keep going: Overtime** continues the same run: normal departments only, endless aisles that scale off the last regular wave (`waveDef`). The run is counted once at victory; an Overtime defeat only updates `bestOvertime` (aisles past the Manager).
 
 ## Meta-progression
 

@@ -21,7 +21,7 @@ for (let r = 0; r < runs; r++) {
         if (!e.alive) continue;
         const n = a.playerNear(e.x, e.y); // hitbox capsule: steer away from the closest body point
         const dx = n.x - e.x, dy = n.y - e.y, d = n.d || 1;
-        if (d < 300) { const w = (e.def.id === 'boss' ? 3 : 1) / (d * d); vx += dx * w * 1000; vy += dy * w * 1000; }
+        if (d < 300) { const w = (e.def.behavior === 'boss' ? 3 : 1) / (d * d); vx += dx * w * 1000; vy += dy * w * 1000; }
       }
       for (const sh of a.arsenal.enemyShots) if (sh.active) {
         const n = a.playerNear(sh.x, sh.y);

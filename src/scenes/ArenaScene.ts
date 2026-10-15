@@ -1,9 +1,9 @@
-import Phaser from 'phaser';import { t, lang } from '../i18n';
+import Phaser from 'phaser';import { t, lang, type UIKey } from '../i18n';
 import { deptT, enemyT, itemT } from '../i18n/data';
 import { store } from '../state/store';
 import { flow } from '../flow';
 import { waveDef, eliteChance, bossTuning, ECONOMY, SHIFTS, WAVE_RAMP } from '../data/waves';
-import { SHOW_HP_BAR, EGG_BLAST, MELON_SLICES, ELITE, GIFTCARD, GUM, THEME_SUMMONS, ELITE_EXCLUDED, AFFIX, MINI_BOSS } from '../data/enemies';
+import { SHOW_HP_BAR, EGG_BLAST, MELON_SLICES, ELITE, GIFTCARD, GUM, THEME_SUMMONS, ELITE_EXCLUDED, AFFIX, MINI_BOSS, bossFor, type BossMove } from '../data/enemies';
 import { GumPuddles } from './gum';
 import { BUFFS, CRIT, ECHO, ITEMS, PLAYER, STARTER_LOOKS } from '../data/items';
 import { SETS, setCfg } from '../data/sets';
@@ -16,7 +16,7 @@ import { musicFor, playMusic } from '../audio/music';
 import { settings } from '../state/settings';
 import { hud, showBanner } from '../ui/hud';
 import { Fx, DEPTH } from './fx';
-import { createEnemy, drawTelegraph, updateEnemy, type BossMove, type Enemy } from './enemies';
+import { createEnemy, drawTelegraph, updateEnemy, type Enemy } from './enemies';
 import { Arsenal } from './weapons';
 import { Hazards } from './hazards';
 import { AisleEvents } from './events';
@@ -34,7 +34,7 @@ import { MODIFIERS, ROOMS } from '../data/modifiers';
 import { waveSpawnPlan, rollStockroom, rollMiniCrates } from '../systems/shop';
 import { killCoins } from '../systems/combat';
 import type { DepartmentDef } from '../types';
-import { OBSTACLES, OBSTACLE_KINDS } from '../data/obstacles';
+import { CRATE, OBSTACLES, OBSTACLE_KINDS, crateSpots } from '../data/obstacles';
 import { ZONES, type ZoneDef } from '../data/zones';
 import { type Rect, pushOutCapsule, pushOutCircle, segmentHitsRect, steerAround } from '../systems/obstacles';
 
@@ -85,6 +85,8 @@ export class ArenaScene extends Phaser.Scene {
   private boss: Enemy | null = null;
   /** Mid-shift boss while alive; `miniDue` holds the aisle open until its loot is picked. */
   private mini: Enemy | null = null;
+  /** Conveyor Kiosk shove: horizontal player push (px/s) and seconds left. */
+  bossPush = { v: 0, t: 0 };
   private miniDue = false;
   /** Free Sample heal budget: HP healed by crits in the current second. */
   private critHealSec = -1;
@@ -112,6 +114,7 @@ export class ArenaScene extends Phaser.Scene {
     this.critHealSec = -1;
     this.critHealed = 0;
     this.mini = null;
+    this.bossPush.t = 0;
     this.miniDue = false;
     this.waveTime = 0;
     this.wave = waveDef(s.wave);
@@ -148,7 +151,7 @@ export class ArenaScene extends Phaser.Scene {
       playMusic(musicFor(this.dept.id, this.wave.boss, s.modifier));
       const room = s.modifier === 'stockroom' || s.modifier === 'coldRoom' || s.modifier === 'vipAisle' ? s.modifier : null;
       if (room) showBanner(t(`modName_${room}`), t(`roomSub_${room}`));
-      else showBanner(this.wave.boss ? t('finalAisle') : deptT(this.dept.id).name, this.wave.boss ? t('managerAwaits') : this.dept.hazard === 'none' ? t('surviveCheckout') : deptT(this.dept.id).blurb);
+      else showBanner(this.wave.boss ? t('finalAisle') : deptT(this.dept.id).name, this.wave.boss ? t('bossAwaits', { name: enemyT(bossFor(s.theme)).name }) : this.dept.hazard === 'none' ? t('surviveCheckout') : deptT(this.dept.id).blurb);
       if (s.modifier === 'stockroom' && !this.wave.boss) this.openStockroom();
     }
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => hideStockroom());
@@ -383,24 +386,24 @@ export class ArenaScene extends Phaser.Scene {
 
   private spawnBoss(): void {
     if (this.ending) return;
-    noteEnemy(store.state, 'boss');
-    const e = createEnemy(this, 'boss', 640, 330, SHIFTS[store.state.shift].bossHpMult, 1, false, this.plan.dmgScale);
+    const id = bossFor(store.state.theme);
+    noteEnemy(store.state, id);
+    const e = createEnemy(this, id, 640, 330, SHIFTS[store.state.shift].bossHpMult, 1, false, this.plan.dmgScale);
     e.state = 'spawn';
     e.stateT = 1.2;
-    e.sprite.setY(-100);
-    this.tweens.killTweensOf(e.sprite);
-    e.sprite.setScale(0.95);
+    e.sprite.setY(-100); // createEnemy's grow-in tween still scales it up on the way down
     this.tweens.add({ targets: e.sprite, y: 330, duration: 700, ease: 'Bounce.Out', onComplete: () => { this.fx.shake(0.01, 250); this.fx.puff(640, 330, 10); play('boss_hit'); } });
     this.enemies.push(e);
     this.boss = e;
-    showBanner(t('managerCaps'), t('watchFloor'));
+    showBanner(enemyT(id).name.toUpperCase(), t('watchFloor'));
   }
 
   /** Mid-shift boss: a giant grocery from the run's theme drops in; the aisle ends when it falls. */
   private spawnMini(): void {
     if (this.ending) return;
-    const id = MINI_BOSS.byTheme[store.state.theme] ?? MINI_BOSS.byTheme.main!;
-    const e = createEnemy(this, id, 640, 330, SHIFTS[store.state.shift].bossHpMult, 1, false, this.plan.dmgScale, 0, true);
+    const v = MINI_BOSS.variants[Math.floor(flow.rng() * MINI_BOSS.variants.length)];
+    const id = v.byTheme[store.state.theme] ?? v.byTheme.main!;
+    const e = createEnemy(this, id, 640, 330, SHIFTS[store.state.shift].bossHpMult, 1, false, this.plan.dmgScale, 0, v);
     e.state = 'spawn';
     e.stateT = 1.2;
     e.sprite.setY(-100); // createEnemy's grow-in tween still scales it up on the way down
@@ -435,12 +438,11 @@ export class ArenaScene extends Phaser.Scene {
     }));
   }
 
-  summonMinions(n: number): void {
-    const T = bossTuning(store.state.shift);
+  summonMinions(n: number, types: EnemyId[] = bossTuning(store.state.shift).summonTypes): void {
     const entries = [this.pickEntry(), this.pickEntry()];
     for (let k = 0; k < 2; k++) {
       const ids = Array.from({ length: Math.ceil(n / 2) }, () => {
-        const pool = flow.rng() < 0.5 ? THEME_SUMMONS[store.state.theme] ?? T.summonTypes : T.summonTypes;
+        const pool = flow.rng() < 0.5 ? THEME_SUMMONS[store.state.theme] ?? types : types;
         return pool[Math.floor(flow.rng() * pool.length)];
       });
       this.groups.push({ at: this.waveTime + 0.8, ids, entry: entries[k], told: true, done: false });
@@ -448,11 +450,12 @@ export class ArenaScene extends Phaser.Scene {
     }
   }
 
-  bossBark(move: BossMove, mini = false): void {
-    const lines: Record<BossMove, string> = mini
-      ? { volley: t('miniVolley'), charge: t('miniCharge'), summon: t('miniSummon') }
-      : { volley: t('bossVolley'), charge: t('bossCharge'), summon: t('bossSummon') };
-    hud.bark(lines[move]);
+  bossBark(move: BossMove, e: Enemy): void {
+    const id = e.def.id;
+    const key: UIKey = e.mini ? { volley: 'miniVolley', charge: 'miniCharge', summon: 'miniSummon', special: 'miniSummon' }[move] as UIKey
+      : id === 'boss' ? { volley: 'bossVolley', charge: 'bossCharge', summon: 'bossSummon', special: 'bossSummon' }[move] as UIKey
+      : `bk_${id}_${move}` as UIKey; // per-boss lines (i18n bk_<boss id>_<move>)
+    hud.bark(t(key));
   }
 
   /** Stun from hazards. The boss shrugs it off to keep its patterns readable. */
@@ -684,7 +687,7 @@ export class ArenaScene extends Phaser.Scene {
     e.state = 'dying';
     e.ice?.destroy(); e.ice = undefined; e.frozenT = 0;
     e.tag?.destroy(); e.tag = undefined;
-    const tint = ({ milk: 0xfff2d5, banana: 0xf6d24a, soda: 0xe2473f, spitter: 0x7cc4e8, baguette: 0xd9954a, egg: 0xfff2d5, melon: 0x8fcb57, slice: 0xf45f52, turkey: 0xcff3ff, beans: 0xb9895a, cereal: 0xe8b04a, honey: 0xf5bd45, giftcard: 0xf45f52, expired: 0xd5ebdd, gum: 0xff7fb8, boss: 0xf5bd45 } as const)[e.def.id];
+    const tint = ({ milk: 0xfff2d5, banana: 0xf6d24a, soda: 0xe2473f, spitter: 0x7cc4e8, baguette: 0xd9954a, egg: 0xfff2d5, melon: 0x8fcb57, slice: 0xf45f52, turkey: 0xcff3ff, beans: 0xb9895a, cereal: 0xe8b04a, honey: 0xf5bd45, giftcard: 0xf45f52, expired: 0xd5ebdd, gum: 0xff7fb8, boss: 0xf5bd45, boss_frozen: 0xcff3ff, boss_bakery: 0xd9954a, boss_electronics: 0x7cc4e8, boss_checkout: 0x3fb7a6 } as const)[e.def.id];
     this.fx.puff(e.x, e.y - 24, e.def.behavior === 'boss' ? 14 : 4);
     this.fx.crumbsAt(e.x, e.y - 30, e.def.behavior === 'boss' ? 24 : 7, tint);
     if (e.def.trail && !this.ending) this.gum.drop(0, e.x, e.y, GUM.trapRadiusMult);
@@ -869,7 +872,8 @@ export class ArenaScene extends Phaser.Scene {
       this.updateDirector();
       if (this.wave.boss && !this.enraged && this.waveTime > bossTuning(store.state.shift).enrageAfter + 1.6) {
         this.enraged = true;
-        showBanner(t('bossFurious'), t('bossFuriousSub'));
+        const bid = this.boss?.def.id;
+        showBanner(!bid || bid === 'boss' ? t('bossFurious') : t('bossFuriousN', { name: enemyT(bid).name.toUpperCase() }), t('bossFuriousSub'));
       }
       if (this.mini && !this.enraged && this.waveTime > MINI_BOSS.at + MINI_BOSS.enrageAfter) {
         this.enraged = true; // `enraged` speeds up every boss-behavior enemy; only the giant is one here
@@ -884,6 +888,7 @@ export class ArenaScene extends Phaser.Scene {
     if (combat) {
       for (const e of this.enemies) if (e.alive && e.state !== 'spawn') e.x += this.hazards.beltPush(e.x, e.y) * dt;
       this.player.x += this.hazards.beltPush(this.player.x, this.player.y) * dt;
+      if (this.bossPush.t > 0) { this.bossPush.t -= dt; this.player.x += this.bossPush.v * dt; }
       this.clampToArena(this.player, this.player.radius * 2);
       if (this.player.shoveT <= 0) this.pushPlayerOut();
       this.separate();
@@ -904,7 +909,7 @@ export class ArenaScene extends Phaser.Scene {
         timeLeft: this.wave.boss || this.miniDue || s.modifier === 'stockroom' ? -1 : Math.max(0, this.wave.duration - this.waveTime),
         elapsed: this.waveTime,
         shoveCd: Math.max(0, this.player.shoveCd), shoveMax: s.build.shoveCooldown,
-        boss: this.boss ? { hp: Math.max(0, this.boss.hp), max: this.boss.maxHp, enraged: this.enraged, name: t('managerCaps') }
+        boss: this.boss ? { hp: Math.max(0, this.boss.hp), max: this.boss.maxHp, enraged: this.enraged, name: enemyT(this.boss.def.id).name.toUpperCase() }
           : this.mini ? { hp: Math.max(0, this.mini.hp), max: this.mini.maxHp, enraged: this.enraged, name: t('miniBossBar', { name: enemyT(this.mini.def.id).name.toUpperCase() }) } : null,
       });
     }
@@ -1127,9 +1132,10 @@ export class ArenaScene extends Phaser.Scene {
 
   /** Crates + pick-one overlay (stockroom, mid-shift boss loot). `done` runs shortly after the pick. */
   private offerCrates(offers: ShopOffer[], labels: { title: string; hint: string } | undefined, done: () => void): void {
-    const crates = Array.from({ length: Math.min(offers.length, ROOMS.stockroom.crates) }, (_, i) => {
-      const x = ARENA.w * (0.3 + 0.2 * i), y = 520 + (i === 1 ? -40 : 0);
-      return this.add.image(x, y, 'ob_tv_boxes').setOrigin(0.5, 0.9).setDepth(DEPTH.world + y);
+    // Footprints dodge props and the start; the art is anchored like an obstacle (bottom edge of the footprint).
+    const crates = crateSpots(this.obstacles, Math.min(offers.length, ROOMS.stockroom.crates)).map((c) => {
+      const y = c.y + CRATE.h / 2;
+      return this.add.image(c.x, y, OBSTACLE_KINDS.tv_boxes.tex).setOrigin(0.5, 0.9).setDepth(DEPTH.world + y);
     });
     this.time.delayedCall(900, () => showStockroom(offers, (o) => {
       const shelved = takeStockroomItem(store.state, o);
@@ -1168,7 +1174,8 @@ export class ArenaScene extends Phaser.Scene {
     this.hazards.stop();
     this.gum.clear();
     this.ending = 'victory';
-    showBanner(t('bossDefeated'), t('bossDefeatedSub'));
+    const bid = this.boss!.def.id;
+    showBanner(bid === 'boss' ? t('bossDefeated') : t('bossDefeatedN', { name: enemyT(bid).name.toUpperCase() }), t('bossDefeatedSub'));
     this.fx.shake(0.012, 400);
     if (!settings.reducedMotion) {
       this.tweens.timeScale = 0.35;

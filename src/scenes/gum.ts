@@ -16,10 +16,11 @@ export class GumPuddles {
 
   count(owner: number): number { return this.list.reduce((n, g) => n + (g.owner === owner ? 1 : 0), 0); }
 
-  drop(owner: number, x: number, y: number, rMult = 1): void {
+  /** `tint` / `life` default to gum pink / GUM.life; the Walk-In Freezer reuses the puddle as icy slush. */
+  drop(owner: number, x: number, y: number, rMult = 1, tint = 0xff7fb8, life: number = GUM.life): void {
     const r = GUM.radius * rMult;
-    const img = this.scene.add.image(x, y, 'fx_puddle').setDepth(DEPTH.decal - 0.2).setTint(0xff7fb8).setDisplaySize(r * 2.3, r * 1.45).setAlpha(0);
-    this.list.push({ x, y, r, age: 0, life: GUM.life, owner, img });
+    const img = this.scene.add.image(x, y, 'fx_puddle').setDepth(DEPTH.decal - 0.2).setTint(tint).setDisplaySize(r * 2.3, r * 1.45).setAlpha(0);
+    this.list.push({ x, y, r, age: 0, life, owner, img });
   }
 
   update(dt: number): void {
