@@ -6,6 +6,8 @@ const rect = (w: number, h: number): Cell[] => {
   return cells;
 };
 
+const shape = (...rows: string[]): Cell[] => rows.flatMap((r, y) => [...r].flatMap((ch, x) => (ch === '#' ? [{ x, y }] : [])));
+
 const weapon = (w: Partial<WeaponBase> & Pick<WeaponBase, 'pattern' | 'damage' | 'cooldown' | 'range'>): WeaponBase => ({
   projectileSpeed: 0, count: 1, burstInterval: 0, arcDeg: 0, pull: 0, tick: 0, duration: 0, bounces: 0, chain: 0, aoe: 0, ...w,
 });
@@ -30,7 +32,7 @@ export const ITEMS: Record<ItemTypeId, ItemDef> = {
     weapon: weapon({ pattern: 'burst', damage: 3, cooldown: 1.1, range: 480, projectileSpeed: 760, count: 3, burstInterval: 0.08 }),
   },
   vacuum: {
-    id: 'vacuum', family: 'cleaning', tags: ['area'], name: 'Vacuum', kind: 'weapon', cells: rect(2, 2), price: 18, electrical: true,
+    id: 'vacuum', family: 'cleaning', tags: ['area'], name: 'Vacuum', kind: 'weapon', cells: shape('###', '.#.'), price: 18, electrical: true,
     blurb: 'Sucks groceries closer. Sucks coins closer too.',
     rules: 'Constantly pulls nearby enemies toward the cart. Every {1}, enemies in range take {0} damage. +60 coin pickup radius.',
     weapon: weapon({ pattern: 'pulse', damage: 2, cooldown: 0.65, range: 150, pull: 70 }),
@@ -81,7 +83,7 @@ export const ITEMS: Record<ItemTypeId, ItemDef> = {
     rules: 'Space dash: {0} distance and {1} damage.',
   },
   microwave: {
-    id: 'microwave', family: 'kitchen', element: 'heat', tags: ['area'], name: 'Microwave', kind: 'weapon', cells: rect(2, 2), price: 20, electrical: true,
+    id: 'microwave', family: 'kitchen', element: 'heat', tags: ['area'], name: 'Microwave', kind: 'weapon', cells: shape('.##', '##.'), price: 20, electrical: true,
     blurb: 'Ding! Nukes a grocery from across the aisle.',
     rules: 'Every {1} zaps the toughest enemy within 380 (Elites first, then most HP) for {0} damage, splashing everything within 70. Electrical.',
     weapon: weapon({ pattern: 'zap', damage: 24, cooldown: 2.4, range: 380, aoe: 70 }),
@@ -155,7 +157,7 @@ export const ITEMS: Record<ItemTypeId, ItemDef> = {
     rules: 'Modules and passives touching it work one tier higher (up to ★4 strength). Weapons touching it get +1 Bundle Deal item.',
   },
   laser: {
-    id: 'laser', family: 'checkout', tags: ['ranged'], name: 'Self-Checkout Laser', kind: 'weapon', cells: rect(2, 2), price: 36, electrical: true, legendary: true,
+    id: 'laser', family: 'checkout', tags: ['ranged'], name: 'Self-Checkout Laser', kind: 'weapon', cells: shape('.#.', '###', '.#.'), price: 40, electrical: true, legendary: true,
     blurb: 'Unexpected item in the bagging area. ZAP.',
     rules: 'Every 1.6 s fires a barcode beam (620 long) that hits every enemy in the line once for 20 damage. Electrical.',
     weapon: weapon({ pattern: 'laser', damage: 20, cooldown: 1.6, range: 620 }),
@@ -166,7 +168,7 @@ export const ITEMS: Record<ItemTypeId, ItemDef> = {
     rules: '+20 max HP and regenerate 1 HP every 4 s during combat (does not stack).',
   },
   cooker: {
-    id: 'cooker', family: 'kitchen', element: 'heat', tags: ['area'], name: 'Pressure Cooker', kind: 'weapon', cells: rect(2, 2), price: 18, electrical: false,
+    id: 'cooker', family: 'kitchen', element: 'heat', tags: ['area'], name: 'Pressure Cooker', kind: 'weapon', cells: shape('##.', '.##'), price: 18, electrical: false,
     blurb: 'Lobs a whistling pot. KABOOM.',
     rules: 'Every {1} lobs a pot at the densest group within 420. It explodes for {0} damage to everything within 90, with knockback.',
     weapon: weapon({ pattern: 'mortar', damage: 16, cooldown: 2.6, range: 420, aoe: 90, projectileSpeed: 380 }),
