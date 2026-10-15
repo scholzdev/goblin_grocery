@@ -7,7 +7,7 @@ type IR = { name: string; blurb: string; rules: string };
 type NB = { name: string; blurb: string };
 
 const items: Record<ItemTypeId, IR> = {
-  toaster: { name: 'Toaster', blurb: 'Schleudert heißen Toast auf den nächsten Gegner.', rules: 'Feuert alle {1} Toast für {0} Schaden. 440 Reichweite. Jeder Toast trifft einen Gegner.' },
+  toaster: { name: 'Toaster', blurb: 'Schleudert heißen Toast auf den nächsten Gegner.', rules: 'Feuert alle {1} Toast für {0} Schaden. 455 Reichweite. Jeder Toast trifft einen Gegner.' },
   pan: { name: 'Bratpfanne', blurb: 'Großer, scheppernder Schwung um den Wagen.', rules: 'Schwingt alle {1} auf Gegner in der Nähe für {0} Schaden. 150 Reichweite. Trifft jeden Gegner einmal pro Schwung.' },
   nailgun: { name: 'Nagelpistole', blurb: 'Ratatatat, Dreier-Nagelsalven.', rules: 'Feuert alle {1} eine Dreier-Nagelsalve. {0} Schaden pro Nagel. 480 Reichweite.' },
   vacuum: { name: 'Staubsauger', blurb: 'Saugt Gegner heran. Münzen übrigens auch.', rules: 'Zieht Gegner in der Nähe ständig zum Wagen. Alle {1} erleiden Gegner im Radius {0} Schaden. +60 Münz-Sammelradius.' },

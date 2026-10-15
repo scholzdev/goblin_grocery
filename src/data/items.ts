@@ -222,6 +222,7 @@ export const PLAYER = {
 export const STARTER_WEAPONS: Record<StarterWeapon, { x: number; y: number; rot: 0; guarantee: ItemTypeId[] }> = {
   toaster: { x: 1, y: 1, rot: 0, guarantee: ['fan', 'fuel'] },
   pan: { x: 2, y: 0, rot: 0, guarantee: ['bell', 'hotsauce'] },
+  nailgun: { x: 1, y: 1, rot: 0, guarantee: ['magnet', 'battery'] },
 };
 
 /** Accessory layers drawn over the goblin head/torso per starter (SVG keys). */
