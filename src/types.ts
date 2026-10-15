@@ -25,7 +25,7 @@ export type SetId = FamilyTag | ElementTag | 'electric';
 /** Weapon role tags (shown on cards; Electric is the separate `electrical` flag). */
 export type WeaponTag = 'ranged' | 'melee' | 'area';
 export type BuffId = 'fan' | 'fuel' | 'battery' | 'ice' | 'hotsauce' | 'pricegun' | 'tape' | 'popper' | 'echo' | 'multipack';
-export type EnemyId = 'milk' | 'banana' | 'soda' | 'spitter' | 'baguette' | 'egg' | 'melon' | 'slice' | 'turkey' | 'beans' | 'cereal' | 'honey' | 'giftcard' | 'expired' | 'gum' | 'boss';
+export type EnemyId = 'milk' | 'banana' | 'soda' | 'spitter' | 'baguette' | 'egg' | 'melon' | 'slice' | 'turkey' | 'beans' | 'cereal' | 'honey' | 'giftcard' | 'expired' | 'gum' | 'boss' | 'boss_frozen' | 'boss_bakery' | 'boss_electronics' | 'boss_checkout';
 
 export interface Cell { x: number; y: number }
 

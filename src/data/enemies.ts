@@ -64,15 +64,73 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
     knockbackResist: 1, tell: 0.8, attackCooldown: 2.4, attackDamage: 9, projectileSpeed: 200, projectileLife: 5,
     lungeSpeed: 520, lungeTime: 0.7,
   },
+  // Aisle-8 bosses, one per theme (the Manager keeps the Main Aisle). Same HP class, different kits: see BOSS_KITS.
+  boss_frozen: {
+    ...base, id: 'boss_frozen', name: 'The Walk-In Freezer', blurb: "Slow, huge and cold. Its cold snaps freeze the floor into slowing slush, and its charge slides on.", behavior: 'boss', hp: 1700, speed: 40, contactDamage: 14, coins: 30, radius: 52,
+    knockbackResist: 1, tell: 0.9, attackCooldown: 2.7, attackDamage: 9, projectileSpeed: 170, projectileLife: 5.5,
+    lungeSpeed: 440, lungeTime: 0.9,
+  },
+  boss_bakery: {
+    ...base, id: 'boss_bakery', name: 'The Industrial Oven', blurb: "Tight fans of hot toast, ring bursts of fire and a steady supply of baguettes.", behavior: 'boss', hp: 1450, speed: 58, contactDamage: 14, coins: 30, radius: 46,
+    knockbackResist: 1, tell: 0.75, attackCooldown: 2.2, attackDamage: 8, projectileSpeed: 215, projectileLife: 4.5,
+    lungeSpeed: 540, lungeTime: 0.65,
+  },
+  boss_electronics: {
+    ...base, id: 'boss_electronics', name: 'The Smart-TV Wall', blurb: "Zaps lanes of live cable across the floor, fires wide fast fans and boots up spitters.", behavior: 'boss', hp: 1500, speed: 34, contactDamage: 12, coins: 30, radius: 50,
+    knockbackResist: 1, tell: 0.8, attackCooldown: 2.3, attackDamage: 9, projectileSpeed: 240, projectileLife: 4,
+    lungeSpeed: 500, lungeTime: 0.7,
+  },
+  boss_checkout: {
+    ...base, id: 'boss_checkout', name: 'The Self-Checkout Kiosk', blurb: "Runs the conveyor against you, then charges. Bags in gum and gift cards.", behavior: 'boss', hp: 1550, speed: 50, contactDamage: 14, coins: 30, radius: 46,
+    knockbackResist: 1, tell: 0.8, attackCooldown: 2.3, attackDamage: 9, projectileSpeed: 195, projectileLife: 5,
+    lungeSpeed: 560, lungeTime: 0.7,
+  },
+};
+
+/** Boss ids (a final boss per theme): behavior 'boss' + a kit; the sprite keys are `${id}_a|b|tell`. */
+export const BOSS_IDS: EnemyId[] = ['boss', 'boss_frozen', 'boss_bakery', 'boss_electronics', 'boss_checkout'];
+export const isBossId = (id: EnemyId): boolean => BOSS_IDS.includes(id);
+export const BOSS_BY_THEME: Record<string, EnemyId> = { main: 'boss', frozen: 'boss_frozen', bakery: 'boss_bakery', electronics: 'boss_electronics', checkout: 'boss_checkout' };
+/** The final boss of a run theme (Manager if unknown). */
+export const bossFor = (theme: DepartmentId): EnemyId => BOSS_BY_THEME[theme] ?? 'boss';
+/** Sprite texture key of any enemy (bosses use `boss_*`, the rest `enemy_*`); f = a | b | tell. */
+export const enemyFrame = (id: EnemyId, f: 'a' | 'b' | 'tell' = 'a'): string => (isBossId(id) ? `${id}_${f}` : `enemy_${id}_${f}`);
+
+/** Boss move loop entries. 'special' runs the kit's signature move (BossKit.special). */
+export type BossMove = 'volley' | 'charge' | 'summon' | 'special';
+/** Signature moves: slush = slowing ice puddles dropped on marked circles; ring = radial shot burst; lanes = telegraphed live-cable strips; belt = conveyor shoves you toward the boss. */
+export type BossSpecial = 'slush' | 'ring' | 'lanes' | 'belt';
+export interface BossKit {
+  cycle: BossMove[];
+  /** Texture of the volley / ring shots. */
+  shot: string;
+  special?: BossSpecial;
+  /** Volley / summon numbers (shift bonuses are added on top for aisle-8 bosses; mini-bosses use them as is). */
+  moves: Partial<Pick<typeof BOSS, 'volleyCount' | 'volleySpreadDeg' | 'summonCount' | 'summonTypes'>>;
+}
+export const BOSS_CYCLE: BossMove[] = ['volley', 'charge', 'summon', 'charge', 'volley', 'summon'];
+export const BOSS_KITS: Record<string, BossKit> = {
+  boss: { cycle: BOSS_CYCLE, shot: 'proj_receipt', moves: {} },
+  boss_frozen: { cycle: ['special', 'volley', 'charge', 'summon', 'special', 'charge'], shot: 'proj_bubble', special: 'slush', moves: { volleyCount: 6, volleySpreadDeg: 80, summonCount: 3, summonTypes: ['expired', 'milk'] } },
+  boss_bakery: { cycle: ['volley', 'special', 'summon', 'charge', 'special', 'volley'], shot: 'proj_toast', special: 'ring', moves: { volleyCount: 5, volleySpreadDeg: 50, summonCount: 4, summonTypes: ['baguette', 'banana'] } },
+  boss_electronics: { cycle: ['special', 'volley', 'summon', 'special', 'charge', 'volley'], shot: 'proj_cap', special: 'lanes', moves: { volleyCount: 9, volleySpreadDeg: 100, summonCount: 3, summonTypes: ['spitter', 'beans'] } },
+  boss_checkout: { cycle: ['special', 'charge', 'volley', 'summon', 'charge', 'special'], shot: 'proj_receipt', special: 'belt', moves: { volleyCount: 7, volleySpreadDeg: 70, summonCount: 4, summonTypes: ['gum', 'giftcard'] } },
+};
+/** Signature move tuning (damage = the boss's attackDamage). */
+export const BOSS_SPECIAL = {
+  slush: { spots: 3, radius: 62, scatter: 140, life: 7, rMult: 1.8 },  // spots near the player; puddles are GUM-style slows
+  ring: { shots: 14, speed: 150, life: 6, halfExtra: 4 },
+  lanes: { count: 3, gap: 170, width: 76 },
+  belt: { speed: 170, time: 2.4 },
 };
 
 /** Codex order: by first aisle, slice after melon, boss last. */
-export const CODEX_ENEMIES: EnemyId[] = ['milk', 'banana', 'giftcard', 'soda', 'beans', 'gum', 'spitter', 'turkey', 'cereal', 'expired', 'baguette', 'egg', 'honey', 'melon', 'slice', 'boss'];
+export const CODEX_ENEMIES: EnemyId[] = ['milk', 'banana', 'giftcard', 'soda', 'beans', 'gum', 'spitter', 'turkey', 'cereal', 'expired', 'baguette', 'egg', 'honey', 'melon', 'slice', ...BOSS_IDS];
 
 /** Detergent Spitter volley: a fan of bubbles per attack. */
 export const SPITTER = { shots: 3, spreadDeg: 22 };
 
-/** Half of the Manager's summons come from the run's theme. */
+/** Half of the Manager's (and mini-bosses') summons come from the run's theme. */
 export const THEME_SUMMONS: Partial<Record<DepartmentId, EnemyId[]>> = {
   main: ['cereal', 'beans'], frozen: ['expired', 'milk'], bakery: ['baguette', 'banana'], electronics: ['spitter', 'beans'], checkout: ['gum', 'banana'],
 };
@@ -101,14 +159,26 @@ export const MINI_BOSS = {
   coins: 12,
   /** Seconds after it arrives before it enrages (faster moves, like the Manager). */
   enrageAfter: 45,
-  /** Def overrides for the giant (the base grocery keeps its sprite and radius). */
+  /** Def overrides for the giant (the base grocery keeps its sprite and radius); variants may override more. */
   def: { knockbackResist: 1, tell: 0.85, attackCooldown: 2.8, attackDamage: 7, contactDamage: 10, projectileSpeed: 190, projectileLife: 4.5, lungeSpeed: 460, lungeTime: 0.6, speed: 50 },
-  moves: { volleyCount: 5, volleySpreadDeg: 60, summonCount: 2 },
-  byTheme: { main: 'soda', frozen: 'turkey', bakery: 'baguette', electronics: 'spitter', checkout: 'banana' } as Partial<Record<DepartmentId, EnemyId>>,
+  /** Aisle 4 rolls one variant (flow.rng): a giant per theme with its own move numbers / loop / shot. */
+  variants: [
+    { // 1: the stampeder
+      byTheme: { main: 'soda', frozen: 'turkey', bakery: 'baguette', electronics: 'spitter', checkout: 'banana' } as Partial<Record<DepartmentId, EnemyId>>,
+      kit: { cycle: BOSS_CYCLE, shot: 'proj_receipt', moves: { volleyCount: 5, volleySpreadDeg: 60, summonCount: 2 } } as BossKit,
+      def: {} as Partial<EnemyDef>,
+    },
+    { // 2: the skirmisher: quicker, narrow bubble volleys, bigger families, short charges
+      byTheme: { main: 'cereal', frozen: 'expired', bakery: 'egg', electronics: 'beans', checkout: 'gum' } as Partial<Record<DepartmentId, EnemyId>>,
+      kit: { cycle: ['volley', 'summon', 'charge', 'volley', 'summon'], shot: 'proj_bubble', moves: { volleyCount: 3, volleySpreadDeg: 26, summonCount: 4 } } as BossKit,
+      def: { speed: 64, attackCooldown: 2.3, projectileSpeed: 230, lungeSpeed: 520, lungeTime: 0.5 } as Partial<EnemyDef>,
+    },
+  ],
   /** Crates: one legendary (when any is unlocked), the rest weapons at this tier. */
   crates: 3,
   weaponTier: 2,
 };
+export type MiniVariant = (typeof MINI_BOSS.variants)[number];
 
 /**
  * Elite groceries: tougher, bigger, gold-ringed, pay more. Rolled per spawn; never boss/slice/egg.
@@ -116,7 +186,7 @@ export const MINI_BOSS = {
  * each shift adds shiftBonus.
  */
 export const ELITE = { hpMult: 3.5, scale: 1.35, contactMult: 1.5, coinMult: 3, chanceByAisle: [0, 0, 0.08, 0.12, 0.16, 0.2, 0.25], overtimeChance: 0.3, shiftBonus: 0.03 };
-export const ELITE_EXCLUDED: EnemyId[] = ['boss', 'slice', 'egg', 'giftcard'];
+export const ELITE_EXCLUDED: EnemyId[] = [...BOSS_IDS, 'slice', 'egg', 'giftcard'];
 
 /** Every Elite rolls one affix. Splitter skips types that already split or are tiny. */
 export type EliteAffix = 'swift' | 'tough' | 'splitter' | 'pickpocket';

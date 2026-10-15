@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { ZONES, ZONE_IDS, ZONE_TUNING, zonesOf } from '../src/data/zones';
-import { DEPT_TUNING, THEMES } from '../src/data/departments';
-import { hazardRects } from '../src/data/obstacles';
-import { ARENA, ENTRIES, PLAYER_START } from '../src/data/arena';
+import { DEPARTMENTS, DEPT_TUNING, THEMES } from '../src/data/departments';
+import { CRATE, OBSTACLES, crateSpots, hazardRects } from '../src/data/obstacles';
+import { ARENA, ENTRIES, PLAYER_START, edgeSolids } from '../src/data/arena';
 import { BOSS_WAVE, WAVES } from '../src/data/waves';
 import { DATA_DE } from '../src/i18n/data-de';
 import { zoneT } from '../src/i18n/data';
@@ -10,7 +10,7 @@ import { setLang } from '../src/i18n/lang';
 import { chooseDoor, createLabRun, createRun, leaveShop, openShop } from '../src/state/run';
 import { rollZones, waveSpawnPlan } from '../src/systems/shop';
 import { mulberry32 } from '../src/systems/rng';
-import type { Rect } from '../src/systems/obstacles';
+import { rectsOverlap, type Rect } from '../src/systems/obstacles';
 import type { RunState } from '../src/types';
 
 const dist = (a: Rect, b: Rect) => Math.hypot(Math.max(0, Math.abs(a.x - b.x) - (a.w + b.w) / 2), Math.max(0, Math.abs(a.y - b.y) - (a.h + b.h) / 2));
@@ -136,5 +136,37 @@ describe('zones', () => {
     expect(zoneT('cereal_wall').name).toBe('Müsliwand');
     setLang('en');
     expect(zoneT('cereal_wall').name).toBe('Cereal Wall');
+  });
+
+  it('rectsOverlap: touching is clear, padding grows the first rect', () => {
+    const a = { x: 0, y: 0, w: 10, h: 10 };
+    expect(rectsOverlap(a, { x: 9, y: 0, w: 10, h: 10 })).toBe(true);
+    expect(rectsOverlap(a, { x: 10, y: 0, w: 10, h: 10 })).toBe(false);
+    expect(rectsOverlap(a, { x: 12, y: 0, w: 10, h: 10 }, 3)).toBe(true);
+  });
+
+  it('crates in every layout: 3 spots clear of props, edge dressing, the start and each other, inside the arena', () => {
+    const cases: [string, Rect[], string[]][] = [
+      ...Object.values(ZONES).flatMap((z) => z.layouts.map((lay, i) => [`${z.id}#${i}`, lay, DEPARTMENTS[z.theme].theme.props] as [string, Rect[], string[]])),
+      ...Object.entries(OBSTACLES).flatMap(([d, lays]) => lays!.map((lay, i) => [`${d}#${i}`, lay, DEPARTMENTS[d as keyof typeof DEPARTMENTS].theme.props] as [string, Rect[], string[]])),
+      ['empty', [], DEPARTMENTS.main.theme.props],
+    ];
+    for (const [tag, lay, props] of cases) {
+      const solids = [...lay, ...edgeSolids(props)];
+      const spots = crateSpots(solids, 3);
+      expect(spots, tag).toHaveLength(3);
+      const rects = spots.map((p) => ({ ...p, w: CRATE.w, h: CRATE.h }));
+      rects.forEach((r, i) => {
+        for (const o of lay) expect(rectsOverlap(r, o, CRATE.margin - 1), `${tag} crate ${i} vs ${o.x},${o.y}`).toBe(false);
+        for (const o of edgeSolids(props)) expect(rectsOverlap(r, o), `${tag} crate ${i} vs edge`).toBe(false);
+        expect(rectsOverlap(r, { ...PLAYER_START, ...CRATE.startKeepOut }), `${tag} crate ${i} start`).toBe(false);
+        rects.slice(i + 1).forEach((q) => expect(rectsOverlap(r, q), `${tag} crates`).toBe(false));
+        expect(r.x - r.w / 2, tag).toBeGreaterThan(ARENA.left);
+        expect(r.x + r.w / 2, tag).toBeLessThan(ARENA.right);
+        expect(r.y - r.h / 2, tag).toBeGreaterThan(ARENA.top);
+        expect(r.y + r.h / 2, tag).toBeLessThan(ARENA.bottom);
+      });
+      expect(crateSpots(solids, 3), tag + ' deterministic').toEqual(spots);
+    }
   });
 });

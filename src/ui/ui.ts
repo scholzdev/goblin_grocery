@@ -5,7 +5,7 @@ import { settings, saveSettings, getBest } from '../state/settings';
 import { ITEMS, PLAYER, STARTER_LOOKS, STARTER_WEAPONS } from '../data/items';
 import { RECIPES } from '../data/recipes';
 import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS, enemyAppears } from '../data/waves';
-import { CODEX_ENEMIES, ELITE, ENEMIES, MINI_BOSS } from '../data/enemies';
+import { CODEX_ENEMIES, ELITE, ENEMIES, MINI_BOSS, bossFor, enemyFrame, isBossId } from '../data/enemies';
 import { LAB, loadLab, saveLab } from '../lab';
 import { play, refreshVolumes, startMusic } from '../audio/sfx';
 import { initHud, hud, svg, relabelHud } from './hud';
@@ -348,11 +348,11 @@ function routeHtml(): string {
   }).join('<i></i>');
   const cards = doors.map((id: DoorId, i) => {
     if (id === 'boss') {
-      const d = DEPARTMENTS.boss, dt = deptT('boss');
+      const d = DEPARTMENTS.boss, dt = deptT('boss'), bid = bossFor(s.theme), dn = bid === 'boss' ? dt.name : enemyT(bid).name; // the theme's boss names its door
       return `<button class="door boss" data-act="door" data-id="boss" ${i === 0 ? 'data-focus' : ''} aria-label="${dt.name}">
       <span class="key">${i + 1}</span>
       <img src="${svg(d.theme.icon)}" alt="">
-      <span class="dn">${dt.name}</span>
+      <span class="dn">${dn}</span>
       <span class="danger" title="${t('danger')}">${t('boss')}</span>
       <span class="ln"><b>${t('enemies')}</b> ${dt.enemiesText}</span>
       <span class="ln reward"><b>${t('reward')}</b> ${dt.rewardText}</span>
@@ -389,7 +389,7 @@ function freshCards(f: Fresh): FreshCard[] {
     ...of('goblin').map((u) => ({ icon: `goblin_head__${(u as any).skin}`, name: goblinSkinT((u as any).skin).name, kind: 'kindGoblin' as UIKey })),
     ...of('cart').map((u) => ({ icon: `cart_back__${(u as any).skin}`, name: cartSkinT((u as any).skin).name, kind: 'kindCart' as UIKey })),
     ...f.recipes.map((r) => ({ icon: `icon_${RECIPES[r].weapon}`, name: recipeT(r).name, kind: 'kindCombo' as UIKey })),
-    ...f.enemies.map((e) => ({ icon: e === 'boss' ? 'boss_a' : `enemy_${e}_a`, name: enemyT(e).name, kind: 'kindEnemy' as UIKey })),
+    ...f.enemies.map((e) => ({ icon: enemyFrame(e), name: enemyT(e).name, kind: 'kindEnemy' as UIKey })),
   ];
 }
 
@@ -574,12 +574,12 @@ function codexTab(tab: 'combos' | 'items' | 'enemies'): string {
   if (tab === 'enemies') {
     const cards = CODEX_ENEMIES.map((id) => {
       const d = ENEMIES[id], rec = profile.enemies[id], ap = enemyAppears(id);
-      const art = svg(id === 'boss' ? 'boss_a' : `enemy_${id}_a`);
+      const art = svg(enemyFrame(id));
       // Every enemy is listed from the start; only your kill counts grow.
       const spd = d.speed < 50 ? t('slow') : d.speed < 75 ? t('medium') : t('fast'), et = enemyT(id);
       const aisles = ap.first === ap.last ? t('aisleLc', { n: ap.first }) : t('aislesRange', { a: ap.first, b: ap.last });
       const depts = ap.depts.map((x) => deptT(x).name);
-      const best = id === 'boss' ? Math.max(-1, ...Object.values(profile.stats.bestShift).map((n) => n ?? -1)) : -1;
+      const best = isBossId(id) ? Math.max(-1, ...Object.values(profile.stats.bestShift).map((n) => n ?? -1)) : -1;
       return `<div class="codex-card known enemy">${newTag(`enemy:${id}`)}<div class="icons"><img src="${art}" alt=""></div><div class="nm">${et.name}</div><div class="eff">${t('enemyStat', { hp: d.hp, dmg: d.contactDamage, spd })}</div><div class="det">${et.blurb}</div>
         <div class="det">${t('appears', { aisles })}${depts.length ? ` \u00b7 ${depts.join(', ')}` : ''}</div>
         <div class="det">${t('returned', { n: rec?.kills ?? 0 })}${rec?.elites ? ` ${t('eliteCount', { n: rec.elites })}` : ''}${best >= 0 ? ` \u00b7 ${t('beatenOn', { name: shiftT(best).name })}` : ''}</div></div>`;

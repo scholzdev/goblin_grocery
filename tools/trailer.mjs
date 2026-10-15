@@ -164,7 +164,7 @@ const START_BOT = () => {
     for (const e of a.enemies) {
       if (!e.alive) continue;
       const nr = a.playerNear(e.x, e.y); const dx = nr.x - e.x, dy = nr.y - e.y, d = nr.d || 1;
-      if (d < 300) { const w = (e.def.id === 'boss' ? 3 : 1) / (d * d); vx += dx * w * 1000; vy += dy * w * 1000; }
+      if (d < 300) { const w = (e.def.behavior === 'boss' ? 3 : 1) / (d * d); vx += dx * w * 1000; vy += dy * w * 1000; }
     }
     for (const sh of a.arsenal.enemyShots) if (sh.active) {
       const nr = a.playerNear(sh.x, sh.y); const dx = nr.x - sh.x, dy = nr.y - sh.y, d = nr.d || 1;

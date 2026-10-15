@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { AFFIX, ELITE, MINI_BOSS, ELITE_AFFIXES, ENEMIES, EGG_BLAST, EXPIRED, GIFTCARD, GUM, HONEY, SPITTER, SPLITTER_EXCLUDED, type EliteAffix } from '../data/enemies';
+import { AFFIX, BOSS, BOSS_KITS, BOSS_SPECIAL, ELITE, MINI_BOSS, ELITE_AFFIXES, ENEMIES, EGG_BLAST, EXPIRED, GIFTCARD, GUM, HONEY, SPITTER, SPLITTER_EXCLUDED, enemyFrame, isBossId, type BossKit, type BossMove, type EliteAffix, type MiniVariant } from '../data/enemies';
 import { bossTuning } from '../data/waves';
 import { store } from '../state/store';
 import type { EnemyDef, EnemyId } from '../types';
@@ -11,7 +11,7 @@ import { DEPTH } from './fx';
 import { ARENA, type ArenaScene } from './ArenaScene';
 
 export type EnemyState = 'spawn' | 'walk' | 'tell' | 'attack' | 'recover' | 'stun' | 'dying';
-export type BossMove = 'volley' | 'charge' | 'summon';
+export type { BossMove };
 
 export interface Enemy {
   id: number;
@@ -33,6 +33,10 @@ export interface Enemy {
   alive: boolean;
   bossMove?: BossMove;
   bossStep?: number;
+  /** Boss move set (aisle-8 boss kit, or the mini-boss variant's). */
+  kit?: BossKit;
+  /** Locked targets of the current special move (slush circles, lane x's, ring angle in x). */
+  spots?: { x: number; y: number }[];
   lastHitNumberAt: number;
   lastFlashAt: number;
   critCoinDropped?: boolean;
@@ -69,19 +73,20 @@ export const pickAffix = (id: EnemyId): EliteAffix => {
   return pool[Math.floor(Math.random() * pool.length)];
 };
 
-const SCALE: Record<EnemyId, number> = { milk: 0.78, banana: 0.8, soda: 0.72, spitter: 0.78, baguette: 0.8, egg: 0.78, melon: 0.9, slice: 0.5, turkey: 0.8, beans: 0.78, cereal: 0.82, honey: 0.76, giftcard: 0.74, expired: 0.78, gum: 0.76, boss: 0.95 };
-const TELL_TEX: Partial<Record<EnemyId, string>> = { banana: 'enemy_banana_tell', spitter: 'enemy_spitter_tell', baguette: 'enemy_baguette_tell', egg: 'enemy_egg_tell', boss: 'boss_tell' };
-const frameKey = (id: EnemyId, f: 0 | 1) => (id === 'boss' ? `boss_${f ? 'b' : 'a'}` : `enemy_${id}_${f ? 'b' : 'a'}`);
+const SCALE: Record<EnemyId, number> = { milk: 0.78, banana: 0.8, soda: 0.72, spitter: 0.78, baguette: 0.8, egg: 0.78, melon: 0.9, slice: 0.5, turkey: 0.8, beans: 0.78, cereal: 0.82, honey: 0.76, giftcard: 0.74, expired: 0.78, gum: 0.76, boss: 0.95, boss_frozen: 1, boss_bakery: 0.95, boss_electronics: 0.95, boss_checkout: 0.95 };
+const TELL_TEX: Partial<Record<EnemyId, string>> = { banana: 'enemy_banana_tell', spitter: 'enemy_spitter_tell', baguette: 'enemy_baguette_tell', egg: 'enemy_egg_tell', soda: 'enemy_soda_tell', turkey: 'enemy_turkey_tell' };
+const tellKey = (id: EnemyId): string | undefined => (isBossId(id) ? enemyFrame(id, 'tell') : TELL_TEX[id]);
+const frameKey = (id: EnemyId, f: 0 | 1) => enemyFrame(id, f ? 'b' : 'a');
 
 let nextId = 1;
 
-export function createEnemy(scene: ArenaScene, id: EnemyId, x: number, y: number, hpScale: number, speedScale: number, elite = false, dmgScale = 1, small = 0, mini = false): Enemy {
+export function createEnemy(scene: ArenaScene, id: EnemyId, x: number, y: number, hpScale: number, speedScale: number, elite = false, dmgScale = 1, small = 0, mini: MiniVariant | null = null): Enemy {
   const base = ENEMIES[id];
   // Aisle damage scaling and elites get their own def copy so every e.def reader picks it up.
   const dm = dmgScale * (elite ? ELITE.contactMult : 1);
   const def = mini
     // Mid-shift boss: the themed grocery's look with Manager behavior (every boss check keys on behavior).
-    ? { ...base, ...MINI_BOSS.def, behavior: 'boss' as const, radius: base.radius * MINI_BOSS.scale, contactDamage: Math.round(MINI_BOSS.def.contactDamage * dm), attackDamage: Math.round(MINI_BOSS.def.attackDamage * dm) }
+    ? { ...base, ...MINI_BOSS.def, ...mini.def, behavior: 'boss' as const, radius: base.radius * MINI_BOSS.scale, contactDamage: Math.round(MINI_BOSS.def.contactDamage * dm), attackDamage: Math.round(MINI_BOSS.def.attackDamage * dm) }
     : elite || dm !== 1 || small ? { ...base, radius: base.radius * (elite ? ELITE.scale : 1), contactDamage: Math.round(base.contactDamage * dm), attackDamage: Math.round(base.attackDamage * dm) } : base;
   const affix = elite ? pickAffix(id) : undefined;
   // `small` (Splitter copies): scale / HP of the base type; the def copy shrinks the hit radius too.
@@ -97,7 +102,8 @@ export function createEnemy(scene: ArenaScene, id: EnemyId, x: number, y: number
     dirX: 1, dirY: 0, flashT: 0, animT: Math.random(), facing: 1, alive: true, lastHitNumberAt: 0, lastFlashAt: 0,
     auxT: id === 'expired' ? EXPIRED.interval * (0.5 + Math.random() * 0.5) : id === 'honey' ? 0.5 : id === 'gum' ? 0.6 : 0, tx: x, ty: y, linkT: 0,
   };
-  if (mini) e.mini = true;
+  if (mini) { e.mini = true; e.kit = mini.kit; }
+  else if (isBossId(id)) e.kit = BOSS_KITS[id];
   scene.tweens.add({ targets: sprite, scale: SCALE[id] * (elite ? ELITE.scale : 1) * (small || 1) * (mini ? MINI_BOSS.scale : 1), duration: 260, ease: 'Back.Out' });
   if (affix) {
     e.tag = scene.add.text(x, y, t(`affix_${affix}`), { fontFamily: '"Luckiest Guy", "Arial Black", sans-serif', fontSize: '15px', color: '#' + AFFIX[affix].color.toString(16).padStart(6, '0'), stroke: '#30203F', strokeThickness: 4 })
@@ -240,7 +246,7 @@ export function updateEnemy(scene: ArenaScene, e: Enemy, dt: number, now: number
   // Visuals.
   const moving = Math.abs(mx) + Math.abs(my) > 0.1;
   e.animT += dt * (moving ? 7 * slow : 2);
-  const tellTex = TELL_TEX[d.id];
+  const tellTex = tellKey(d.id);
   if (d.behavior === 'teleporter') e.sprite.setAlpha(e.state === 'tell' ? 0.3 + 0.4 * Math.abs(Math.sin(now * 28)) : 1);
   const tex = (e.state === 'tell' || (e.state === 'attack' && d.behavior !== 'chase')) && tellTex ? tellTex : frameKey(d.id, (Math.floor(e.animT) % 2) as 0 | 1);
   if (e.sprite.texture.key !== tex) e.sprite.setTexture(tex);
@@ -356,11 +362,14 @@ function beginAttack(scene: ArenaScene, e: Enemy): void {
       else if (e.bossMove === 'volley') {
         e.stateT = 0.3;
         const v = volleyShape(scene, e);
-        for (const a of v.angles) scene.spawnEnemyShot('proj_receipt', e.x + Math.cos(a) * 50, v.y, a, d.projectileSpeed, d.projectileLife, d.attackDamage);
+        for (const a of v.angles) scene.spawnEnemyShot(e.kit?.shot ?? 'proj_receipt', e.x + Math.cos(a) * 50, v.y, a, d.projectileSpeed, d.projectileLife, d.attackDamage);
         play('ding', { rate: 0.8 });
+      } else if (e.bossMove === 'special') {
+        e.stateT = 0.3;
+        bossSpecial(scene, e);
       } else {
         e.stateT = 0.3;
-        scene.summonMinions(T.summonCount + (scene.halfHp(e) ? 2 : 0));
+        scene.summonMinions(T.summonCount + (scene.halfHp(e) ? 2 : 0), T.summonTypes);
       }
       break;
     }
@@ -377,7 +386,18 @@ function beginAttack(scene: ArenaScene, e: Enemy): void {
   }
 }
 
-const bossMoves = (e: Enemy) => (e.mini ? { ...bossTuning(store.state.shift), ...MINI_BOSS.moves } : bossTuning(store.state.shift));
+/** Volley / summon numbers: mini-bosses use their variant's as is; aisle-8 bosses add the shift's bonus over the Manager's base numbers to their kit's. */
+const bossMoves = (e: Enemy) => {
+  const T = bossTuning(store.state.shift), k = e.kit?.moves ?? {};
+  if (e.mini) return { ...T, ...k };
+  return {
+    ...T,
+    volleyCount: (k.volleyCount ?? BOSS.volleyCount) + T.volleyCount - BOSS.volleyCount,
+    volleySpreadDeg: k.volleySpreadDeg ?? T.volleySpreadDeg,
+    summonCount: (k.summonCount ?? BOSS.summonCount) + T.summonCount - BOSS.summonCount,
+    summonTypes: k.summonTypes ?? T.summonTypes,
+  };
+};
 
 /** Receipt volley aimed at the player: shot angles and launch height (shared by the attack and its telegraph). */
 function volleyShape(scene: ArenaScene, e: Enemy): { angles: number[]; y: number } {
@@ -389,16 +409,81 @@ function volleyShape(scene: ArenaScene, e: Enemy): { angles: number[]; y: number
   return { angles: Array.from({ length: n }, (_, i) => base + (i / (n - 1) - 0.5) * spread), y: e.y - e.sprite.displayHeight * 0.48 };
 }
 
-const BOSS_CYCLE: BossMove[] = ['volley', 'charge', 'summon', 'charge', 'volley', 'summon'];
-
 function bossThink(scene: ArenaScene, e: Enemy, dist: number): void {
   if (e.atkCd > 0) return;
-  e.bossStep = ((e.bossStep ?? 0) + 1) % BOSS_CYCLE.length;
-  e.bossMove = BOSS_CYCLE[e.bossStep];
+  const cycle = e.kit?.cycle ?? BOSS_KITS.boss.cycle;
+  e.bossStep = ((e.bossStep ?? 0) + 1) % cycle.length;
+  e.bossMove = cycle[e.bossStep];
   if (e.bossMove === 'charge' && dist < 120) e.bossMove = 'volley';
+  if (e.bossMove === 'special') planSpecial(scene, e);
   startTell(e, e.def.tell * (e.bossMove === 'summon' ? 0.75 : 1));
   play(e.bossMove === 'summon' ? 'ding' : 'swipe_tell', { rate: 0.6 });
-  scene.bossBark(e.bossMove, !!e.mini);
+  scene.bossBark(e.bossMove, e);
+}
+
+const clampX = (x: number): number => Phaser.Math.Clamp(x, ARENA.left + 40, ARENA.right - 40);
+const clampY = (y: number): number => Phaser.Math.Clamp(y, ARENA.top + 40, ARENA.bottom - 30);
+
+/** Locks the targets of a special move when its tell starts, so the floor telegraph and the strike agree. */
+function planSpecial(scene: ArenaScene, e: Enemy): void {
+  const p = scene.player, S = BOSS_SPECIAL, half = scene.halfHp(e);
+  switch (e.kit?.special) {
+    case 'slush': { // one circle on the player, the rest scattered around them
+      const n = S.slush.spots + (half ? 1 : 0), a0 = Math.random() * Math.PI * 2;
+      e.spots = Array.from({ length: n }, (_, i) => (i === 0 ? { x: p.x, y: p.y } : { x: clampX(p.x + Math.cos(a0 + (i * Math.PI * 2) / n) * S.slush.scatter), y: clampY(p.y + Math.sin(a0 + (i * Math.PI * 2) / n) * S.slush.scatter * 0.7) }));
+      break;
+    }
+    case 'ring': e.spots = [{ x: Math.random() * Math.PI * 2, y: 0 }]; break;
+    case 'lanes': {
+      const n = S.lanes.count + (half ? 2 : 0);
+      e.spots = Array.from({ length: n }, (_, i) => ({ x: clampX(p.x + (i - (n - 1) / 2) * S.lanes.gap), y: 0 }));
+      break;
+    }
+    default: e.spots = [];
+  }
+}
+
+/** The strike of a special move (damage = the boss's attackDamage). */
+function bossSpecial(scene: ArenaScene, e: Enemy): void {
+  const d = e.def, p = scene.player, S = BOSS_SPECIAL, half = scene.halfHp(e), spots = e.spots ?? [];
+  switch (e.kit?.special) {
+    case 'slush':
+      for (const sp of spots) {
+        scene.gum.drop(e.id, sp.x, sp.y, S.slush.radius / GUM.radius, 0x9fd8ff, S.slush.life);
+        scene.fx.frostBurst(sp.x, sp.y - 10, 8);
+        if (scene.playerNear(sp.x, sp.y).d < S.slush.radius) scene.hurtPlayer(d.attackDamage);
+      }
+      scene.fx.shake(0.006, 160);
+      play('splash', { rate: 0.8 });
+      break;
+    case 'ring': {
+      const n = S.ring.shots + (half ? S.ring.halfExtra : 0), off = spots[0]?.x ?? 0, y = e.y - e.sprite.displayHeight * 0.48;
+      for (let i = 0; i < n; i++) {
+        const a = off + (i / n) * Math.PI * 2;
+        scene.spawnEnemyShot(e.kit?.shot ?? 'proj_toast', e.x + Math.cos(a) * 50, y, a, S.ring.speed, S.ring.life, d.attackDamage);
+      }
+      scene.fx.puff(e.x, e.y - 40, 6);
+      play('boom', { rate: 1.1 });
+      break;
+    }
+    case 'lanes':
+      for (const sp of spots) {
+        for (let y = ARENA.bottom; y > ARENA.top; y -= 130) {
+          const z = scene.add.image(sp.x, y, 'fx_zap').setOrigin(0.5, 1).setDepth(DEPTH.world + y).setScale(1.2);
+          scene.tweens.add({ targets: z, alpha: 0, duration: 280, onComplete: () => z.destroy() });
+        }
+        scene.fx.spark(sp.x, ARENA.top + 60, 4, 0xf5bd45);
+        if (Math.abs(p.x - sp.x) < S.lanes.width / 2 + p.radius * 0.5) scene.hurtPlayer(d.attackDamage);
+      }
+      scene.fx.shake(0.007, 180);
+      play('zap', { rate: 0.8 });
+      break;
+    case 'belt':
+      scene.bossPush.v = (e.x >= p.x ? 1 : -1) * S.belt.speed;
+      scene.bossPush.t = S.belt.time;
+      play('whistle', { rate: 0.8 });
+      break;
+  }
 }
 
 /** Floor telegraphs drawn into the shared graphics layer each frame. */
@@ -407,6 +492,7 @@ export function drawTelegraph(g: Phaser.GameObjects.Graphics, e: Enemy, scene: A
     g.lineStyle(3, 0xf5bd45, 0.8 * Math.min(1, e.linkT / 0.4));
     for (const t of e.links) if (t.alive) g.lineBetween(e.x, e.y - 34, t.x, t.y - 34);
   }
+  if (e.alive && e.def.behavior === 'boss' && scene.bossPush.t > 0) beltChevrons(g, Math.sign(scene.bossPush.v), 0.4, scene);
   if (!e.alive || e.state !== 'tell') return;
   const d = e.def;
   const k = 1 - Math.max(0, e.stateT) / Math.max(0.01, d.tell);
@@ -448,12 +534,53 @@ export function drawTelegraph(g: Phaser.GameObjects.Graphics, e: Enemy, scene: A
     g.fillStyle(0x9081b6, 0.12 + 0.2 * k).fillEllipse(e.tx, e.ty, 68, 28);
   } else if (d.behavior === 'spitter') {
     g.lineStyle(2, 0x3e6fd0, 0.6).strokeCircle(e.x, e.y - 34, 10 + 10 * k);
+  } else if (d.behavior === 'boss' && e.bossMove === 'special') {
+    specialTelegraph(g, e, scene, k);
   } else if (d.behavior === 'boss' && e.bossMove === 'volley') {
     const v = volleyShape(scene, e);
     g.lineStyle(3, 0xf45f52, 0.25 + 0.4 * k);
     for (const a of v.angles) g.lineBetween(e.x + Math.cos(a) * 50, v.y, e.x + Math.cos(a) * 310, v.y + Math.sin(a) * 260);
   } else if (d.behavior === 'boss') {
     g.lineStyle(4, 0xf5bd45, 0.5 + 0.4 * k).strokeEllipse(e.x, e.y, 220 * (0.6 + k * 0.4), 80 * (0.6 + k * 0.4));
+  }
+}
+
+/** Floor telegraph of a special move: slush circles, ring lines, lane strips or belt chevrons. */
+function specialTelegraph(g: Phaser.GameObjects.Graphics, e: Enemy, scene: ArenaScene, k: number): void {
+  const S = BOSS_SPECIAL, spots = e.spots ?? [];
+  switch (e.kit?.special) {
+    case 'slush':
+      for (const sp of spots) {
+        g.fillStyle(0x7cc4e8, 0.15 + 0.25 * k).fillCircle(sp.x, sp.y, S.slush.radius);
+        g.lineStyle(3, 0x2a6aa8, 0.8).strokeCircle(sp.x, sp.y, S.slush.radius);
+        g.fillStyle(0xcff3ff, 0.4).fillCircle(sp.x, sp.y, S.slush.radius * k);
+      }
+      break;
+    case 'ring': {
+      const n = S.ring.shots + (scene.halfHp(e) ? S.ring.halfExtra : 0), off = spots[0]?.x ?? 0, y = e.y - e.sprite.displayHeight * 0.48;
+      g.lineStyle(3, 0xf45f52, 0.25 + 0.4 * k);
+      for (let i = 0; i < n; i++) { const a = off + (i / n) * Math.PI * 2; g.lineBetween(e.x + Math.cos(a) * 50, y + Math.sin(a) * 50, e.x + Math.cos(a) * 230, y + Math.sin(a) * 230); }
+      break;
+    }
+    case 'lanes':
+      for (const sp of spots) {
+        g.fillStyle(0xf5bd45, 0.1 + 0.22 * k).fillRect(sp.x - S.lanes.width / 2, ARENA.top, S.lanes.width, ARENA.bottom - ARENA.top);
+        g.lineStyle(3, 0xf5bd45, 0.7).strokeRect(sp.x - S.lanes.width / 2, ARENA.top, S.lanes.width, ARENA.bottom - ARENA.top);
+      }
+      break;
+    case 'belt': beltChevrons(g, e.x >= scene.player.x ? 1 : -1, 0.3 + 0.3 * k, scene); break;
+  }
+}
+
+/** Scrolling arrows across the floor: the conveyor's direction. */
+function beltChevrons(g: Phaser.GameObjects.Graphics, dir: number, alpha: number, scene: ArenaScene): void {
+  g.lineStyle(5, 0x3fb7a6, alpha);
+  const span = ARENA.right - ARENA.left - 60, shift = (((scene.time.now * 0.12 * dir) % 80) + 80) % 80;
+  for (let y = ARENA.top + 60; y < ARENA.bottom - 20; y += 90) {
+    for (let k = 0; k * 80 < span; k++) {
+      const cx = ARENA.left + 30 + ((k * 80 + shift) % span);
+      g.beginPath().moveTo(cx - dir * 10, y - 12).lineTo(cx + dir * 8, y).lineTo(cx - dir * 10, y + 12).strokePath();
+    }
   }
 }
 

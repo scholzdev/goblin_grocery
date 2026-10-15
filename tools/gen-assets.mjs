@@ -330,11 +330,11 @@ add('enemy_banana_tell', () => banana('tell'));
 function sodaCan(cx, top, h, face_, f) {
   const w = 31;
   let s = can(cx, top, w, h, C.soda, C.sodaD, C.cream, { sw: SW });
-  if (face_) s += face(cx, top + 17, 0.85, { gap: 6.5, mw: 14, mh: 7, my: 8, teeth: 3 });
+  if (face_) s += face(cx, top + 17, 0.85, { gap: 6.5, mw: 14, mh: 7, my: 8, teeth: 3, eyeCol: f === 'tell' ? C.coralL : C.cream });
   return s;
 }
 function soda(f) {
-  const a = f === 'a', dy = a ? 0 : -2;
+  const tell = f === 'tell', a = f !== 'b', dy = a ? 0 : -2;
   const L = (...p) => stick(p, 3.2);
   let legs = a ? L([24, 68], [20, 74], [17, 80]) + L([36, 69], [38, 75], [41, 80]) + L([55, 72], [50, 76], [48, 81]) + L([66, 72], [69, 77], [72, 81]) + L([76, 68], [74, 74], [70, 80]) + L([89, 66], [93, 73], [96, 80])
     : L([24, 68], [27, 75], [26, 80]) + L([36, 69], [33, 74], [34, 80]) + L([55, 72], [58, 77], [60, 81]) + L([66, 72], [62, 77], [64, 81]) + L([76, 68], [80, 75], [82, 80]) + L([89, 66], [86, 73], [88, 80]);
@@ -344,10 +344,15 @@ function soda(f) {
   b += `<path d="M${P([[16, 40], [42, 52], [68, 52], [95, 41]])}" fill="none" stroke="${C.plum}" stroke-width="6.5" stroke-linejoin="round" stroke-linecap="round" opacity=".0"/>`;
   const ring = (cx, cy, rx, ry) => `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="${C.plum}" stroke-width="6" opacity=".9"/><ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="${C.frost}" stroke-width="2.6"/>`;
   b += ring(38, 37, 18, 4.5) + ring(72, 37, 18, 4.5);
-  return squash(55, 80, a ? 1 : 1.03, a ? 1 : 0.97, legs + `<g transform="translate(0 ${dy})">${b}</g>`);
+  if (tell) { // shaken up: fizz spurting from the tabs
+    for (const [x, y, r] of [[22, 22, 7], [14, 12, 5], [88, 22, 7], [96, 11, 5], [55, 26, 6]]) b += `<circle cx="${x}" cy="${y}" r="${r}" fill="${C.frost}" stroke="${C.plum}" stroke-width="2" opacity=".95"/>`;
+    b += spark(55, 8, 9) + line([[4, 40], [10, 48]], C.coral, 2.5) + line([[106, 40], [100, 48]], C.coral, 2.5);
+  }
+  return squash(55, 80, tell ? 0.96 : a ? 1 : 1.03, tell ? 1.05 : a ? 1 : 0.97, legs + `<g transform="translate(0 ${dy})">${b}</g>`);
 }
 add('enemy_soda_a', () => soda('a'));
 add('enemy_soda_b', () => soda('b'));
+add('enemy_soda_tell', () => soda('tell'));
 
 function spitter(f) {
   const tell = f === 'tell', a = f === 'a';
@@ -443,7 +448,7 @@ function melon(f) {
 }
 // ---------- frozen turkey (tank) ----------
 function turkey(f) {
-  const a = f === 'a';
+  const tell = f === 'tell', a = f !== 'b';
   const legs = a ? stick([[44, 70], [38, 80], [34, 90]], 4.2, 6) + stick([[76, 70], [80, 80], [86, 90]], 4.2, 6)
     : stick([[44, 70], [45, 80], [43, 90]], 4.2, 6) + stick([[76, 70], [74, 80], [77, 90]], 4.2, 6);
   let b = '';
@@ -453,14 +458,16 @@ function turkey(f) {
   b += ell(60, 50, 42, 30, C.frost, C.frostD, { dx: 5, dy: 6 });
   b += flat([[28, 34], [40, 24], [46, 27], [34, 42]], C.white, 'opacity=".85"');
   b += snowflake(90, 62, 7, C.white, 2) + snowflake(30, 66, 5, C.white, 1.8);
-  b += face(60, 48, 1.3, { mw: 22, mh: 12, my: 9, teeth: 4 });
+  b += face(60, 48, 1.3, { mw: tell ? 26 : 22, mh: tell ? 15 : 12, my: 9, teeth: 4, eyeCol: tell ? C.coralL : C.cream });
   // icicles hanging from the belly + frost cap
   for (const x of [38, 52, 68, 82]) b += shape([[x - 4, 76], [x + 4, 76], [x + 0.5, 86 + (x % 3) * 2]], C.frost, C.frostD, { sw: SWs, dx: 1, dy: 1 });
   b += shape([[40, 22], [52, 16], [64, 20], [76, 16], [84, 24], [72, 28], [50, 28]], C.white, C.frostD, { sw: SWs, dx: 2, dy: 2 });
-  return legs + squash(60, 90, a ? 1.02 : 0.98, a ? 0.98 : 1.03, b);
+  if (tell) b += spark(14, 18, 10, C.sky) + spark(106, 18, 10, C.sky) + snowflake(60, 8, 6, C.sky, 2);
+  return legs + squash(60, 90, tell ? 0.96 : a ? 1.02 : 0.98, tell ? 1.05 : a ? 0.98 : 1.03, b);
 }
 add('enemy_turkey_a', () => turkey('a'));
 add('enemy_turkey_b', () => turkey('b'));
+add('enemy_turkey_tell', () => turkey('tell'));
 
 add('enemy_melon_a', () => melon('a'));
 add('enemy_melon_b', () => melon('b'));
@@ -667,6 +674,163 @@ function boss(f) {
 add('boss_a', () => boss('a'));
 add('boss_b', () => boss('b'));
 add('boss_tell', () => boss('tell'));
+
+// ---------- per-theme bosses (aisle 8): same 200x200 frame, ground ~y176, a/b walk + tell ----------
+const bossWheel = (x, y) => `<circle cx="${x}" cy="${y}" r="8" fill="${C.plumSoft}" stroke="${C.plum}" stroke-width="3"/><circle cx="${x}" cy="${y}" r="3" fill="${C.lavL}" stroke="${C.plum}" stroke-width="1.5"/>`;
+const bossFrame = (f, wheels, inner) => {
+  const a = f === 'a', dy = f === 'b' ? -2 : 0, sq = f === 'tell' ? [1.03, 0.97] : a ? [1, 1] : [0.99, 1.01];
+  return wheels + squash(100, 176, sq[0], sq[1], `<g transform="translate(0 ${dy})">${inner}</g>`);
+};
+const bossWheels = (f) => (f === 'a' ? bossWheel(52, 184) + bossWheel(148, 184) + bossWheel(100, 186) : bossWheel(54, 185) + bossWheel(146, 185) + bossWheel(100, 184));
+
+// Walk-In Freezer (frozen): frosty cabinet, icicle teeth, cold breath.
+function bossFrozen(f) {
+  const tell = f === 'tell', a = f === 'a';
+  const eyeCol = tell ? C.coral : C.sky, eyeDk = tell ? C.coralD : C.blueD, eyeHi = tell ? '#FFC0A8' : C.white;
+  let b = shape([[32, 38], [168, 38], [172, 172], [28, 172]], C.frost, C.frostD, { dx: 6, dy: 5 });
+  b += flat([[36, 46], [43, 46], [42, 160], [38, 164]], C.white, 'opacity=".6"');
+  b += shape([[48, 54], [152, 54], [152, 162], [48, 162]], C.white, C.frostD, { dx: 3, dy: 3, sw: SWs + 0.5 });
+  b += shape([[154, 70], [163, 70], [163, 128], [154, 128]], C.chrome, C.chromeD, { dx: 2, dy: 2, sw: SWs });
+  // compressor cap with vent slats + LED
+  b += shape([[42, 14], [158, 14], [168, 42], [32, 42]], C.chrome, C.chromeD, { dx: 4, dy: 4 });
+  for (let i = 0; i < 5; i++) b += line([[64 + i * 18, 20], [61 + i * 18, 36]], C.chromeD, 3);
+  b += `<circle cx="148" cy="26" r="4.2" fill="${tell ? C.coral : C.teal}" stroke="${C.plum}" stroke-width="1.6"/>`;
+  // eyes
+  b += shape([[58, 78], [90, 70], [92, 90], [62, 94]], eyeCol, eyeDk, { sw: SWs, dx: 2, dy: 2 }) + shape([[142, 78], [110, 70], [108, 90], [138, 94]], eyeCol, eyeDk, { sw: SWs, dx: 2, dy: 2 });
+  b += flat([[63, 79], [78, 74], [78, 78], [64, 83]], eyeHi, 'opacity=".9"') + flat([[137, 79], [122, 74], [122, 78], [136, 83]], eyeHi, 'opacity=".9"');
+  b += `<circle cx="78" cy="84" r="3.4" fill="${C.plum}"/><circle cx="122" cy="84" r="3.4" fill="${C.plum}"/>`;
+  b += brow(54, 66, 92, 78, 5.5).replace(C.plum, C.white) + brow(146, 66, 108, 78, 5.5).replace(C.plum, C.white) + brow(54, 67, 92, 79, 3) + brow(146, 67, 108, 79, 3);
+  // icicle-toothed mouth
+  const mo = tell ? 10 : 0;
+  b += shape([[56, 112 - mo], [144, 112 - mo], [140, 152 + mo], [60, 152 + mo]], '#1E1028', null, { sw: SWs });
+  for (let i = 0; i < 6; i++) {
+    const x = 62 + i * 15;
+    b += shape([[x, 112 - mo], [x + 13, 112 - mo], [x + 6.5, 126 + (i % 2) * 5]], C.white, C.frostD, { sw: SWs, dx: 1, dy: 1 });
+    b += shape([[x + 1, 152 + mo], [x + 13, 152 + mo], [x + 7, 140 - (i % 2) * 5 - mo * 0.4]], C.white, C.frostD, { sw: SWs, dx: 1, dy: 1 });
+  }
+  b += snowflake(46, 148, 7, C.sky, 2) + snowflake(158, 150, 6, C.sky, 1.8);
+  // icicles under the cap
+  for (const [x, h] of [[44, 14], [70, 22], [100, 16], [130, 24], [156, 12]]) b += shape([[x - 6, 40], [x + 6, 40], [x + 0.5, 42 + h + (a ? 0 : 3)]], C.white, C.frostD, { sw: SWs, dx: 1, dy: 1 });
+  if (tell) { // cold breath
+    for (const [x, y, r] of [[40, 142, 11], [24, 128, 8], [160, 142, 11], [176, 128, 8]]) b += `<circle cx="${x}" cy="${y}" r="${r}" fill="${C.frost}" stroke="${C.plum}" stroke-width="2" opacity=".95"/>`;
+    b += spark(26, 40, 11, C.sky) + spark(176, 38, 11, C.sky);
+  }
+  return bossFrame(f, bossWheels(f), b);
+}
+add('boss_frozen_a', () => bossFrozen('a'));
+add('boss_frozen_b', () => bossFrozen('b'));
+add('boss_frozen_tell', () => bossFrozen('tell'));
+
+// Industrial Oven (bakery): brick-orange cabinet, glowing door window with an angry face, smokestack.
+function bossBakery(f) {
+  const tell = f === 'tell', a = f === 'a';
+  let b = '';
+  // smokestack + puffs
+  b += shape([[46, 22], [76, 22], [80, 66], [42, 66]], C.chrome, C.chromeD, { dx: 4, dy: 3 }) + shape([[42, 18], [80, 18], [80, 26], [42, 26]], C.chromeD, null, { sw: SWs });
+  const puff = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${C.lavL}" stroke="${C.plum}" stroke-width="2" opacity=".9"/>`;
+  b += a ? puff(60, 10, 8) + puff(70, 1, 6) : puff(64, 9, 9) + puff(54, 0, 6);
+  // body + top panel with dials
+  b += shape([[28, 62], [172, 62], [176, 172], [24, 172]], C.bread, C.breadD, { dx: 6, dy: 5 });
+  b += flat([[32, 70], [39, 70], [38, 160], [34, 164]], C.breadL, 'opacity=".6"');
+  b += shape([[30, 62], [170, 62], [166, 76], [34, 76]], C.chrome, C.chromeD, { dx: 2, dy: 3, sw: SWs + 0.5 });
+  for (const x of [56, 84, 116, 144]) b += `<circle cx="${x}" cy="69" r="4" fill="${C.gold}" stroke="${C.plum}" stroke-width="1.8"/>`;
+  // door frame + glowing window
+  b += shape([[40, 84], [160, 84], [164, 156], [36, 156]], C.chromeD, C.plum, { dx: 3, dy: 3 });
+  const glow = tell ? C.coral : C.gold, glowD = tell ? C.coralD : C.goldD;
+  b += shape([[48, 92], [152, 92], [155, 148], [45, 148]], glow, glowD, { sw: SWs, dx: 3, dy: 3 });
+  b += flat([[52, 96], [74, 96], [58, 120]], tell ? C.coralL : '#FFE08A', 'opacity=".8"');
+  b += face(100, 112, 2.2, { gap: 9, tilt: 6, my: 7, mw: 17, mh: 9, teeth: 5, eyeCol: tell ? '#FFD6C8' : C.cream });
+  // door handle + lower drawer
+  b += tube([[52, 160], [148, 160]], 5, C.chrome, 2);
+  b += shape([[34, 168], [166, 168], [170, 176], [30, 176]], C.plum, null, { sw: SWs });
+  // baguette on top of the stack
+  b += shape([[120, 30], [158, 22], [162, 34], [124, 44]], C.bread, C.breadD, { sw: SWs + 0.5, dx: 2, dy: 3 }) + line([[130, 34], [134, 28]], C.breadD, 2) + line([[142, 31], [146, 25]], C.breadD, 2);
+  if (tell) { // flames from the door seam + sparks
+    for (const x of [58, 86, 114, 142]) b += shape([[x - 7, 88], [x + 7, 88], [x + 2, 66 - (x % 3) * 4], [x - 1, 78]], C.gold, C.coral, { sw: SWs, dx: 1, dy: 2 });
+    b += spark(20, 44, 11) + spark(180, 40, 11);
+  }
+  return bossFrame(f, bossWheels(f), b);
+}
+add('boss_bakery_a', () => bossBakery('a'));
+add('boss_bakery_b', () => bossBakery('b'));
+add('boss_bakery_tell', () => bossBakery('tell'));
+
+// Smart-TV Wall (electronics): a trolley of mismatched screens, the big one has the face; live cables dangle.
+function bossElectronics(f) {
+  const tell = f === 'tell', a = f === 'a';
+  const r = rng(7);
+  let b = '';
+  // cables behind
+  b += tube([[40, 150], [22, 160], [a ? 14 : 20, 176]], 3.5, C.teal, 1.8) + tube([[162, 150], [180, 162], [a ? 186 : 178, 176]], 3.5, C.coral, 1.8);
+  // antennas
+  b += line([[84, 30], [70, 6]], C.plum, 3) + line([[116, 30], [132, 4]], C.plum, 3) + `<circle cx="70" cy="6" r="4" fill="${tell ? C.coral : C.gold}" stroke="${C.plum}" stroke-width="2"/><circle cx="132" cy="4" r="4" fill="${tell ? C.coral : C.gold}" stroke="${C.plum}" stroke-width="2"/>`;
+  // chassis
+  b += shape([[22, 26], [178, 26], [178, 164], [22, 164]], C.plumSoft, C.plum, { dx: 5, dy: 5 });
+  // big face screen
+  b += shape([[32, 34], [168, 34], [168, 100], [32, 100]], C.blueD, null, { sw: SWs + 0.5 });
+  b += shape([[38, 40], [162, 40], [162, 94], [38, 94]], tell ? '#4A1D2A' : '#14213D', null, { sw: SWs });
+  const eyeCol = tell ? C.coral : C.sky;
+  b += shape([[50, 54], [88, 48], [90, 68], [54, 72]], eyeCol, tell ? C.coralD : C.blue, { sw: SWs, dx: 2, dy: 2 }) + shape([[150, 54], [112, 48], [110, 68], [146, 72]], eyeCol, tell ? C.coralD : C.blue, { sw: SWs, dx: 2, dy: 2 });
+  b += `<circle cx="72" cy="62" r="3.6" fill="${C.plum}"/><circle cx="128" cy="62" r="3.6" fill="${C.plum}"/>`;
+  b += brow(46, 46, 90, 58, 5.5).replace(C.plum, C.cream) + brow(154, 46, 110, 58, 5.5).replace(C.plum, C.cream);
+  // equalizer mouth
+  for (let i = 0; i < 11; i++) {
+    const h = tell ? 12 + ((i * 7) % 5) * 3 : 5 + ((i * 5 + (a ? 0 : 3)) % 6) * 2;
+    b += flat(rect(60 + i * 8, 90 - h, 5, h), i % 3 === 0 ? C.coral : i % 3 === 1 ? C.gold : C.teal);
+  }
+  b += flat([[42, 44], [62, 42], [48, 56]], C.white, 'opacity=".25"');
+  // three smaller TVs along the bottom
+  const tvs = [[34, C.teal], [78, C.coral], [122, C.gold]];
+  tvs.forEach(([x, col], i) => {
+    b += shape(rect(x, 108, 44, 46), C.plum, null, { sw: SWs });
+    for (let k = 0; k < 7; k++) { const rx = x + 3 + r() * 34, ry = 111 + r() * 38; b += flat(rect(rx, ry, 4 + r() * 6, 3 + r() * 5), [col, C.cream, C.sky][k % 3], 'opacity=".85"'); }
+    if (i === 1) b += line([[x + 8, 116], [x + 36, 146]], C.cream, 2.4) + line([[x + 36, 116], [x + 8, 146]], C.cream, 2.4);
+  });
+  b += shape([[26, 156], [174, 156], [170, 172], [30, 172]], C.lav, C.lavD, { dx: 0, dy: 3, sw: SWs + 0.5 });
+  if (tell) b += spark(16, 40, 11, C.gold) + spark(184, 36, 11, C.gold) + line([[8, 120], [20, 112], [12, 104]], C.gold, 3) + line([[192, 118], [180, 110], [188, 102]], C.gold, 3);
+  return bossFrame(f, bossWheels(f), b);
+}
+add('boss_electronics_a', () => bossElectronics('a'));
+add('boss_electronics_b', () => bossElectronics('b'));
+add('boss_electronics_tell', () => bossElectronics('tell'));
+
+// Self-Checkout Kiosk (checkout): teal kiosk, scanner glare, card-reader mouth, receipt tongue, bagging-platform base.
+function bossCheckout(f) {
+  const tell = f === 'tell', a = f === 'a';
+  let b = '';
+  // bagging platform base with belt stripes
+  b += shape([[18, 150], [182, 150], [190, 174], [10, 174]], C.chrome, C.chromeD, { dx: 0, dy: 4 });
+  for (let i = 0; i < 9; i++) b += line([[28 + i * 18 + (a ? 0 : 6), 154], [24 + i * 18 + (a ? 0 : 6), 170]], C.chromeD, 3);
+  // body
+  b += shape([[40, 30], [160, 30], [166, 150], [34, 150]], C.teal, C.tealD, { dx: 6, dy: 5 });
+  b += flat([[44, 38], [51, 38], [50, 140], [46, 144]], C.mintL, 'opacity=".5"');
+  // hood + scanner light
+  b += shape([[34, 14], [166, 14], [160, 34], [40, 34]], C.tealD, null, { sw: SW });
+  b += shape(rect(70, 20, 60, 8), tell ? C.coral : '#FF6B5C', null, { sw: SWs }) + flat(rect(74, 22, 52, 2.5), '#FFC0A8', 'opacity=".9"');
+  // screen
+  b += shape([[50, 42], [150, 42], [150, 104], [50, 104]], C.plum, null, { sw: SWs + 0.5 });
+  const eyeCol = tell ? C.coral : C.gold;
+  b += shape([[58, 58], [90, 52], [92, 72], [62, 76]], eyeCol, tell ? C.coralD : C.goldD, { sw: SWs, dx: 2, dy: 2 }) + shape([[142, 58], [110, 52], [108, 72], [138, 76]], eyeCol, tell ? C.coralD : C.goldD, { sw: SWs, dx: 2, dy: 2 });
+  b += `<circle cx="78" cy="66" r="3.4" fill="${C.plum}"/><circle cx="122" cy="66" r="3.4" fill="${C.plum}"/>`;
+  b += brow(54, 50, 92, 62, 5.5).replace(C.plum, C.cream) + brow(146, 50, 108, 62, 5.5).replace(C.plum, C.cream);
+  b += flat(rect(64, 86, 72, 5), tell ? C.coral : C.mint, 'opacity=".7"') + flat(rect(64, 95, 40, 4), tell ? C.coral : C.mint, 'opacity=".5"');
+  // card-reader mouth + keypad
+  b += shape([[56, 112], [144, 112], [144, 134], [56, 134]], '#1E1028', null, { sw: SWs });
+  for (let i = 0; i < 7; i++) b += flat([[60 + i * 12, 112], [70 + i * 12, 112], [65 + i * 12, 121]], C.cream);
+  b += flat(rect(60, 128, 80, 3), tell ? C.coral : C.sky);
+  for (let i = 0; i < 4; i++) b += shape(rect(46 + i * 14, 138, 10, 8), [C.cream, C.coralL, C.gold, C.mintL][i], null, { sw: 1.5 });
+  // receipt tongue
+  const t0 = 134;
+  const tongue = tell ? [[112, t0 - 4], [146, t0 - 4], [160, t0 + 24], [174, t0 + 40], [144, t0 + 34], [132, t0 + 44], [118, t0 + 24]]
+    : [[116, t0 - 4], [144, t0 - 4], [148, t0 + 18], [146, t0 + 32], [158, t0 + 38], [136, t0 + 36], [124, t0 + 22]];
+  b += shape(tongue, C.cream, C.creamD, { dx: 3, dy: 3 });
+  for (let i = 0; i < 3; i++) b += line([[122 + i * 2, t0 + 6 + i * 8], [138 + i * 2, t0 + 5 + i * 8]], C.chromeD, 1.8);
+  if (tell) b += spark(24, 44, 11) + spark(178, 40, 11) + line([[14, 74], [22, 82]], C.coral, 3) + line([[188, 70], [180, 78]], C.coral, 3);
+  return bossFrame(f, '', b);
+}
+add('boss_checkout_a', () => bossCheckout('a'));
+add('boss_checkout_b', () => bossCheckout('b'));
+add('boss_checkout_tell', () => bossCheckout('tell'));
 
 // =====================================================================================
 // ITEM ICONS (192x192, outline 5)

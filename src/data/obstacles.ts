@@ -1,6 +1,6 @@
 import type { DepartmentId } from '../types';
-import type { Rect } from '../systems/obstacles';
-import { ICE_RADII, ICE_SPOTS, VENT_SPOTS, CABLE_ROWS, BELTS, ARENA } from './arena';
+import { rectsOverlap, type Pt, type Rect } from '../systems/obstacles';
+import { ICE_RADII, ICE_SPOTS, VENT_SPOTS, CABLE_ROWS, BELTS, ARENA, PLAYER_START } from './arena';
 import { DEPT_TUNING } from './departments';
 
 // Themed aisle obstacles: solid props the goblin walks around or dashes (Space shove) over. Rects are ground footprints (centre x,y).
@@ -51,4 +51,30 @@ export function hazardRects(dept: DepartmentId, extra = 0): Rect[] {
     case 'checkout': return BELTS.map((b) => ({ x: ARENA.w / 2, y: b.y, w: ARENA.w - 300, h: DEPT_TUNING.conveyor.height }));
     default: return [];
   }
+}
+
+/** Loot crates (stockroom, mini-boss): footprint (same art as the TV-box obstacle), clearance around props, and the player-start keep-out. */
+export const CRATE = { w: 100, h: 56, margin: 18, startKeepOut: { w: 180, h: 110 } };
+
+/**
+ * Centre-based footprints for `count` loot crates. Slot i prefers the classic row (30/50/70% across, y 520/480/520);
+ * the nearest cell of a fixed grid that clears every obstacle, the player start and earlier crates wins.
+ * Falls back to the preferred spot if the grid is somehow full. Pure and deterministic.
+ */
+export function crateSpots(obstacles: readonly Rect[], count: number): Pt[] {
+  const start: Rect = { ...PLAYER_START, ...CRATE.startKeepOut };
+  const cands: Pt[] = [];
+  for (let y = ARENA.top + 70; y <= ARENA.bottom - 50; y += 36) for (let x = ARENA.left + 90; x <= ARENA.right - 90; x += 50) cands.push({ x, y });
+  const chosen: Rect[] = [];
+  for (let i = 0; i < count; i++) {
+    const want = { x: ARENA.w * (0.3 + 0.2 * i), y: (i === 1 ? 480 : 520) - CRATE.h / 2 };
+    const fits = (c: Pt) => {
+      const r: Rect = { ...c, w: CRATE.w, h: CRATE.h };
+      return !obstacles.some((o) => rectsOverlap(r, o, CRATE.margin)) && !rectsOverlap(r, start) && !chosen.some((o) => rectsOverlap(r, o, CRATE.margin));
+    };
+    const near = (c: Pt) => Math.hypot(c.x - want.x, (c.y - want.y) * 1.5);
+    const best = cands.filter(fits).sort((a, b) => near(a) - near(b))[0] ?? want;
+    chosen.push({ ...best, w: CRATE.w, h: CRATE.h });
+  }
+  return chosen.map(({ x, y }) => ({ x, y }));
 }

@@ -52,12 +52,26 @@ Modifiers multiply on top of the theme. Coin multipliers apply to kill coins and
 1. Aisle 1 is a regular aisle of your theme.
 2. After shops 1-6 you get **2 doors**, or **3 at Loyalty Card Lv 3+**, distinct, drawn from Regular / Rush / Event / Quiet.
 3. From shop 3 on there is a 25% chance that the last door becomes Clearance Sale (never right after a Clearance Sale).
-4. After shop 7 there is a single door: the Store Manager's checkout (not in overtime; overtime doors are modifiers again).
+4. After shop 7 there is a single door: the boss aisle, named after the run theme's boss (not in overtime; overtime doors are modifiers again).
 5. Doors are rolled from the run seed.
 
 ### Boss
 
-The Store Manager keeps his pattern. Each summoned grocery has a 50% chance to come from the theme's summon pool (`THEME_SUMMONS` in `src/data/enemies.ts`): Main Cereal/Beans, Frozen Expired/Sour Milk, Bakery Baguette/Banana, Electronics Spitter/Beans, Checkout Gum/Banana. Otherwise it uses the shift's usual list.
+Aisle 8 has one boss per theme (`BOSS_BY_THEME` / `BOSS_KITS` in `src/data/enemies.ts`; `ArenaScene.spawnBoss` picks by `state.theme`, the Lab and F3 use the run's theme). Every boss is an enemy def with `behavior: 'boss'` (all boss checks key on the behavior) and sprites `boss_<theme>_a|b|tell` (`boss_a|b|tell` for the Manager). Shift multipliers (`bossHpMult`, volley/summon bonuses, coins) apply to all of them.
+
+| Theme | Boss | HP | Loop (S = signature move) | Signature |
+|---|---|---|---|---|
+| Main | The Store Manager | 1500 | volley, charge, summon, charge, volley, summon | none (receipt volleys, conveyor charge) |
+| Frozen | The Walk-In Freezer | 1700 | S, volley, charge, summon, S, charge | Cold Snap: 3 telegraphed circles (4 at half HP), one on you; hits and leaves 7 s of slush (the gum slow, ice tint) |
+| Bakery | The Industrial Oven | 1450 | volley, S, summon, charge, S, volley | Flame Burst: ring of 14 slow toast shots (18 at half HP), random rotation, telegraphed spokes |
+| Electronics | The Smart-TV Wall | 1500 | S, volley, summon, S, charge, volley | Cable Zap: 3 vertical live-cable strips (5 at half HP) locked at the tell, hit if you stand in one |
+| Checkout | The Self-Checkout Kiosk | 1550 | S, charge, volley, summon, charge, S | Conveyor Shift: scrolling arrows, then a 170 px/s sideways shove toward the boss for 2.4 s |
+
+Summons: each summoned grocery has a 50% chance to come from the theme's summon pool (`THEME_SUMMONS`): Main Cereal/Beans, Frozen Expired/Sour Milk, Bakery Baguette/Banana, Electronics Spitter/Beans, Checkout Gum/Banana. Otherwise it uses the boss's own list (`BossKit.moves.summonTypes`; the Manager uses the shift's usual list). Volley/summon counts per boss live in `BOSS_KITS`; signature numbers in `BOSS_SPECIAL`.
+
+### Mid-shift boss (aisle 4)
+
+Arrives 8 s into aisle 4 (not on Stockroom). Each run rolls one of `MINI_BOSS.variants` with `flow.rng` when it spawns: variant 1 (soda / turkey / baguette / spitter / banana) is the stampeder (5-shot 60 deg volleys, 2 summons), variant 2 (cereal / expired milk / egg / beans / gum) the skirmisher (faster, 3-shot 26 deg bubble volleys, 4 summons, shorter charge, different loop). Killing it ends the aisle and offers 3 crates; crate positions avoid every prop, edge dressing and the player start (`crateSpots` in `src/data/obstacles.ts`, tested over all layouts).
 
 ### Unlocks
 

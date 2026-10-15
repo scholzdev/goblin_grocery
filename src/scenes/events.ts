@@ -3,6 +3,7 @@ import { EVENTS, SET_EVENT, SET_EVENTS, type SetEventKind } from '../data/events
 import { ROOMS } from '../data/modifiers';
 import type { EventRoll } from '../systems/events';
 import { applySlow } from '../systems/combat';
+import { segmentHitsRect } from '../systems/obstacles';
 import { settings } from '../state/settings';
 import { store } from '../state/store';
 import { flow } from '../flow';
@@ -225,11 +226,12 @@ export class AisleEvents {
     const p = this.scene.player;
     const { left, right, top, bottom } = ARENA;
     let best = { x0: left, y0: 400, x1: right, y1: 400, d: -1 };
-    for (let k = 0; k < 10; k++) {
+    for (let k = 0; k < 30; k++) {
       const ltr = flow.rng() < 0.5;
       const y0 = lerp(top + 40, bottom - 40, flow.rng());
       const y1 = flow.rng() < 0.5 ? y0 : lerp(top + 40, bottom - 40, flow.rng());
       const c = { x0: ltr ? left : right, y0, x1: ltr ? right : left, y1, d: 0 };
+      if (this.scene.obstacles.some((o) => segmentHitsRect(c.x0, c.y0, c.x1, c.y1, o, 30))) continue; // no driving through props
       const q = Phaser.Geom.Line.GetNearestPoint(new Phaser.Geom.Line(c.x0, c.y0, c.x1, c.y1), new Phaser.Geom.Point(p.x, p.y));
       c.d = Math.hypot(p.x - q.x, p.y - q.y);
       if (c.d > best.d) best = c;
