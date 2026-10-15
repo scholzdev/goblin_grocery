@@ -1,6 +1,6 @@
 import { BUFFS, BUNDLE, ECHO, ITEMS, MULTIPACK, POPPER, PLAYER, PROJECTILE_PATTERNS, TIER } from '../data/items';
 import { RECIPES, RECIPE_TUNING } from '../data/recipes';
-import { SETS, setLevels } from '../data/sets';
+import { SETS, setCfg, setLevels } from '../data/sets';
 import type { ActiveRecipe, BuffId, Build, Inventory, ItemInstance, ItemTypeId, Perk, RecipeId, WeaponStats } from '../types';
 import { adjacentPairs, neighbors } from './inventory';
 import { fmtNum, t } from '../i18n';
@@ -76,17 +76,19 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
     if (def.electrical && has('powerstrip')) s.cooldown /= nearTypes.has('powerstrip') ? BUFFS.powerstripAdjacent : BUFFS.powerstripAll;
     // Set bonuses (cart-wide, distinct types). Frost is applied after recipes, see below.
     const fam = def.family, el = def.element;
-    if (fam === 'kitchen' && sets.kitchen) s.damage *= SETS.kitchen.damageMult;
+    if (fam === 'kitchen' && sets.kitchen) s.damage *= setCfg('kitchen', sets.kitchen).damageMult;
     if (fam === 'cleaning') {
-      if (sets.cleaning) { s.range *= SETS.cleaning.rangeMult; s.aoe *= SETS.cleaning.aoeMult; }
-      if (sets.cleaning === 2 && b.pattern === 'puddle') s.duration += SETS.cleaning.puddleExtra;
+      if (sets.cleaning) { const c = setCfg('cleaning', sets.cleaning); s.range *= c.rangeMult; s.aoe *= c.aoeMult; }
+      if (sets.cleaning >= 2 && b.pattern === 'puddle') s.duration += setCfg('cleaning', sets.cleaning).puddleExtra;
     }
-    if (sets.tools) s.cooldown /= SETS.tools.cooldownDiv;
-    if (sets.heat && s.burn) s.burn = { ...s.burn, duration: s.burn.duration + SETS.heat.burnExtra, dps: s.burn.dps * (sets.heat === 2 ? SETS.heat.burnMult : 1) };
-    if (sets.heat === 2 && el === 'heat' && !s.burn) s.ignite = { chance: SETS.heat.igniteChance, burn: { dps: BUFFS.fuel.dps * SETS.heat.igniteDpsMult, duration: BUFFS.fuel.duration + SETS.heat.igniteExtra, tick: BUFFS.fuel.tick } };
+    if (sets.tools) s.cooldown /= setCfg('tools', sets.tools).cooldownDiv;
+    const ht = setCfg('heat', sets.heat);
+    if (sets.heat && s.burn) s.burn = { ...s.burn, duration: s.burn.duration + ht.burnExtra, dps: s.burn.dps * (sets.heat >= 2 ? ht.burnMult : 1) };
+    if (sets.heat >= 2 && el === 'heat' && !s.burn) s.ignite = { chance: ht.igniteChance, burn: { dps: BUFFS.fuel.dps * ht.igniteDpsMult, duration: BUFFS.fuel.duration + ht.igniteExtra, tick: BUFFS.fuel.tick } };
     if (sets.blast) {
-      if (s.popper) s.popper = { ...s.popper, radius: s.popper.radius * SETS.blast.radiusMult };
-      if (b.pattern === 'zap' || b.pattern === 'mortar') s.aoe *= SETS.blast.radiusMult;
+      const bl = setCfg('blast', sets.blast);
+      if (s.popper) s.popper = { ...s.popper, radius: s.popper.radius * bl.radiusMult };
+      if (b.pattern === 'zap' || b.pattern === 'mortar') s.aoe *= bl.radiusMult;
     }
     if (sets.electric && def.electrical && b.pattern !== 'zap') { s.chainChance = SETS.electric.chance[sets.electric - 1]; s.chainJumps = SETS.electric.jumps[sets.electric - 1]; }
     s.bundle = nearTypes.size + (nearTypes.has('goldstar') ? 1 : 0);
@@ -99,7 +101,7 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
       s.recipes.push(r.id);
       recipes.push({ id: r.id, weaponUid: w.uid, supportUids: sup.map((n) => n.uid).sort() });
     }
-    if (sets.frost && s.slow) s.slow = { ...s.slow, pct: Math.min(SETS.frost.slowCap, s.slow.pct + SETS.frost.slowBonus) }; // after recipes: coldStorage/brainFreeze set s.slow
+    if (sets.frost && s.slow) { const f = setCfg('frost', sets.frost); s.slow = { ...s.slow, pct: Math.min(f.slowCap, s.slow.pct + f.slowBonus) }; } // after recipes: coldStorage/brainFreeze set s.slow
     if (multi) {
       s.count += PROJECTILE_PATTERNS.has(b.pattern) ? MULTIPACK.extra + (multi >= 3 ? 1 : 0) : 1;
       s.buffs.push('multipack');
@@ -110,18 +112,18 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
 
   return {
     weapons, recipes, adjacency: adjacentPairs(placed),
-    maxHp: PLAYER.maxHp + (sets.snacks ? SETS.snacks.maxHp : 0) + (has('lunchbox') ? Math.round(BUFFS.lunchboxHp * gm('lunchbox')) : 0) + (has('snackbag') ? BUFFS.snackHp : 0) + (perk.maxHp ?? 0),
-    regen: (has('snackbag') ? BUFFS.snackRegen : 0) + (sets.snacks === 2 ? SETS.snacks.regen : 0),
+    maxHp: PLAYER.maxHp + (sets.snacks ? setCfg('snacks', sets.snacks).maxHp : 0) + (has('lunchbox') ? Math.round(BUFFS.lunchboxHp * gm('lunchbox')) : 0) + (has('snackbag') ? BUFFS.snackHp : 0) + (perk.maxHp ?? 0),
+    regen: (has('snackbag') ? BUFFS.snackRegen : 0) + (sets.snacks >= 2 ? setCfg('snacks', sets.snacks).regen : 0),
     pickupRadius: PLAYER.pickupRadius + (has('magnet') ? Math.round(BUFFS.magnetPickup * gm('magnet')) : 0) + (has('vacuum') ? BUFFS.vacuumPickup : 0) + (perk.pickupRadius ?? 0),
     shoveCooldown: PLAYER.shove.cooldown - (has('bell') ? BUFFS.bellShove * gm('bell') : 0) + (perk.shoveCooldown ?? 0),
     shoveDistMult: has('boot') ? 1 + BUFFS.bootDistance * gm('boot') : 1,
-    shoveDamage: (PLAYER.shove.damage + (has('boot') ? BUFFS.bootDamage * gm('boot') : 0) + (perk.shoveDamage ?? 0)) * (sets.tools === 2 ? SETS.tools.shoveDamageMult : 1),
-    shoveStun: sets.tools === 2 ? SETS.tools.shoveStun : 0,
+    shoveDamage: (PLAYER.shove.damage + (has('boot') ? BUFFS.bootDamage * gm('boot') : 0) + (perk.shoveDamage ?? 0)) * (sets.tools >= 2 ? setCfg('tools', sets.tools).shoveDamageMult : 1),
+    shoveStun: sets.tools >= 2 ? setCfg('tools', sets.tools).shoveStun : 0,
     moveSpeedMult: (has('energy') ? 1 + BUFFS.energySpeed * gm('energy') : 1) * (perk.moveSpeedMult ?? 1),
     coinChance: has('coupon') ? Math.min(0.9, BUFFS.couponChance * gm('coupon')) : 0,
     armor: has('bubblewrap') ? top('bubblewrap') : 0,
     invulnBonus: has('bubblewrap') ? BUFFS.bubbleInvuln : 0,
-    sets, priceMult: sets.checkout ? SETS.checkout.priceMult : 1,
+    sets, priceMult: sets.checkout ? setCfg('checkout', sets.checkout).priceMult : 1,
   };
 }
 

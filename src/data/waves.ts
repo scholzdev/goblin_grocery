@@ -69,6 +69,9 @@ export const ECONOMY = {
   inflationPerShop: 0.1,
   repairHp: 10,
   offerCount: 4,
+  /** Chance (from shop 2) that a rolled offer is a double pack, and its price multiplier. */
+  doublePackChance: 0.08,
+  doublePackPriceMult: 1.5,
   shelfSlots: 4,
   maxActiveEnemies: 70,
   /** Each coin a kill would drop actually drops with this chance (longer waves = more kills, so fewer coins each). */

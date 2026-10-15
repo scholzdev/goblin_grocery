@@ -3,7 +3,7 @@ import type { WeaponStats } from '../types';
 import { RECIPE_TUNING } from '../data/recipes';
 import { newHitTracker, shieldBlocks, tryHit, isSpent, pickRicochetTarget, type HitTracker } from '../systems/combat';
 import { ITEMS, MULTIPACK, PUDDLE } from '../data/items';
-import { SETS } from '../data/sets';
+import { SETS, setCfg } from '../data/sets';
 import { store } from '../state/store';
 import { SHIELD } from '../data/enemies';
 import { applyBurn } from '../systems/combat';
@@ -95,7 +95,7 @@ export class Arsenal {
         }
       }
       // Electronics department perk: electrical weapons cycle faster while fighting there.
-      w.cd -= dt * (ITEMS[w.stats.type].electrical ? sc.dept.electricalRate : 1);
+      w.cd -= dt * (ITEMS[w.stats.type].electrical ? sc.dept.electricalRate * sc.aisleEvent.electricRate() : 1);
       if (!firing || w.cd > 0) continue;
       if (w.stats.pattern === 'puddle') { w.cd = w.stats.cooldown; this.dropPuddle(w); continue; }
       const reach = w.stats.pattern === 'sweep' ? w.stats.range + 30 : w.stats.range;
@@ -383,14 +383,14 @@ export class Arsenal {
         // Floor ellipse test (puddles are drawn flattened).
         const dx = (e.x - pd.x) / pd.r, dy = (e.y - pd.y) / (pd.r * 0.62);
         if (dx * dx + dy * dy > 1) continue;
-        if (pd.burnOnly) { if (pd.stats.burn) applyBurn(e.status, pd.stats.burn, now); continue; }
+        if (pd.burnOnly) { if (pd.stats.burn) applyBurn(e.status, sc.aisleEvent.burn(pd.stats.burn), now); continue; }
         // Black Ice: the first step into each puddle freezes the grocery solid.
         if (pd.stats.recipes.includes('blackIce') && !(pd.frozen ??= new Set()).has(e.id)) {
           pd.frozen.add(e.id);
           sc.stunEnemy(e, RECIPE_TUNING.blackIce.freeze);
           sc.fx.frostBurst(e.x, e.y - 20, 4);
         }
-        applySlowFx(e, now, store.state.build.sets.frost > 0);
+        applySlowFx(e, now, store.state.build.sets.frost);
         sc.damageEnemy(e, pd.stats.damage, pd.stats, { quiet: true });
       }
     }
@@ -592,6 +592,7 @@ export class Arsenal {
 }
 
 import { applySlow } from '../systems/combat';
-function applySlowFx(e: Enemy, now: number, frost: boolean): void {
-  applySlow(e.status, frost ? { ...PUDDLE.slow, pct: Math.min(SETS.frost.slowCap, PUDDLE.slow.pct + SETS.frost.slowBonus) } : PUDDLE.slow, now);
+function applySlowFx(e: Enemy, now: number, frostLv: number): void {
+  const f = setCfg('frost', frostLv);
+  applySlow(e.status, frostLv > 0 ? { ...PUDDLE.slow, pct: Math.min(f.slowCap, PUDDLE.slow.pct + f.slowBonus) } : PUDDLE.slow, now);
 }

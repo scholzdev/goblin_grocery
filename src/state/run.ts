@@ -8,7 +8,7 @@ import { canPlace, findItem, normalizeRotation } from '../systems/inventory';
 import { mulberry32, type Rng } from '../systems/rng';
 import { zonesOf } from '../data/zones';
 import { currentRerollCost, repairCost, rollDoors, rollOffers, rollZones, sellPrice } from '../systems/shop';
-import { SETS } from '../data/sets';
+import { setCfg } from '../data/sets';
 import { computeBuild } from '../systems/synergies';
 
 const fail = (reason: string): OpResult => ({ ok: false, reason });
@@ -138,6 +138,7 @@ function applyMerge(inv: Inventory, uid: string, targetUid: string): OpResult {
   if (a.where === 'grid') inv.placed.splice(inv.placed.indexOf(a.inst), 1);
   else inv.shelf[a.slot] = null;
   b.inst.tier = (b.inst.tier ?? 1) + 1;
+  if (a.inst.double) b.inst.double = true;
   return OK;
 }
 
@@ -196,9 +197,17 @@ export function buyOffer(state: RunState, slot: number): OpResult {
   const free = state.inventory.shelf.indexOf(null);
   if (free < 0) return fail(t('rShelfFullSell'));
   state.money -= o.price;
-  state.inventory.shelf[free] = { uid: newUid(state), type: o.type, x: 0, y: 0, rot: 0, tier: o.tier };
+  state.inventory.shelf[free] = { uid: newUid(state), type: o.type, x: 0, y: 0, rot: 0, tier: o.tier, ...(o.double ? { double: true } : {}) };
   o.sold = true;
   return OK;
+}
+
+/** Stockroom: take the free item (shelf full: its sell price in coins instead). Returns true if it went on the shelf. */
+export function takeStockroomItem(state: RunState, o: { type: ItemTypeId; tier: number; double?: boolean }): boolean {
+  const free = state.inventory.shelf.indexOf(null);
+  if (free < 0) { addCoins(state, sellPrice(o.type, o.tier), t('coinStockroom')); return false; }
+  state.inventory.shelf[free] = { uid: newUid(state), type: o.type, x: 0, y: 0, rot: 0, tier: o.tier, ...(o.double ? { double: true } : {}) };
+  return true;
 }
 
 export function sellItem(state: RunState, uid: string): OpResult {
@@ -252,7 +261,8 @@ export function addCoins(state: RunState, amount: number, label: string): void {
 
 export function finishWave(state: RunState): void {
   addCoins(state, Math.round(ECONOMY.waveClearBonus * DEPARTMENTS[state.department].coinMult * MODIFIERS[state.modifier].coinMult * SHIFTS[state.shift].coinMult), t('coinWaveClear'));
-  const interest = state.build.sets.checkout === 2 ? Math.min(SETS.checkout.interestCap, Math.floor(state.money / SETS.checkout.interestPer)) : 0;
+  const ck = setCfg('checkout', state.build.sets.checkout);
+  const interest = state.build.sets.checkout >= 2 ? Math.min(ck.interestCap, Math.floor(state.money / ck.interestPer)) : 0;
   if (interest > 0) addCoins(state, interest, t('coinInterest'));
   state.stats.wavesCleared++;
   state.hp = Math.min(state.build.maxHp, state.hp + PLAYER.repairBetweenWaves);

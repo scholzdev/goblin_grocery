@@ -3,7 +3,7 @@ import { store } from './state/store';
 import { chooseDoor, createLabRun, createRun, finishWave, leaveShop, openShop, recomputeBuild, startNextWave } from './state/run';
 import type { DoorId } from './data/modifiers';
 import type { DepartmentId, LabOpts } from './types';
-import { emptyFresh, freshSince, nearUnlocks, recordOvertime, recordRun, snapProfile, unlockedItems, type Fresh, type Near, type ProfileSnap } from './state/profile';
+import { COUPON_COINS, dailySeed, emptyFresh, freshSince, nearUnlocks, noteDailyStart, recordFinish, recordOvertime, recordRun, snapProfile, unlockedItems, useCoupon, type DailyResult, type Fresh, type Loyalty, type Near, type ProfileSnap } from './state/profile';
 import { mulberry32, type Rng } from './systems/rng';
 import { submitRun } from './state/settings';
 import { BOSS_WAVE } from './data/waves';
@@ -22,7 +22,7 @@ let labSnap: { inventory: RunState['inventory']; money: number; nextUid: number 
 export const flow = {
   paused: false,
   pauseReason: '' as '' | 'menu' | 'blur' | 'loadout',
-  lastResult: null as null | { score: number; newBest: boolean; fresh: Fresh; near: Near[]; shown?: boolean },
+  lastResult: null as null | { score: number; newBest: boolean; fresh: Fresh; near: Near[]; shown?: boolean; loyalty?: Loyalty; daily?: DailyResult },
 
   init(g: Phaser.Game): void {
     game = g;
@@ -37,9 +37,12 @@ export const flow = {
     return game.scene.getScene('Arena');
   },
 
-  startRun(starter: StarterId = store.state?.starter ?? 'toaster', shift = store.state?.shift ?? 0, weapon: StarterWeapon = store.state?.weapon ?? 'toaster', theme: DepartmentId = store.state?.theme ?? 'main'): void {
-    const seed = (Date.now() ^ (Math.random() * 1e9)) >>> 0;
+  startRun(starter: StarterId = store.state?.starter ?? 'toaster', shift = store.state?.shift ?? 0, weapon: StarterWeapon = store.state?.weapon ?? 'toaster', theme: DepartmentId = store.state?.theme ?? 'main', opts: { daily?: boolean } = {}): void {
+    if (opts.daily) { starter = 'toaster'; shift = 0; weapon = 'toaster'; theme = 'main'; }
+    const seed = opts.daily ? dailySeed() : (Date.now() ^ (Math.random() * 1e9)) >>> 0;
     store.state = createRun(seed, starter, shift, weapon, theme);
+    if (opts.daily) { store.state.daily = true; noteDailyStart(); }
+    else if (useCoupon()) { store.state.money += COUPON_COINS; store.state.voucher = true; }
     store.state.unlocked = unlockedItems();
     runSnap = snapProfile();
     rng = mulberry32(seed);
@@ -142,7 +145,8 @@ export const flow = {
     if (s.overtime) { // the run was already counted at victory
       const past = Math.max(0, s.wave - BOSS_WAVE - 1);
       recordOvertime(past);
-      this.lastResult = { score, newBest: false, fresh: runSnap ? freshSince(runSnap) : emptyFresh(), near: nearUnlocks() };
+      const { daily } = recordFinish(s, won, score);
+      this.lastResult = { score, newBest: false, fresh: runSnap ? freshSince(runSnap) : emptyFresh(), near: nearUnlocks(), daily };
       play('defeat');
       store.changed();
       store.emit('run-end');
@@ -152,7 +156,8 @@ export const flow = {
     const got = recordRun(s, won).map((u) => u.id);
     const fresh = runSnap ? freshSince(runSnap) : emptyFresh();
     fresh.unlocks = [...new Set([...fresh.unlocks, ...got])];
-    this.lastResult = { score, newBest, fresh, near: nearUnlocks() };
+    const { loyalty, daily } = recordFinish(s, won, score);
+    this.lastResult = { score, newBest, fresh, near: nearUnlocks(), loyalty, daily };
     play(won ? 'victory' : 'defeat');
     store.changed();
     store.emit('run-end');

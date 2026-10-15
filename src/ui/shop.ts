@@ -14,7 +14,7 @@ import { settings } from '../state/settings';
 import { icons, setIcon } from './icons';
 import { t, fmtNum } from '../i18n';
 import { itemRules, itemT, recipeT, tagT } from '../i18n/data';
-import { SETS, setGains, setsOf } from '../data/sets';
+import { SETS, lvOf, setCfg, setCount as setCountOf, setGains, setsOf } from '../data/sets';
 import type { Build, ItemInstance, ItemTypeId, RecipeId, Rotation, RunState, SetId } from '../types';
 
 // Cell pitch in design pixels (cell + 4px gap). 92 for the 4×4 and 5×4 carts; shrinks so bigger carts fit the same 460×368 area.
@@ -41,6 +41,7 @@ let drag: Drag | null = null;
 let hoverUid: string | null = null;
 let hoverType: ItemTypeId | null = null;
 let hoverTier: number | undefined;
+let hoverDouble = false;
 let hoverSlot: number | null = null;
 let hoverSet: SetId | null = null;
 let receiptPreview: ItemTypeId | null = null; // offer type whose set gains the receipt is currently previewing
@@ -132,7 +133,7 @@ function itemEl(it: ItemInstance, build: Build, extra = '', compact = false): st
   const on = build.recipes.some((r) => r.weaponUid === it.uid || r.supportUids.includes(it.uid));
   const canCombine = store.state.phase === 'shop' && !!mergePartner(it);
   return `<div class="item ${def.kind} ${rarityClass(it.type, it.tier)} ${canCombine ? 'mergeable' : ''} ${inner.shaped ? 'shaped' : ''} ${on ? 'recipe-on' : ''} ${it.uid === selectedUid ? 'selected' : ''} ${extra}" data-uid="${it.uid}"
-    style="left:${it.x * CELL}px;top:${it.y * CELL}px;width:${inner.w * CELL - 4}px;height:${inner.h * CELL - 4}px">${inner.html}</div>`;
+    style="left:${it.x * CELL}px;top:${it.y * CELL}px;width:${inner.w * CELL - 4}px;height:${inner.h * CELL - 4}px">${inner.html}${it.double ? `<b class="dbl-mark" title="${esc(t('setDouble', { set: tagT(def.family) }))}">${t('doubleSticker')}</b>` : ''}</div>`;
 }
 
 export function gridHtml(s: RunState): string {
@@ -179,36 +180,36 @@ export function combosHtml(build: Build, preview?: Build | null, relevant: ItemT
 }
 
 const pc = (x: number): string => fmtNum(Math.round(x * 100));
-/** Bonus text for one set level, numbers straight from SETS. */
-function setBonus(id: SetId, lv: 1 | 2): string {
+/** Bonus text for one set level, numbers straight from SETS (level 3 from SET_L3). */
+function setBonus(id: SetId, lv: 1 | 2 | 3): string {
   const k = `set_${id}${lv}` as const, i = lv - 1;
   const v = ((): Record<string, string | number | undefined> => {
     switch (id) {
-      case 'kitchen': return lv === 1 ? { v: pc(SETS.kitchen.damageMult - 1) } : { v: pc(SETS.kitchen.healChance), n: SETS.kitchen.heal };
-      case 'cleaning': return lv === 1 ? { v: pc(SETS.cleaning.rangeMult - 1) } : { v: pc(SETS.cleaning.knockbackMult - 1), n: fmtNum(SETS.cleaning.puddleExtra) };
-      case 'tools': return lv === 1 ? { v: pc(SETS.tools.cooldownDiv - 1) } : { v: SETS.tools.shoveDamageMult, n: fmtNum(SETS.tools.shoveStun) };
-      case 'snacks': return { v: lv === 1 ? SETS.snacks.maxHp : fmtNum(SETS.snacks.regen) };
-      case 'checkout': return lv === 1 ? { v: pc(1 - SETS.checkout.priceMult) } : { v: 1, n: SETS.checkout.interestPer, m: SETS.checkout.interestCap };
-      case 'heat': return lv === 1 ? { v: fmtNum(SETS.heat.burnExtra) } : { v: fmtNum(SETS.heat.burnMult), n: pc(SETS.heat.igniteChance) };
-      case 'frost': return lv === 1 ? { v: pc(SETS.frost.slowBonus), n: pc(SETS.frost.slowCap) } : { v: pc(SETS.frost.stunMinSlow), n: fmtNum(SETS.frost.stun), m: pc(SETS.frost.stunChance) };
+      case 'kitchen': { const c = setCfg('kitchen', lv); return lv === 1 ? { v: pc(c.damageMult - 1) } : lv === 2 ? { v: pc(c.healChance), n: c.heal } : { v: pc(c.damageMult - 1), n: c.heal, m: pc(c.healChance) }; }
+      case 'cleaning': { const c = setCfg('cleaning', lv); return lv === 1 ? { v: pc(c.rangeMult - 1) } : lv === 2 ? { v: pc(c.knockbackMult - 1), n: fmtNum(c.puddleExtra) } : { v: pc(c.rangeMult - 1), n: pc(c.knockbackMult - 1), m: fmtNum(c.puddleExtra) }; }
+      case 'tools': { const c = setCfg('tools', lv); return lv === 1 ? { v: pc(c.cooldownDiv - 1) } : lv === 2 ? { v: c.shoveDamageMult, n: fmtNum(c.shoveStun) } : { v: pc(c.cooldownDiv - 1), n: c.shoveDamageMult, m: fmtNum(c.shoveStun) }; }
+      case 'snacks': { const c = setCfg('snacks', lv); return lv === 1 ? { v: c.maxHp } : lv === 2 ? { v: fmtNum(c.regen) } : { v: c.maxHp, n: fmtNum(c.regen) }; }
+      case 'checkout': { const c = setCfg('checkout', lv); return lv === 1 ? { v: pc(1 - c.priceMult) } : lv === 2 ? { v: 1, n: c.interestPer, m: c.interestCap } : { v: pc(1 - c.priceMult), n: c.interestPer, m: c.interestCap }; }
+      case 'heat': { const c = setCfg('heat', lv); return lv === 1 ? { v: fmtNum(c.burnExtra) } : lv === 2 ? { v: fmtNum(c.burnMult), n: pc(c.igniteChance) } : { v: fmtNum(c.burnExtra), n: fmtNum(c.burnMult), m: pc(c.igniteChance) }; }
+      case 'frost': { const c = setCfg('frost', lv); return lv === 1 ? { v: pc(c.slowBonus), n: pc(c.slowCap) } : lv === 2 ? { v: pc(c.stunMinSlow), n: fmtNum(c.stun), m: pc(c.stunChance) } : { v: pc(c.slowBonus), n: pc(c.slowCap), m: pc(c.stunChance), k: fmtNum(c.stun) }; }
       case 'electric': return { v: pc(SETS.electric.chance[i]), n: SETS.electric.jumps[i], m: pc(SETS.electric.damageMult) };
-      case 'blast': return lv === 1 ? { v: pc(SETS.blast.radiusMult - 1) } : { v: pc(SETS.blast.killChance), n: SETS.blast.damage };
+      case 'blast': { const c = setCfg('blast', lv); return lv === 1 ? { v: pc(c.radiusMult - 1) } : lv === 2 ? { v: pc(c.killChance), n: c.damage } : { v: pc(c.radiusMult - 1), n: pc(c.killChance), m: c.damage }; }
     }
   })();
   return t(k, v as Record<string, string | number>);
 }
 
 const SET_IDS: SetId[] = ['kitchen', 'cleaning', 'tools', 'snacks', 'checkout', 'heat', 'frost', 'blast', 'electric'];
-const setPips = (id: SetId, n: number, ghost = false): string => `<span class="pips set-${id}">${Array.from({ length: SETS.thresholds[1] }, (_, k) => `<i class="${k < n ? 'on' : ghost && k === n ? 'ghost' : ''}"></i>`).join('')}</span>`;
-const setTiers = (id: SetId, lv: number, fresh = 0): string => ([1, 2] as const).map((l) => `<div class="tier ${l <= lv ? '' : 'locked'} ${l === fresh ? 'new' : ''}"><em>${SETS.thresholds[l - 1]}</em><span>${esc(setBonus(id, l))}</span></div>`).join('');
-const setCount = (id: SetId): number => new Set(store.state.inventory.placed.filter((p) => setsOf(p.type).includes(id)).map((p) => p.type)).size;
-const setLv = (n: number): number => (n >= SETS.thresholds[1] ? 2 : n >= SETS.thresholds[0] ? 1 : 0);
+const setPips = (id: SetId, n: number, ghost = false): string => `<span class="pips set-${id}">${Array.from({ length: SETS.thresholds[2] }, (_, k) => `<i class="${k < n ? 'on' : ghost && k === n ? 'ghost' : ''}"></i>`).join('')}</span>`;
+const setTiers = (id: SetId, lv: number, fresh = 0, all = true): string => ([1, 2, 3] as const).filter((l) => all || l <= lv + 1).map((l) => `<div class="tier ${l <= lv ? '' : 'locked'} ${l === fresh ? 'new' : ''}"><em>${SETS.thresholds[l - 1]}</em><span>${esc(setBonus(id, l))}</span></div>`).join('');
+const setCount = (id: SetId): number => setCountOf(store.state.inventory.placed, id);
+const setLv = (n: number): number => lvOf(n);
 const chipHtml = (id: SetId): string => `<span class="chip set-${id}">${setIcon(id, 12)}${tagT(id)}</span>`;
 
 /** Set coupons (inside the receipt): sets with >=1 type in the cart; full coupon at lv>=1, collapsed one-liner at lv0. `preview`: an offer type hovered in the shop, showing what it would add. */
-export function setsHtml(preview?: ItemTypeId): string {
+export function setsHtml(preview?: ItemTypeId, previewDouble = false): string {
   const t1 = SETS.thresholds[0];
-  const gm = new Map((preview ? setGains(store.state.inventory.placed, preview) : []).map((g) => [g.id, g]));
+  const gm = new Map((preview ? setGains(store.state.inventory.placed, preview, previewDouble) : []).map((g) => [g.id, g]));
   const have = SET_IDS.map((id) => ({ id, n: setCount(id) })).filter((x) => x.n > 0).map((x) => ({ ...x, lv: setLv(x.n) })).sort((a, b) => b.lv - a.lv || b.n - a.n);
   const ghosts = SET_IDS.filter((id) => gm.get(id)?.from === 0);
   if (!have.length && !ghosts.length) return '';
@@ -217,18 +218,18 @@ export function setsHtml(preview?: ItemTypeId): string {
     if (g) {
       const nlv = setLv(g.to);
       const hd = `<div class="hd">${chipHtml(id)}<span class="arrow">${g.from}→${g.to}</span>${!nlv ? `<span class="need">${t('setNeed', { n: t1 - g.to })}</span>` : ''}${setPips(id, n, true)}</div>`;
-      return `<div class="coupon set-${id} hot" data-set="${id}">${hd}${nlv ? setTiers(id, nlv, g.levelUp ? nlv : 0) : ''}</div>`;
+      return `<div class="coupon set-${id} hot" data-set="${id}">${hd}${nlv ? setTiers(id, nlv, g.levelUp ? nlv : 0, false) : ''}</div>`;
     }
     const hd = `<div class="hd">${chipHtml(id)}${lv ? '' : `<span class="need">${t('setNeed', { n: t1 - n })}</span>`}${setPips(id, n)}</div>`;
-    return `<div class="coupon set-${id} ${lv ? '' : 'dim'} ${preview ? 'faded' : ''}" data-set="${id}">${hd}${lv ? setTiers(id, lv) : ''}</div>`;
+    return `<div class="coupon set-${id} ${lv ? '' : 'dim'} ${preview ? 'faded' : ''}" data-set="${id}">${hd}${lv ? setTiers(id, lv, 0, false) : ''}</div>`;
   }).join('') + ghosts.map((id) => `<div class="coupon set-${id} ghost" data-set="${id}"><div class="hd">${chipHtml(id)}<span class="arrow">${t('setNew')}</span>${setPips(id, 0, true)}</div></div>`).join('');
 }
 
-/** Hover card for one set: progress, both tiers, and every item type that counts toward it (owned ones in colour). */
+/** Hover card for one set: progress, all tiers, and every item type that counts toward it (owned ones in colour). */
 function setCardHtml(id: SetId): string {
   const n = setCount(id), have = new Set(store.state.inventory.placed.map((p) => p.type));
   const members = ITEM_IDS.filter((ty) => setsOf(ty).includes(id)).map((ty) => `<img class="${have.has(ty) ? '' : 'missing'}" src="${svg(`icon_${ty}`)}" alt="${itemT(ty).name}" title="${itemT(ty).name}">`).join('');
-  return `<div class="setcard set-${id}"><div class="hd">${chipHtml(id)}<span class="cnt">${t('setProgress', { n, m: SETS.thresholds[1] })}</span>${setPips(id, n)}</div>${setTiers(id, setLv(n))}<div class="mem">${t('setMembers')}</div><div class="members">${members}</div></div>`;
+  return `<div class="setcard set-${id}"><div class="hd">${chipHtml(id)}<span class="cnt">${t('setProgress', { n, m: SETS.thresholds[2] })}</span>${setPips(id, n)}</div>${setTiers(id, setLv(n))}<div class="mem">${t('setMembers')}</div><div class="members">${members}</div></div>`;
 }
 
 /** Overflow fallback (never scroll): hide dim coupons from the end until the receipt fits, add a "+N more" line. */
@@ -251,15 +252,15 @@ function fitSets(): void {
 }
 
 /** Sticker/hover detail for a set gain. */
-const gainText = (g: ReturnType<typeof setGains>[number]): string => g.levelUp ? t('setStkUp', { n: g.to >= SETS.thresholds[1] ? 2 : 1 }) : g.to < SETS.thresholds[0] ? t('setStkMore', { n: SETS.thresholds[0] - g.to }) : t('setStkMore2', { n: SETS.thresholds[1] - g.to });
+const gainText = (g: ReturnType<typeof setGains>[number]): string => { const th = SETS.thresholds, ni = th.findIndex((x) => x > g.to); return g.levelUp ? t('setStkUp', { n: lvOf(g.to) }) : t((['setStkMore', 'setStkMore2', 'setStkMore3'] as const)[Math.max(0, ni < 0 ? 2 : ni)], { n: th[Math.max(0, ni < 0 ? 2 : ni)] - g.to }); };
 
 /** Offer-card set badges: level-up first, then sets already started, then new ones (max 3). Maxed / already-counted sets get none. */
-function setBadges(placed: ItemInstance[], type: ItemTypeId): string {
-  const gains = new Map(setGains(placed, type).map((g) => [g.id, g]));
+function setBadges(placed: ItemInstance[], type: ItemTypeId, double = false): string {
+  const gains = new Map(setGains(placed, type, double).map((g) => [g.id, g]));
   const rank = (g: ReturnType<typeof setGains>[number]): number => (g.levelUp ? 0 : g.from >= 1 ? 1 : 2);
   return [...gains.values()].sort((a, b) => rank(a) - rank(b)).slice(0, 3).map((g) => {
-    const lvl = g.to >= SETS.thresholds[1] ? 2 : 1;
-    const detail = g.levelUp ? t('setIconUp', { n: lvl, b: setBonus(g.id, lvl as 1 | 2) }) : g.from === 0 ? t('setIconNew') : gainText(g);
+    const lvl = lvOf(g.to);
+    const detail = g.levelUp ? t('setIconUp', { n: lvl, b: setBonus(g.id, lvl as 1 | 2 | 3) }) : g.from === 0 ? t('setIconNew') : gainText(g);
     return `<span class="seticon set-${g.id} ${g.levelUp ? 'up' : g.from === 0 ? 'new' : ''}" title="${esc(`${tagT(g.id)} ${g.from}→${g.to}: ${detail}`)}">${setIcon(g.id, 18)}${g.levelUp ? '<u>!</u>' : ''}</span>`;
   }).join('');
 }
@@ -285,13 +286,14 @@ function render(): void {
     const w = Math.max(...cells.map((c) => c.x)) + 1;
     const fp = cells.map((c) => `<i style="grid-column:${c.x + 1};grid-row:${c.y + 1}"></i>`).join('');
     const rar = def.legendary ? t('legendaryKind', { k: kindLabel(o.type) }) : o.tier === 3 ? t('epicKind', { k: kindLabel(o.type) }) : o.tier === 2 ? t('rareKind', { k: kindLabel(o.type) }) : kindLabel(o.type);
-    const stks = o.sold ? '' : setBadges(s.inventory.placed, o.type);
+    const stks = o.sold ? '' : setBadges(s.inventory.placed, o.type, !!o.double);
     return `<div class="card ${rarityClass(o.type, o.tier)} ${o.sold ? 'sold' : ''} ${why || poor ? 'blocked' : ''} ${lv ? 'lvl' : ''}" data-offer="${o.slot}" data-type="${o.type}" ${poor ? `title="${t('needCoins', { n: o.price - s.money })}"` : ''} ${o.sold ? `data-sold="${t('soldStamp')}"` : ''} role="button" tabindex="0"
       aria-label="${t('buyAria', { rar, name: itemT(o.type).name, price: o.price })}">
       <img class="art" src="${svg(`icon_${o.type}`)}" alt="">
       <div class="nm">${itemT(o.type).name}</div><div class="fp" style="grid-template-columns:repeat(${w},10px)">${fp}</div>
       <span class="price-tag">${costPill(o.price, s.money >= o.price)}${infl > 1 && !o.sold ? `<s class="base">${Math.max(1, Math.round(o.price / infl))}</s>` : ''}</span>
       ${lv ? `<span class="lvlup" title="${t('combinesTip', { name: itemT(o.type).name })}">${t('combinesTag', { n: (lv.tier ?? 1) + 1 })}</span>` : ''}
+      ${o.double && !o.sold ? `<span class="dblpack" title="${esc(t('setDouble', { set: tagT(def.family) }))}">${t('doubleSticker')}</span>` : ''}
       ${stks ? `<div class="seticons">${stks}</div>` : ''}
       <div class="why">${why}</div></div>`;
   }).join('');
@@ -366,7 +368,7 @@ const KIND_BY_TAG = { ranged: 'kindRanged', melee: 'kindMelee', area: 'kindArea'
 /** Long single-word names (e.g. "Preisauszeichner") shrink so the level pill stays inside the card. */
 const fitName = (n: string): number => (n.length > 14 ? 19 : n.length > 11 ? 22 : 26);
 
-export function inspectorHtml(type: ItemTypeId, uid: string | null, offerTier?: number): string {
+export function inspectorHtml(type: ItemTypeId, uid: string | null, offerTier?: number, offerDouble = false): string {
   const s = store.state;
   const def = ITEMS[type];
   const cells = def.cells;
@@ -379,12 +381,13 @@ export function inspectorHtml(type: ItemTypeId, uid: string | null, offerTier?: 
   const weaponTag = (def.tags ?? []).find((tg): tg is keyof typeof KIND_BY_TAG => tg in KIND_BY_TAG);
   const kind = def.kind === 'weapon' && weaponTag ? t(KIND_BY_TAG[weaponTag]) : kindLabel(type);
   const otherTags = (def.tags ?? []).filter((tg) => !(tg in KIND_BY_TAG));
-  const gains = offerTier !== undefined && !loc && s ? setGains(s.inventory.placed, type) : [];
+  const gains = offerTier !== undefined && !loc && s ? setGains(s.inventory.placed, type, offerDouble) : [];
+  const dblNote = offerDouble || (loc?.inst.double ?? false) ? `<span class="chip dbl">2× ${esc(t('setDouble', { set: tagT(def.family) }))}</span>` : '';
   const setChips = setsOf(type).map((id) => { const g = gains.find((x) => x.id === id); return `<span class="chip set-${id}${s?.build?.sets?.[id] ? ' act' : ''}">${setIcon(id, 14)}${tagT(id)}${g ? ` <small>(${gainText(g)})</small>` : ''}</span>`; }).join('');
   const head = `<header><span class="ico-tile ${rc}"><img src="${svg(`icon_${type}`)}" alt=""></span>
     <div class="hd"><div class="nm"><span style="font-size:${fitName(itemT(type).name)}px">${itemT(type).name}</span><b class="lv ${def.legendary ? 'leg' : `t${tier}`}">★${def.legendary ? '' : tier}</b></div>
     <span class="sub ${rc}">${rarity} · ${kind}</span></div></header>
-    <div class="chips">${setChips}${otherTags.map((tg) => `<span class="chip">${tagT(tg)}</span>`).join('')}<span class="chip">${icons.grid(15)}${w}×${h}</span>
+    <div class="chips">${dblNote}${setChips}${otherTags.map((tg) => `<span class="chip">${tagT(tg)}</span>`).join('')}<span class="chip">${icons.grid(15)}${w}×${h}</span>
     <span class="chip coin"><img class="coin-ico" src="${svg('coin')}" alt="">${loc ? t('sells', { n: sellPrice(type, tier) }) : def.price}</span></div>`;
 
   let body = '';
@@ -462,7 +465,7 @@ function refreshHover(): void {
   if (pv !== receiptPreview) {
     receiptPreview = pv;
     const sets = root.querySelector('.sets');
-    if (sets) { sets.innerHTML = setsHtml(pv ?? undefined); fitSets(); }
+    if (sets) { sets.innerHTML = setsHtml(pv ?? undefined, hoverDouble); fitSets(); }
   }
   if (hoverSet) { // set coupon hover: glow member items, card to the right of the receipt
     for (const p of s.inventory.placed) if (setsOf(p.type).includes(hoverSet)) root.querySelector(`.grid .item[data-uid="${p.uid}"]`)?.classList.add('setlit');
@@ -478,7 +481,7 @@ function refreshHover(): void {
     if (other) root.querySelector(`.grid .item[data-uid="${other}"]`)?.classList.add('affect');
   }
   const anchor = focusUid ? root.querySelector<HTMLElement>(`.item[data-uid="${focusUid}"]`) : root.querySelector<HTMLElement>(`.card[data-offer="${hoverSlot}"]`);
-  showCard(inspectorHtml(type, focusUid, hoverType ? hoverTier : undefined), anchor, !!focusUid && focusUid === selectedUid && s.phase === 'shop');
+  showCard(inspectorHtml(type, focusUid, hoverType ? hoverTier : undefined, hoverType ? hoverDouble : false), anchor, !!focusUid && focusUid === selectedUid && s.phase === 'shop');
 }
 
 /** Floating item card beside `anchor`; `pinned` (selected item) makes it clickable for the Combine button. */
@@ -634,6 +637,7 @@ function onHover(e: PointerEvent): void {
   loyaltyOn = loyalty;
   hoverSlot = offer ? Number(offer.dataset.offer) : null;
   hoverTier = offer ? store.state.shop?.offers.find((o) => o.slot === hoverSlot)?.tier : undefined;
+  hoverDouble = offer ? !!store.state.shop?.offers.find((o) => o.slot === hoverSlot)?.double : false;
   refreshHover();
 }
 

@@ -1,5 +1,6 @@
 import Phaser from 'phaser';import { t } from '../i18n';
-import { EVENTS } from '../data/events';
+import { EVENTS, SET_EVENT, SET_EVENTS, type SetEventKind } from '../data/events';
+import { ROOMS } from '../data/modifiers';
 import type { EventRoll } from '../systems/events';
 import { applySlow } from '../systems/combat';
 import { settings } from '../state/settings';
@@ -13,6 +14,7 @@ import { ARENA } from './ArenaScene';
 
 // Aisle events (see data/events.ts). One per aisle at most; the roll happens in ArenaScene.create.
 // Wet floor: a mop robot drives 1-3 streaks and leaves slowing puddles. Outage: dark overlay lit only by the cart's headlight.
+// Set events (happy hour, heatwave, power surge, flash sale, freezer fail): timed modifiers; the scene reads them through the getters below. A matching set (lv 1+) boosts the helpful part by SET_EVENT.bonus.
 
 interface Streak { x0: number; y0: number; x1: number; y1: number; len: number; delay: number; dist: number; signs: number[]; img: Phaser.GameObjects.Image; done: boolean }
 interface Spot { x: number; y: number; age: number; img: Phaser.GameObjects.Image; puddle: boolean }
@@ -35,6 +37,14 @@ export class AisleEvents {
   private glow?: Phaser.GameObjects.Graphics;
   private angle = 0;
   private backShown = false;
+  // set events
+  private live: SetEventKind | null = null;
+  private over = false;
+  private tint?: Phaser.GameObjects.Rectangle;
+  private patches: { x: number; y: number; img: Phaser.GameObjects.Image }[] = [];
+  private zaps: { x: number; y: number; age: number }[] = [];
+  private zapT = 0;
+  private zapG?: Phaser.GameObjects.Graphics;
 
   constructor(private scene: ArenaScene, private roll: EventRoll | null) {}
 
@@ -48,13 +58,128 @@ export class AisleEvents {
     if (!r) return;
     if (active) this.t += dt;
     if (r.kind === 'wetFloor') this.updateWet(dt);
-    else this.updateOutage(dt);
+    else if (r.kind === 'outage') this.updateOutage(dt);
+    else this.updateSet(dt);
+  }
+
+  // ───────────────────────────── set event effects (read by the scene) ─────────────────────────────
+
+  private boost(): number {
+    const k = this.live;
+    return k && store.state.build.sets[SET_EVENTS[k]] >= 1 ? SET_EVENT.bonus : 1;
+  }
+  /** Scale only the bonus part of a multiplier: 1.5 with boost 1.5 -> 1.75. */
+  private stretch(m: number): number { return 1 + (m - 1) * this.boost(); }
+
+  /** Extra player HP/s (Happy Hour). */
+  regenBonus(): number { return this.live === 'happyHour' ? EVENTS.happyHour.regen * this.boost() : 0; }
+  /** Enemy speed multiplier (Happy Hour faster, Freezer Fail slower). */
+  enemySpeed(): number {
+    if (this.live === 'happyHour') return EVENTS.happyHour.enemySpeed;
+    if (this.live === 'freezerFail') return 1 - EVENTS.freezerFail.enemySlow * this.boost();
+    return 1;
+  }
+  /** Burn effect with the Heatwave duration bonus applied. */
+  burn<B extends { duration: number }>(b: B): B {
+    return this.live === 'heatwave' ? { ...b, duration: b.duration * this.stretch(EVENTS.heatwave.burnMult) } : b;
+  }
+  /** Fire-rate multiplier for electrical weapons (Power Surge). */
+  electricRate(): number { return this.live === 'powerSurge' ? this.stretch(EVENTS.powerSurge.fireRate) : 1; }
+  /** Kill coin multiplier (Flash Sale). */
+  coinMult(): number { return this.live === 'flashSale' ? EVENTS.flashSale.coinMult * this.boost() : 1; }
+  /** Player velocity ease rate on slippery floor (cold room, freezer patches); 0 = normal grip. */
+  slipAccel(x: number, y: number): number {
+    let a = 0;
+    if (store.state.modifier === 'coldRoom') a = ROOMS.coldRoom.playerAccel;
+    if (this.live === 'freezerFail') {
+      const R = EVENTS.freezerFail.patchR * 0.75;
+      if (this.patches.some((p) => ((x - p.x) / R) ** 2 + ((y - p.y) / (R * 0.63)) ** 2 < 1)) a = a ? Math.min(a, EVENTS.freezerFail.playerAccel) : EVENTS.freezerFail.playerAccel;
+    }
+    return a;
+  }
+
+  private updateSet(dt: number): void {
+    const sc = this.scene, r = this.roll!, kind = r.kind as SetEventKind;
+    const tt = this.t - r.startAt;
+    if (tt < 0 || this.over) return;
+    if (!this.live) {
+      this.live = kind;
+      const boosted = this.boost() > 1;
+      showBanner(t(`evName_${kind}`), t(`evSub_${kind}`) + (boosted ? ` ${t('evSetBonus')}` : ''));
+      play(kind === 'powerSurge' ? 'zap' : kind === 'flashSale' ? 'ding' : 'whistle', { rate: kind === 'flashSale' ? 1.2 : 1 });
+      if (kind === 'heatwave') this.tint = sc.add.rectangle(ARENA.w / 2, ARENA.h / 2, ARENA.w + 1400, ARENA.h + 1400, EVENTS.heatwave.tint, 0).setDepth(DEPTH.fx + 50);
+      if (kind === 'freezerFail') this.buildPatches();
+      if (kind === 'powerSurge') this.zapG = sc.add.graphics().setDepth(DEPTH.telegraph + 1);
+    }
+    if (tt >= r.duration) {
+      this.over = true;
+      showBanner(t('evOver', { name: t(`evName_${kind}`) }), '');
+      play('ding', { rate: 1.3 });
+      this.clearSet();
+      return;
+    }
+    if (this.tint) this.tint.setAlpha(Math.min(1, tt / 1.5) * (settings.reducedMotion ? 0.08 : 0.07 + 0.04 * Math.sin(this.t * 3)));
+    if (kind === 'heatwave' && !settings.reducedMotion && Math.random() < dt * 6) sc.fx.puff(Phaser.Math.Between(ARENA.left, ARENA.right), Phaser.Math.Between(ARENA.top + 40, ARENA.bottom), 1);
+    if (kind === 'powerSurge') this.updateZaps(dt);
+    if (kind === 'freezerFail') for (const p of this.patches) p.img.setAlpha(Math.min(0.85, tt * 0.6) * Math.min(1, (r.duration - tt) / 1.5));
+  }
+
+  private clearSet(): void {
+    this.live = null;
+    this.tint?.destroy(); this.tint = undefined;
+    for (const p of this.patches) p.img.destroy();
+    this.patches = [];
+    this.zaps = [];
+    this.zapG?.destroy(); this.zapG = undefined;
+  }
+
+  private buildPatches(): void {
+    const sc = this.scene, F = EVENTS.freezerFail;
+    for (let i = 0; i < F.patches; i++) {
+      let x = 0, y = 0;
+      for (let k = 0; k < 6; k++) {
+        x = lerp(ARENA.left + 110, ARENA.right - 110, Math.random());
+        y = lerp(ARENA.top + 90, ARENA.bottom - 70, Math.random());
+        if (Math.hypot(x - sc.player.x, y - sc.player.y) > 170) break;
+      }
+      const img = sc.add.image(x, y, 'fx_puddle').setDepth(DEPTH.decal - 0.1).setTint(0xcfefff).setDisplaySize(F.patchR * 2.3, F.patchR * 1.45).setAlpha(0);
+      this.patches.push({ x, y, img });
+    }
+  }
+
+  /** Power Surge: random spots telegraph, then zap whatever stands there. */
+  private updateZaps(dt: number): void {
+    const sc = this.scene, P = EVENTS.powerSurge;
+    if ((this.zapT -= dt) <= 0) {
+      this.zapT = P.sparkEvery;
+      const near = Math.random() < 0.5; // half the zaps land around the cart, half anywhere
+      const x = Phaser.Math.Clamp(near ? sc.player.x + Phaser.Math.Between(-160, 160) : lerp(ARENA.left + 60, ARENA.right - 60, Math.random()), ARENA.left + 40, ARENA.right - 40);
+      const y = Phaser.Math.Clamp(near ? sc.player.y + Phaser.Math.Between(-110, 110) : lerp(ARENA.top + 60, ARENA.bottom - 40, Math.random()), ARENA.top + 40, ARENA.bottom - 20);
+      this.zaps.push({ x, y, age: 0 });
+    }
+    const g = this.zapG;
+    g?.clear();
+    this.zaps = this.zaps.filter((z) => {
+      z.age += dt;
+      const k = Math.min(1, z.age / P.tell);
+      if (z.age < P.tell) {
+        g?.lineStyle(3, 0xffe066, 0.5 + 0.4 * k).strokeEllipse(z.x, z.y, P.sparkR * 2, P.sparkR * 1.3);
+        g?.fillStyle(0xffe066, 0.12 + 0.25 * k).fillEllipse(z.x, z.y, P.sparkR * 2 * k, P.sparkR * 1.3 * k);
+        return true;
+      }
+      sc.fx.spark(z.x, z.y - 10, 10, 0xffe066);
+      sc.fx.ring('fx_pulse', z.x, z.y, P.sparkR * 2.2, 240, 0xffe066);
+      play('zap', { rate: 1.1 });
+      if (sc.playerNear(z.x, z.y).d < P.sparkR) sc.hurtPlayer(P.damage);
+      return false;
+    });
   }
 
   /** Checkout / death: lights back on, robot stops. */
   stop(): void {
     this.roll = null;
     this.destroyDark();
+    this.clearSet();
     for (const s of this.streaks) s.img.destroy();
     this.streaks = [];
   }

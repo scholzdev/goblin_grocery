@@ -1,14 +1,14 @@
 import Phaser from 'phaser';import { t, lang } from '../i18n';
-import { deptT, enemyT } from '../i18n/data';
+import { deptT, enemyT, itemT } from '../i18n/data';
 import { store } from '../state/store';
 import { flow } from '../flow';
 import { waveDef, eliteChance, bossTuning, ECONOMY, SHIFTS, WAVE_RAMP } from '../data/waves';
-import { SHOW_HP_BAR, EGG_BLAST, MELON_SLICES, ELITE, GIFTCARD, GUM, THEME_SUMMONS, ELITE_EXCLUDED } from '../data/enemies';
+import { SHOW_HP_BAR, EGG_BLAST, MELON_SLICES, ELITE, GIFTCARD, GUM, THEME_SUMMONS, ELITE_EXCLUDED, AFFIX } from '../data/enemies';
 import { GumPuddles } from './gum';
 import { CRIT, ECHO, ITEMS, PLAYER, STARTER_LOOKS } from '../data/items';
-import { SETS } from '../data/sets';
+import { SETS, setCfg } from '../data/sets';
 import { RECIPE_TUNING } from '../data/recipes';
-import { addCoins, damagePlayer } from '../state/run';
+import { addCoins, damagePlayer, takeStockroomItem } from '../state/run';
 import { applyBurn, applySlow, armorDamage, newHitTracker, pickRicochetTarget, tryHit, type HitTracker } from '../systems/combat';
 import type { EnemyId, WaveDef, WeaponStats } from '../types';
 import { play, setWheel } from '../audio/sfx';
@@ -21,6 +21,7 @@ import { Arsenal } from './weapons';
 import { Hazards } from './hazards';
 import { AisleEvents } from './events';
 import { rollEvent } from '../systems/events';
+import { showStockroom, hideStockroom } from '../ui/stockroom';
 import { noteEnemy, profile } from '../state/profile';
 import { CART_PARTS, GOBLIN_PARTS } from '../data/unlocks';
 
@@ -29,8 +30,8 @@ const sk = (key: string): string =>
   GOBLIN_PARTS.includes(key) && profile.goblin !== 'classic' ? `${key}__${profile.goblin}`
     : CART_PARTS.includes(key) && profile.cart !== 'chrome' ? `${key}__${profile.cart}` : key;
 import { DEPARTMENTS, DEPT_TUNING } from '../data/departments';
-import { MODIFIERS } from '../data/modifiers';
-import { waveSpawnPlan } from '../systems/shop';
+import { MODIFIERS, ROOMS } from '../data/modifiers';
+import { waveSpawnPlan, rollStockroom } from '../systems/shop';
 import { killCoins } from '../systems/combat';
 import type { DepartmentDef } from '../types';
 import { OBSTACLES, OBSTACLE_KINDS } from '../data/obstacles';
@@ -114,8 +115,8 @@ export class ArenaScene extends Phaser.Scene {
     center();
     this.scale.on(Phaser.Scale.Events.RESIZE, center);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.scale.off(Phaser.Scale.Events.RESIZE, center));
-    this.hazards = new Hazards(this, s.phase === 'combat' ? this.dept.hazard : 'none', s.wave, this.zone()?.hazardExtra ?? 0);
-    const roll = s.phase === 'combat' ? rollEvent(this.dept.id, s.wave, s.shift, flow.rng, this.wave.boss, s.labEvent && s.labEvent !== 'random' ? s.labEvent : MODIFIERS[s.modifier].forceEvent ? (flow.rng() < 0.5 ? 'wetFloor' : 'outage') : 'random') : null;
+    this.hazards = new Hazards(this, s.phase === 'combat' && s.modifier !== 'stockroom' ? this.dept.hazard : 'none', s.wave, this.zone()?.hazardExtra ?? 0);
+    const roll = s.phase === 'combat' ? rollEvent(this.dept.id, s.wave, s.shift, flow.rng, this.wave.boss, s.modifier === 'stockroom' ? 'none' : s.labEvent && s.labEvent !== 'random' ? s.labEvent : MODIFIERS[s.modifier].forceEvent ? (flow.rng() < 0.5 ? 'wetFloor' : 'outage') : 'random', s.build.sets) : null;
     this.aisleEvent = new AisleEvents(this, roll);
     if (roll) store.emit('tut:event');
     this.gum = new GumPuddles(this);
@@ -137,8 +138,12 @@ export class ArenaScene extends Phaser.Scene {
     if (s.phase === 'combat') {
       this.planWave();
       playMusic(musicFor(this.dept.id, this.wave.boss, s.modifier));
-      showBanner(this.wave.boss ? t('finalAisle') : deptT(this.dept.id).name, this.wave.boss ? t('managerAwaits') : this.dept.hazard === 'none' ? t('surviveCheckout') : deptT(this.dept.id).blurb);
+      const room = s.modifier === 'stockroom' || s.modifier === 'coldRoom' || s.modifier === 'vipAisle' ? s.modifier : null;
+      if (room) showBanner(t(`modName_${room}`), t(`roomSub_${room}`));
+      else showBanner(this.wave.boss ? t('finalAisle') : deptT(this.dept.id).name, this.wave.boss ? t('managerAwaits') : this.dept.hazard === 'none' ? t('surviveCheckout') : deptT(this.dept.id).blurb);
+      if (s.modifier === 'stockroom' && !this.wave.boss) this.openStockroom();
     }
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => hideStockroom());
     if (import.meta.env.DEV) this.devHooks();
   }
 
@@ -405,7 +410,7 @@ export class ArenaScene extends Phaser.Scene {
 
   /** Floor slow multiplier for enemies (ice). */
   groundSlow(e: Enemy): number {
-    return this.hazards.onIce(e.x, e.y) ? 1 - DEPT_TUNING.ice.enemySlow : 1;
+    return (this.hazards.onIce(e.x, e.y) ? 1 - DEPT_TUNING.ice.enemySlow : 1) * this.aisleEvent.enemySpeed() * (store.state.modifier === 'coldRoom' ? 1 - ROOMS.coldRoom.enemySlow : 1);
   }
 
   /** In-wave difficulty ramp: 1 at the start of a wave, 1 + amount at its end (boss wave: flat). */
@@ -476,18 +481,19 @@ export class ArenaScene extends Phaser.Scene {
       dmg = soaked;
     }
     e.hp -= dmg;
+    if (!o.isDot) e.lastHitT = now;
     const key = o.isDot ? 'burn' : stats?.uid ?? o.label ?? 'shove';
     s.stats.damageByWeapon[key] = (s.stats.damageByWeapon[key] ?? 0) + dmg;
-    if (stats?.burn) applyBurn(e.status, stats.burn, now);
-    if (!o.isDot && stats?.ignite && !stats.burn && Math.random() < stats.ignite.chance) { applyBurn(e.status, stats.ignite.burn, now); this.igniteFx(e); } // Heat L2
+    if (stats?.burn) applyBurn(e.status, this.aisleEvent.burn(stats.burn), now);
+    if (!o.isDot && stats?.ignite && !stats.burn && Math.random() < stats.ignite.chance) { applyBurn(e.status, this.aisleEvent.burn(stats.ignite.burn), now); this.igniteFx(e); } // Heat L2
     if (stats?.slow) applySlow(e.status, stats.slow, now);
     // Frost L2: direct hits on well-slowed enemies sometimes freeze them briefly (not aura/puddle ticks, see SETS).
-    if (!o.isDot && stats && stats.pattern !== 'aura' && stats.pattern !== 'puddle' && sets.frost === 2 && e.status.slowUntil > now && e.status.slowPct >= SETS.frost.stunMinSlow && Math.random() < SETS.frost.stunChance) { this.stunEnemy(e, SETS.frost.stun); this.freezeFx(e); }
+    if (!o.isDot && stats && stats.pattern !== 'aura' && stats.pattern !== 'puddle' && sets.frost >= 2 && e.status.slowUntil > now && e.status.slowPct >= SETS.frost.stunMinSlow && Math.random() < setCfg('frost', sets.frost).stunChance) { this.stunEnemy(e, setCfg('frost', sets.frost).stun); this.freezeFx(e); }
     if (o.kb) {
-      const k = o.kb * (1 - e.def.knockbackResist) * (this.hazards.onIce(e.x, e.y) ? DEPT_TUNING.ice.knockbackMult : 1) * (stats && sets.cleaning === 2 && ITEMS[stats.type].family === 'cleaning' ? SETS.cleaning.knockbackMult : 1);
+      const k = o.kb * (1 - e.def.knockbackResist) * (this.hazards.onIce(e.x, e.y) ? DEPT_TUNING.ice.knockbackMult : 1) * (stats && sets.cleaning >= 2 && ITEMS[stats.type].family === 'cleaning' ? setCfg('cleaning', sets.cleaning).knockbackMult : 1);
       e.kx += (o.kbX ?? 0) * k * 3; e.ky += (o.kbY ?? 0) * k * 3;
       // Cleaning L2: teal spritz on its boosted knockback (direct hits only).
-      if (!o.isDot && stats && stats.pattern !== 'aura' && stats.pattern !== 'puddle' && sets.cleaning === 2 && ITEMS[stats.type].family === 'cleaning') this.fx.spark(e.x, e.y - 30, 3, 0x3fb7a6);
+      if (!o.isDot && stats && stats.pattern !== 'aura' && stats.pattern !== 'puddle' && sets.cleaning >= 2 && ITEMS[stats.type].family === 'cleaning') this.fx.spark(e.x, e.y - 30, 3, 0x3fb7a6);
     }
     if (!o.isDot && !o.quiet) {
       // Short flash with a re-trigger gap so constant fire never leaves a sprite solid white.
@@ -531,12 +537,12 @@ export class ArenaScene extends Phaser.Scene {
     if (e.hp <= 0) {
       this.killEnemy(e, true);
       // Kitchen L2: kitchen weapon kills sometimes heal. Blast L2: weapon kills sometimes pop (popper blasts never re-trigger).
-      if (stats && sets.kitchen === 2 && ITEMS[stats.type].family === 'kitchen' && Math.random() < SETS.kitchen.healChance) {
-        s.hp = Math.min(s.build.maxHp, s.hp + SETS.kitchen.heal);
+      if (stats && sets.kitchen >= 2 && ITEMS[stats.type].family === 'kitchen' && Math.random() < setCfg('kitchen', sets.kitchen).healChance) {
+        s.hp = Math.min(s.build.maxHp, s.hp + setCfg('kitchen', sets.kitchen).heal);
         this.healHeartFx(e.x, e.y - 30);
         store.changed();
       }
-      if (stats && sets.blast === 2 && !o.fromPopper && Math.random() < SETS.blast.killChance) this.popperBlast(e.x, e.y, { damage: SETS.blast.damage, radius: SETS.blast.radius }, true);
+      if (stats && sets.blast >= 2 && !o.fromPopper && Math.random() < setCfg('blast', sets.blast).killChance) this.popperBlast(e.x, e.y, { damage: setCfg('blast', sets.blast).damage, radius: setCfg('blast', sets.blast).radius }, true);
       // Party Popper: kills explode; popper kills never pop again.
       if (stats?.popper && !o.fromPopper) this.popperBlast(e.x, e.y, stats.popper);
     }
@@ -570,7 +576,7 @@ export class ArenaScene extends Phaser.Scene {
   /** Frost L2: marks the enemy frozen (ice block drawn by updateEnemy). */
   private freezeFx(e: Enemy): void {
     if (!e.alive || e.def.id === 'boss') return;
-    e.frozenT = SETS.frost.stun;
+    e.frozenT = setCfg('frost', store.state.build.sets.frost).stun;
     play('frost', { rate: 1.3, volume: 0.5 });
   }
 
@@ -614,6 +620,7 @@ export class ArenaScene extends Phaser.Scene {
     e.alive = false;
     e.state = 'dying';
     e.ice?.destroy(); e.ice = undefined; e.frozenT = 0;
+    e.tag?.destroy(); e.tag = undefined;
     const tint = ({ milk: 0xfff2d5, banana: 0xf6d24a, soda: 0xe2473f, spitter: 0x7cc4e8, baguette: 0xd9954a, egg: 0xfff2d5, melon: 0x8fcb57, slice: 0xf45f52, turkey: 0xcff3ff, beans: 0xb9895a, cereal: 0xe8b04a, honey: 0xf5bd45, giftcard: 0xf45f52, expired: 0xd5ebdd, gum: 0xff7fb8, boss: 0xf5bd45 } as const)[e.def.id];
     this.fx.puff(e.x, e.y - 24, e.def.id === 'boss' ? 14 : 4);
     this.fx.crumbsAt(e.x, e.y - 30, e.def.id === 'boss' ? 24 : 7, tint);
@@ -633,7 +640,7 @@ export class ArenaScene extends Phaser.Scene {
     const thief = e.def.id === 'giftcard';
     const coins = thief ? Math.round(e.def.coins * GIFTCARD.coinMult * this.dept.coinMult * MODIFIERS[s.modifier].coinMult * SHIFTS[store.state.shift].coinMult) : e === this.boss
       ? bossTuning(store.state.shift).coins
-      : killCoins(e.def.coins * (e.elite ? ELITE.coinMult : 1), this.dept.coinMult * MODIFIERS[s.modifier].coinMult * SHIFTS[store.state.shift].coinMult, flow.rng);
+      : killCoins(e.def.coins * (e.elite ? ELITE.coinMult : 1), this.dept.coinMult * MODIFIERS[s.modifier].coinMult * SHIFTS[store.state.shift].coinMult * this.aisleEvent.coinMult(), flow.rng);
     // Bosses always pay out in full; regular groceries drop each coin only sometimes.
     for (let i = 0; i < coins; i++) if (thief || e.def.id === 'boss' || flow.rng() < ECONOMY.killCoinChance) this.dropCoin(e.x, e.y, enemyT(e.def.id).name);
     const B = DEPT_TUNING.bread;
@@ -642,6 +649,17 @@ export class ArenaScene extends Phaser.Scene {
       this.dropCoin(e.x, e.y, '', true);
     }
     if (s.build.coinChance > 0 && Math.random() < s.build.coinChance) this.dropCoin(e.x, e.y, t('coinCoupon'));
+    // Pickpocket Elites cough up everything they absorbed.
+    for (let i = 0; i < e.loot; i++) this.dropCoin(e.x, e.y, t('coinStolen'));
+    // Splitter Elites leave two small non-elite copies.
+    if (e.affix === 'splitter' && !this.ending) {
+      for (let i = 0; i < AFFIX.splitter.count; i++) {
+        const a = (i / AFFIX.splitter.count) * Math.PI * 2 + Math.random();
+        const sp = createEnemy(this, e.def.id, e.x + Math.cos(a) * 14, e.y + Math.sin(a) * 9, this.plan.hpScale, this.plan.speedScale, false, this.plan.dmgScale, AFFIX.splitter.scale);
+        sp.kx = Math.cos(a) * 240; sp.ky = Math.sin(a) * 240;
+        this.enemies.push(sp);
+      }
+    }
     if (e.def.id === 'melon') {
       for (let i = 0; i < MELON_SLICES; i++) {
         const a = (i / MELON_SLICES) * Math.PI * 2 + Math.random();
@@ -652,6 +670,28 @@ export class ArenaScene extends Phaser.Scene {
       }
     }
     if (e === this.boss) this.bossDefeated();
+  }
+
+  /** Nearest loose floor coin within `r` (Pickpocket Elites home in on it). */
+  coinTarget(x: number, y: number, r: number): { x: number; y: number } | null {
+    let best: Coin | null = null, bd = r * r;
+    for (const c of this.coins) {
+      if (!c.active || c.bread || c.pull || c.z > 4) continue;
+      const d = (c.x - x) ** 2 + (c.y - y) ** 2;
+      if (d < bd) { bd = d; best = c; }
+    }
+    return best ? { x: best.x, y: best.y } : null;
+  }
+
+  /** Removes one loose floor coin within `r` of the point; true if one was taken. */
+  absorbCoin(x: number, y: number, r: number): boolean {
+    for (const c of this.coins) {
+      if (!c.active || c.bread || c.pull || c.z > 4) continue;
+      if ((c.x - x) ** 2 + (c.y - y) ** 2 > r * r) continue;
+      c.active = false; c.img.setVisible(false);
+      return true;
+    }
+    return false;
   }
 
   private dropCoin(x: number, y: number, label: string, bread = false): void {
@@ -755,8 +795,9 @@ export class ArenaScene extends Phaser.Scene {
       this.waveTime += dt;
       s.stats.timeSeconds += dt;
       this.updatePlayer(dt);
-      if (s.build.regen > 0 && s.hp < s.build.maxHp && !this.player.dead) {
-        s.hp = Math.min(s.build.maxHp, s.hp + s.build.regen * dt);
+      const regen = s.build.regen + this.aisleEvent.regenBonus();
+      if (regen > 0 && s.hp < s.build.maxHp && !this.player.dead) {
+        s.hp = Math.min(s.build.maxHp, s.hp + regen * dt);
         if ((this.regenFxT -= dt) <= 0) { this.regenFxT = 1.5; this.fx.spark(this.player.x, this.player.y - 70, 1, 0x8fcb57); }
         if (Math.floor(this.waveTime * 2) !== Math.floor((this.waveTime - dt) * 2)) store.changed();
       }
@@ -765,7 +806,7 @@ export class ArenaScene extends Phaser.Scene {
         this.enraged = true;
         showBanner(t('bossFurious'), t('bossFuriousSub'));
       }
-      if (!this.wave.boss && this.waveTime >= this.wave.duration) this.beginCheckout();
+      if (!this.wave.boss && s.modifier !== 'stockroom' && this.waveTime >= this.wave.duration) this.beginCheckout();
     } else if (s.phase === 'title') {
       this.idleRig(dt);
     }
@@ -791,7 +832,7 @@ export class ArenaScene extends Phaser.Scene {
     if (this.hudT <= 0 && (s.phase === 'combat')) {
       this.hudT = 0.05;
       hud.tick({
-        timeLeft: this.wave.boss ? -1 : Math.max(0, this.wave.duration - this.waveTime),
+        timeLeft: this.wave.boss || s.modifier === 'stockroom' ? -1 : Math.max(0, this.wave.duration - this.waveTime),
         elapsed: this.waveTime,
         shoveCd: Math.max(0, this.player.shoveCd), shoveMax: s.build.shoveCooldown,
         boss: this.boss ? { hp: Math.max(0, this.boss.hp), max: this.boss.maxHp, enraged: this.enraged } : null,
@@ -866,8 +907,15 @@ export class ArenaScene extends Phaser.Scene {
       }
     } else {
       const speed = PLAYER.speed * s.build.moveSpeedMult * this.aisleEvent.playerSlow() * this.gum.slow();
-      p.vx = inp.x * speed;
-      p.vy = inp.y * speed;
+      const slip = this.aisleEvent.slipAccel(p.x, p.y);
+      if (slip > 0) { // ice: velocity eases toward the input instead of snapping
+        const k = Math.min(1, slip * dt);
+        p.vx += (inp.x * speed - p.vx) * k;
+        p.vy += (inp.y * speed - p.vy) * k;
+      } else {
+        p.vx = inp.x * speed;
+        p.vy = inp.y * speed;
+      }
       p.x += p.vx * dt;
       p.y += p.vy * dt;
       this.clampToArena(p, p.radius * 2);
@@ -945,7 +993,13 @@ export class ArenaScene extends Phaser.Scene {
     for (const e of this.enemies) {
       if (!e.alive || !e.elite) continue;
       const pulse = 0.65 + 0.35 * Math.sin(this.time.now / 160 + e.id);
+      const ac = e.affix ? AFFIX[e.affix].color : 0xf5bd45;
+      b.fillStyle(ac, 0.2 + 0.1 * pulse).fillEllipse(e.x, e.y + 2, e.def.radius * 2.8, e.def.radius * 1.1);
       b.lineStyle(3, 0xf5bd45, pulse).strokeEllipse(e.x, e.y + 2, e.def.radius * 2.4, e.def.radius * 0.9);
+      // Little crown above the affix label.
+      const cx = e.x, cy = e.y - e.sprite.displayHeight - 34;
+      b.fillStyle(0xf5bd45, 1).fillPoints([{ x: cx - 9, y: cy + 8 }, { x: cx - 9, y: cy - 2 }, { x: cx - 4.5, y: cy + 3 }, { x: cx, y: cy - 5 }, { x: cx + 4.5, y: cy + 3 }, { x: cx + 9, y: cy - 2 }, { x: cx + 9, y: cy + 8 }], true);
+      b.lineStyle(1.5, 0x30203f, 1).strokePoints([{ x: cx - 9, y: cy + 8 }, { x: cx - 9, y: cy - 2 }, { x: cx - 4.5, y: cy + 3 }, { x: cx, y: cy - 5 }, { x: cx + 4.5, y: cy + 3 }, { x: cx + 9, y: cy - 2 }, { x: cx + 9, y: cy + 8 }], true);
     }
     // Price Check marks: a little coral price tag above marked groceries.
     const t = this.time.now / 1000;
@@ -986,6 +1040,25 @@ export class ArenaScene extends Phaser.Scene {
     this.shadow.setPosition(p.x + p.facing * 4, p.y + 2);
     const blink = p.invulnT > 0 && Math.floor(p.invulnT * 20) % 2 === 0;
     this.rig.setAlpha(blink ? 0.35 : 1);
+  }
+
+  // ───────────────────────────── stockroom ─────────────────────────────
+
+  /** Stockroom aisle: no groceries, three crates, three free items; picking one ends the aisle. */
+  private openStockroom(): void {
+    const offers = rollStockroom(store.state, flow.rng);
+    const crates = Array.from({ length: ROOMS.stockroom.crates }, (_, i) => {
+      const x = ARENA.w * (0.3 + 0.2 * i), y = 520 + (i === 1 ? -40 : 0);
+      return this.add.image(x, y, 'ob_tv_boxes').setOrigin(0.5, 0.9).setDepth(DEPTH.world + y);
+    });
+    this.time.delayedCall(900, () => showStockroom(offers, (o) => {
+      const shelved = takeStockroomItem(store.state, o);
+      store.changed();
+      play('ding');
+      this.fx.label(this.player.x, this.player.y - 90, shelved ? itemT(o.type).name : t('coinStockroom'), '#FFF2D5', 26);
+      crates.forEach((c, i) => this.time.delayedCall(80 * i, () => { this.fx.puff(c.x, c.y - 20, 6); c.destroy(); }));
+      this.time.delayedCall(1100, () => { if (!this.ending) this.beginCheckout(); });
+    }));
   }
 
   // ───────────────────────────── endings ─────────────────────────────

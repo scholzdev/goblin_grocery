@@ -97,6 +97,17 @@ export const BOSS = {
 export const ELITE = { hpMult: 3.5, scale: 1.35, contactMult: 1.5, coinMult: 3, chanceByAisle: [0, 0, 0.08, 0.12, 0.16, 0.2, 0.25], overtimeChance: 0.3, shiftBonus: 0.03 };
 export const ELITE_EXCLUDED: EnemyId[] = ['boss', 'slice', 'egg', 'giftcard'];
 
+/** Every Elite rolls one affix. Splitter skips types that already split or are tiny. */
+export type EliteAffix = 'swift' | 'tough' | 'splitter' | 'pickpocket';
+export const ELITE_AFFIXES: EliteAffix[] = ['swift', 'tough', 'splitter', 'pickpocket'];
+export const SPLITTER_EXCLUDED: EnemyId[] = ['melon', 'slice', 'honey'];
+export const AFFIX = {
+  swift: { speedMult: 1.4, color: 0x7cc4e8 },
+  tough: { regenPct: 0.02, idle: 2, color: 0x8fcb57 },                     // % max HP per second after `idle` s without being hit
+  splitter: { count: 2, scale: 0.4, hpMult: 0.4, color: 0xb08ae0 },         // copies at 40% scale / HP of the base type
+  pickpocket: { radius: 170, pull: 120, absorbRadius: 26, color: 0xf45f52 }, // px; pull speed px/s
+};
+
 /** Egg Carton blast: ground-ring radius, and damage dealt to other groceries caught in it. */
 export const EGG_BLAST = { radius: 90, enemyDamage: 12 };
 /** Canned Beans: damage after armor is never below this share of the hit. */

@@ -13,12 +13,14 @@ import { initTutorial, resetTutorial } from './tutorial';
 import { initShop, shopKey, gridHtml, combosHtml, starsHtml, rarityClass, inspectorHtml, showItemCard, hideItemCard } from './shop';
 import { DEPARTMENTS, THEMES } from '../data/departments';
 import { MODIFIERS, type DoorId, type ModifierId } from '../data/modifiers';
+import { SET_EVENTS, type SetEventKind } from '../data/events';
 import { CART_SKINS, GOBLIN_SKINS, UNLOCKS, type CartSkin, type GoblinSkin } from '../data/unlocks';
-import { cartUnlocked, discoverRecipe, goblinUnlocked, isNew, markSeen, newCount, profile, saveProfile, shiftUnlocked, starterUnlocked, unlockedItems } from '../state/profile';
+import { COUPON_COINS, STAMPS_PER_CARD, cartUnlocked, dailyBestToday, discoverRecipe, goblinUnlocked, isNew, markSeen, newCount, profile, saveProfile, shiftUnlocked, starterUnlocked, unlockedItems } from '../state/profile';
 import { ITEM_IDS } from '../data/items';
 import type { DepartmentId, EnemyId, ItemTypeId, LabOpts, Perk, RecipeId, StarterId, StarterWeapon } from '../types';
 import type { Fresh } from '../state/profile';
-import { t, fmtNum, setLang, LANGS, type Lang, type UIKey } from '../i18n';
+import { setIcon } from './icons';
+import { t, fmtNum, lang, setLang, LANGS, type Lang, type UIKey } from '../i18n';
 import { newSetLevels, setsOf } from '../data/sets';
 import { ZONES } from '../data/zones';
 import { cartSkinT, deptT, enemyT, goblinSkinT, itemT, recipeT, shiftT, starterT, tagT, unlockNeedT, zoneT } from '../i18n/data';
@@ -118,6 +120,14 @@ export function initUi(g: Phaser.Game): void {
   store.on('pause', render);
   store.on('run-end', render);
   store.on('run-start', () => hud.reset());
+  store.on('run-start', () => {
+    if (!store.state.voucher) return;
+    const n = document.createElement('div');
+    n.className = 'vouchernote';
+    n.textContent = t('voucherUsed', { n: COUPON_COINS });
+    document.body.appendChild(n);
+    setTimeout(() => n.remove(), 3200);
+  });
   window.addEventListener('keydown', onKey);
   desktop?.setFullscreen(settings.fullscreen);
   window.addEventListener('blur', () => flow.pause('blur'));
@@ -200,7 +210,9 @@ function titleHtml(): string {
     <div class="menu">
       <button class="btn coral" data-act="play" data-focus>${t('play')}</button>
       <button class="btn" data-act="codex">${t('catalog')} <small class="count">${profile.recipes.length}/${Object.keys(RECIPES).length}</small>${newBadge(newCount())}</button>
+      <button class="btn" data-act="daily">${t('dailyBtn')} <small class="count">${dailyBestToday() ? t('dailyBest', { n: dailyBestToday() }) : t('dailyNone')}</small></button>
       <button class="btn" data-act="wardrobe">${t('wardrobe')}</button>
+      <button class="btn" data-act="history">${t('historyBtn')}</button>
       <button class="btn" data-act="settings">${t('settings')}</button>
       ${LAB ? `<button class="btn gold" data-act="lab">${t('lab')}</button>` : ''}
       ${desktop ? `<button class="btn" data-act="exit">${t('quitGame')}</button>` : ''}
@@ -430,7 +442,9 @@ function endHtml(): string {
     <hr class="dash">
     <div class="score">${t('pts', { n: res?.score ?? 0 })}</div>
     ${res?.newBest ? `<span class="newbest sticker">${t('newBest')}</span>` : ''}
+    ${res?.daily ? `<div style="text-align:center;font-weight:800">${res.daily.newBest ? t('dailyNewBest') + ' · ' : ''}${t('dailyEndBest', { n: res.daily.best })}</div>` : ''}
     </div>${fresh ? `<div class="endr">${fresh}</div>` : ''}</div>
+    ${res ? stampsHtml(res) : ''}
     ${s.lab ? `<div class="row"><button class="btn coral" data-act="lab-back" data-focus>${t('backToLab')}</button><button class="btn" data-act="quit">${t('titleBtn')}</button></div>` : `${won ? `<div class="row"><button class="btn coral overtime" data-act="overtime" data-focus>${t('keepGoing')}</button></div>` : ''}<div class="row"><button class="btn ${won ? '' : 'coral'}" data-act="again" ${won ? '' : 'data-focus'}>${t('shopAgain')}</button><button class="btn" data-act="end-catalog">${t('catalog')}</button><button class="btn" data-act="quit">${t('titleBtn')}</button></div>`}
     <div style="display:flex;justify-content:center;margin-top:12px"><div class="barcode" style="width:180px"></div></div>
   </div>`;
@@ -444,7 +458,7 @@ function onClick(e: MouseEvent): void {
   play('click');
   switch (act) {
     case 'play': choosingStarter = true; render(); break;
-    case 'again': startMusic(); flow.startRun(store.state.starter, store.state.shift, store.state.weapon, store.state.theme); break;
+    case 'again': startMusic(); if (store.state.daily) { flow.startRun(undefined, undefined, undefined, undefined, { daily: true }); break; } flow.startRun(store.state.starter, store.state.shift, store.state.weapon, store.state.theme); break;
     case 'overtime': flow.overtime(); break;
     case 'shift': pickedShift = Number((e.target as HTMLElement).closest<HTMLElement>('[data-shift]')!.dataset.shift); screens.starter.innerHTML = starterHtml(); screens.starter.querySelector<HTMLElement>('[data-focus]')?.focus(); break;
     case 'weapon': pickWeapon((e.target as HTMLElement).closest<HTMLElement>('[data-weapon]')!.dataset.weapon as StarterWeapon); screens.starter.innerHTML = starterHtml(); screens.starter.querySelector<HTMLElement>('[data-focus]')?.focus(); break;
@@ -479,6 +493,8 @@ function onClick(e: MouseEvent): void {
       break;
     }
     case 'wardrobe': openTitleModal(wardrobeHtml()); break;
+    case 'history': openTitleModal(historyHtml()); break;
+    case 'daily': startMusic(); flow.startRun(undefined, undefined, undefined, undefined, { daily: true }); break;
     case 'skin': {
       const el = (e.target as HTMLElement).closest<HTMLElement>('[data-skin]')!;
       const [kind, id] = el.dataset.skin!.split(':');
@@ -499,6 +515,25 @@ function openSettingsModal(): void {
     <h2>${t('settings')}</h2>${settingsHtml()}
     <div class="row"><button class="btn coral" data-act="close-settings" data-focus>${t('done')}</button></div></div></div>`);
   screens.title.querySelector<HTMLElement>('.settings-modal [data-focus]')?.focus();
+}
+
+function historyHtml(): string {
+  const fmt = new Intl.DateTimeFormat(lang() === 'de' ? 'de-DE' : 'en-GB', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  const rows = profile.history.map((h) => `<div class="hcard">
+      <div class="htop"><span class="hstamp ${h.win ? 'win' : ''}">${h.win ? t('stampWin') : t('stampLoss')}</span><b>${fmt.format(h.t)}</b>${h.daily ? `<span class="badge">${t('histDaily')}</span>` : ''}<span class="hscore display">${t('pts', { n: h.score })}</span></div>
+      <div class="hmeta">${t('histAisle', { n: h.aisle })} · ${t('shiftN', { n: h.shift + 1, name: shiftT(h.shift).name })} · ${starterT(h.starter).name}</div>
+      <div class="hicons">${h.items.map((i) => `<img src="${svg(`icon_${i}`)}" title="${itemT(i).name}" alt="${itemT(i).name}">`).join('')}${h.sets.map((x) => `<span class="hset" title="${x.id} ${x.lv}">${setIcon(x.id, 14)}<small>${x.lv}</small></span>`).join('')}</div>
+    </div>`).join('');
+  return `<h2>${t('historyTitle')}</h2><div class="hlist">${rows || `<div class="hempty">${t('historyEmpty')}</div>`}</div>`;
+}
+
+/** Loyalty card strip for the end screen: ten circles, new stamps highlighted. */
+function stampsHtml(res: NonNullable<typeof flow.lastResult>): string {
+  const l = res.loyalty;
+  if (!l) return '';
+  const total = l.before + l.gained, filled = Math.min(total, STAMPS_PER_CARD);
+  const dots = Array.from({ length: STAMPS_PER_CARD }, (_, i) => `<i class="stamp ${i < filled ? 'on' : ''} ${i >= l.before && i < filled ? 'new' : ''}"></i>`).join('');
+  return `<div class="stamprow"><b class="display">${t('stampCard')}</b><span class="stamps">${dots}</span><small>${l.card ? t('voucherEarned', { n: COUPON_COINS }) : t('stampsGained', { n: l.gained })}${profile.coupons ? ` · ${t('voucherPending', { n: profile.coupons })}` : ''}</small></div>`;
 }
 
 /** Shows a modal over the title screen (replacing any open one). */
@@ -608,7 +643,7 @@ function labHtml(o: LabOpts): string {
     ${row('cart', t('labCart'), opts(carts, o.cart.join('x')))}
     ${row('shelf', t('labShelf'), opts(shelves, o.shelf))}
     ${row('shopLevel', t('labLoyalty'), opts(SHOP_LEVELS.map((_, i) => i + 1), o.shopLevel))}
-    ${row('event', t('labEvent'), opts(['random', 'none', 'wetFloor', 'outage'], o.event ?? 'random', (v) => t(({ random: 'evRandom', none: 'evNone', wetFloor: 'evWet', outage: 'evOutage' } as const)[v as 'random'])))}
+    ${row('event', t('labEvent'), opts(['random', 'none', 'wetFloor', 'outage', 'happyHour', 'heatwave', 'powerSurge', 'flashSale', 'freezerFail'], o.event ?? 'random', (v) => v in SET_EVENTS ? t(`evName_${v as SetEventKind}`) : t(({ random: 'evRandom', none: 'evNone', wetFloor: 'evWet', outage: 'evOutage' } as const)[v as 'random'])))}
     <label class="check"><input type="checkbox" data-lab="god" ${o.god ? 'checked' : ''}>${t('labGod')}</label>
     <label class="check"><input type="checkbox" data-lab="keep" ${o.keep ? 'checked' : ''}>${t('labKeep')}</label>
     <div class="row"><button class="btn coral" data-act="lab-open">${t('labOpen')}</button></div></div>`;

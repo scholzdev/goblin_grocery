@@ -1,5 +1,6 @@
 // Shared contracts. Pure data shapes only — no Phaser, no DOM.
 import type { DoorId, ModifierId } from './data/modifiers';
+import type { EventKind } from './data/events';
 import type { ZoneId } from './data/zones';
 
 export type ItemTypeId =
@@ -76,6 +77,8 @@ export interface ItemInstance {
   rot: Rotation;
   /** 1..MAX_TIER. Missing = 1. Raised by merging duplicates or buying an upgrade. */
   tier?: number;
+  /** Bought as a double pack: counts as 2 distinct types toward its family set. */
+  double?: boolean;
 }
 
 export interface Inventory {
@@ -170,7 +173,7 @@ export interface Build {
   regen: number;           // HP per second during combat (snack bag)
   recipes: ActiveRecipe[];
   /** Set-bonus level per set (0/1/2), counted over distinct placed types. */
-  sets: Record<SetId, 0 | 1 | 2>;
+  sets: Record<SetId, 0 | 1 | 2 | 3>;
   priceMult: number;       // checkout L1: shop price multiplier
   shoveStun: number;       // tools L2: seconds the dash stuns (0 = off)
   /** Deduplicated adjacent pairs, uid order a < b. */
@@ -239,6 +242,8 @@ export interface ShopOffer {
   sold: boolean;
   /** Offers can come pre-upgraded at higher shop levels. */
   tier: number;
+  /** Double pack: price x1.5, counts twice for its family set. */
+  double?: boolean;
 }
 
 export interface ShopState {
@@ -312,6 +317,10 @@ export interface RunState {
   shift: number;
   /** Set when the player keeps going after beating the boss (endless aisles). */
   overtime?: boolean;
+  /** Daily run (date-seeded, no voucher). */
+  daily?: boolean;
+  /** A loyalty voucher (+20 coins) was spent on this run. */
+  voucher?: boolean;
   /** Theme (department) chosen on the start screen; fixed per run. */
   theme: DepartmentId;
   /** Department of the current / last aisle: the theme, or 'boss' on the boss aisle. */
@@ -344,14 +353,14 @@ export interface RunState {
   /** Modifier every lab aisle gets. */
   labMod?: ModifierId;
   /** Aisle event forced in every lab aisle ('random' = normal roll). */
-  labEvent?: 'random' | 'none' | 'wetFloor' | 'outage';
+  labEvent?: 'random' | 'none' | EventKind;
 }
 
 /** Test Lab setup (title menu); `aisle` 1..BOSS_WAVE, then overtime. */
 export interface LabOpts {
   aisle: number; dept: DepartmentId; shift: number; starter: StarterId; weapon: StarterWeapon; money: number;
   cart: [number, number]; shelf: number; shopLevel: number; god: boolean; keep: boolean;
-  event?: 'random' | 'none' | 'wetFloor' | 'outage';
+  event?: 'random' | 'none' | EventKind;
   mod?: ModifierId;
 }
 

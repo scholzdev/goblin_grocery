@@ -1,5 +1,5 @@
 import { DEPARTMENTS, DEPT_TUNING } from '../data/departments';
-import { DOOR_POOL, MODIFIERS, type DoorId } from '../data/modifiers';
+import { DOOR_POOL, MODIFIERS, ROOMS, ROOM_DOORS, type DoorId } from '../data/modifiers';
 import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS, waveDef } from '../data/waves';
 import { PLAYER, ITEMS, ITEM_IDS, STARTER_WEAPONS, TIER } from '../data/items';
 import { RECIPES } from '../data/recipes';
@@ -60,6 +60,8 @@ export function rollOffers(state: RunState, rng: Rng, shopIndex: number, guarant
     let r = rng() * ws.reduce((a, b) => a + b, 0), i = 0;
     while (i < pool.length - 1 && (r -= ws[i]) >= 0) i++;
     add(pool.splice(i, 1)[0], rng() < lv.tier3 ? 3 : rng() < lv.tier2 ? 2 : 1);
+    // Double pack: counts as 2 types in its family set, costs x1.5 (never legendary, never the guaranteed starters).
+    if (shopIndex >= 2 && rng() < ECONOMY.doublePackChance) { const o = offers[offers.length - 1]; o.double = true; o.price = Math.round(o.price * ECONOMY.doublePackPriceMult); }
   }
   return offers;
 }
@@ -71,14 +73,25 @@ export function rollDoors(state: RunState, rng: Rng): DoorId[] {
   for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
   const doors = pool.slice(0, state.shopLevel >= DEPT_TUNING.threeDoorsAtLoyalty ? 3 : 2);
   if (idx >= DEPT_TUNING.clearanceFromShop && state.modifier !== 'clearance' && rng() < DEPT_TUNING.clearanceChance) doors[doors.length - 1] = 'clearance';
+  // Special rooms: each regular slot may turn into one (never next to a clearance door, never the boss door).
+  if (idx + 1 >= ROOMS.fromAisle && !doors.includes('clearance')) {
+    for (let i = 0; i < doors.length; i++) {
+      if (rng() < ROOMS.chance) { doors[i] = ROOM_DOORS[Math.floor(rng() * ROOM_DOORS.length)]; break; }
+    }
+  }
   return doors;
+}
+
+/** Stockroom: three free items from the unlocked pool, pick one. */
+export function rollStockroom(state: RunState, rng: Rng): ShopOffer[] {
+  return rollOffers(state, rng, Math.max(2, state.wave), false).slice(0, ROOMS.stockroom.choices).map((o, slot) => ({ ...o, slot, price: 0 }));
 }
 
 /** Zone behind each door (parallel to `doors`): distinct per route screen, repeats get rarer; clearance / boss have none. */
 export function rollZones(state: RunState, rng: Rng, doors: DoorId[]): (ZoneId | null)[] {
   const pool = zonesOf(state.theme);
   return doors.map((d) => {
-    if (d === 'boss' || d === 'clearance' || !pool.length) return null;
+    if (d === 'boss' || d === 'clearance' || ROOM_DOORS.includes(d) || !pool.length) return null;
     const ws = pool.map((z) => 1 / (1 + state.zones.filter((u) => u === z.id).length) ** ZONE_TUNING.repeatPenalty);
     let r = rng() * ws.reduce((a, b) => a + b, 0), i = 0;
     while (i < pool.length - 1 && (r -= ws[i]) >= 0) i++;

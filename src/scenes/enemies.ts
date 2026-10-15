@@ -1,11 +1,11 @@
 import Phaser from 'phaser';
-import { BOSS, ELITE, ENEMIES, EGG_BLAST, EXPIRED, GIFTCARD, GUM, HONEY, SPITTER } from '../data/enemies';
+import { AFFIX, BOSS, ELITE, ELITE_AFFIXES, ENEMIES, EGG_BLAST, EXPIRED, GIFTCARD, GUM, HONEY, SPITTER, SPLITTER_EXCLUDED, type EliteAffix } from '../data/enemies';
 import { bossTuning } from '../data/waves';
 import { store } from '../state/store';
 import type { EnemyDef, EnemyId } from '../types';
 import { healTargets, newStatus, slowFactor, tickBurn, type StatusFx } from '../systems/combat';
 import { pushOutCircle } from '../systems/obstacles';
-import { lang } from '../i18n';
+import { lang, t } from '../i18n';
 import { play } from '../audio/sfx';
 import { DEPTH } from './fx';
 import { ARENA, type ArenaScene } from './ArenaScene';
@@ -44,6 +44,8 @@ export interface Enemy {
   shieldBlocked?: number;
   /** Elite variant: bigger, tougher, gold-ringed, pays extra. */
   elite: boolean;
+  /** Splitter copy: scale factor vs the base type (0 = normal). */
+  small: number;
   /** Behavior timer: honey heal / expired blink / gum puddle countdown, giftcard time alive. */
   auxT: number;
   /** Expired Milk blink target. */
@@ -52,7 +54,18 @@ export interface Enemy {
   links?: Enemy[]; linkT: number;
   /** Frost set freeze: seconds left + the ice-block overlay while it lasts. */
   frozenT?: number; ice?: Phaser.GameObjects.Graphics;
+  /** Elite affix (every Elite has one) + its bookkeeping. */
+  affix?: EliteAffix;
+  lastHitT: number;                // seconds (scene clock) of the last non-DoT hit, for Tough
+  loot: number;                    // Pickpocket: coins absorbed so far
+  trailT: number;                  // Swift afterimage timer
+  tag?: Phaser.GameObjects.Text;   // affix name above the HP bar
 }
+
+export const pickAffix = (id: EnemyId): EliteAffix => {
+  const pool = ELITE_AFFIXES.filter((a) => a !== 'splitter' || !SPLITTER_EXCLUDED.includes(id));
+  return pool[Math.floor(Math.random() * pool.length)];
+};
 
 const SCALE: Record<EnemyId, number> = { milk: 0.78, banana: 0.8, soda: 0.72, spitter: 0.78, baguette: 0.8, egg: 0.78, melon: 0.9, slice: 0.5, turkey: 0.8, beans: 0.78, cereal: 0.82, honey: 0.76, giftcard: 0.74, expired: 0.78, gum: 0.76, boss: 0.95 };
 const TELL_TEX: Partial<Record<EnemyId, string>> = { banana: 'enemy_banana_tell', spitter: 'enemy_spitter_tell', baguette: 'enemy_baguette_tell', egg: 'enemy_egg_tell', boss: 'boss_tell' };
@@ -60,23 +73,30 @@ const frameKey = (id: EnemyId, f: 0 | 1) => (id === 'boss' ? `boss_${f ? 'b' : '
 
 let nextId = 1;
 
-export function createEnemy(scene: ArenaScene, id: EnemyId, x: number, y: number, hpScale: number, speedScale: number, elite = false, dmgScale = 1): Enemy {
+export function createEnemy(scene: ArenaScene, id: EnemyId, x: number, y: number, hpScale: number, speedScale: number, elite = false, dmgScale = 1, small = 0): Enemy {
   const base = ENEMIES[id];
   // Aisle damage scaling and elites get their own def copy so every e.def reader picks it up.
   const dm = dmgScale * (elite ? ELITE.contactMult : 1);
-  const def = elite || dm !== 1 ? { ...base, radius: base.radius * (elite ? ELITE.scale : 1), contactDamage: Math.round(base.contactDamage * dm), attackDamage: Math.round(base.attackDamage * dm) } : base;
-  const hp = Math.round(base.hp * hpScale * (elite ? ELITE.hpMult : 1));
+  const def = elite || dm !== 1 || small ? { ...base, radius: base.radius * (elite ? ELITE.scale : 1), contactDamage: Math.round(base.contactDamage * dm), attackDamage: Math.round(base.attackDamage * dm) } : base;
+  const affix = elite ? pickAffix(id) : undefined;
+  // `small` (Splitter copies): scale / HP of the base type; the def copy shrinks the hit radius too.
+  const hp = Math.max(1, Math.round(base.hp * hpScale * (elite ? ELITE.hpMult : 1) * (small ? AFFIX.splitter.hpMult : 1)));
+  if (small) def.radius = base.radius * small;
   const sprite = scene.add.image(x, y, frameKey(id, 0)).setOrigin(0.5, 0.95).setScale(0);
   const shadow = scene.add.image(x, y, 'shadow').setDepth(DEPTH.decal).setAlpha(0);
   shadow.setDisplaySize(def.radius * 2.6, def.radius * 0.9);
   const e: Enemy = {
     id: nextId++, def, sprite, shadow, x, y, kx: 0, ky: 0,
-    hp, maxHp: hp, elite, speed: def.speed * speedScale,
+    hp, maxHp: hp, elite, affix, lastHitT: -99, loot: 0, trailT: 0, small, speed: def.speed * speedScale * (affix === 'swift' ? AFFIX.swift.speedMult : 1),
     status: newStatus(), state: 'spawn', stateT: 0.3, atkCd: def.attackCooldown * (0.4 + Math.random() * 0.6),
     dirX: 1, dirY: 0, flashT: 0, animT: Math.random(), facing: 1, alive: true, lastHitNumberAt: 0, lastFlashAt: 0,
     auxT: id === 'expired' ? EXPIRED.interval * (0.5 + Math.random() * 0.5) : id === 'honey' ? 0.5 : id === 'gum' ? 0.6 : 0, tx: x, ty: y, linkT: 0,
   };
-  scene.tweens.add({ targets: sprite, scale: SCALE[id] * (elite ? ELITE.scale : 1), duration: 260, ease: 'Back.Out' });
+  scene.tweens.add({ targets: sprite, scale: SCALE[id] * (elite ? ELITE.scale : 1) * (small || 1), duration: 260, ease: 'Back.Out' });
+  if (affix) {
+    e.tag = scene.add.text(x, y, t(`affix_${affix}`), { fontFamily: '"Luckiest Guy", "Arial Black", sans-serif', fontSize: '15px', color: '#' + AFFIX[affix].color.toString(16).padStart(6, '0'), stroke: '#30203F', strokeThickness: 4 })
+      .setOrigin(0.5, 1).setDepth(DEPTH.bars + 1).setAlpha(0);
+  }
   scene.tweens.add({ targets: shadow, alpha: 1, duration: 200 });
   if (id === 'boss') { e.bossMove = 'volley'; e.bossStep = 0; e.atkCd = 1.8; }
   return e;
@@ -104,6 +124,7 @@ export function updateEnemy(scene: ArenaScene, e: Enemy, dt: number, now: number
   e.stateT -= dt;
   e.atkCd -= dt;
   e.linkT -= dt;
+  if (e.affix && e.state !== 'spawn') affixTick(scene, e, dt, now);
   const d = e.def;
   if (d.behavior === 'thief' && e.state !== 'spawn' && (e.auxT += dt) >= GIFTCARD.escapeAfter) {
     scene.fx.puff(e.x, e.y - 24, 6);
@@ -119,7 +140,12 @@ export function updateEnemy(scene: ArenaScene, e: Enemy, dt: number, now: number
       if (d.behavior === 'boss') return; // drop-in tween owns the sprite
       break;
     case 'walk': {
-      const way = d.behavior === 'boss' ? { x: nx, y: ny } : scene.steer(e, d.radius, nx, ny);
+      let tx = nx, ty = ny;
+      if (e.affix === 'pickpocket') { // heads for loose coins first
+        const c = scene.coinTarget(e.x, e.y, AFFIX.pickpocket.radius);
+        if (c) { const l = Math.hypot(c.x - e.x, c.y - e.y) || 1; tx = (c.x - e.x) / l; ty = (c.y - e.y) / l; }
+      }
+      const way = d.behavior === 'boss' ? { x: nx, y: ny } : scene.steer(e, d.radius, tx, ty);
       mx = way.x; my = way.y;
       if (d.behavior === 'charger' && e.atkCd <= 0 && dist < d.attackRange) startTell(e, d.tell);
       if (d.behavior === 'swiper' && e.atkCd <= 0 && scene.playerNear(e.x, e.y).d < d.attackRange + p.radius + 10) {
@@ -212,7 +238,7 @@ export function updateEnemy(scene: ArenaScene, e: Enemy, dt: number, now: number
   if (d.behavior === 'teleporter') e.sprite.setAlpha(e.state === 'tell' ? 0.3 + 0.4 * Math.abs(Math.sin(now * 28)) : 1);
   const tex = (e.state === 'tell' || (e.state === 'attack' && d.behavior !== 'chase')) && tellTex ? tellTex : frameKey(d.id, (Math.floor(e.animT) % 2) as 0 | 1);
   if (e.sprite.texture.key !== tex) e.sprite.setTexture(tex);
-  const s = SCALE[d.id] * (e.elite ? ELITE.scale : 1);
+  const s = SCALE[d.id] * (e.elite ? ELITE.scale : 1) * (e.small || 1);
   const squash = e.state === 'tell' ? 0.06 * Math.sin(now * 40) : Math.sin(e.animT * Math.PI) * 0.035;
   e.sprite.setScale(s * e.facing * (1 + squash), s * (1 - squash));
   e.sprite.setPosition(e.x + (e.state === 'tell' ? Math.sin(now * 70) * 1.5 : 0), e.y).setDepth(DEPTH.world + e.y);
@@ -223,6 +249,28 @@ export function updateEnemy(scene: ArenaScene, e: Enemy, dt: number, now: number
   } else if (slow < 1) e.sprite.setTint(0xcfefff);
   else if (e.sprite.isTinted) e.sprite.clearTint();
   if (e.frozenT) updateIce(scene, e, dt);
+  if (e.tag) e.tag.setPosition(e.x, e.y - e.sprite.displayHeight - 14).setAlpha(e.state === 'spawn' ? 0 : 1);
+}
+
+/** Elite affix upkeep: Swift trail, Tough regen, Pickpocket coin absorption. */
+function affixTick(scene: ArenaScene, e: Enemy, dt: number, now: number): void {
+  if (e.affix === 'swift') {
+    if ((e.trailT -= dt) <= 0 && e.state !== 'dying') {
+      e.trailT = 0.09;
+      const g = scene.add.image(e.x, e.y, e.sprite.texture.key).setOrigin(0.5, 0.95).setScale(e.sprite.scaleX, e.sprite.scaleY).setTint(AFFIX.swift.color).setAlpha(0.35).setDepth(DEPTH.world + e.y - 1);
+      scene.tweens.add({ targets: g, alpha: 0, duration: 260, onComplete: () => g.destroy() });
+    }
+  } else if (e.affix === 'tough') {
+    if (e.hp < e.maxHp && now - e.lastHitT >= AFFIX.tough.idle) {
+      e.hp = Math.min(e.maxHp, e.hp + e.maxHp * AFFIX.tough.regenPct * dt);
+      if (Math.random() < dt * 2) scene.fx.spark(e.x + Phaser.Math.Between(-10, 10), e.y - 30, 1, AFFIX.tough.color);
+    }
+  } else if (e.affix === 'pickpocket') {
+    while (scene.absorbCoin(e.x, e.y, AFFIX.pickpocket.absorbRadius + e.def.radius)) {
+      e.loot++;
+      scene.fx.spark(e.x, e.y - 30, 2, 0xf5bd45);
+    }
+  }
 }
 
 /** Frost set: translucent ice block around the sprite while frozen, shatters when it ends. */
