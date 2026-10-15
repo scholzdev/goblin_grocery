@@ -108,6 +108,8 @@ export class ArenaScene extends Phaser.Scene {
     this.enraged = false;
     this.ending = '';
     this.boss = null;
+    this.critHealSec = -1;
+    this.critHealed = 0;
     this.mini = null;
     this.miniDue = false;
     this.waveTime = 0;
@@ -413,7 +415,9 @@ export class ArenaScene extends Phaser.Scene {
   private miniDefeated(): void {
     const m = this.mini!;
     this.mini = null;
+    if (this.ending) return; // died in the same frame: defeat wins
     this.hazards.stop();
+    this.aisleEvent.stop();
     this.gum.clear();
     this.ending = 'checkout';
     showBanner(t('miniBossDown'), t('miniBossDownSub'));
@@ -529,7 +533,7 @@ export class ArenaScene extends Phaser.Scene {
         const sec = Math.floor(now);
         if (sec !== this.critHealSec) { this.critHealSec = sec; this.critHealed = 0; }
         const h = Math.min(s.build.critHeal, BUFFS.sampleHealCap - this.critHealed, s.build.maxHp - s.hp);
-        if (h > 0) { s.hp += h; this.critHealed += h; this.fx.spark(this.player.x, this.player.y - 46, 2, 0x8fcb57); }
+        if (h > 0) { s.hp += h; this.critHealed += h; this.fx.spark(this.player.x, this.player.y - 46, 2, 0x8fcb57); store.changed(); }
       }
     }
     // Armor (Canned Beans): direct hits only; burn, puddles, auras and pulses (isDot/quiet) pass through.
