@@ -146,7 +146,7 @@ export interface ActiveRecipe {
 
 export type StarterId = 'toaster' | 'pan' | 'coupon' | 'night';
 /** Starting weapons selectable independently of the character. */
-export type StarterWeapon = 'toaster' | 'pan';
+export type StarterWeapon = 'toaster' | 'pan' | 'nailgun';
 
 /** Run-wide modifiers a starter goblin brings (all optional; see PLAYER.starters). */
 export interface Perk {
