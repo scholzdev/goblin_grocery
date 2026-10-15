@@ -345,6 +345,11 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .door.frozen { border-top-color: #4aa8d8; } .door.bakery { border-top-color: #d9954a; }
 .door.electronics { border-top-color: var(--teal); } .door.checkout { border-top-color: var(--coral); }
 .door .modicon { font-size: 64px; line-height: 110px; height: 110px; }
+.door.mod .modicon { font-size: 52px; line-height: 76px; height: 76px; }
+.door .zone { display: flex; flex-direction: column; align-items: center; gap: 1px; width: 100%; }
+.door .zn { font-family: var(--display); font-size: 24px; line-height: 1; color: var(--coral-deep); }
+.door .zb { font: 800 12px/1.25 var(--ui); opacity: 0.8; }
+.door .zb.tilt { color: var(--lavender-deep); opacity: 1; }
 .door.mod.rush { border-top-color: var(--coral); } .door.mod.quiet { border-top-color: var(--teal); }
 .door.mod.event { border-top-color: var(--gold); }
 .door.clearance { border-color: var(--coral-deep); background: linear-gradient(#ffe1a1, var(--paper) 40%); }

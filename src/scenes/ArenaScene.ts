@@ -34,6 +34,7 @@ import { waveSpawnPlan } from '../systems/shop';
 import { killCoins } from '../systems/combat';
 import type { DepartmentDef } from '../types';
 import { OBSTACLES, OBSTACLE_KINDS } from '../data/obstacles';
+import { ZONES, type ZoneDef } from '../data/zones';
 import { type Rect, pushOutCapsule, pushOutCircle, segmentHitsRect, steerAround } from '../systems/obstacles';
 
 import { ARENA, ENTRIES, SIDE_UNITS, DECO_SPOTS, edgeSolids } from '../data/arena';
@@ -113,7 +114,7 @@ export class ArenaScene extends Phaser.Scene {
     center();
     this.scale.on(Phaser.Scale.Events.RESIZE, center);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.scale.off(Phaser.Scale.Events.RESIZE, center));
-    this.hazards = new Hazards(this, s.phase === 'combat' ? this.dept.hazard : 'none', s.wave);
+    this.hazards = new Hazards(this, s.phase === 'combat' ? this.dept.hazard : 'none', s.wave, this.zone()?.hazardExtra ?? 0);
     const roll = s.phase === 'combat' ? rollEvent(this.dept.id, s.wave, s.shift, flow.rng, this.wave.boss, s.labEvent && s.labEvent !== 'random' ? s.labEvent : MODIFIERS[s.modifier].forceEvent ? (flow.rng() < 0.5 ? 'wetFloor' : 'outage') : 'random') : null;
     this.aisleEvent = new AisleEvents(this, roll);
     if (roll) store.emit('tut:event');
@@ -169,11 +170,17 @@ export class ArenaScene extends Phaser.Scene {
     for (const e of ENTRIES) this.markers.push(this.add.image(e.x, e.y, 'entry_marker').setDepth(DEPTH.decal).setAlpha(0.55).setScale(0.9));
   }
 
+  /** Zone of this aisle (themed aisles only). */
+  private zone(): ZoneDef | null {
+    const s = store.state;
+    return s.zone && this.dept.id === s.theme ? ZONES[s.zone] : null;
+  }
+
   /** Picks one of the department's obstacle layouts for this wave and drops the props in. */
   private buildObstacles(): void {
     this.obstacles = [];
     if (store.state.phase !== 'combat') return;
-    const layouts = OBSTACLES[this.dept.id];
+    const layouts = this.zone()?.layouts ?? OBSTACLES[this.dept.id] ?? [[]];
     const layout = layouts[Math.floor(flow.rng() * layouts.length)];
     this.obstacles = [...layout, ...edgeSolids(this.dept.theme.props)];
     if (layout.length) store.emit('tut:obstacles');

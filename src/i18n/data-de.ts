@@ -1,5 +1,6 @@
 import type { DepartmentId, EnemyId, ItemTypeId, RecipeId, StarterId } from '../types';
 import type { CartSkin, GoblinSkin } from '../data/unlocks';
+import type { ZoneId } from '../data/zones';
 
 // German texts for all data tables. Record over the id unions: a missing entry is a type error.
 type IR = { name: string; blurb: string; rules: string };
@@ -152,4 +153,22 @@ const unlocks: Record<string, string> = {
 
 const tags: Record<string, string> = { ranged: 'Fernkampf', melee: 'Nahkampf', area: 'Fläche', electric: 'Elektrisch', kitchen: 'Küche', cleaning: 'Putzen', tools: 'Werkzeug', snacks: 'Snacks', checkout: 'Kasse', heat: 'Hitze', frost: 'Frost', blast: 'Knall' };
 
-export const DATA_DE = { items, recipes, enemies, departments, shifts, starters, goblinSkins, cartSkins, unlocks, tags };
+const zones: Record<ZoneId, { name: string; blurb: string }> = {
+  cereal_wall: { name: 'Müsliwand', blurb: 'Lange Regalgassen' },
+  can_pyramids: { name: 'Dosenpyramiden', blurb: 'Stapel als Deckung überall' },
+  promo_island: { name: 'Aktions-Insel', blurb: 'Großer Block, rundherum frei' },
+  freezer_row: { name: 'Truhenreihe', blurb: 'Gefriertruhen, mehr Eis' },
+  icecream_island: { name: 'Eiscreme-Insel', blurb: 'Eine Truhen-Insel in der Mitte' },
+  walk_in: { name: 'Kühlraum', blurb: 'Eng und vollgestellt, weniger Eis' },
+  oven_line: { name: 'Ofenstraße', blurb: 'Kaum Deckung, heiße Schächte' },
+  bread_racks: { name: 'Brotregale', blurb: 'Regalreihen bilden Gassen' },
+  cake_counter: { name: 'Tortentheke', blurb: 'Theken am Rand, Mitte frei' },
+  tv_wall: { name: 'TV-Wand', blurb: 'Spärlich, lange Sichtlinien' },
+  cable_aisle: { name: 'Kabelgang', blurb: 'Spulen und mehr Stromkabel' },
+  demo_booths: { name: 'Demo-Stände', blurb: 'Inselstände zum Verstecken' },
+  conveyor_lanes: { name: 'Kassenbänder', blurb: 'Trenner entlang der Bänder' },
+  self_checkout: { name: 'SB-Kassen', blurb: 'Kioske überall verstreut' },
+  cart_corral: { name: 'Wagenpark', blurb: 'Viele kleine Blocker' },
+};
+
+export const DATA_DE = { items, recipes, enemies, departments, zones, shifts, starters, goblinSkins, cartSkins, unlocks, tags };

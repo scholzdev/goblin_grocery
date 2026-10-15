@@ -23,25 +23,26 @@ export class Hazards {
   private next = 0;
   private g: Phaser.GameObjects.Graphics;
 
-  /** Aisle 1..7 drives the ramp: +1 spot per 3 aisles, belts 4% faster per aisle. Overtime uses the aisle-7 values. */
+  /** Aisle 1..7 drives the ramp: +1 spot per 3 aisles, belts 4% faster per aisle. Overtime uses the aisle-7 values. `zoneExtra` shifts the spot count (kept within 1..available). */
   private speed: number;
 
-  constructor(private scene: ArenaScene, readonly kind: HazardKind, aisle = 1) {
-    const a = Math.min(Math.max(aisle, 1), 7) - 1, extra = Math.floor(a / 3);
+  constructor(private scene: ArenaScene, readonly kind: HazardKind, aisle = 1, zoneExtra = 0) {
+    const a = Math.min(Math.max(aisle, 1), 7) - 1, extra = Math.floor(a / 3) + zoneExtra;
+    const n = (base: number, len: number) => Math.min(len, Math.max(1, base + extra));
     this.speed = DEPT_TUNING.conveyor.speed * (1 + 0.04 * a);
     this.g = scene.add.graphics().setDepth(DEPTH.telegraph);
     const T = DEPT_TUNING;
     if (kind === 'ice') {
-      for (const p of ICE_SPOTS.slice(0, T.ice.patches + extra)) {
+      for (const p of ICE_SPOTS.slice(0, n(T.ice.patches, ICE_SPOTS.length))) {
         scene.add.image(p.x, p.y, 'hz_ice').setDepth(DEPTH.decal - 0.5);
         this.patches.push({ x: p.x, y: p.y, ...ICE_RADII });
       }
     } else if (kind === 'vents') {
-      for (const p of VENT_SPOTS.slice(0, T.vents.count + extra)) {
+      for (const p of VENT_SPOTS.slice(0, n(T.vents.count, VENT_SPOTS.length))) {
         this.timed.push({ ...p, img: scene.add.image(p.x, p.y, 'hz_vent').setDepth(DEPTH.decal - 0.5), phase: 'idle', t: 0, hitPlayer: false, hit: new Set(), w: T.vents.radius });
       }
     } else if (kind === 'cables') {
-      for (const c of CABLE_ROWS.slice(0, T.cables.count + extra)) {
+      for (const c of CABLE_ROWS.slice(0, n(T.cables.count, CABLE_ROWS.length))) {
         const img = scene.add.tileSprite((c.x0 + c.x1) / 2, c.y, c.x1 - c.x0, 36, 'hz_cable').setDepth(DEPTH.decal - 0.5);
         this.timed.push({ x: (c.x0 + c.x1) / 2, y: c.y, img, phase: 'idle', t: 0, hitPlayer: false, hit: new Set(), w: c.x1 - c.x0 });
       }

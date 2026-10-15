@@ -1,7 +1,7 @@
 import { store } from '../state/store';
 import { BOSS_WAVE } from '../data/waves';
 import { RECIPES } from '../data/recipes';
-import { deptT, recipeT } from '../i18n/data';
+import { deptT, recipeT, zoneT } from '../i18n/data';
 import { fmtNum, t, type UIKey } from '../i18n';
 
 // Compact receipt-strip combat HUD. Built once; per-frame values only touch changed text.
@@ -77,7 +77,7 @@ function render(): void {
   els.hpbar.style.width = `${(100 * s.hp) / s.build.maxHp}%`;
   set('hpnum', `${Math.ceil(s.hp)}/${s.build.maxHp}`);
   set('aisle', (s.wave === BOSS_WAVE && !s.overtime ? t('finalAisle') : t('hudAisle', { n: String(s.wave).padStart(2, '0') })) + (s.shift ? ` · ${t('hudShift', { n: s.shift + 1 })}` : '') + (s.lab ? (s.labGod ? ` · ${t('hudLabGod')}` : ` · ${t('hudLab')}`) : ''));
-  set('dept', deptT(s.department).short + (s.modifier !== 'none' ? ` · ${t(`modShort_${s.modifier}` as UIKey)}` : ''));
+  set('dept', (s.zone && s.department === s.theme ? zoneT(s.zone).name.toUpperCase() : deptT(s.department).short) + (s.modifier !== 'none' ? ` · ${t(`modShort_${s.modifier}` as UIKey)}` : ''));
   set('m', String(s.money));
   const key = s.build.recipes.map((r) => r.id).join();
   if (last.recipes !== key) {

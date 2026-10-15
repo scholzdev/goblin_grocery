@@ -5,8 +5,9 @@ import { MODIFIERS, type DoorId } from '../data/modifiers';
 import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS } from '../data/waves';
 import type { DepartmentId, Build, Inventory, ItemInstance, ItemTypeId, LabOpts, OpResult, Rotation, RunState, ShopOffer, StarterId, StarterWeapon } from '../types';
 import { canPlace, findItem, normalizeRotation } from '../systems/inventory';
-import type { Rng } from '../systems/rng';
-import { currentRerollCost, rollDoors, rollOffers, sellPrice } from '../systems/shop';
+import { mulberry32, type Rng } from '../systems/rng';
+import { zonesOf } from '../data/zones';
+import { currentRerollCost, rollDoors, rollOffers, rollZones, sellPrice } from '../systems/shop';
 import { SETS } from '../data/sets';
 import { computeBuild } from '../systems/synergies';
 
@@ -19,9 +20,10 @@ export function newUid(state: RunState): string {
 
 export function createRun(seed: number, starter: StarterId = 'toaster', shift = 0, weapon: StarterWeapon = 'toaster', theme: DepartmentId = 'main'): RunState {
   const inventory: Inventory = { cols: 4, rows: 4, placed: [], shelf: Array(ECONOMY.shelfSlots).fill(null) };
+  const zs = zonesOf(theme), zone = zs.length ? zs[Math.floor(mulberry32(seed ^ 0x2f6b9d)() * zs.length)].id : null; // aisle 1's zone, from the seed
   const state: RunState = {
     phase: 'title', wave: 1, hp: PLAYER.maxHp, money: PLAYER.startMoney + (PLAYER.starters[starter].perk?.startMoney ?? 0), inventory,
-    build: undefined as unknown as Build, shop: null, shopLevel: 1, starter, weapon, shift, theme, department: theme, modifier: 'none', route: [theme], mods: ['none'], doors: null, coinLog: [], nextUid: 1, seed,
+    build: undefined as unknown as Build, shop: null, shopLevel: 1, starter, weapon, shift, theme, department: theme, modifier: 'none', route: [theme], mods: ['none'], doors: null, zone, zones: [zone], doorZones: null, coinLog: [], nextUid: 1, seed,
     stats: { kills: 0, coinsEarned: 0, damageByWeapon: {}, wavesCleared: 0, timeSeconds: 0, bossDefeated: false },
   };
   const w = STARTER_WEAPONS[weapon];
@@ -286,6 +288,7 @@ export function damagePlayer(state: RunState, amount: number): boolean {
 export function leaveShop(state: RunState, rng: Rng): OpResult {
   if (state.phase !== 'shop' || !state.shop) return fail(t('rShopClosed'));
   state.doors = state.lab ? [labDoor(state)] : rollDoors(state, rng);
+  state.doorZones = rollZones(state, rng, state.doors);
   state.phase = 'route';
   return OK;
 }
@@ -293,11 +296,15 @@ export function leaveShop(state: RunState, rng: Rng): OpResult {
 export function chooseDoor(state: RunState, id: DoorId): OpResult {
   if (state.phase !== 'route' || !state.doors) return fail(t('rNoDoors'));
   if (!state.doors.includes(id)) return fail(t('rDoorUnavailable'));
+  const zone = state.doorZones?.[state.doors.indexOf(id)] ?? null;
   state.department = id === 'boss' ? 'boss' : state.theme;
   state.modifier = id === 'boss' ? 'none' : id;
   state.route.push(state.department);
   state.mods.push(state.modifier);
+  state.zone = zone;
+  state.zones.push(zone);
   state.doors = null;
+  state.doorZones = null;
   return OK;
 }
 

@@ -3,6 +3,7 @@ import { DOOR_POOL, MODIFIERS, type DoorId } from '../data/modifiers';
 import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS, waveDef } from '../data/waves';
 import { PLAYER, ITEMS, ITEM_IDS, STARTER_WEAPONS, TIER } from '../data/items';
 import { RECIPES } from '../data/recipes';
+import { ZONES, ZONE_TUNING, zonesOf, type ZoneId } from '../data/zones';
 import type { EnemyId, ItemTypeId, RunState, ShopOffer } from '../types';
 import type { Rng } from './rng';
 
@@ -69,10 +70,23 @@ export function rollDoors(state: RunState, rng: Rng): DoorId[] {
   return doors;
 }
 
+/** Zone behind each door (parallel to `doors`): distinct per route screen, repeats get rarer; clearance / boss have none. */
+export function rollZones(state: RunState, rng: Rng, doors: DoorId[]): (ZoneId | null)[] {
+  const pool = zonesOf(state.theme);
+  return doors.map((d) => {
+    if (d === 'boss' || d === 'clearance' || !pool.length) return null;
+    const ws = pool.map((z) => 1 / (1 + state.zones.filter((u) => u === z.id).length) ** ZONE_TUNING.repeatPenalty);
+    let r = rng() * ws.reduce((a, b) => a + b, 0), i = 0;
+    while (i < pool.length - 1 && (r -= ws[i]) >= 0) i++;
+    return pool.splice(i, 1)[0].id;
+  });
+}
+
 export function waveSpawnPlan(state: RunState): { total: number; mix: Partial<Record<EnemyId, number>>; hpScale: number; speedScale: number; dmgScale: number } {
   const w = waveDef(state.wave), d = DEPARTMENTS[state.department], sh = SHIFTS[state.shift], m = MODIFIERS[state.modifier];
   if (state.department === 'boss' || w.boss) return { total: w.total, mix: { ...w.mix }, hpScale: w.hpScale, speedScale: w.speedScale, dmgScale: w.dmgScale * sh.dmgMult };
   const T = DEPT_TUNING, mix: Partial<Record<EnemyId, number>> = {};
   for (const [k, v] of Object.entries(w.mix) as [EnemyId, number][]) mix[k] = v * (d.mix[k] ?? (T.basics.includes(k) ? 1 : T.offTheme));
+  if (state.zone && state.department === state.theme) for (const [k, m] of Object.entries(ZONES[state.zone].tilt) as [EnemyId, number][]) if (mix[k] !== undefined) mix[k] *= m;
   return { total: Math.round(w.total * d.countMult * m.countMult * sh.countMult), mix, hpScale: w.hpScale * d.hpMult * m.hpMult * sh.hpMult, speedScale: w.speedScale * d.speedMult * sh.speedMult, dmgScale: w.dmgScale * sh.dmgMult };
 }

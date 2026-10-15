@@ -16,9 +16,10 @@ import { MODIFIERS, type DoorId, type ModifierId } from '../data/modifiers';
 import { CART_SKINS, GOBLIN_SKINS, UNLOCKS, type CartSkin, type GoblinSkin, type Unlock } from '../data/unlocks';
 import { cartUnlocked, discoverRecipe, goblinUnlocked, profile, saveProfile, shiftUnlocked, starterUnlocked, unlockedItems } from '../state/profile';
 import { ITEM_IDS } from '../data/items';
-import type { DepartmentId, ItemTypeId, LabOpts, Perk, RecipeId, StarterId, StarterWeapon } from '../types';
+import type { DepartmentId, EnemyId, ItemTypeId, LabOpts, Perk, RecipeId, StarterId, StarterWeapon } from '../types';
 import { t, fmtNum, setLang, LANGS, type Lang, type UIKey } from '../i18n';
-import { cartSkinT, deptT, enemyT, goblinSkinT, itemT, recipeT, shiftT, starterT, tagT, unlockNeedT } from '../i18n/data';
+import { ZONES } from '../data/zones';
+import { cartSkinT, deptT, enemyT, goblinSkinT, itemT, recipeT, shiftT, starterT, tagT, unlockNeedT, zoneT } from '../i18n/data';
 
 // DOM controllers are created exactly once at boot and driven by store events,
 // so restarting a run never duplicates listeners or overlays.
@@ -310,7 +311,7 @@ function routeHtml(): string {
     const id = s.route[i] ?? (i === BOSS_WAVE - 1 ? 'boss' : null);
     const cls = i < s.route.length ? 'done' : i === s.route.length ? 'next' : '';
     const m = s.mods[i];
-    return `<div class="step ${cls}" title="${id ? deptT(id).name : ''}">${id === 'boss' ? `<img src="${svg(DEPARTMENTS.boss.theme.icon)}" alt="${deptT('boss').name}">` : id ? (m && m !== 'none' ? MODIFIERS[m].icon : `<img src="${svg(DEPARTMENTS[id].theme.icon)}" alt="">`) : `<span>${i + 1}</span>`}</div>`;
+    return `<div class="step ${cls}" title="${id ? deptT(id).name : ''}${s.zones[i] ? ` · ${zoneT(s.zones[i]!).name}` : ''}">${id === 'boss' ? `<img src="${svg(DEPARTMENTS.boss.theme.icon)}" alt="${deptT('boss').name}">` : id ? (m && m !== 'none' ? MODIFIERS[m].icon : `<img src="${svg(DEPARTMENTS[id].theme.icon)}" alt="">`) : `<span>${i + 1}</span>`}</div>`;
   }).join('<i></i>');
   const cards = doors.map((id: DoorId, i) => {
     if (id === 'boss') {
@@ -324,10 +325,12 @@ function routeHtml(): string {
       <span class="ln reward"><b>${t('reward')}</b> ${dt.rewardText}</span>
     </button>`;
     }
-    const mt = modT(id), risk = MODIFIERS[id].risk;
+    const mt = modT(id), risk = MODIFIERS[id].risk, zid = s.doorZones?.[i] ?? null;
+    const zone = zid ? `<span class="zone"><span class="zn">${zoneT(zid).name}</span><span class="zb">${zoneT(zid).blurb}</span>${Object.keys(ZONES[zid].tilt).map((e) => `<span class="zb tilt">${t('zoneMore', { name: enemyT(e as EnemyId).name })}</span>`).join('')}</span>` : '';
     return `<button class="door mod ${id}" data-act="door" data-id="${id}" ${i === 0 ? 'data-focus' : ''} aria-label="${t('dangerAria', { name: mt.name, n: risk })}">
       <span class="key">${i + 1}</span>
       <span class="modicon">${MODIFIERS[id].icon}</span>
+      ${zone}
       <span class="dn">${mt.name}</span>
       <span class="danger" title="${t('danger')}">${'★'.repeat(risk) + '☆'.repeat(3 - risk)}</span>
       <span class="ln"><b>${t('enemies')}</b> ${mt.fx}</span>

@@ -1,5 +1,6 @@
 // Shared contracts. Pure data shapes only — no Phaser, no DOM.
 import type { DoorId, ModifierId } from './data/modifiers';
+import type { ZoneId } from './data/zones';
 
 export type ItemTypeId =
   | 'toaster' | 'pan' | 'nailgun' | 'vacuum'
@@ -325,6 +326,12 @@ export interface RunState {
   mods: ModifierId[];
   /** Doors offered on the route screen, or null outside it. */
   doors: DoorId[] | null;
+  /** Zone of the current / last aisle (null on clearance / boss). */
+  zone: ZoneId | null;
+  /** Zones per aisle, parallel to `route`. */
+  zones: (ZoneId | null)[];
+  /** Zone behind each offered door, parallel to `doors`. */
+  doorZones: (ZoneId | null)[] | null;
   stats: RunStats;
   /** Itemized coin sources since last shop opened, for the receipt. */
   coinLog: CoinLogEntry[];

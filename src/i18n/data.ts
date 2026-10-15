@@ -4,6 +4,7 @@ import { ITEMS, PLAYER } from '../data/items';
 import { RECIPES } from '../data/recipes';
 import { ENEMIES } from '../data/enemies';
 import { DEPARTMENTS } from '../data/departments';
+import { ZONES, type ZoneId } from '../data/zones';
 import { SHIFTS } from '../data/waves';
 import { CART_SKINS, GOBLIN_SKINS, UNLOCKS } from '../data/unlocks';
 import { tierScaling } from '../systems/synergies';
@@ -32,6 +33,10 @@ export const enemyT = (id: EnemyId) => {
 export const deptT = (id: DepartmentId) => {
   const { name, short, blurb, enemiesText, rewardText } = de() ? DATA_DE.departments[id] : DEPARTMENTS[id];
   return { name, short, blurb, enemiesText, rewardText };
+};
+export const zoneT = (id: ZoneId) => {
+  const { name, blurb } = de() ? DATA_DE.zones[id] : ZONES[id];
+  return { name, blurb };
 };
 export const shiftT = (i: number) => {
   const { name, blurb } = (de() ? DATA_DE.shifts : SHIFTS)[i];

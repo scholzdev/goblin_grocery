@@ -19,6 +19,7 @@ import { BUFFS, ITEMS, PLAYER, STARTER_WEAPONS, TIER } from '../src/data/items';
 import { UNLOCKS } from '../src/data/unlocks';
 import { createLabRun, labAddItem, labDoor, cartUpgradeCost, shelfUpgradeCost, upgradeCart, upgradeShelf, chooseDoor, finishWave, leaveShop, startNextWave, buyOffer, toggleLock, mergeTargetFor, createRun, damagePlayer, mergeItems, moveItem, openShop, previewMerge, previewMove, repair, reroll, sellItem, upgradeCost, upgradeItem, upgradeShop } from '../src/state/run';
 import { OBSTACLES, hazardRects } from '../src/data/obstacles';
+import { zonesOf } from '../src/data/zones';
 import { ARENA, ENTRIES, PLAYER_START, edgeSolids } from '../src/data/arena';
 import { pushOutCapsule, pushOutCircle, segmentHitsRect, steerAround } from '../src/systems/obstacles';
 import type { Rect } from '../src/systems/obstacles';
@@ -819,7 +820,7 @@ describe('departments and routes', () => {
   });
   it('waveSpawnPlan: theme roster boosts, basics stay at 1, everything else is off-theme', () => {
     const s = createRun(1);
-    s.wave = 5; s.department = s.theme = 'frozen';
+    s.wave = 5; s.department = s.theme = 'frozen'; s.zone = null;
     const w = WAVES[4].mix, p = waveSpawnPlan(s);
     for (const [k, v] of Object.entries(w) as [keyof typeof w, number][]) {
       const boost = DEPARTMENTS.frozen.mix[k] ?? (DEPT_TUNING.basics.includes(k) ? 1 : DEPT_TUNING.offTheme);
@@ -1270,9 +1271,9 @@ describe('aisle obstacles', () => {
     }
   });
 
-  it('every department has layouts that stay clear of start, entries, hazards and each other', () => {
-    for (const id of Object.keys(DEPARTMENTS) as (keyof typeof DEPARTMENTS)[]) {
-      const layouts = OBSTACLES[id];
+  it('clearance and boss have layouts that stay clear of start, entries, hazards and each other (themes: see zones.test.ts)', () => {
+    for (const id of ['clearance', 'boss'] as const) {
+      const layouts = OBSTACLES[id]!;
       expect(layouts.length, id).toBeGreaterThanOrEqual(id === 'boss' ? 1 : 2);
       for (const lay of layouts) {
         expect(lay.length, id).toBeGreaterThanOrEqual(id === 'boss' ? 1 : 2);
@@ -1302,7 +1303,7 @@ describe('edge solids', () => {
         for (const e of ENTRIES) expect(dist(s, { ...e, w: 0, h: 0 }), `entry ${e.x},${e.y}`).toBeGreaterThan(0);
         expect(dist(s, { ...PLAYER_START, w: 0, h: 0 })).toBeGreaterThan(100);
         for (const h of hazardRects(id)) expect(dist(s, { ...h, w: 0, h: 0 }), `${id} hazard centre`).toBeGreaterThan(0); // edges may overlap, centres stay reachable
-        for (const lay of OBSTACLES[id]) for (const o of lay) expect(dist(s, o), `${id}:${o.kind}@${o.x},${o.y}`).toBeGreaterThanOrEqual(55); // cart walkway, same as the arena-bottom margin
+        for (const lay of [...(OBSTACLES[id] ?? []), ...zonesOf(id).flatMap((z) => z.layouts)]) for (const o of lay) expect(dist(s, o), `${id}:${o.kind}@${o.x},${o.y}`).toBeGreaterThanOrEqual(55); // cart walkway, same as the arena-bottom margin
       }
     }
   });
