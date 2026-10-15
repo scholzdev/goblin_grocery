@@ -10,14 +10,15 @@ export type ItemTypeId =
   | 'pricegun' | 'tape' | 'coupon' | 'bubblewrap' | 'energy'
   | 'powerstrip' | 'goldstar' | 'laser' | 'snackbag'
   | 'cooker' | 'spray' | 'popper' | 'doublebag' | 'multipack'
-  | 'fortune' | 'sample' | 'piggy' | 'expiredmilk' | 'tinfoilhat' | 'jellybeans' | 'leafblower' | 'sourdough';
+  | 'fortune' | 'sample' | 'piggy' | 'expiredmilk' | 'tinfoilhat' | 'jellybeans' | 'leafblower' | 'sourdough'
+  | 'bumper' | 'sparewheel' | 'tipjar' | 'flag';
 
 export type WeaponPattern = 'toast' | 'sweep' | 'burst' | 'pulse' | 'zap' | 'aura' | 'ricochet' | 'puddle' | 'laser' | 'mortar' | 'cone';
 export type ItemKind = 'weapon' | 'module' | 'passive';
 export type Rotation = 0 | 1 | 2 | 3;
 export type RecipeId = 'toastMode' | 'nailstorm' | 'coldStorage' | 'expressCheckout' | 'brainFreeze' | 'tvDinner' | 'clearanceSale' | 'greaseFire' | 'pressurePoint' | 'mistMachine'
   | 'fiveAlarm' | 'sizzlingSkillet' | 'chickenDinner' | 'frostbiteNails' | 'staticCling' | 'reheat' | 'smoothieShield'
-  | 'confettiCannon' | 'blackIce' | 'shrapnel' | 'pressureWasher' | 'powerSurge' | 'priceCheck'
+  | 'confettiCannon' | 'blackIce' | 'shrapnel' | 'pressureWasher' | 'powerSurge' | 'priceCheck' | 'potSlam'
   | 'sugarRush' | 'smashBank' | 'bagIt' | 'sourMist' | 'sparksFly' | 'rayGun' | 'tailwind';
 /** Set-bonus tags: one family per item, optional element; 'electric' = the `electrical` flag. See data/sets.ts. */
 export type FamilyTag = 'kitchen' | 'cleaning' | 'tools' | 'snacks' | 'checkout';
@@ -139,6 +140,7 @@ export interface WeaponStats {
   slow: SlowEffect | null;
   frostRing: boolean;
   expressSweep: boolean;   // pan: extra sweep on successful shove
+  dashBlast: boolean;      // pressure cooker: the dash landing sets off a pot blast
   buffs: BuffId[];         // distinct buffs applied (each at most once)
   /** Active combos on this weapon (each weapon has exactly 2 possible combos; both can be active). */
   recipes: RecipeId[];
@@ -189,6 +191,10 @@ export interface Build {
   sets: Record<SetId, 0 | 1 | 2 | 3>;
   priceMult: number;       // checkout L1: shop price multiplier
   shoveStun: number;       // tools L2: seconds the dash stuns (0 = off)
+  dashSlam: number;        // slam bumper: landing shockwave damage (0 = off)
+  dashChain: number;       // spare wheel: seconds after a dash in which one more dash is free (0 = off)
+  dashCoinChance: number;  // tip jar: chance per enemy hit by the dash to drop a coin
+  dashMark: number;        // sale flag: seconds the dash marks enemies it hits (0 = off)
   /** Deduplicated adjacent pairs, uid order a < b. */
   adjacency: [string, string][];
 }

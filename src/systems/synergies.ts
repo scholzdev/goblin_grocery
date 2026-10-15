@@ -34,7 +34,7 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
       range: b.range, projectileSpeed: b.projectileSpeed, count: b.count, burstInterval: b.burstInterval, spreadDeg: 0,
       arcDeg: b.arcDeg, pull: b.pull, tick: b.tick, duration: b.duration, bounces: b.bounces, chain: b.chain, aoe: b.aoe,
       popper: null, echo: 0, firePool: false, tier, bundle: 0, critChance: 0, critCoin: false, pierce: 0, homing: false, burn: null, ignite: null, chainChance: 0, chainJumps: 0, slow: null,
-      frostRing: false, expressSweep: false, buffs: [], recipes: [],
+      frostRing: false, expressSweep: false, dashBlast: false, buffs: [], recipes: [],
     };
     const near = neighbors(placed, w.uid);
     const nearTypes = new Set(near.map((n) => n.type));
@@ -148,6 +148,10 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
     shoveDistMult: has('boot') ? 1 + BUFFS.bootDistance * gm('boot') : 1,
     shoveDamage: (PLAYER.shove.damage + (has('boot') ? BUFFS.bootDamage * gm('boot') : 0) + (perk.shoveDamage ?? 0)) * (sets.tools >= 2 ? setCfg('tools', sets.tools).shoveDamageMult : 1),
     shoveStun: sets.tools >= 2 ? setCfg('tools', sets.tools).shoveStun : 0,
+    dashSlam: has('bumper') ? BUFFS.bumperDamage * gm('bumper') : 0,
+    dashChain: has('sparewheel') ? BUFFS.wheelWindow * gm('sparewheel') : 0,
+    dashCoinChance: has('tipjar') ? Math.min(1, BUFFS.tipChance * gm('tipjar')) : 0,
+    dashMark: has('flag') ? BUFFS.flagMark * gm('flag') : 0,
     moveSpeedMult: (has('energy') ? 1 + BUFFS.energySpeed * gm('energy') : 1) * (perk.moveSpeedMult ?? 1),
     coinChance: has('coupon') ? Math.min(0.9, BUFFS.couponChance * gm('coupon')) : 0,
     armor: has('bubblewrap') ? top('bubblewrap') : 0,
@@ -167,6 +171,7 @@ function applyRecipe(s: WeaponStats, id: RecipeId, tapeArc: number): void {
     s.frostRing = true; s.slow = { pct: c.pct, duration: c.duration }; s.damage *= c.damageMult; s.range *= c.radiusMult;
   }
   else if (id === 'expressCheckout') s.expressSweep = true;
+  else if (id === 'potSlam') s.dashBlast = true;
   else if (id === 'brainFreeze') { s.range *= RECIPE_TUNING.brainFreeze.radiusMult; s.slow = { pct: RECIPE_TUNING.brainFreeze.pct, duration: RECIPE_TUNING.brainFreeze.duration }; }
   else if (id === 'tvDinner') { s.chain += RECIPE_TUNING.tvDinner.chain; s.cooldown *= RECIPE_TUNING.tvDinner.cooldownMult; }
   else if (id === 'sparksFly') s.chain += RECIPE_TUNING.sparksFly.chain;
@@ -233,6 +238,10 @@ export function tierScaling(type: ItemTypeId): ScaleRow[] {
     lunchbox: () => [row(t('rowMaxHp'), (tr) => `+${Math.round(BUFFS.lunchboxHp * m(tr))}`)],
     magnet: () => [row(t('rowPickup'), (tr) => `+${Math.round(BUFFS.magnetPickup * m(tr))}`)],
     bell: () => [row(t('rowDashCd'), (tr) => `−${fmt(BUFFS.bellShove * m(tr))} s`)],
+    bumper: () => [row(t('rowSlam'), (tr) => fmt(BUFFS.bumperDamage * m(tr)))],
+    sparewheel: () => [row(t('rowChain'), (tr) => `${fmt(BUFFS.wheelWindow * m(tr))} s`)],
+    tipjar: () => [row(t('rowTip'), (tr) => `${Math.round(Math.min(1, BUFFS.tipChance * m(tr)) * 100)}%`)],
+    flag: () => [row(t('rowMark'), (tr) => `${fmt(BUFFS.flagMark * m(tr))} s`)],
     energy: () => [row(t('rowMove'), (tr) => pctUp(BUFFS.energySpeed * m(tr)))],
     fortune: () => [row(t('rowCrit'), (tr) => `+${fmtNum(+(BUFFS.fortuneCrit * m(tr) * 100).toFixed(1))}%`)],
     piggy: () => [row(t('rowKillCoins'), (tr) => `+${fmtNum(+(BUFFS.piggyCoins * m(tr) * 100).toFixed(1))}%`)],

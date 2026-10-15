@@ -15,6 +15,7 @@ export const ICON_IDS = [
   'powerstrip', 'goldstar', 'laser', 'snackbag',
   'cooker', 'spray', 'popper', 'doublebag', 'multipack',
   'fortune', 'sample', 'piggy', 'expiredmilk', 'tinfoilhat', 'jellybeans', 'leafblower', 'sourdough',
+  'bumper', 'sparewheel', 'tipjar', 'flag',
 ] as const;
 
 export interface SvgAsset { key: string; w: number; h: number; ax?: number; ay?: number }
@@ -174,6 +175,9 @@ export const SVG_ASSETS: SvgAsset[] = [
   { key: 'ob_lane_divider', w: 180, h: 80, ax: 0.5, ay: 0.9 },
   { key: 'ob_bargain_bin', w: 140, h: 90, ax: 0.5, ay: 0.9 },
   { key: 'ob_manager_desk', w: 150, h: 100, ax: 0.5, ay: 0.9 },
+  { key: 'ob_can_bowl', w: 120, h: 90, ax: 0.5, ay: 0.95 },
+  { key: 'ob_candy_display', w: 110, h: 110, ax: 0.5, ay: 0.9 },
+  { key: 'ob_spring_mat', w: 160, h: 60, ax: 0.5, ay: 0.9 },
   { key: 'bread_crumb', w: 32, h: 28 },
   { key: 'dept_main', w: 128, h: 128 },
   { key: 'dept_frozen', w: 128, h: 128 },

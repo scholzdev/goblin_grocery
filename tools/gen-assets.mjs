@@ -1020,6 +1020,45 @@ add('icon_boot', () => {
   return icon(s, 172);
 });
 
+
+add('icon_bumper', () => {
+  let s = S5(rect(28, 96, 136, 46), C.teal, C.tealD, { dx: 8, dy: 5 });
+  for (const x of [48, 84, 120]) s += flat([[x, 98], [x + 16, 98], [x + 6, 140], [x - 10, 140]], C.cream, 'opacity=".55"');
+  for (const x of [38, 150]) s += `<circle cx="${x}" cy="119" r="6" fill="${C.chrome}" stroke="${C.plum}" stroke-width="4"/>`;
+  s += S5(rect(40, 142, 20, 16), C.chromeD, null, { sw: 4 }) + S5(rect(132, 142, 20, 16), C.chromeD, null, { sw: 4 });
+  s += shape(star(96, 52, 30, 14, 8), C.gold, C.goldD, { sw: 4 }) + flat(star(96, 52, 14, 7, 8), C.cream);
+  return icon(s, 168);
+});
+
+add('icon_sparewheel', () => {
+  let s = ell(96, 98, 62, 62, C.plumSoft, C.plum, { sw: SWi, dx: 6, dy: 6 });
+  s += ell(96, 98, 44, 44, C.chrome, C.chromeD, { sw: 4, dx: 3, dy: 3 });
+  for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2; s += line([[96, 98], [96 + Math.cos(a) * 42, 98 + Math.sin(a) * 42]], C.chromeD, 5); }
+  s += ell(96, 98, 14, 14, C.gold, C.goldD, { sw: 4, dx: 2, dy: 2 });
+  s += flat(star(96, 98, 7, 3, 4, -45), C.plum);
+  s += curve('M138 52 C158 66 164 86 160 106', 8, C.coral, 4) + flat([[168, 100], [150, 106], [162, 124]], C.coral, `stroke="${C.plum}" stroke-width="4" stroke-linejoin="round"`);
+  return icon(s, 166);
+});
+
+add('icon_tipjar', () => {
+  let s = S5(rect(46, 62, 100, 98), C.frost, C.frostD, { dx: 6, dy: 5 });
+  s += S5(rect(40, 44, 112, 22), C.coral, C.coralD, { dx: 4, dy: 3 });
+  for (const [x, y] of [[70, 140], [96, 144], [122, 140], [82, 124], [110, 126], [96, 108]]) s += ell(x, y, 15, 7, C.gold, C.goldD, { sw: 3, dx: 1.5, dy: 1.5 });
+  s += S5(rect(60, 70, 72, 26), C.cream, C.creamD, { sw: 4 }) + shape(star(96, 83, 10, 4.5, 5), C.coral, null, { sw: 2.5 });
+  s += flat([[52, 70], [62, 70], [60, 150], [52, 150]], C.white, 'opacity=".6"');
+  return icon(s, 168);
+});
+
+add('icon_flag', () => {
+  let s = tube([[58, 164], [58, 28]], 8, C.chrome, 4);
+  s += ell(58, 24, 10, 10, C.gold, C.goldD, { sw: 4, dx: 2, dy: 2 });
+  s += S5([[62, 40], [160, 66], [62, 98]], C.coral, C.coralD, { dx: 6, dy: 5 });
+  s += shape(star(100, 68, 14, 6, 5), C.cream, null, { sw: 3 });
+  s += flat([[66, 46], [112, 58], [66, 62]], C.coralL, 'opacity=".7"');
+  s += S5([[30, 164], [86, 164], [78, 146], [38, 146]], C.chromeD, null, { sw: 4 });
+  return icon(s, 170);
+});
+
 // =====================================================================================
 // ENVIRONMENT
 // =====================================================================================
@@ -1784,6 +1823,35 @@ add('side_electronics', () => sideUnit(33, { fc: '#5B7C88', fs: '#3F5864', bc: '
 add('side_checkout', () => sideUnit(34, { fc: C.coral, fs: C.coralD, bc: '#8F2D2C', bd: '#A8383A', boardc: C.cream }, [C.gold, C.teal, C.cream, C.sky, C.lavL, C.green]));
 
 // hazards
+
+add('ob_can_bowl', () => nudge(0, -3, (() => {
+  const pal = [[C.soda, C.sodaD], [C.blue, C.blueD], [C.gold, C.goldD], [C.teal, C.tealD]];
+  let s = shadowE(60, 83, 52, 6, 0.25);
+  const rows = [[11, [60]], [28, [47, 73]], [45, [34, 60, 86]], [62, [21, 47, 73, 99]]];
+  let k = 0;
+  for (const [top, xs] of rows) for (const x of xs) { const [a, b] = pal[k++ % 4]; s += can(x, top + 2, 25, 20, a, b, C.cream, { sw: SW - 0.5 }); }
+  // bowling ball waiting at the front
+  s += ell(104, 76, 13, 13, C.plum, C.plumSoft, { sw: SWs, dx: 2, dy: 2 }) + `<circle cx="100" cy="72" r="2" fill="${C.lavL}"/><circle cx="106" cy="71" r="2" fill="${C.lavL}"/><circle cx="103" cy="77" r="2" fill="${C.lavL}"/>`;
+  return s;
+})()));
+add('ob_candy_display', () => {
+  let s = shadowE(55, 98, 50, 7, 0.25);
+  s += shape([[8, 88], [88, 88], [94, 98], [4, 98]], C.lavD, C.plumSoft, { sw: SW, dx: 0, dy: 3 });
+  s += prism(12, 52, 80, 36, 8, 6, [C.coral, C.coralD], [C.cream, C.creamD], [C.coralD, '#8F2D27'], { sw: SWs + 0.5, sdx: 3, sdy: 3 });
+  const pal = [['#F7A6B8', '#D9748B'], [C.gold, C.goldD], [C.teal, C.tealD], [C.green, C.greenD]];
+  pal.forEach(([a, b], i) => { s += ell(22 + i * 20, 48, 10, 11, a, b, { sw: SWs, dx: 1.5, dy: 1.5 }) + flat(rect(17 + i * 20, 36, 10, 4), C.cream, 'opacity=".8"'); });
+  for (const [x, y, c] of [[30, 8, C.coral], [54, 4, C.sky], [76, 10, C.gold]]) s += tube([[x, y + 10], [x, 40]], 3, C.cream, 2) + ell(x, y, 9, 9, c, null, { sw: SWs }) + `<path d="M${x - 5} ${y} Q${x} ${y - 6} ${x + 5} ${y}" stroke="${C.cream}" stroke-width="2" fill="none"/>`;
+  s += S5(rect(30, 66, 44, 14), C.gold, C.goldD, { sw: 3 }) + shape(star(52, 73, 6, 3, 5), C.coral, null, { sw: 1.2 });
+  return s;
+});
+add('ob_spring_mat', () => {
+  let s = shadowE(80, 44, 70, 7, 0.22);
+  s += shape([[10, 26], [150, 26], [158, 46], [2, 46]], C.plum, C.plumSoft, { sw: SW, dx: 0, dy: 4 });
+  s += shape([[18, 28], [142, 28], [148, 40], [12, 40]], C.gold, C.goldD, { sw: SWs, dx: 0, dy: 2 });
+  for (const x of [46, 80, 114]) s += shape([[x - 12, 38], [x, 28], [x + 12, 38], [x + 5, 38], [x, 33], [x - 5, 38]], C.coral, null, { sw: 2 });
+  s += line([[22, 30], [138, 30]], C.cream, 2, 'opacity=".6"');
+  return s;
+});
 add('hz_ice', () => {
   const pd = smooth(puddlePts(110, 60, 102, 52, 5)), pd2 = smooth(puddlePts(110, 58, 78, 38, 9));
   let s = `<path d="${pd}" fill="#CFF3FF" fill-opacity=".75" stroke="#6FB7D8" stroke-width="3" stroke-opacity=".8"/><path d="${pd2}" fill="#E8F9FF" fill-opacity=".6"/>`;

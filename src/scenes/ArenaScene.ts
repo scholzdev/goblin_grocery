@@ -35,9 +35,9 @@ import { MODIFIERS, ROOMS } from '../data/modifiers';
 import { waveSpawnPlan, rollStockroom, rollMiniCrates } from '../systems/shop';
 import { killCoins } from '../systems/combat';
 import type { DepartmentDef } from '../types';
-import { CRATE, OBSTACLES, OBSTACLE_KINDS, crateSpots } from '../data/obstacles';
+import { CRATE, DASH_PROPS, OBSTACLES, OBSTACLE_KINDS, PROP_TUNING, crateSpots, type Obstacle } from '../data/obstacles';
 import { ZONES, type ZoneDef } from '../data/zones';
-import { type Rect, pushOutCapsule, pushOutCircle, segmentHitsRect, steerAround } from '../systems/obstacles';
+import { type Rect, inLane, pushOutCapsule, pushOutCircle, rectsOverlap, segmentHitsRect, steerAround } from '../systems/obstacles';
 
 import { isDown, resetKeyboard, takePressed } from '../input/keyboard';
 import { padMove, takePadShove } from '../input/gamepad';
@@ -51,7 +51,7 @@ interface Player {
   invulnT: number; protectT: number; hurtT: number;
   /** Tin Foil Hat: > 0 while dashing and for TINFOIL.grace s after (enemy shots reflect). */
   reflectT: number;
-  shoveT: number; shoveCd: number; shoveDX: number; shoveDY: number; shoveTracker: HitTracker; shoveHit: boolean;
+  shoveT: number; shoveCd: number; chainT: number; springHit: boolean; shoveDX: number; shoveDY: number; shoveTracker: HitTracker; shoveHit: boolean;
   dead: boolean;
 }
 
@@ -101,6 +101,8 @@ export class ArenaScene extends Phaser.Scene {
   gum!: GumPuddles;
   private hudT = 0;
   private shoveMult = 1;
+  /** Props the dash interacts with in this aisle (see DASH_PROPS); `hit` = already toppled / broken. */
+  private dashProps: { o: Obstacle; img: Phaser.GameObjects.Image; hit: boolean }[] = [];
 
   constructor() {
     super('Arena');
@@ -204,11 +206,58 @@ export class ArenaScene extends Phaser.Scene {
     if (store.state.phase !== 'combat') return;
     const layouts = this.zone()?.layouts ?? OBSTACLES[this.dept.id] ?? [[]];
     const layout = layouts[Math.floor(flow.rng() * layouts.length)];
-    this.obstacles = [...layout, ...edgeSolids(this.dept.theme.props)];
+    this.dashProps = [];
+    this.obstacles = [...layout.filter((o) => DASH_PROPS[o.kind] !== 'spring'), ...edgeSolids(this.dept.theme.props)];
     if (layout.length) store.emit('tut:obstacles');
     for (const o of layout) {
-      this.add.image(o.x, o.y + o.h / 2, OBSTACLE_KINDS[o.kind].tex).setOrigin(0.5, 0.9).setDepth(DEPTH.world + o.y + o.h / 2);
+      const img = this.add.image(o.x, o.y + o.h / 2, OBSTACLE_KINDS[o.kind].tex).setOrigin(0.5, 0.9).setDepth(DASH_PROPS[o.kind] === 'spring' ? DEPTH.decal : DEPTH.world + o.y + o.h / 2);
+      if (DASH_PROPS[o.kind]) this.dashProps.push({ o, img, hit: false });
     }
+  }
+
+  /** The dash ran into a prop: topple cans down the lane, burst a candy display into coins, or ride a spring mat for extra reach. */
+  private hitDashProp(dp: { o: Obstacle; img: Phaser.GameObjects.Image; hit: boolean }): void {
+    const p = this.player, kind = DASH_PROPS[dp.o.kind], { x, y } = dp.o;
+    if (kind === 'spring') {
+      if (p.springHit) return;
+      p.springHit = true;
+      p.shoveT += PROP_TUNING.spring.bonusTime;
+      play('ding', { rate: 1.5 });
+      this.fx.puff(x, y, 3);
+      return;
+    }
+    dp.hit = true;
+    this.obstacles = this.obstacles.filter((o) => o !== dp.o);
+    dp.img.destroy();
+    this.fx.shake(0.003, 90);
+    if (kind === 'break') {
+      play('boom', { volume: 0.5 });
+      this.fx.crumbsAt(x, y - 20, 12, 0xf45f52);
+      for (let i = 0; i < PROP_TUNING.break.coins; i++) this.dropCoin(x, y, t('coinDisplay'));
+      return;
+    }
+    const T = PROP_TUNING.topple;
+    play('boom', { volume: 0.6 });
+    for (let i = 0; i <= 5; i++) this.fx.crumbsAt(x + p.shoveDX * T.length * i / 5, y + p.shoveDY * T.length * i / 5, 3, 0x8fcb57);
+    for (const e of this.enemies) {
+      if (!e.alive || e.state === 'spawn' || !inLane(x, y, p.shoveDX, p.shoveDY, T.length, T.halfWidth, e.x, e.y, e.def.radius)) continue;
+      this.damageEnemy(e, T.damage, null, { kb: T.knockback, kbX: p.shoveDX, kbY: p.shoveDY, label: 'Can Pyramid' });
+    }
+  }
+
+  /** Dash landing: Slam Bumper shockwave and Pot Slam blast. */
+  private dashLanding(): void {
+    const p = this.player, b = store.state.build;
+    if (b.dashSlam > 0) {
+      play('boom', { volume: 0.5 });
+      this.fx.ring('fx_boom', p.x, p.y, BUFFS.bumperRadius * 2, 300, 0xf5bd45);
+      for (const e of this.enemies) {
+        const dx = e.x - p.x, dy = e.y - p.y, d = Math.hypot(dx, dy);
+        if (!e.alive || e.state === 'spawn' || d > BUFFS.bumperRadius + e.def.radius) continue;
+        this.damageEnemy(e, b.dashSlam, null, { kb: 200, kbX: dx / (d || 1), kbY: dy / (d || 1), label: 'Slam Bumper' });
+      }
+    }
+    this.arsenal.dashBlast(p.x, p.y);
   }
 
   /** Walking goblin + cart vs props: slide out along the shallowest side. Dashing (shove) skips this and vaults over. */
@@ -262,7 +311,7 @@ export class ArenaScene extends Phaser.Scene {
     const s = store.state;
     this.player = {
       x: 640, y: 500, radius: PLAYER.radius, facing: 1, vx: 0, vy: 0, invulnT: 0, protectT: 0, hurtT: 0,
-      reflectT: 0, shoveT: 0, shoveCd: 0, shoveDX: 1, shoveDY: 0, shoveTracker: newHitTracker(Infinity), shoveHit: false, dead: false,
+      reflectT: 0, shoveT: 0, shoveCd: 0, chainT: 0, springHit: false, shoveDX: 1, shoveDY: 0, shoveTracker: newHitTracker(Infinity), shoveHit: false, dead: false,
     };
     this.shadow = this.add.image(0, 0, 'shadow').setDepth(DEPTH.decal).setDisplaySize(150, 40);
     const wheels = [
@@ -928,7 +977,7 @@ export class ArenaScene extends Phaser.Scene {
       hud.tick({
         timeLeft: this.wave.boss || this.miniDue || s.labSandbox || s.modifier === 'stockroom' ? -1 : Math.max(0, this.wave.duration - this.waveTime),
         elapsed: this.waveTime,
-        shoveCd: Math.max(0, this.player.shoveCd), shoveMax: s.build.shoveCooldown,
+        shoveCd: this.player.chainT > 0 ? 0 : Math.max(0, this.player.shoveCd), shoveMax: s.build.shoveCooldown,
         boss: this.boss ? { hp: Math.max(0, this.boss.hp), max: this.boss.maxHp, enraged: this.enraged, name: enemyT(this.boss.def.id).name.toUpperCase() }
           : this.mini ? { hp: Math.max(0, this.mini.hp), max: this.mini.maxHp, enraged: this.enraged, name: t('miniBossBar', { name: enemyT(this.mini.def.id).name.toUpperCase() }) } : null,
       });
@@ -957,14 +1006,14 @@ export class ArenaScene extends Phaser.Scene {
     const p = this.player;
     if (p.dead) return;
     const s = store.state;
-    p.invulnT -= dt; p.protectT -= dt; p.hurtT -= dt; p.shoveCd -= dt;
+    p.invulnT -= dt; p.protectT -= dt; p.hurtT -= dt; p.shoveCd -= dt; p.chainT -= dt;
     const inp = this.input01();
     if (inp.x !== 0) p.facing = inp.x > 0 ? 1 : -1;
 
     const devShove = import.meta.env.DEV && this.devInput?.shove;
     if (devShove) this.devInput!.shove = false;
     const padShove = takePadShove(), keyShove = takePressed('shove');
-    if ((keyShove || padShove || devShove) && p.shoveCd <= 0 && p.shoveT <= 0) {
+    if ((keyShove || padShove || devShove) && (p.shoveCd <= 0 || p.chainT > 0) && p.shoveT <= 0) {
       const dx = inp.x || (inp.y ? 0 : p.facing), dy = inp.y;
       const l = Math.hypot(dx, dy) || 1;
       p.shoveDX = dx / l; p.shoveDY = dy / l;
@@ -972,7 +1021,9 @@ export class ArenaScene extends Phaser.Scene {
       this.shoveMult = this.hazards.onIce(p.x, p.y) ? DEPT_TUNING.ice.shoveMult : 1;
       const reach = PLAYER.shove.distance * this.shoveMult * s.build.shoveDistMult;
       this.vaulting = this.obstacles.some((o) => segmentHitsRect(p.x, p.y, p.x + p.shoveDX * reach, p.y + p.shoveDY * reach, o, p.radius));
-      p.shoveCd = s.build.shoveCooldown;
+      // Spare Wheel: a dash inside the chain window is free (the running cooldown stays as it was).
+      if (p.shoveCd > 0) p.chainT = 0; else { p.shoveCd = s.build.shoveCooldown; p.chainT = s.build.dashChain; }
+      p.springHit = false;
       p.shoveTracker = newHitTracker(Infinity);
       p.shoveHit = false;
       this.cartCombos.onShove();
@@ -982,18 +1033,23 @@ export class ArenaScene extends Phaser.Scene {
 
     if (p.shoveT > 0) p.reflectT = TINFOIL.grace; else p.reflectT -= dt;
     if (p.shoveT > 0) {
-      const step = Math.min(dt, p.shoveT);
+      const step = Math.min(dt, p.shoveT), ox = p.x, oy = p.y;
       p.shoveT -= dt;
       p.x += p.shoveDX * (PLAYER.shove.distance * this.shoveMult * s.build.shoveDistMult / PLAYER.shove.time) * step;
       p.y += p.shoveDY * (PLAYER.shove.distance * this.shoveMult * s.build.shoveDistMult / PLAYER.shove.time) * step;
       p.protectT = Math.max(p.protectT, PLAYER.shove.protect);
       const wall = this.clampToArena(p, p.radius * 2);
+      for (const dp of this.dashProps) {
+        if (!dp.hit && (rectsOverlap({ x: p.x, y: p.y, w: 0, h: 0 }, dp.o, p.radius) || segmentHitsRect(ox, oy, p.x, p.y, dp.o, p.radius))) this.hitDashProp(dp);
+      }
       for (const e of this.enemies) {
         if (!e.alive || e.state === 'spawn') continue;
         if ((e.x - p.x) ** 2 + (e.y - p.y) ** 2 > (e.def.radius + p.radius + 24) ** 2) continue;
         if (!tryHit(p.shoveTracker, e.id)) continue;
         p.shoveHit = true;
         this.damageEnemy(e, s.build.shoveDamage, null, { kb: PLAYER.shove.knockback, kbX: p.shoveDX, kbY: p.shoveDY, label: 'shove' });
+        if (s.build.dashMark > 0) e.markedUntil = this.time.now / 1000 + s.build.dashMark;
+        if (s.build.dashCoinChance > 0 && Math.random() < s.build.dashCoinChance) this.dropCoin(e.x, e.y, t('coinTip'));
         if (s.build.shoveStun > 0) { this.stunEnemy(e, s.build.shoveStun); this.fx.ring('fx_pulse', e.x, e.y, 70, 220, 0xf5bd45); }
       }
       if (wall) p.shoveT = 0;
@@ -1004,6 +1060,7 @@ export class ArenaScene extends Phaser.Scene {
         this.pushPlayerOut();
         this.vaulting = false;
       }
+      if (p.shoveT <= 0) this.dashLanding();
       if (p.shoveT <= 0 && p.shoveHit && this.arsenal.expressCheckout(Math.atan2(p.shoveDY, p.shoveDX))) {
         play('ding');
         this.fx.popImage('fx_receipt_burst', p.x + p.shoveDX * 50, p.y - 50, 0.9);

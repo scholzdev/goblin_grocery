@@ -32,6 +32,7 @@ export function comboDps(w: WeaponStats, shoveCd: number): { single: number; cro
   }
   // Behaviour-only combos: rough approximations so they are not scored as zero gain.
   const has = (id: RecipeId) => w.recipes.includes(id);
+  if (has('potSlam')) { const every = shoveCd; single += per / every; crowd += (per * 4) / every; } // one pot blast per dash
   if (has('fiveAlarm')) { // +60% on the ~70% of hits that land on burning enemies
     const k = (RECIPE_TUNING.fiveAlarm.vsBurning - 1) * 0.7;
     single += (single - burnS) * k; crowd += (crowd - burnC) * k;

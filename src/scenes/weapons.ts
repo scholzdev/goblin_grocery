@@ -527,6 +527,11 @@ export class Arsenal {
     return fired;
   }
 
+  /** Pot Slam: the dash landing sets off a full pot blast. */
+  dashBlast(x: number, y: number): void {
+    for (const w of this.weapons) if (w.stats.dashBlast) this.explode(x, y, w.stats);
+  }
+
   private updateShots(dt: number): void {
     const sc = this.scene;
     for (const s of this.shots) {

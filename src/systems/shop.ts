@@ -21,6 +21,10 @@ const ENHANCES: Partial<Record<ItemTypeId, (own: Set<ItemTypeId>) => boolean>> =
   popper: anyWeapon, doublebag: anyWeapon, multipack: anyWeapon, expiredmilk: anyWeapon, tinfoilhat: () => true, jellybeans: anyWeapon, sourdough: anyWeapon,
   magnet: (o) => o.has('nailgun'),
   bell: (o) => o.has('pan'),
+  bumper: (o) => o.has('cooker') || o.has('bell') || o.has('boot'),
+  sparewheel: (o) => o.has('bell') || o.has('boot'),
+  tipjar: (o) => o.has('bell') || o.has('boot') || o.has('sparewheel'),
+  flag: (o) => o.has('bell') || o.has('boot') || o.has('sparewheel'),
   lunchbox: (o) => o.has('microwave'),
   coupon: (o) => o.has('fizz'),
 };

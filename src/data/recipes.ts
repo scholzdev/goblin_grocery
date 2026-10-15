@@ -111,6 +111,11 @@ export const RECIPES: Record<RecipeId, RecipeDef> = {
     summary: 'Self-Checkout Laser touching a Power Strip: double scan.',
     detail: 'Every beam fires an aftershock 0.25 s later for 25% damage.',
   },
+  potSlam: {
+    id: 'potSlam', short: 'Dash landing = pot blast', name: 'Pot Slam', weapon: 'cooker', supports: ['bumper'],
+    summary: 'Pressure Cooker touching a Slam Bumper: the dash lands with a pot blast.',
+    detail: 'Every dash ends in a full Pressure Cooker explosion at the landing spot (damage, radius and knockback of the cooker). Fires every dash, independent of the cooker timer.',
+  },
   priceCheck: {
     id: 'priceCheck', short: 'Marks: +20% dmg', name: 'Price Check', weapon: 'laser', supports: ['pricegun'],
     summary: 'Self-Checkout Laser touching a Price Gun: everything gets a sticker.',
@@ -185,6 +190,7 @@ export const RECIPE_TUNING = {
   sparksFly: { chain: 2, chainMult: 0.5, stunChance: 0.25, stun: 0.3 },
   tailwind: { boost: 0.3, boostTime: 0.4, sugarIcd: 1.5 },
   rayGun: { splashR: 60, splashMult: 0.6, every: 3, bigR: 120, bigMult: 1.2 },
+  potSlam: {},
 };
 
 /** Every item type a combo needs (weapon first, if any). Cart combos have no weapon. */

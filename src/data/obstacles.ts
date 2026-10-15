@@ -6,7 +6,8 @@ import { DEPT_TUNING } from './departments';
 // Themed aisle obstacles: solid props the goblin walks around or dashes (Space shove) over. Rects are ground footprints (centre x,y).
 export type ObstacleKind =
   | 'gondola' | 'display' | 'chest_freezer' | 'bread_rack' | 'flour_sacks' | 'tv_boxes' | 'cable_spool' | 'lane_divider' | 'bargain_bin' | 'manager_desk'
-  | 'can_stack' | 'icecream_case' | 'kiosk' | 'cart_stack';
+  | 'can_stack' | 'icecream_case' | 'kiosk' | 'cart_stack'
+  | 'can_bowl' | 'candy_display' | 'spring_mat';
 export interface Obstacle extends Rect { kind: ObstacleKind }
 
 /** Footprint size and texture key per kind. */
@@ -26,6 +27,18 @@ export const OBSTACLE_KINDS: Record<ObstacleKind, { w: number; h: number; tex: s
   icecream_case: { w: 88, h: 60, tex: 'prop_icecream' },
   kiosk: { w: 88, h: 60, tex: 'prop_tvbox' },
   cart_stack: { w: 48, h: 36, tex: 'prop_wetfloor' },
+  // dash props: can_bowl and candy_display are solid until a dash hits them, spring_mat is a floor pad (see DASH_PROPS)
+  can_bowl: { w: 96, h: 56, tex: 'ob_can_bowl' },
+  candy_display: { w: 90, h: 60, tex: 'ob_candy_display' },
+  spring_mat: { w: 130, h: 40, tex: 'ob_spring_mat' },
+};
+
+/** Props the Space dash interacts with: topple = bowls over groceries in line, break = bursts into coins, spring = floor pad that stretches the dash. */
+export const DASH_PROPS: Partial<Record<ObstacleKind, 'topple' | 'break' | 'spring'>> = { can_bowl: 'topple', candy_display: 'break', spring_mat: 'spring' };
+export const PROP_TUNING = {
+  topple: { damage: 14, length: 300, halfWidth: 60, knockback: 260 },
+  break: { coins: 3 },
+  spring: { bonusTime: 0.12 }, // seconds added to the dash (~+75% distance)
 };
 
 export const o = (kind: ObstacleKind, x: number, y: number): Obstacle => ({ kind, x, y, w: OBSTACLE_KINDS[kind].w, h: OBSTACLE_KINDS[kind].h });
@@ -34,7 +47,7 @@ export const o = (kind: ObstacleKind, x: number, y: number): Obstacle => ({ kind
 export const OBSTACLES: Partial<Record<DepartmentId, Obstacle[][]>> = {
   clearance: [
     [o('bargain_bin', 300, 330), o('bargain_bin', 980, 330), o('bargain_bin', 300, 620), o('bargain_bin', 980, 620)],
-    [o('bargain_bin', 430, 410), o('bargain_bin', 850, 590), o('bargain_bin', 1000, 330)],
+    [o('bargain_bin', 430, 410), o('bargain_bin', 850, 590), o('bargain_bin', 1000, 330), o('spring_mat', 360, 630)],
   ],
   boss: [
     [o('manager_desk', 400, 450), o('manager_desk', 880, 550)],
