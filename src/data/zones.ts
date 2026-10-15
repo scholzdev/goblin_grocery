@@ -29,15 +29,15 @@ const T = ZONE_TUNING.tilt;
 export const ZONES: Record<ZoneId, ZoneDef> = {
   cereal_wall: { id: 'cereal_wall', theme: 'main', name: 'Cereal Wall', blurb: 'Long gondola lanes', hazardExtra: 0, tilt: { cereal: T }, layouts: [
     [o('gondola', 280, 330), o('gondola', 960, 330), o('gondola', 300, 640), o('gondola', 980, 640)],
-    [o('gondola', 400, 470), o('gondola', 880, 560), o('display', 640, 330)],
+    [o('gondola', 400, 470), o('gondola', 880, 560), o('candy_display', 640, 330), o('spring_mat', 310, 660)],
   ] },
   can_pyramids: { id: 'can_pyramids', theme: 'main', name: 'Can Pyramids', blurb: 'Stacks everywhere to hide behind', hazardExtra: 0, tilt: { beans: T }, layouts: [
-    [o('can_stack', 260, 340), o('can_stack', 640, 330), o('can_stack', 1020, 340), o('can_stack', 330, 610), o('can_stack', 950, 610)],
-    [o('can_stack', 400, 420), o('can_stack', 880, 420), o('can_stack', 640, 330), o('display', 250, 620)],
+    [o('can_stack', 260, 340), o('can_bowl', 640, 330), o('can_stack', 1020, 340), o('can_stack', 330, 610), o('can_stack', 950, 610)],
+    [o('can_stack', 400, 420), o('can_stack', 880, 420), o('can_bowl', 640, 330), o('display', 250, 620)],
   ] },
   promo_island: { id: 'promo_island', theme: 'main', name: 'Promo Island', blurb: 'Big bin, circle it', hazardExtra: 0, tilt: { soda: T }, layouts: [
-    [o('bargain_bin', 640, 325), o('display', 260, 600), o('display', 1020, 600)],
-    [o('display', 640, 330), o('bargain_bin', 420, 480), o('bargain_bin', 860, 480)],
+    [o('bargain_bin', 640, 325), o('candy_display', 260, 600), o('display', 1020, 600), o('spring_mat', 550, 660)],
+    [o('candy_display', 640, 330), o('bargain_bin', 420, 480), o('bargain_bin', 860, 480)],
   ] },
   freezer_row: { id: 'freezer_row', theme: 'frozen', name: 'Freezer Row', blurb: 'Chest freezers, extra ice', hazardExtra: 1, tilt: { turkey: T }, layouts: [
     [o('chest_freezer', 400, 480), o('chest_freezer', 880, 480)],

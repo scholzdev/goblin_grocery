@@ -80,6 +80,26 @@ export const ITEMS: Record<ItemTypeId, ItemDef> = {
     blurb: 'Clearance-rack sprinter. Dash like you stole it.',
     rules: 'Space dash: {0} distance and {1} damage.',
   },
+  bumper: {
+    id: 'bumper', family: 'tools', element: 'blast', name: 'Slam Bumper', kind: 'passive', cells: rect(1, 1), price: 11, electrical: false,
+    blurb: 'Land the dash with a bang.',
+    rules: 'The Space dash ends in a shockwave: {0} damage within 90 and knockback (does not stack). Enables Pot Slam next to a Pressure Cooker.',
+  },
+  sparewheel: {
+    id: 'sparewheel', family: 'tools', name: 'Spare Wheel', kind: 'passive', cells: rect(1, 1), price: 10, electrical: false,
+    blurb: 'Two dashes for the price of one.',
+    rules: 'After a dash, one more dash within {0} is free: it skips the cooldown (does not stack).',
+  },
+  tipjar: {
+    id: 'tipjar', family: 'checkout', name: 'Tip Jar', kind: 'passive', cells: rect(1, 1), price: 9, electrical: false,
+    blurb: 'Bump them. They tip.',
+    rules: 'Each grocery the Space dash hits has a {0} chance to drop a coin (does not stack).',
+  },
+  flag: {
+    id: 'flag', family: 'checkout', name: 'Sale Flag', kind: 'passive', cells: rect(1, 1), price: 10, electrical: false,
+    blurb: 'Plant it in their back. Everything is 20% off.',
+    rules: 'Groceries hit by the Space dash are marked for {0}: they take +20% damage from everything (does not stack).',
+  },
   microwave: {
     id: 'microwave', family: 'kitchen', element: 'heat', tags: ['area'], name: 'Microwave', kind: 'weapon', cells: rect(2, 2), price: 20, electrical: true,
     blurb: 'Ding! Nukes a grocery from across the aisle.',
@@ -247,6 +267,11 @@ export const BUFFS = {
   bellShove: 0.5,
   bootDistance: 0.35,
   bootDamage: 6,
+  bumperDamage: 8,
+  bumperRadius: 90,
+  wheelWindow: 1.0,   // seconds (x tier mult)
+  tipChance: 0.4,     // per enemy hit by the dash (x tier mult, max 1)
+  flagMark: 2,        // seconds (x tier mult)
   energySpeed: 0.12,
   couponChance: 0.3,
   bubbleArmor: 1,

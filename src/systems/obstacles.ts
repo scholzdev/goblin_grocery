@@ -88,3 +88,9 @@ export function steerAround(x: number, y: number, tx: number, ty: number, radius
   }
   return unit(aim.x - x, aim.y - y);
 }
+
+/** Is a circle (x, y, radius) inside the lane of half-width `halfWidth` that runs `length` from (ox, oy) along the unit vector (dx, dy)? */
+export function inLane(ox: number, oy: number, dx: number, dy: number, length: number, halfWidth: number, x: number, y: number, radius = 0): boolean {
+  const along = (x - ox) * dx + (y - oy) * dy, across = Math.abs((x - ox) * dy - (y - oy) * dx);
+  return along >= -radius && along <= length + radius && across <= halfWidth + radius;
+}
