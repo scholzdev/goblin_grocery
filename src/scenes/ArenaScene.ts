@@ -3,7 +3,7 @@ import { deptT, enemyT } from '../i18n/data';
 import { store } from '../state/store';
 import { flow } from '../flow';
 import { waveDef, eliteChance, bossTuning, ECONOMY, SHIFTS, WAVE_RAMP } from '../data/waves';
-import { SHOW_HP_BAR, EGG_BLAST, MELON_SLICES, ELITE, GIFTCARD, GUM, THEME_SUMMONS } from '../data/enemies';
+import { SHOW_HP_BAR, EGG_BLAST, MELON_SLICES, ELITE, GIFTCARD, GUM, THEME_SUMMONS, ELITE_EXCLUDED } from '../data/enemies';
 import { GumPuddles } from './gum';
 import { CRIT, ECHO, ITEMS, PLAYER, STARTER_LOOKS } from '../data/items';
 import { SETS } from '../data/sets';
@@ -352,7 +352,7 @@ export class ArenaScene extends Phaser.Scene {
         g.ids.forEach((id, k) => {
           noteEnemy(store.state, id);
           const a = (k / g.ids.length) * Math.PI * 2;
-          this.enemies.push(createEnemy(this, id, en.x + Math.cos(a) * 18 * Math.min(1, k), en.y + Math.sin(a) * 12 * Math.min(1, k), this.plan.hpScale * this.ramp(WAVE_RAMP.hp), this.plan.speedScale * this.ramp(WAVE_RAMP.speed), flow.rng() < eliteChance(id, this.wave, store.state.shift) + (this.wave.boss ? 0 : MODIFIERS[store.state.modifier].eliteBonus), this.plan.dmgScale));
+          this.enemies.push(createEnemy(this, id, en.x + Math.cos(a) * 18 * Math.min(1, k), en.y + Math.sin(a) * 12 * Math.min(1, k), this.plan.hpScale * this.ramp(WAVE_RAMP.hp), this.plan.speedScale * this.ramp(WAVE_RAMP.speed), flow.rng() < eliteChance(id, this.wave, store.state.shift) + (this.wave.boss || ELITE_EXCLUDED.includes(id) ? 0 : MODIFIERS[store.state.modifier].eliteBonus), this.plan.dmgScale));
           if (this.enemies[this.enemies.length - 1].elite) store.emit('tut:elite');
         });
         this.fx.puff(en.x, en.y, 4);
@@ -1004,9 +1004,9 @@ export class ArenaScene extends Phaser.Scene {
     this.groups.forEach((g) => (g.done = true));
     const alive = this.enemies.filter((e) => e.alive);
     alive.forEach((e, i) => this.time.delayedCall(40 * i, () => this.killEnemy(e, false))); // no kill credit
-    // Coins still on the floor are lost: grab them before the timer runs out.
+    // Coins still on the floor get swept up at the end.
     this.time.delayedCall(Math.max(1700, 40 * alive.length + 900), () => {
-      this.coins.forEach((c) => { if (c.active) { c.active = false; c.img.setVisible(false); this.fx.puff(c.x, c.y, 1); } });
+      this.coins.forEach((c) => { if (c.active) { c.active = false; c.img.setVisible(false); this.fx.puff(c.x, c.y, 1); if (!c.bread) addCoins(store.state, 1, t('coinSwept')); } });
       flow.endWave();
     });
   }

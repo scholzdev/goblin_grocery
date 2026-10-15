@@ -313,14 +313,14 @@ describe('run state ops', () => {
     const rng = mulberry32(9);
     for (const c of [2, 4, 6]) {
       const m = s.money;
-      expect(rerollCost(s.shop!.rerolls)).toBe(c);
+      expect(rerollCost(s.shop!.rerolls, s.shop!.shopIndex)).toBe(c);
       expect(reroll(s, rng).ok).toBe(true);
       expect(s.money).toBe(m - c);
     }
     expect(s.shop!.rerolls).toBe(3);
     s.wave = 2;
     openShop(s, rng);
-    expect(rerollCost(s.shop!.rerolls)).toBe(2);
+    expect(rerollCost(s.shop!.rerolls, s.shop!.shopIndex)).toBe(2);
     s.money = 1;
     const before = structuredClone(s);
     expect(reroll(s, rng).ok).toBe(false);
@@ -618,12 +618,12 @@ describe('legendaries / bundle / shop levels', () => {
   });
   it('upgradeShop costs exactly, refused at max / short, atomic', () => {
     const s = shopRun();
-    s.money = 14;
+    s.money = 19;
     const before = structuredClone(s);
     expect(upgradeShop(s).ok).toBe(false);
     expect(s).toEqual(before);
-    s.money = 100;
-    for (const c of [15, 25, 40]) { const m = s.money; expect(upgradeShop(s).ok).toBe(true); expect(s.money).toBe(m - c); }
+    s.money = 150;
+    for (const c of [20, 35, 55]) { const m = s.money; expect(upgradeShop(s).ok).toBe(true); expect(s.money).toBe(m - c); }
     expect(s.shopLevel).toBe(4);
     const b2 = structuredClone(s);
     expect(upgradeShop(s).ok).toBe(false);
@@ -638,7 +638,7 @@ describe('legendaries / bundle / shop levels', () => {
         const o = rollOffers(s, mulberry32(seed), idx);
         expect(new Set(o.map((x) => x.type)).size).toBe(4);
         for (const x of o) {
-          expect(x.price).toBe(TIER.value(ITEMS[x.type].price, x.tier));
+          expect(x.price).toBe(Math.round(TIER.value(ITEMS[x.type].price, x.tier) * (1 + 0.1 * (idx - 1))));
           if (ITEMS[x.type].legendary) { legends++; expect(idx).toBeGreaterThanOrEqual(2); expect(x.tier).toBe(1); }
           if (x.tier === 3) t3++;
         }
@@ -839,7 +839,7 @@ describe('departments and routes', () => {
     expect(currentRerollCost(s)).toBe(0);
     expect(reroll(s, mulberry32(2)).ok).toBe(true);
     expect([s.money, s.shop!.bonusFreeRerolls, s.shop!.rerolls]).toEqual([100, 0, 0]);
-    expect(currentRerollCost(s)).toBe(rerollCost(0));
+    expect(currentRerollCost(s)).toBe(rerollCost(0, s.shop!.shopIndex));
     const n = createRun(1); n.wave = 2; openShop(n, mulberry32(1));
     expect(n.shop!.bonusFreeRerolls).toBe(0);
   });

@@ -8,7 +8,11 @@ import type { EnemyId, ItemTypeId, RunState, ShopOffer } from '../types';
 import type { Rng } from './rng';
 
 export const sellPrice = (type: ItemTypeId, tier = 1): number => Math.floor(TIER.value(ITEMS[type].price, tier) / 2);
-export const rerollCost = (rerollsDone: number): number => ECONOMY.rerollBase * (rerollsDone + 1);
+export const rerollCost = (rerollsDone: number, shopIndex: number): number => (ECONOMY.rerollBase + Math.ceil(shopIndex / 2)) * (rerollsDone + 1);
+const shopIdx = (state: RunState) => state.shop?.shopIndex ?? state.wave;
+/** Item price multiplier for the current shop (1 in shop 1). */
+export const inflation = (state: RunState, shopIndex = shopIdx(state)): number => 1 + ECONOMY.inflationPerShop * Math.max(0, shopIndex - 1);
+export const repairCost = (state: RunState): number => ECONOMY.repairBase + ECONOMY.repairPerShop * shopIdx(state);
 
 const anyWeapon = (o: Set<ItemTypeId>) => [...o].some((t) => ITEMS[t].kind === 'weapon');
 const ENHANCES: Partial<Record<ItemTypeId, (own: Set<ItemTypeId>) => boolean>> = {
@@ -28,9 +32,9 @@ function weight(t: ItemTypeId, own: Set<ItemTypeId>): number {
 
 export function currentRerollCost(state: RunState): number {
   const sh = state.shop;
-  if (!sh) return rerollCost(0);
+  if (!sh) return rerollCost(0, shopIdx(state));
   if (sh.bonusFreeRerolls > 0) return 0;
-  return SHOP_LEVELS[state.shopLevel - 1].freeReroll && !sh.freeRerollUsed ? 0 : rerollCost(sh.rerolls);
+  return SHOP_LEVELS[state.shopLevel - 1].freeReroll && !sh.freeRerollUsed ? 0 : rerollCost(sh.rerolls, sh.shopIndex);
 }
 
 /** `guarantee`: shop 1's initial roll includes the starting weapon's two suggested items at ★1 (default: only when shopIndex is 1). */
@@ -43,7 +47,7 @@ export function rollOffers(state: RunState, rng: Rng, shopIndex: number, guarant
   const lv = SHOP_LEVELS[Math.max(0, Math.min(SHOP_LEVELS.length, state.shopLevel) - 1)];
   const offers: ShopOffer[] = [];
   // Checkout set discount is baked in at roll time: offers already on the table keep their price until the next reroll.
-  const add = (type: ItemTypeId, tier: number) => offers.push({ slot: offers.length, type, tier, price: Math.max(1, Math.round(TIER.value(ITEMS[type].price, tier) * (PLAYER.starters[state.starter ?? 'toaster'].perk?.priceMult ?? 1) * (state.build?.priceMult ?? 1))), sold: false });
+  const add = (type: ItemTypeId, tier: number) => offers.push({ slot: offers.length, type, tier, price: Math.max(1, Math.round(TIER.value(ITEMS[type].price, tier) * (PLAYER.starters[state.starter ?? 'toaster'].perk?.priceMult ?? 1) * (state.build?.priceMult ?? 1) * inflation(state, shopIndex))), sold: false });
   if (guarantee) for (const t of STARTER_WEAPONS[state.weapon ?? 'toaster'].guarantee) add(t, 1);
   // Locked items (meta-progression) never show up.
   const allowed = (t: ItemTypeId) => !state.unlocked || state.unlocked.includes(t);

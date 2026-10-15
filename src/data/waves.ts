@@ -61,8 +61,12 @@ export const bossTuning = (shift: number): typeof BOSS => ({ ...BOSS, ...SHIFTS[
 
 export const ECONOMY = {
   waveClearBonus: 12,
-  rerollBase: 2,      // 2, 4, 6...
-  repairCost: 8,
+  /** Reroll n (0-based) costs (1 + ceil(shop / 2)) * (n + 1). */
+  rerollBase: 1,
+  repairBase: 6,      // repair = base + perShop * shop
+  repairPerShop: 2,
+  /** Item prices rise this much per shop after the first. */
+  inflationPerShop: 0.1,
   repairHp: 10,
   offerCount: 4,
   shelfSlots: 4,
@@ -71,9 +75,9 @@ export const ECONOMY = {
   killCoinChance: 0.4,
   /** Store services (always on sale until maxed). Cart grows right/down, so placed items never move. */
   cartSizes: [[5, 4], [6, 4], [6, 5], [7, 5]] as [number, number][],
-  cartPrices: [12, 18, 28, 40],
+  cartPrices: [15, 25, 40, 60],
   shelfSizes: [5, 6],
-  shelfPrices: [10, 16],
+  shelfPrices: [12, 20],
 };
 
 /** Within a wave, enemies spawned later are tougher and groups arrive more densely.
@@ -85,8 +89,8 @@ export const WAVE_RAMP = { hp: 0.4, speed: 0.12, densityPow: 0.8, fullAtWave: 6 
  * Odds are per offer slot; legendaries only from shopIndex >= 2. Pre-tiered offers cost TIER.value.
  */
 export const SHOP_LEVELS = [
-  { upgradeCost: 15, tier2: 0, tier3: 0, legendary: 0.03, freeReroll: false },
-  { upgradeCost: 25, tier2: 0.18, tier3: 0, legendary: 0.06, freeReroll: false },
-  { upgradeCost: 40, tier2: 0.28, tier3: 0.04, legendary: 0.1, freeReroll: true },
+  { upgradeCost: 20, tier2: 0, tier3: 0, legendary: 0.03, freeReroll: false },
+  { upgradeCost: 35, tier2: 0.18, tier3: 0, legendary: 0.06, freeReroll: false },
+  { upgradeCost: 55, tier2: 0.28, tier3: 0.04, legendary: 0.1, freeReroll: true },
   { upgradeCost: 0, tier2: 0.36, tier3: 0.1, legendary: 0.16, freeReroll: true },
 ];

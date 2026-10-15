@@ -7,7 +7,7 @@ import type { DepartmentId, Build, Inventory, ItemInstance, ItemTypeId, LabOpts,
 import { canPlace, findItem, normalizeRotation } from '../systems/inventory';
 import { mulberry32, type Rng } from '../systems/rng';
 import { zonesOf } from '../data/zones';
-import { currentRerollCost, rollDoors, rollOffers, rollZones, sellPrice } from '../systems/shop';
+import { currentRerollCost, repairCost, rollDoors, rollOffers, rollZones, sellPrice } from '../systems/shop';
 import { SETS } from '../data/sets';
 import { computeBuild } from '../systems/synergies';
 
@@ -227,8 +227,9 @@ export function repair(state: RunState): OpResult {
   if (state.phase !== 'shop' || !state.shop) return fail(t('rShopClosed'));
   if (state.shop.repairUsed) return fail(t('rRepairedAlready'));
   if (state.hp >= state.build.maxHp) return fail(t('rFullHealth'));
-  if (state.money < ECONOMY.repairCost) return fail(t('needCoins', { n: ECONOMY.repairCost - state.money }));
-  state.money -= ECONOMY.repairCost;
+  const cost = repairCost(state);
+  if (state.money < cost) return fail(t('needCoins', { n: cost - state.money }));
+  state.money -= cost;
   state.hp = Math.min(state.build.maxHp, state.hp + ECONOMY.repairHp);
   state.shop.repairUsed = true;
   return OK;

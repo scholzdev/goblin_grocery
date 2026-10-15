@@ -216,10 +216,10 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .card .art { width: 78px; height: 78px; }
 .card .fp { display: grid; gap: 2px; margin-top: 4px; }
 .card .fp i { width: 10px; height: 10px; background: var(--plum); border-radius: 2px; }
-.card .price-tag { position: absolute; right: -8px; top: 10px; transform: rotate(6deg); font-size: 20px; }
+.card .price-tag { position: absolute; right: -8px; top: 10px; transform: rotate(6deg); display: flex; flex-direction: column; align-items: center; gap: 1px; background: none; padding: 0; clip-path: none; font-size: 20px; }
+.card .price-tag .base { font-size: 11px; font-weight: 800; opacity: 0.5; }
 .card.sold { opacity: 0.45; cursor: default; }
 .card.sold::after { content: attr(data-sold); position: absolute; inset: 60px 10px auto; font-family: var(--display); font-size: 40px; color: var(--coral); transform: rotate(-12deg); border: 4px solid var(--coral); border-radius: 8px; }
-.card.blocked .price-tag { background: var(--lavender-deep); }
 .card .why { position: absolute; bottom: -2px; left: 6px; right: 6px; font-size: 11px; font-weight: 800; color: var(--coral-deep); }
 #shop .shelf-head { display: flex; justify-content: space-between; align-items: end; margin-top: 18px; }
 #shop .shelf-head h3 { font-family: var(--display); font-weight: 400; font-size: 22px; margin: 0; }
@@ -732,3 +732,21 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .setcard .mem { margin-top: 8px; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.6; }
 .setcard .members { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 3px; }
 .setcard .members img { width: 32px; height: 32px; padding: 2px; border-radius: 6px; background: rgba(48, 32, 63, 0.08); } .setcard .members img.missing { filter: grayscale(1); opacity: 0.55; background: none; }
+
+/* cost pill (offers, services, repair) */
+.cost { display: inline-flex; align-items: center; gap: 2px; font-family: var(--display); font-size: 12px; line-height: 1; color: var(--plum); background: #f5bd45; border: 2px solid var(--plum); border-radius: 999px; padding: 2px 6px 1px 3px; box-shadow: 0 2px 0 var(--plum); white-space: nowrap; }
+.cost .coin-ico { width: 13px; height: 13px; vertical-align: 0; }
+.cost.no { background: #ffd8d2; color: var(--coral-deep); border-color: var(--coral-deep); box-shadow: 0 2px 0 var(--coral-deep); }
+.cost.free { background: #d6f0c4; color: #3f7a1f; border-color: #3f7a1f; box-shadow: 0 2px 0 #3f7a1f; padding-left: 6px; }
+.card .price-tag .cost { font-size: 18px; padding: 3px 9px 2px 5px; gap: 3px; }
+.card .price-tag .cost .coin-ico { width: 20px; height: 20px; }
+.card .price-tag { align-items: flex-end; }
+.card .price-tag s.base { display: block; font-family: var(--body, inherit); font-size: 11px; font-weight: 800; color: var(--plum); opacity: 0.55; text-decoration: line-through; margin-right: 4px; }
+.btn .cost { margin-left: 6px; }
+#shop .services .btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; flex: 1 1 0; min-width: 0; font-size: 11px; padding: 6px 4px 5px; }
+#shop .services .btn .cost { margin-left: 0; font-size: 11px; padding: 2px 5px 1px 3px; }
+#shop .services .btn .cost .coin-ico { width: 12px; height: 12px; }
+#shop .services .btn .lbl { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+#shop .services .btn.loyalty img { width: 22px; height: 15px; }
+#shop .offers-head { gap: 8px; }
+.inflation { margin-left: 4px; font-size: 11px; font-weight: 800; color: #b8381c; background: #ffd9c9; border: 2px dashed #b8381c; border-radius: 6px; padding: 2px 6px; transform: rotate(-3deg); white-space: nowrap; }

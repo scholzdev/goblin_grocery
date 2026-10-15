@@ -6,7 +6,7 @@ import { BOSS_WAVE, ECONOMY, SHOP_LEVELS } from '../data/waves';
 import { labAddItem, labClear, cartUpgradeCost, nextCartSize, shelfUpgradeCost, upgradeCart, upgradeShelf, buyOffer, mergeItems, mergeTargetFor, upgradeShop, shopUpgradeCost, moveItem, previewMerge, previewMove, repair, reroll, sellItem, type MoveTarget } from '../state/run';
 import { findItem, rotateCells, footprint } from '../systems/inventory';
 import { describeBuffs, tierScaling } from '../systems/synergies';
-import { currentRerollCost, sellPrice } from '../systems/shop';
+import { currentRerollCost, inflation, repairCost, sellPrice } from '../systems/shop';
 import { flow } from '../flow';
 import { play } from '../audio/sfx';
 import { svg } from './hud';
@@ -251,10 +251,12 @@ function render(): void {
   const shop = s.shop!;
   const earned = s.coinLog.map((l) => `<div class="line"><span>${esc(l.label)}</span><span>+${l.amount}</span></div>`).join('');
   const spent = ledger.map((l) => `<div class="line ${l.amount < 0 ? 'neg' : ''}"><span>${esc(l.label)}</span><span>${l.amount > 0 ? '+' : ''}${l.amount}</span></div>`).join('');
+  const infl = inflation(s, shop.shopIndex);
   const offers = shop.offers.map((o) => {
     const def = ITEMS[o.type];
     const lv = o.sold ? null : mergeTargetFor(s.inventory, o.type, o.tier);
-    const why = o.sold ? '' : s.money < o.price ? t('needCoins', { n: o.price - s.money }) : s.inventory.shelf.every(Boolean) ? t('shelfFull') : '';
+    const poor = !o.sold && s.money < o.price; // shown by the red pill + title, not as text over the footprint
+    const why = o.sold || poor ? '' : s.inventory.shelf.every(Boolean) ? t('shelfFull') : '';
     // Cards have width to spare but not height: show tall footprints lying down.
     const tall = Math.max(...def.cells.map((c) => c.y)) > Math.max(...def.cells.map((c) => c.x));
     const cells = tall ? def.cells.map((c) => ({ x: c.y, y: c.x })) : def.cells;
@@ -262,16 +264,17 @@ function render(): void {
     const fp = cells.map((c) => `<i style="grid-column:${c.x + 1};grid-row:${c.y + 1}"></i>`).join('');
     const rar = def.legendary ? t('legendaryKind', { k: kindLabel(o.type) }) : o.tier === 3 ? t('epicKind', { k: kindLabel(o.type) }) : o.tier === 2 ? t('rareKind', { k: kindLabel(o.type) }) : kindLabel(o.type);
     const stks = o.sold ? '' : setGains(s.inventory.placed, o.type).map((g) => `<span class="setstk set-${g.id} ${g.levelUp ? 'up' : ''}" title="${gainText(g)}"><b>${tagT(g.id).toUpperCase()} ${g.to}/${SETS.thresholds[1]}${g.levelUp ? '!' : ''}</b></span>`).join('');
-    return `<div class="card ${rarityClass(o.type, o.tier)} ${o.sold ? 'sold' : ''} ${why ? 'blocked' : ''} ${lv ? 'lvl' : ''}" data-offer="${o.slot}" data-type="${o.type}" ${o.sold ? `data-sold="${t('soldStamp')}"` : ''} role="button" tabindex="0"
+    return `<div class="card ${rarityClass(o.type, o.tier)} ${o.sold ? 'sold' : ''} ${why || poor ? 'blocked' : ''} ${lv ? 'lvl' : ''}" data-offer="${o.slot}" data-type="${o.type}" ${poor ? `title="${t('needCoins', { n: o.price - s.money })}"` : ''} ${o.sold ? `data-sold="${t('soldStamp')}"` : ''} role="button" tabindex="0"
       aria-label="${t('buyAria', { rar, name: itemT(o.type).name, price: o.price })}">
       <img class="art" src="${svg(`icon_${o.type}`)}" alt="">
       <div class="nm">${itemT(o.type).name}</div><div class="fp" style="grid-template-columns:repeat(${w},10px)">${fp}</div>
-      <span class="price-tag"><img class="coin-ico" src="${svg('coin')}" alt="">${o.price}</span>
+      <span class="price-tag">${costPill(o.price, s.money >= o.price)}${infl > 1 && !o.sold ? `<s class="base">${Math.max(1, Math.round(o.price / infl))}</s>` : ''}</span>
       ${lv ? `<span class="lvlup" title="${t('combinesTip', { name: itemT(o.type).name })}">${t('combinesTag', { n: (lv.tier ?? 1) + 1 })}</span>` : ''}
       ${stks ? `<div class="setstks">${stks}</div>` : ''}
       <div class="why">${why}</div></div>`;
   }).join('');
   const shelf = s.inventory.shelf.map((it, i) => `<div class="slot" data-slot="${i}">${it ? itemEl({ ...it, x: 0, y: 0, rot: 0 }, s.build, '', true).replace(/style="[^"]*"/, '') : ''}</div>`).join('');
+  const rcost = repairCost(s);
   const isLast = shop.shopIndex + 1 >= BOSS_WAVE && !s.overtime;
   root.innerHTML = `
     <div class="col-left receipt">
@@ -282,8 +285,8 @@ function render(): void {
       <hr class="dash">
       <div class="total"><span>${t('wallet')}</span><span><img class="coin-ico" src="${svg('coin')}" alt=""> ${s.money}</span></div>
       <div class="hpbox"><img src="${svg('heart')}" width="26" alt=""><div class="hpbar"><i style="width:${(100 * s.hp) / s.build.maxHp}%"></i></div><span>${Math.ceil(s.hp)}/${s.build.maxHp}</span></div>
-      <button class="btn small gold" data-act="repair" style="margin-top:10px" ${shop.repairUsed || s.hp >= s.build.maxHp || s.money < ECONOMY.repairCost ? 'disabled' : ''}>
-        ${shop.repairUsed ? t('repaired') : t('repairBtn', { hp: ECONOMY.repairHp, c: ECONOMY.repairCost })}</button>
+      <button class="btn small gold" data-act="repair" style="margin-top:10px" ${shop.repairUsed || s.hp >= s.build.maxHp || s.money < rcost ? 'disabled' : ''}>
+        ${shop.repairUsed ? t('repaired') : t('repairBtn', { hp: ECONOMY.repairHp }) + costPill(rcost, s.money >= rcost)}</button>
       <div class="sets">${setsHtml()}</div>
       <div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:12px"><div class="barcode"></div><small style="font-weight:800;text-align:center">${t('thanks')}</small></div>
       <div class="shop-hint">${t('idleHover')}</div>
@@ -294,7 +297,7 @@ function render(): void {
       <div class="combos">${combosHtml(s.build, null, relevantTypes())}</div>
     </div>
     <div class="col-right">
-      <div class="offers-head"><h3>${t('todaysDeals')}</h3></div>
+      <div class="offers-head"><h3>${t('todaysDeals')}</h3>${infl > 1 ? `<span class="inflation">${t('priceInflation', { n: Math.round((infl - 1) * 100) })}</span>` : ''}</div>
       <div class="offers">${offers}</div>
       <div class="head-btns services">${loyaltyHtml(s)}${serviceHtml(s)}</div>
       <div class="shelf-head"><h3>${t('stagingShelf')}</h3><small style="font-weight:800">${t('shelfNoFight')}</small></div>
@@ -545,8 +548,9 @@ function onClick(e: MouseEvent): void {
     return;
   }
   if (act === 'repair') {
+    const cost = repairCost(s);
     const r = repair(s);
-    if (r.ok) { ledger.push({ label: t('ledgerRepair', { hp: ECONOMY.repairHp }), amount: -ECONOMY.repairCost }); play('buy'); } else toast(r.reason);
+    if (r.ok) { ledger.push({ label: t('ledgerRepair', { hp: ECONOMY.repairHp }), amount: -cost }); play('buy'); } else toast(r.reason);
     store.changed();
     return;
   }
@@ -805,22 +809,25 @@ const pct = (x: number) => `${Math.round(x * 100)}%`;
 const slotPx = (n: number) => (n <= 4 ? 86 : Math.floor((372 - (n - 1) * 8) / n));
 
 /** Store services: grow the cart or the staging shelf (prices rise each time), plus reroll. */
+/** Coin cost pill; red when unaffordable, green FREE at 0. */
+const costPill = (n: number, can: boolean): string => n === 0 ? `<span class="cost free">${t('free')}</span>` : `<span class="cost ${can ? '' : 'no'}"><img class="coin-ico" src="${svg('coin')}" alt="">${n}</span>`;
+
 function serviceHtml(s: RunState): string {
   const cc = cartUpgradeCost(s), size = nextCartSize(s), sc = shelfUpgradeCost(s);
   const cart = cc === null
     ? `<button class="btn small svc" disabled>${t('cartMax')}</button>`
-    : `<button class="btn small svc" data-act="cart" ${s.money < cc ? 'disabled' : ''} title="${t('cartTip', { c: size![0], r: size![1] })}">${t('cartBtn', { c: size![0], r: size![1], p: cc })}</button>`;
+    : `<button class="btn small svc" data-act="cart" ${s.money < cc ? 'disabled' : ''} title="${t('cartTip', { c: size![0], r: size![1] })}"><span class="lbl">${t('cartBtn', { c: size![0], r: size![1] })}</span>${costPill(cc, s.money >= cc)}</button>`;
   const shelf = sc === null
     ? `<button class="btn small svc" disabled>${t('shelfMax')}</button>`
-    : `<button class="btn small svc" data-act="shelf" ${s.money < sc ? 'disabled' : ''} title="${t('shelfTip')}">${t('shelfBtn', { p: sc })}</button>`;
+    : `<button class="btn small svc" data-act="shelf" ${s.money < sc ? 'disabled' : ''} title="${t('shelfTip')}"><span class="lbl">${t('shelfBtn')}</span>${costPill(sc, s.money >= sc)}</button>`;
   const rr = currentRerollCost(s);
-  return cart + shelf + `<button class="btn small svc" data-act="reroll" ${s.money < rr ? 'disabled' : ''}>${t('reroll')} · ${rr || t('free')}</button>`;
+  return cart + shelf + `<button class="btn small svc" data-act="reroll" ${s.money < rr ? 'disabled' : ''}><span class="lbl">${t('reroll')}</span>${costPill(rr, s.money >= rr)}</button>`;
 }
 
 function loyaltyHtml(s: RunState): string {
   const cost = shopUpgradeCost(s);
   return `<button class="btn small loyalty" data-act="loyalty" title="${t('loyaltyName')}" ${cost === null || s.money < cost ? 'disabled' : ''}>
-    <img src="${svg('loyalty_card')}" alt="">${cost === null ? t('loyaltyMax') : t('loyaltyBtn', { n: s.shopLevel + 1, p: cost })}</button>`;
+    <span class="lbl"><img src="${svg('loyalty_card')}" alt="">${cost === null ? t('loyaltyMax') : t('loyaltyBtn', { n: s.shopLevel + 1 })}</span>${cost === null ? '' : costPill(cost, s.money >= cost)}</button>`;
 }
 
 function loyaltyHtml_(): string {
