@@ -3,8 +3,8 @@ import { BOSS, ELITE, ELITE_EXCLUDED } from './enemies';
 import { DEPARTMENTS, THEMES } from './departments';
 
 export const WAVES: WaveDef[] = [
-  { index: 1, duration: 60, boss: false, total: 34, mix: { milk: 1 }, group: [2, 3], hpScale: 1.15, speedScale: 1, dmgScale: 1.5 },
-  { index: 2, duration: 60, boss: false, total: 34, mix: { milk: 3, banana: 2, giftcard: 0.3 }, group: [2, 4], hpScale: 1.15, speedScale: 1, dmgScale: 1.6 },
+  { index: 1, duration: 60, boss: false, total: 30, mix: { milk: 1 }, group: [2, 3], hpScale: 1.15, speedScale: 1, dmgScale: 1.5 },
+  { index: 2, duration: 60, boss: false, total: 33, mix: { milk: 3, banana: 2, giftcard: 0.3 }, group: [2, 4], hpScale: 1.15, speedScale: 1, dmgScale: 1.6 },
   { index: 3, duration: 60, boss: false, total: 44, mix: { milk: 3, banana: 2, soda: 1, beans: 0.5, gum: 0.6, giftcard: 0.3 }, group: [3, 4], hpScale: 1.24, speedScale: 1, dmgScale: 1.8 },
   { index: 4, duration: 60, boss: false, total: 55, mix: { milk: 3, banana: 2, soda: 1, spitter: 1.5, turkey: 0.6, beans: 0.6, gum: 0.8, cereal: 0.5, expired: 0.6, giftcard: 0.3 }, group: [3, 5], hpScale: 1.8, speedScale: 1.04, dmgScale: 2.0 },
   { index: 5, duration: 60, boss: false, total: 65, mix: { milk: 2, banana: 2, soda: 1, spitter: 1, baguette: 1.5, egg: 1, turkey: 0.8, beans: 0.8, gum: 0.8, cereal: 0.8, expired: 0.8, honey: 0.4, giftcard: 0.3 }, group: [3, 5], hpScale: 2.3, speedScale: 1.06, dmgScale: 2.25 },

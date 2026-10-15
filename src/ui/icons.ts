@@ -35,3 +35,16 @@ const SET_ICON: Record<string, string> = {
 };
 /** Bold single-colour set icon (inline SVG, tints with the surrounding `color`). */
 export const setIcon = (id: string, size = 14): string => `<svg class="sico" width="${size}" height="${size}" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${SET_ICON[id] ?? ''}</svg>`;
+
+const MOD_ICON: Record<string, string> = {
+  none: '<path d="M2 4h3l1.2 3"/><path d="M6.2 7H21l-2.4 8H8z" fill="#cfe6fb"/><circle cx="9.5" cy="19.5" r="1.8" fill="#30203f"/><circle cx="17" cy="19.5" r="1.8" fill="#30203f"/>',
+  rush: '<path d="M2 10h5M1.5 14h5M3 18h4" stroke="#2b6d8f"/><path d="M9 7h5l2 4.5 5.5 2V18H9z" fill="#f2655a"/><path d="M9 15.5h12.5M12.5 7v3" />',
+  clearance: '<path d="M3 12V3.5h8.5L21 13l-8 8z" fill="#f5bd45"/><circle cx="7.5" cy="7.5" r="1.6" fill="#fff2d5"/>',
+  event: '<path d="M13 2 5 13.5h6L10 22l9-12h-6.5z" fill="#f5bd45"/>',
+  quiet: '<path d="M19.5 15A8.5 8.5 0 1 1 9 4.5 7 7 0 0 0 19.5 15z" fill="#f5bd45"/><path d="m17 3.5.7 1.6 1.6.7-1.6.7L17 8.1l-.7-1.6-1.6-.7 1.6-.7z" fill="#fff2d5" stroke-width="1.2"/>',
+  stockroom: '<path d="M3 8 12 4l9 4v9l-9 4-9-4z" fill="#e8a455"/><path d="M3 8l9 4 9-4M12 12v9"/><path d="M7.5 6l9 4"/>',
+  coldRoom: '<path d="M12 2v20M3.3 7l17.4 10M3.3 17 20.7 7" stroke="#2b6d8f"/><circle cx="12" cy="12" r="3" fill="#cfe6fb"/>',
+  vipAisle: '<path d="M3 17 2 7l5.5 4L12 4l4.5 7L22 7l-1 10z" fill="#f5bd45"/><path d="M3.5 20.5h17"/>',
+};
+/** Door/route icon for an aisle modifier, in the same plum-outline sticker style as `icons`. */
+export const modIcon = (id: string, s = 64): string => ico(MOD_ICON[id] ?? '', s);

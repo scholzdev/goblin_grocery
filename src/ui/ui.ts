@@ -19,7 +19,7 @@ import { COUPON_COINS, STAMPS_PER_CARD, cartUnlocked, dailyBestToday, discoverRe
 import { ITEM_IDS } from '../data/items';
 import type { DepartmentId, EnemyId, ItemTypeId, LabOpts, Perk, RecipeId, StarterId, StarterWeapon } from '../types';
 import type { Fresh } from '../state/profile';
-import { setIcon } from './icons';
+import { modIcon, setIcon } from './icons';
 import { t, fmtNum, lang, setLang, LANGS, type Lang, type UIKey } from '../i18n';
 import { newSetLevels, setsOf } from '../data/sets';
 import { ZONES } from '../data/zones';
@@ -215,6 +215,7 @@ function titleHtml(): string {
       <button class="btn" data-act="history">${t('historyBtn')}</button>
       <button class="btn" data-act="settings">${t('settings')}</button>
       ${LAB ? `<button class="btn gold" data-act="lab">${t('lab')}</button>` : ''}
+      ${DEV_KEYS && profile.unlocked.length < UNLOCKS.length ? `<button class="btn gold" data-act="unlock-all">${t('unlockAll')}</button>` : ''}
       ${desktop ? `<button class="btn" data-act="exit">${t('quitGame')}</button>` : ''}
     </div>
     <div class="info receipt">
@@ -342,7 +343,7 @@ function routeHtml(): string {
     const id = s.route[i] ?? (i === BOSS_WAVE - 1 ? 'boss' : null);
     const cls = i < s.route.length ? 'done' : i === s.route.length ? 'next' : '';
     const m = s.mods[i];
-    return `<div class="step ${cls}" title="${id ? deptT(id).name : ''}${s.zones[i] ? ` · ${zoneT(s.zones[i]!).name}` : ''}">${id === 'boss' ? `<img src="${svg(DEPARTMENTS.boss.theme.icon)}" alt="${deptT('boss').name}">` : id ? (m && m !== 'none' ? MODIFIERS[m].icon : `<img src="${svg(DEPARTMENTS[id].theme.icon)}" alt="">`) : `<span>${i + 1}</span>`}</div>`;
+    return `<div class="step ${cls}" title="${id ? deptT(id).name : ''}${s.zones[i] ? ` · ${zoneT(s.zones[i]!).name}` : ''}">${id === 'boss' ? `<img src="${svg(DEPARTMENTS.boss.theme.icon)}" alt="${deptT('boss').name}">` : id ? (m && m !== 'none' ? modIcon(m, 30) : `<img src="${svg(DEPARTMENTS[id].theme.icon)}" alt="">`) : `<span>${i + 1}</span>`}</div>`;
   }).join('<i></i>');
   const cards = doors.map((id: DoorId, i) => {
     if (id === 'boss') {
@@ -360,7 +361,7 @@ function routeHtml(): string {
     const zone = zid ? `<span class="zone"><span class="zn">${zoneT(zid).name}</span><span class="zb">${zoneT(zid).blurb}</span>${Object.keys(ZONES[zid].tilt).map((e) => `<span class="zb tilt">${t('zoneMore', { name: enemyT(e as EnemyId).name })}</span>`).join('')}</span>` : '';
     return `<button class="door mod ${id}" data-act="door" data-id="${id}" ${i === 0 ? 'data-focus' : ''} aria-label="${t('dangerAria', { name: mt.name, n: risk })}">
       <span class="key">${i + 1}</span>
-      <span class="modicon">${MODIFIERS[id].icon}</span>
+      <span class="modicon">${modIcon(id)}</span>
       ${zone}
       <span class="dn">${mt.name}</span>
       <span class="danger" title="${t('danger')}">${'★'.repeat(risk) + '☆'.repeat(3 - risk)}</span>
@@ -478,6 +479,12 @@ function onClick(e: MouseEvent): void {
       closeTitleSettings();
       break;
     case 'lab': openTitleModal(labHtml(loadLab())); break;
+    case 'unlock-all': // dev/test builds only: every unlock plus every shift for every starter
+      profile.unlocked = UNLOCKS.map((u) => u.id);
+      for (const st of STARTERS) profile.stats.bestShift[st] = SHIFTS.length - 1;
+      saveProfile();
+      screens.title.innerHTML = titleHtml();
+      break;
     case 'lab-open': {
       const o = readLab();
       saveLab(o);
