@@ -239,8 +239,6 @@ export interface ShopOffer {
   sold: boolean;
   /** Offers can come pre-upgraded at higher shop levels. */
   tier: number;
-  /** Locked deals survive rerolls and carry over to the next shop. */
-  locked?: boolean;
 }
 
 export interface ShopState {

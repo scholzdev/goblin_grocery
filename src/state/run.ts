@@ -3,7 +3,7 @@ import { ITEMS, ITEM_IDS, PLAYER, STARTER_WEAPONS, TIER } from '../data/items';
 import { DEPARTMENTS } from '../data/departments';
 import { MODIFIERS, type DoorId } from '../data/modifiers';
 import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS } from '../data/waves';
-import type { DepartmentId, Build, Inventory, ItemInstance, ItemTypeId, LabOpts, OpResult, Rotation, RunState, ShopOffer, StarterId, StarterWeapon } from '../types';
+import type { DepartmentId, Build, Inventory, ItemInstance, ItemTypeId, LabOpts, OpResult, Rotation, RunState, StarterId, StarterWeapon } from '../types';
 import { canPlace, findItem, normalizeRotation } from '../systems/inventory';
 import { mulberry32, type Rng } from '../systems/rng';
 import { zonesOf } from '../data/zones';
@@ -218,7 +218,7 @@ export function reroll(state: RunState, rng: Rng): OpResult {
   const bonus = state.shop.bonusFreeRerolls > 0;
   if (state.money < cost) return fail(t('needCoins', { n: cost - state.money }));
   state.money -= cost;
-  state.shop.offers = keepLocked(state.shop.offers, rollOffers(state, rng, state.shop.shopIndex, false, { bias: state.shop.bias, legendaryBonus: state.shop.legendaryBonus })); // guarantee is initial-roll only
+  state.shop.offers = rollOffers(state, rng, state.shop.shopIndex, false, { bias: state.shop.bias, legendaryBonus: state.shop.legendaryBonus }); // guarantee is initial-roll only
   if (bonus) state.shop.bonusFreeRerolls--; else if (cost === 0) state.shop.freeRerollUsed = true; else state.shop.rerolls++;
   return OK;
 }
@@ -239,19 +239,7 @@ export function openShop(state: RunState, rng: Rng): void {
   const d = DEPARTMENTS[state.department];
   const m = MODIFIERS[state.modifier];
   const opts = { bias: [...d.shopBias], legendaryBonus: d.legendaryBonus, forceLegendary: d.forceLegendary || m.forceLegendary };
-  const kept = state.shop?.offers ?? [];
-  state.shop = { offers: keepLocked(kept, rollOffers(state, rng, state.wave, state.wave === 1, opts)), rerolls: 0, repairUsed: false, freeRerollUsed: false, bonusFreeRerolls: m.freeRerolls, shopIndex: state.wave, ...opts };
-}
-
-/** Fresh offers, except slots holding a locked, unsold deal keep that deal. */
-const keepLocked = (old: ShopOffer[], fresh: ShopOffer[]): ShopOffer[] =>
-  fresh.map((o) => old.find((k) => k.slot === o.slot && k.locked && !k.sold) ?? o);
-
-export function toggleLock(state: RunState, slot: number): OpResult {
-  const o = state.shop?.offers.find((x) => x.slot === slot);
-  if (state.phase !== 'shop' || !o || o.sold) return fail(t('rNotAvailable'));
-  o.locked = !o.locked;
-  return OK;
+  state.shop = { offers: rollOffers(state, rng, state.wave, state.wave === 1, opts), rerolls: 0, repairUsed: false, freeRerollUsed: false, bonusFreeRerolls: m.freeRerolls, shopIndex: state.wave, ...opts };
 }
 
 export function addCoins(state: RunState, amount: number, label: string): void {

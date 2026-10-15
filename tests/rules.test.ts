@@ -17,7 +17,7 @@ import { BOSS, THEME_SUMMONS, CODEX_ENEMIES, ELITE, ELITE_EXCLUDED, ENEMIES } fr
 import { DATA_DE } from '../src/i18n/data-de';
 import { BUFFS, ITEMS, PLAYER, STARTER_WEAPONS, TIER } from '../src/data/items';
 import { UNLOCKS } from '../src/data/unlocks';
-import { createLabRun, labAddItem, labDoor, cartUpgradeCost, shelfUpgradeCost, upgradeCart, upgradeShelf, chooseDoor, finishWave, leaveShop, startNextWave, buyOffer, toggleLock, mergeTargetFor, createRun, damagePlayer, mergeItems, moveItem, openShop, previewMerge, previewMove, repair, reroll, sellItem, upgradeCost, upgradeItem, upgradeShop } from '../src/state/run';
+import { createLabRun, labAddItem, labDoor, cartUpgradeCost, shelfUpgradeCost, upgradeCart, upgradeShelf, chooseDoor, finishWave, leaveShop, startNextWave, buyOffer, mergeTargetFor, createRun, damagePlayer, mergeItems, moveItem, openShop, previewMerge, previewMove, repair, reroll, sellItem, upgradeCost, upgradeItem, upgradeShop } from '../src/state/run';
 import { OBSTACLES, hazardRects } from '../src/data/obstacles';
 import { zonesOf } from '../src/data/zones';
 import { ARENA, ENTRIES, PLAYER_START, edgeSolids } from '../src/data/arena';
@@ -287,21 +287,6 @@ describe('run state ops', () => {
     s.inventory.shelf = [0, 1, 2, 3].map(() => it_('battery', 0, 0));
     s.shop!.offers[1] = { ...s.shop!.offers[1], type: 'pan', tier: 1, price: 10, sold: false };
     expect(buyOffer(s, 1).ok).toBe(false); // full shelf blocks even a combinable buy
-  });
-  it('locked deals survive rerolls and carry into the next shop; sold ones do not', () => {
-    const s = shopRun();
-    s.money = 100;
-    const keep = structuredClone(s.shop!.offers[2]);
-    expect(toggleLock(s, 2).ok).toBe(true);
-    for (let i = 0; i < 5; i++) reroll(s, mulberry32(10 + i));
-    expect(s.shop!.offers[2]).toMatchObject({ type: keep.type, tier: keep.tier, price: keep.price, locked: true });
-    openShop(s, mulberry32(99));
-    expect(s.shop!.offers[2]).toMatchObject({ type: keep.type, locked: true });
-    s.shop!.offers[2].type = 'fan';
-    buyOffer(s, 2);
-    expect(toggleLock(s, 2).ok).toBe(false);
-    openShop(s, mulberry32(7));
-    expect(s.shop!.offers[2].sold).toBe(false);
   });
   it('full shelf blocks purchase', () => {
     const s = shopRun();

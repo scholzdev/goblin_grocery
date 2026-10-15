@@ -18,6 +18,7 @@ import { cartUnlocked, discoverRecipe, goblinUnlocked, profile, saveProfile, shi
 import { ITEM_IDS } from '../data/items';
 import type { DepartmentId, EnemyId, ItemTypeId, LabOpts, Perk, RecipeId, StarterId, StarterWeapon } from '../types';
 import { t, fmtNum, setLang, LANGS, type Lang, type UIKey } from '../i18n';
+import { newSetLevels, setsOf } from '../data/sets';
 import { ZONES } from '../data/zones';
 import { cartSkinT, deptT, enemyT, goblinSkinT, itemT, recipeT, shiftT, starterT, tagT, unlockNeedT, zoneT } from '../i18n/data';
 
@@ -79,6 +80,7 @@ export function initUi(g: Phaser.Game): void {
     el.id = k;
     screens[k] = el;
   }
+  applyMotion();
   initHud(ui);
   initShop(ui);
   initTutorial(ui);
@@ -95,6 +97,22 @@ export function initUi(g: Phaser.Game): void {
     const st = store.state;
     if ((st.phase !== 'shop' && st.phase !== 'combat') || st.lab) return;
     for (const r of st.build.recipes) if (discoverRecipe(r.id)) celebrate(t('newCombo'), recipeT(r.id).name, `icon_${RECIPES[r.id].weapon}`);
+  });
+  // Set bonus level-ups: compare against the last baseline (reset whenever a shop/run opens), only while shopping.
+  let setBase: Record<string, number> | null = null;
+  const snap = (): Record<string, number> => ({ ...store.state.build.sets });
+  store.on('shop-open', () => { setBase = snap(); });
+  store.on('run-start', () => { setBase = null; });
+  store.on('change', () => {
+    const st = store.state;
+    if (st.phase !== 'shop') { setBase = null; return; }
+    const now = snap();
+    if (setBase) for (const { id, lv } of newSetLevels(setBase, now)) {
+      const last = st.inventory.placed[st.inventory.placed.length - 1];
+      const member = (last && setsOf(last.type).includes(id) ? last.type : ITEM_IDS.find((i) => setsOf(i).includes(id))) as ItemTypeId;
+      celebrate(t('setUp'), t('setUpName', { set: tagT(id), n: lv }), `icon_${member}`, t('setUpLine'));
+    }
+    setBase = now;
   });
   store.on('pause', render);
   store.on('run-end', render);
@@ -125,12 +143,12 @@ export function initUi(g: Phaser.Game): void {
   });
 }
 
-function celebrate(title: string, name: string, icon: string): void {
+function celebrate(title: string, name: string, icon: string, line: string | null = t('addedCatalog')): void {
   const el = document.createElement('div');
   el.className = 'celebrate';
   // Several discoveries at once stack downwards instead of overlapping.
   el.style.top = `${92 + ui.querySelectorAll('.celebrate').length * 104}px`;
-  el.innerHTML = `<img src="${svg(icon)}" alt=""><div><small>${title}</small><b>${name}</b><span>${t('addedCatalog')}</span></div>`;
+  el.innerHTML = `<img src="${svg(icon)}" alt=""><div><small>${title}</small><b>${name}</b>${line ? `<span>${line}</span>` : ''}</div>`;
   ui.append(el);
   play('upgrade');
   setTimeout(() => el.remove(), 2800);
@@ -582,6 +600,8 @@ function changeLanguage(l: Lang): void {
   (modal ? screens.title : ui).querySelector<HTMLElement>('[data-set="language"]')?.focus();
 }
 
+const applyMotion = (): void => { document.documentElement.classList.toggle('reduced-motion', settings.reducedMotion); };
+
 function onInput(e: Event): void {
   const el = e.target as HTMLInputElement;
   const k = el.dataset.set as keyof typeof settings | undefined;
@@ -593,6 +613,7 @@ function onInput(e: Event): void {
     if (v) v.textContent = el.value;
   } else (settings[k] as boolean) = el.checked;
   saveSettings();
+  applyMotion();
   refreshVolumes();
   if (k === 'fullscreen') desktop?.setFullscreen(settings.fullscreen);
 }

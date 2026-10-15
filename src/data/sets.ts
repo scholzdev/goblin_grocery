@@ -30,3 +30,22 @@ export function setLevels(placed: ItemInstance[]): Record<SetId, 0 | 1 | 2> {
   for (const s of Object.keys(types) as SetId[]) lv[s] = types[s].size >= SETS.thresholds[1] ? 2 : types[s].size >= SETS.thresholds[0] ? 1 : 0;
   return lv;
 }
+
+const lvOf = (n: number): number => (n >= SETS.thresholds[1] ? 2 : n >= SETS.thresholds[0] ? 1 : 0);
+
+/** What buying `type` would add to each of its sets (cart only): sets it's new to and that aren't maxed yet. */
+export function setGains(placed: ItemInstance[], type: ItemTypeId): { id: SetId; from: number; to: number; levelUp: boolean }[] {
+  const out: { id: SetId; from: number; to: number; levelUp: boolean }[] = [];
+  for (const id of setsOf(type)) {
+    const have = new Set<ItemTypeId>();
+    for (const p of placed) if (setsOf(p.type).includes(id)) have.add(p.type);
+    if (have.has(type) || have.size >= SETS.thresholds[1]) continue;
+    out.push({ id, from: have.size, to: have.size + 1, levelUp: lvOf(have.size + 1) > lvOf(have.size) });
+  }
+  return out;
+}
+
+/** Sets whose level rose from prev to next. */
+export function newSetLevels(prev: Record<SetId, number>, next: Record<SetId, number>): { id: SetId; lv: number }[] {
+  return (Object.keys(next) as SetId[]).filter((id) => next[id] > (prev[id] ?? 0)).map((id) => ({ id, lv: next[id] }));
+}

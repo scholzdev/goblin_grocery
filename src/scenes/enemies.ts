@@ -50,6 +50,8 @@ export interface Enemy {
   tx: number; ty: number;
   /** Honey Jar tether display. */
   links?: Enemy[]; linkT: number;
+  /** Frost set freeze: seconds left + the ice-block overlay while it lasts. */
+  frozenT?: number; ice?: Phaser.GameObjects.Graphics;
 }
 
 const SCALE: Record<EnemyId, number> = { milk: 0.78, banana: 0.8, soda: 0.72, spitter: 0.78, baguette: 0.8, egg: 0.78, melon: 0.9, slice: 0.5, turkey: 0.8, beans: 0.78, cereal: 0.82, honey: 0.76, giftcard: 0.74, expired: 0.78, gum: 0.76, boss: 0.95 };
@@ -220,6 +222,19 @@ export function updateEnemy(scene: ArenaScene, e: Enemy, dt: number, now: number
     if (e.flashT <= 0) e.sprite.clearTint();
   } else if (slow < 1) e.sprite.setTint(0xcfefff);
   else if (e.sprite.isTinted) e.sprite.clearTint();
+  if (e.frozenT) updateIce(scene, e, dt);
+}
+
+/** Frost set: translucent ice block around the sprite while frozen, shatters when it ends. */
+function updateIce(scene: ArenaScene, e: Enemy, dt: number): void {
+  e.frozenT = Math.max(0, e.frozenT! - dt);
+  if (!e.frozenT) { e.ice?.destroy(); e.ice = undefined; scene.fx.frostBurst(e.x, e.y - 20, 6); return; }
+  if (!e.ice) {
+    const w = e.sprite.displayWidth * 0.9, h = e.sprite.displayHeight * 0.95;
+    e.ice = scene.add.graphics();
+    e.ice.fillStyle(0xd4ecff, 0.45).fillRoundedRect(-w / 2, -h, w, h + 6, 8).lineStyle(2, 0x2a6aa8, 1).strokeRoundedRect(-w / 2, -h, w, h + 6, 8);
+  }
+  e.ice.setPosition(e.x, e.y).setDepth(DEPTH.world + e.y + 1);
 }
 
 const clampUnit = (v: number): number => Math.min(1, Math.max(0, v));

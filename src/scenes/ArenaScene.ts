@@ -395,6 +395,8 @@ export class ArenaScene extends Phaser.Scene {
   }
 
   /** Stun from hazards. The boss shrugs it off to keep its patterns readable. */
+  private regenFxT = 0;
+
   stunEnemy(e: Enemy, t: number): void {
     if (!e.alive || e.def.id === 'boss') return;
     e.state = 'stun';
@@ -477,13 +479,15 @@ export class ArenaScene extends Phaser.Scene {
     const key = o.isDot ? 'burn' : stats?.uid ?? o.label ?? 'shove';
     s.stats.damageByWeapon[key] = (s.stats.damageByWeapon[key] ?? 0) + dmg;
     if (stats?.burn) applyBurn(e.status, stats.burn, now);
-    if (!o.isDot && stats?.ignite && !stats.burn && Math.random() < stats.ignite.chance) applyBurn(e.status, stats.ignite.burn, now); // Heat L2
+    if (!o.isDot && stats?.ignite && !stats.burn && Math.random() < stats.ignite.chance) { applyBurn(e.status, stats.ignite.burn, now); this.igniteFx(e); } // Heat L2
     if (stats?.slow) applySlow(e.status, stats.slow, now);
     // Frost L2: direct hits on well-slowed enemies sometimes freeze them briefly (not aura/puddle ticks, see SETS).
-    if (!o.isDot && stats && stats.pattern !== 'aura' && stats.pattern !== 'puddle' && sets.frost === 2 && e.status.slowUntil > now && e.status.slowPct >= SETS.frost.stunMinSlow && Math.random() < SETS.frost.stunChance) this.stunEnemy(e, SETS.frost.stun);
+    if (!o.isDot && stats && stats.pattern !== 'aura' && stats.pattern !== 'puddle' && sets.frost === 2 && e.status.slowUntil > now && e.status.slowPct >= SETS.frost.stunMinSlow && Math.random() < SETS.frost.stunChance) { this.stunEnemy(e, SETS.frost.stun); this.freezeFx(e); }
     if (o.kb) {
       const k = o.kb * (1 - e.def.knockbackResist) * (this.hazards.onIce(e.x, e.y) ? DEPT_TUNING.ice.knockbackMult : 1) * (stats && sets.cleaning === 2 && ITEMS[stats.type].family === 'cleaning' ? SETS.cleaning.knockbackMult : 1);
       e.kx += (o.kbX ?? 0) * k * 3; e.ky += (o.kbY ?? 0) * k * 3;
+      // Cleaning L2: teal spritz on its boosted knockback (direct hits only).
+      if (!o.isDot && stats && stats.pattern !== 'aura' && stats.pattern !== 'puddle' && sets.cleaning === 2 && ITEMS[stats.type].family === 'cleaning') this.fx.spark(e.x, e.y - 30, 3, 0x3fb7a6);
     }
     if (!o.isDot && !o.quiet) {
       // Short flash with a re-trigger gap so constant fire never leaves a sprite solid white.
@@ -512,32 +516,74 @@ export class ArenaScene extends Phaser.Scene {
     if (stats && stats.chainChance > 0 && !o.isDot && stats.pattern !== 'aura' && stats.pattern !== 'puddle' && !o.chained && Math.random() < stats.chainChance) {
       const hit = new Set([e.id]);
       let from: Enemy = e;
+      const pts = [{ x: e.x, y: e.y - 30 }];
       for (let j = 0; j < stats.chainJumps; j++) {
         const n = pickRicochetTarget(from, this.enemies.filter((x) => x.alive && x.state !== 'spawn'), hit, SETS.electric.range);
         if (!n) break;
         hit.add(n.id);
         this.fx.spark(n.x, n.y - 30, 4, 0x9be8ff);
+        pts.push({ x: n.x, y: n.y - 30 });
         this.damageEnemy(n, baseDmg * SETS.electric.damageMult, stats, { chained: true, quiet: o.quiet });
         from = n;
       }
+      if (pts.length > 1) this.arcFx(pts);
     }
     if (e.hp <= 0) {
       this.killEnemy(e, true);
       // Kitchen L2: kitchen weapon kills sometimes heal. Blast L2: weapon kills sometimes pop (popper blasts never re-trigger).
       if (stats && sets.kitchen === 2 && ITEMS[stats.type].family === 'kitchen' && Math.random() < SETS.kitchen.healChance) {
         s.hp = Math.min(s.build.maxHp, s.hp + SETS.kitchen.heal);
-        this.fx.number(this.player.x, this.player.y - 90, SETS.kitchen.heal, '#8FCB57', 20);
+        this.healHeartFx(e.x, e.y - 30);
         store.changed();
       }
-      if (stats && sets.blast === 2 && !o.fromPopper && Math.random() < SETS.blast.killChance) this.popperBlast(e.x, e.y, { damage: SETS.blast.damage, radius: SETS.blast.radius });
+      if (stats && sets.blast === 2 && !o.fromPopper && Math.random() < SETS.blast.killChance) this.popperBlast(e.x, e.y, { damage: SETS.blast.damage, radius: SETS.blast.radius }, true);
       // Party Popper: kills explode; popper kills never pop again.
       if (stats?.popper && !o.fromPopper) this.popperBlast(e.x, e.y, stats.popper);
     }
   }
 
-  popperBlast(x: number, y: number, pop: { damage: number; radius: number }): void {
+  /** Kitchen L2 heal: a heart flies from the kill to the goblin, then the +N pops. */
+  private healHeartFx(x: number, y: number): void {
+    const h = this.add.text(x, y, '♥', { fontFamily: 'Arial, sans-serif', fontSize: '26px', color: '#F45F52', stroke: '#30203F', strokeThickness: 4 }).setOrigin(0.5).setDepth(DEPTH.fx);
+    const k = { v: 0 };
+    this.tweens.add({
+      targets: k, v: 1, duration: 350, ease: 'Quad.In',
+      onUpdate: () => h.setPosition(x + (this.player.x - x) * k.v, y + (this.player.y - 60 - y) * k.v).setScale(1 - 0.4 * k.v),
+      onComplete: () => { h.destroy(); this.fx.number(this.player.x, this.player.y - 90, SETS.kitchen.heal, '#8FCB57', 20); play('ding', { rate: 1.3, volume: 0.6 }); },
+    });
+  }
+
+  /** Electric set: one jagged bolt through the chain, fades out fast. */
+  private arcFx(pts: { x: number; y: number }[]): void {
+    const g = this.add.graphics().setDepth(DEPTH.fx);
+    const path: { x: number; y: number }[] = [pts[0]];
+    for (let i = 1; i < pts.length; i++) {
+      const a = pts[i - 1], b = pts[i], segs = Phaser.Math.Between(3, 4), len = Math.hypot(b.x - a.x, b.y - a.y) || 1, nx = -(b.y - a.y) / len, ny = (b.x - a.x) / len;
+      for (let j = 1; j < segs; j++) { const f = j / segs, off = Phaser.Math.Between(-12, 12); path.push({ x: a.x + (b.x - a.x) * f + nx * off, y: a.y + (b.y - a.y) * f + ny * off }); }
+      path.push(b);
+    }
+    for (const [w, c] of [[3, 0xf5e26b], [1, 0xffffff]] as const) g.lineStyle(w, c, 1).strokePoints(path as Phaser.Types.Math.Vector2Like[] as Phaser.Math.Vector2[]);
+    this.tweens.add({ targets: g, alpha: 0, duration: 140, onComplete: () => g.destroy() });
+    play('zap', { rate: 1.4, volume: 0.5 });
+  }
+
+  /** Frost L2: marks the enemy frozen (ice block drawn by updateEnemy). */
+  private freezeFx(e: Enemy): void {
+    if (!e.alive || e.def.id === 'boss') return;
+    e.frozenT = SETS.frost.stun;
+    play('frost', { rate: 1.3, volume: 0.5 });
+  }
+
+  /** Heat L2: ignite roll succeeded. */
+  private igniteFx(e: Enemy): void {
+    for (let i = 0; i < 3; i++) this.fx.flame(e.x + Phaser.Math.Between(-14, 14), e.y - 20 - i * 10);
+    this.fx.ring('fx_pulse', e.x, e.y, 60, 200, 0xff7a3d);
+  }
+
+  popperBlast(x: number, y: number, pop: { damage: number; radius: number }, setPop = false): void {
     this.fx.confetti(x, y - 30);
-    this.fx.ring('fx_pulse', x, y, pop.radius * 2.2, 260, 0xf5bd45);
+    this.fx.ring('fx_pulse', x, y, pop.radius * 2.2, 260, setPop ? 0xff8fc8 : 0xf5bd45);
+    if (setPop) this.fx.shake(0.003, 90);
     play('pop', { rate: 0.9 + Math.random() * 0.3 });
     for (const o of this.enemies) {
       if (!o.alive || o.state === 'spawn') continue;
@@ -567,6 +613,7 @@ export class ArenaScene extends Phaser.Scene {
     if (!e.alive) return;
     e.alive = false;
     e.state = 'dying';
+    e.ice?.destroy(); e.ice = undefined; e.frozenT = 0;
     const tint = ({ milk: 0xfff2d5, banana: 0xf6d24a, soda: 0xe2473f, spitter: 0x7cc4e8, baguette: 0xd9954a, egg: 0xfff2d5, melon: 0x8fcb57, slice: 0xf45f52, turkey: 0xcff3ff, beans: 0xb9895a, cereal: 0xe8b04a, honey: 0xf5bd45, giftcard: 0xf45f52, expired: 0xd5ebdd, gum: 0xff7fb8, boss: 0xf5bd45 } as const)[e.def.id];
     this.fx.puff(e.x, e.y - 24, e.def.id === 'boss' ? 14 : 4);
     this.fx.crumbsAt(e.x, e.y - 30, e.def.id === 'boss' ? 24 : 7, tint);
@@ -710,6 +757,7 @@ export class ArenaScene extends Phaser.Scene {
       this.updatePlayer(dt);
       if (s.build.regen > 0 && s.hp < s.build.maxHp && !this.player.dead) {
         s.hp = Math.min(s.build.maxHp, s.hp + s.build.regen * dt);
+        if ((this.regenFxT -= dt) <= 0) { this.regenFxT = 1.5; this.fx.spark(this.player.x, this.player.y - 70, 1, 0x8fcb57); }
         if (Math.floor(this.waveTime * 2) !== Math.floor((this.waveTime - dt) * 2)) store.changed();
       }
       this.updateDirector();
@@ -802,7 +850,7 @@ export class ArenaScene extends Phaser.Scene {
         if (!tryHit(p.shoveTracker, e.id)) continue;
         p.shoveHit = true;
         this.damageEnemy(e, s.build.shoveDamage, null, { kb: PLAYER.shove.knockback, kbX: p.shoveDX, kbY: p.shoveDY, label: 'shove' });
-        if (s.build.shoveStun > 0) this.stunEnemy(e, s.build.shoveStun);
+        if (s.build.shoveStun > 0) { this.stunEnemy(e, s.build.shoveStun); this.fx.ring('fx_pulse', e.x, e.y, 70, 220, 0xf5bd45); }
       }
       if (wall) p.shoveT = 0;
       if (p.shoveT <= 0) {

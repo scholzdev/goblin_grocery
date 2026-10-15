@@ -3,7 +3,7 @@ import { profile } from '../state/profile';
 import { ITEMS, ITEM_IDS, TIER } from '../data/items';
 import { RECIPES } from '../data/recipes';
 import { BOSS_WAVE, ECONOMY, SHOP_LEVELS } from '../data/waves';
-import { labAddItem, labClear, cartUpgradeCost, nextCartSize, shelfUpgradeCost, upgradeCart, upgradeShelf, buyOffer, mergeItems, mergeTargetFor, toggleLock, upgradeShop, shopUpgradeCost, moveItem, previewMerge, previewMove, repair, reroll, sellItem, type MoveTarget } from '../state/run';
+import { labAddItem, labClear, cartUpgradeCost, nextCartSize, shelfUpgradeCost, upgradeCart, upgradeShelf, buyOffer, mergeItems, mergeTargetFor, upgradeShop, shopUpgradeCost, moveItem, previewMerge, previewMove, repair, reroll, sellItem, type MoveTarget } from '../state/run';
 import { findItem, rotateCells, footprint } from '../systems/inventory';
 import { describeBuffs, tierScaling } from '../systems/synergies';
 import { currentRerollCost, sellPrice } from '../systems/shop';
@@ -14,7 +14,7 @@ import { settings } from '../state/settings';
 import { icons } from './icons';
 import { t, fmtNum } from '../i18n';
 import { itemRules, itemT, recipeT, tagT } from '../i18n/data';
-import { SETS, setsOf } from '../data/sets';
+import { SETS, setGains, setsOf } from '../data/sets';
 import type { Build, ItemInstance, ItemTypeId, RecipeId, Rotation, RunState, SetId } from '../types';
 
 // Cell pitch in design pixels (cell + 4px gap). 92 for the 4×4 and 5×4 carts; shrinks so bigger carts fit the same 460×368 area.
@@ -240,6 +240,9 @@ function fitSets(): void {
   if (!n) more.remove();
 }
 
+/** Sticker/hover detail for a set gain. */
+const gainText = (g: ReturnType<typeof setGains>[number]): string => g.levelUp ? t('setStkUp', { n: g.to >= SETS.thresholds[1] ? 2 : 1 }) : g.to < SETS.thresholds[0] ? t('setStkMore', { n: SETS.thresholds[0] - g.to }) : t('setStkMore2', { n: SETS.thresholds[1] - g.to });
+
 function render(): void {
   const s = store.state;
   const show = s.phase === 'shop' && !!s.shop;
@@ -258,13 +261,14 @@ function render(): void {
     const w = Math.max(...cells.map((c) => c.x)) + 1;
     const fp = cells.map((c) => `<i style="grid-column:${c.x + 1};grid-row:${c.y + 1}"></i>`).join('');
     const rar = def.legendary ? t('legendaryKind', { k: kindLabel(o.type) }) : o.tier === 3 ? t('epicKind', { k: kindLabel(o.type) }) : o.tier === 2 ? t('rareKind', { k: kindLabel(o.type) }) : kindLabel(o.type);
-    return `<div class="card ${rarityClass(o.type, o.tier)} ${o.sold ? 'sold' : ''} ${why ? 'blocked' : ''} ${lv ? 'lvl' : ''} ${o.locked ? 'locked' : ''}" data-offer="${o.slot}" data-type="${o.type}" ${o.sold ? `data-sold="${t('soldStamp')}"` : ''} role="button" tabindex="0"
+    const stks = o.sold ? '' : setGains(s.inventory.placed, o.type).map((g) => `<span class="setstk set-${g.id} ${g.levelUp ? 'up' : ''}" title="${gainText(g)}"><b>${tagT(g.id).toUpperCase()} ${g.to}/${SETS.thresholds[1]}${g.levelUp ? '!' : ''}</b></span>`).join('');
+    return `<div class="card ${rarityClass(o.type, o.tier)} ${o.sold ? 'sold' : ''} ${why ? 'blocked' : ''} ${lv ? 'lvl' : ''}" data-offer="${o.slot}" data-type="${o.type}" ${o.sold ? `data-sold="${t('soldStamp')}"` : ''} role="button" tabindex="0"
       aria-label="${t('buyAria', { rar, name: itemT(o.type).name, price: o.price })}">
-      <span class="kind">${rar}</span><img class="art" src="${svg(`icon_${o.type}`)}" alt="">
+      <img class="art" src="${svg(`icon_${o.type}`)}" alt="">
       <div class="nm">${itemT(o.type).name}</div><div class="fp" style="grid-template-columns:repeat(${w},10px)">${fp}</div>
-      ${o.sold ? '' : `<button class="lock" data-lock="${o.slot}" title="${o.locked ? t('unlockTip') : t('lockTip')}" aria-label="${o.locked ? t('unlockAria') : t('lockAria')}">${o.locked ? '🔒' : '🔓'}</button>`}
       <span class="price-tag"><img class="coin-ico" src="${svg('coin')}" alt="">${o.price}</span>
       ${lv ? `<span class="lvlup" title="${t('combinesTip', { name: itemT(o.type).name })}">${t('combinesTag', { n: (lv.tier ?? 1) + 1 })}</span>` : ''}
+      ${stks ? `<div class="setstks">${stks}</div>` : ''}
       <div class="why">${why}</div></div>`;
   }).join('');
   const shelf = s.inventory.shelf.map((it, i) => `<div class="slot" data-slot="${i}">${it ? itemEl({ ...it, x: 0, y: 0, rot: 0 }, s.build, '', true).replace(/style="[^"]*"/, '') : ''}</div>`).join('');
@@ -290,7 +294,7 @@ function render(): void {
       <div class="combos">${combosHtml(s.build, null, relevantTypes())}</div>
     </div>
     <div class="col-right">
-      <div class="offers-head"><h3>${t('todaysDeals')}</h3><button class="btn small" data-act="reroll" ${s.money < currentRerollCost(s) ? 'disabled' : ''}>${t('reroll')} · ${currentRerollCost(s) || t('free')}</button></div>
+      <div class="offers-head"><h3>${t('todaysDeals')}</h3></div>
       <div class="offers">${offers}</div>
       <div class="head-btns services">${loyaltyHtml(s)}${serviceHtml(s)}</div>
       <div class="shelf-head"><h3>${t('stagingShelf')}</h3><small style="font-weight:800">${t('shelfNoFight')}</small></div>
@@ -350,7 +354,8 @@ export function inspectorHtml(type: ItemTypeId, uid: string | null, offerTier?: 
   const weaponTag = (def.tags ?? []).find((tg): tg is keyof typeof KIND_BY_TAG => tg in KIND_BY_TAG);
   const kind = def.kind === 'weapon' && weaponTag ? t(KIND_BY_TAG[weaponTag]) : kindLabel(type);
   const otherTags = (def.tags ?? []).filter((tg) => !(tg in KIND_BY_TAG));
-  const setChips = setsOf(type).map((id) => `<span class="chip set-${id}${s?.build?.sets?.[id] ? ' act' : ''}">${id === 'electric' ? icons.bolt(15) : ''}${tagT(id)}</span>`).join('');
+  const gains = offerTier !== undefined && !loc && s ? setGains(s.inventory.placed, type) : [];
+  const setChips = setsOf(type).map((id) => { const g = gains.find((x) => x.id === id); return `<span class="chip set-${id}${s?.build?.sets?.[id] ? ' act' : ''}">${id === 'electric' ? icons.bolt(15) : ''}${tagT(id)}${g ? ` <small>(${gainText(g)})</small>` : ''}</span>`; }).join('');
   const head = `<header><span class="ico-tile ${rc}"><img src="${svg(`icon_${type}`)}" alt=""></span>
     <div class="hd"><div class="nm"><span style="font-size:${fitName(itemT(type).name)}px">${itemT(type).name}</span><b class="lv ${def.legendary ? 'leg' : `t${tier}`}">★${def.legendary ? '' : tier}</b></div>
     <span class="sub ${rc}">${rarity} · ${kind}</span></div></header>
@@ -518,8 +523,6 @@ function onClick(e: MouseEvent): void {
   const act = el.closest<HTMLElement>('[data-act]')?.dataset.act;
   const offer = el.closest<HTMLElement>('[data-offer]');
   if (selectedUid && !el.closest('.item[data-uid], .inspector, button, [data-offer], .slot')) { selectedUid = null; refreshHover(); }
-  const lock = el.closest<HTMLElement>('[data-lock]');
-  if (lock) { toggleLock(s, Number(lock.dataset.lock)); play('click'); store.changed(); return; }
   const add = el.closest<HTMLElement>('[data-lab-add]'), tier = el.closest<HTMLElement>('[data-lab-tier]');
   if (tier) { labTier = Number(tier.dataset.labTier); store.changed(); return; }
   if (add && s.lab) { const r = labAddItem(s, add.dataset.labAdd as ItemTypeId, labTier); if (r.ok) play('buy'); else toast(r.reason); store.changed(); return; }
@@ -801,7 +804,7 @@ const pct = (x: number) => `${Math.round(x * 100)}%`;
 
 const slotPx = (n: number) => (n <= 4 ? 86 : Math.floor((372 - (n - 1) * 8) / n));
 
-/** Store services: grow the cart or the staging shelf (prices rise each time). */
+/** Store services: grow the cart or the staging shelf (prices rise each time), plus reroll. */
 function serviceHtml(s: RunState): string {
   const cc = cartUpgradeCost(s), size = nextCartSize(s), sc = shelfUpgradeCost(s);
   const cart = cc === null
@@ -810,12 +813,13 @@ function serviceHtml(s: RunState): string {
   const shelf = sc === null
     ? `<button class="btn small svc" disabled>${t('shelfMax')}</button>`
     : `<button class="btn small svc" data-act="shelf" ${s.money < sc ? 'disabled' : ''} title="${t('shelfTip')}">${t('shelfBtn', { p: sc })}</button>`;
-  return cart + shelf;
+  const rr = currentRerollCost(s);
+  return cart + shelf + `<button class="btn small svc" data-act="reroll" ${s.money < rr ? 'disabled' : ''}>${t('reroll')} · ${rr || t('free')}</button>`;
 }
 
 function loyaltyHtml(s: RunState): string {
   const cost = shopUpgradeCost(s);
-  return `<button class="btn small loyalty" data-act="loyalty" ${cost === null || s.money < cost ? 'disabled' : ''}>
+  return `<button class="btn small loyalty" data-act="loyalty" title="${t('loyaltyName')}" ${cost === null || s.money < cost ? 'disabled' : ''}>
     <img src="${svg('loyalty_card')}" alt="">${cost === null ? t('loyaltyMax') : t('loyaltyBtn', { n: s.shopLevel + 1, p: cost })}</button>`;
 }
 

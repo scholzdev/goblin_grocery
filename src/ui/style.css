@@ -204,9 +204,9 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .combo.lose { border: 3px solid var(--coral-deep); background: #ffd8d2; }
 
 #shop .col-right { position: absolute; right: 20px; top: 22px; width: 396px; }
-#shop .offers-head { display: flex; justify-content: space-between; align-items: center; }
+#shop .offers-head { display: flex; align-items: center; }
 #shop .offers-head h3 { font-family: var(--display); font-weight: 400; font-size: 30px; margin: 0; color: var(--plum); }
-#shop .offers { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
+#shop .offers { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 12px; margin-top: 8px; }
 .card {
   position: relative; padding: 10px 10px 10px; height: 196px; display: flex; flex-direction: column; align-items: center; text-align: center;
   border: 3px solid var(--plum); border-radius: 12px; background: var(--paper); box-shadow: 0 5px 0 var(--plum); cursor: pointer;
@@ -217,7 +217,6 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .card .fp { display: grid; gap: 2px; margin-top: 4px; }
 .card .fp i { width: 10px; height: 10px; background: var(--plum); border-radius: 2px; }
 .card .price-tag { position: absolute; right: -8px; top: 10px; transform: rotate(6deg); font-size: 20px; }
-.card .kind { position: absolute; left: 8px; top: 8px; font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.6; }
 .card.sold { opacity: 0.45; cursor: default; }
 .card.sold::after { content: attr(data-sold); position: absolute; inset: 60px 10px auto; font-family: var(--display); font-size: 40px; color: var(--coral); transform: rotate(-12deg); border: 4px solid var(--coral); border-radius: 8px; }
 .card.blocked .price-tag { background: var(--lavender-deep); }
@@ -278,9 +277,6 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .card.r3 { box-shadow: 0 5px 0 #5f3aa6; background: linear-gradient(#efe6ff, var(--paper) 40%); }
 .card.legendary { box-shadow: 0 5px 0 var(--coral-deep), 0 0 0 3px var(--gold); background: linear-gradient(160deg, #fff3c4, #ffe1a1 45%, var(--paper));
   animation: shimmer 2.4s ease-in-out infinite; }
-.card.r2 .kind { color: #1f7a70; opacity: 1; }
-.card.r3 .kind { color: #5f3aa6; opacity: 1; }
-.card.legendary .kind { color: var(--coral-deep); opacity: 1; font-size: 11px; }
 @keyframes shimmer { 50% { box-shadow: 0 5px 0 var(--coral-deep), 0 0 0 5px var(--gold); } }
 @media (prefers-reduced-motion: reduce) { .card.legendary, .item.merge { animation: none; } }
 #shop .head-btns { display: flex; gap: 8px; }
@@ -437,9 +433,10 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 
 /* services row + adaptive shelf */
 #shop .services { gap: 6px; }
-#shop .services .btn { font-size: 13px; padding: 6px 6px 4px; }
+#shop .services .btn { font-size: 12px; padding: 6px 6px 4px; min-width: 0; flex: 1 1 auto; white-space: nowrap; }
+#shop .services .btn.loyalty { gap: 4px; }
+#shop .services .btn.loyalty img { width: 24px; height: 16px; }
 #shop .slot { width: auto; height: auto; aspect-ratio: 1; }
-#shop .offers-head .btn { font-size: 14px; }
 
 
 /* title menu: codex / wardrobe */
@@ -506,12 +503,25 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .card .lvlup { position: absolute; left: 50%; bottom: -11px; translate: -50% 0; white-space: nowrap; z-index: 2; padding: 3px 10px; border-radius: 999px; border: 2px solid var(--plum); background: var(--gold); color: var(--plum); font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.04em; animation: lvl-bob 1.2s ease-in-out infinite; }
 @keyframes lvl-bob { 50% { transform: translateY(-2px); } }
 
-/* Lock a deal: survives rerolls and carries into the next shop */
-.card .lock { position: absolute; left: 6px; top: 6px; width: 24px; height: 24px; font-size: 12px; padding: 0; border: 2px solid var(--plum); border-radius: 50%; background: var(--paper); font-size: 13px; line-height: 1; cursor: pointer; opacity: 0.55; z-index: 3; }
-.card .lock:hover { opacity: 1; }
-.card .kind { left: 36px !important; top: 9px !important; max-width: calc(100% - 118px); line-height: 1.15; }
-.card.locked { box-shadow: 0 0 0 3px var(--lavender), 0 6px 0 var(--plum); }
-.card.locked .lock { opacity: 1; background: var(--lavender); border-color: var(--plum); }
+/* Set stickers: what buying this card does for your sets (left edge, above the merge badge, clear of the lock) */
+.card .setstks { position: absolute; top: -10px; left: 10px; right: 44px; display: flex; gap: 4px; z-index: 4; }
+.setstk { display: inline-flex; line-height: 1.1; rotate: -4deg; border: 2px dashed var(--plum); border-radius: 6px; padding: 1px 6px; font-size: 10px; font-weight: 800; white-space: nowrap; background: var(--paper); color: var(--plum); }
+.setstk:nth-child(even) { rotate: 3deg; }
+.setstk b { font-family: var(--display); font-size: 11px; font-weight: 400; }
+.setstk.up { border-style: solid; box-shadow: 0 0 0 2px var(--gold); animation: stk-wob 1.6s ease-in-out infinite; }
+.setstk.set-electric { background: #fff1c2; color: #8a6200; }
+.setstk.set-kitchen { background: #ffe2c2; color: #9a5412; }
+.setstk.set-cleaning { background: #cdf2ee; color: #1f7a70; }
+.setstk.set-tools { background: #dfdbd6; color: #5b4a3a; }
+.setstk.set-snacks { background: #f1f5b8; color: #6b7a12; }
+.setstk.set-checkout { background: #d6f0c4; color: #3f7a1f; }
+.setstk.set-heat { background: #ffd9c9; color: #b8381c; }
+.setstk.set-frost { background: #d4ecff; color: #2a6aa8; }
+.setstk.set-blast { background: #ffd6ec; color: #a8286e; }
+@keyframes stk-wob { 50% { scale: 1.08; } }
+@media (prefers-reduced-motion: reduce) { .setstk.up { animation: none; } }
+.reduced-motion .setstk.up { animation: none; }
+
 
 /* Weapon tags as chips in the inspector header */
 .tags { display: inline-flex; flex-wrap: wrap; gap: 4px; justify-content: center; }
