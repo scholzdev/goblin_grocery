@@ -3,7 +3,7 @@ import { deptT, enemyT, itemT } from '../i18n/data';
 import { store } from '../state/store';
 import { flow } from '../flow';
 import { waveDef, eliteChance, bossTuning, ECONOMY, SHIFTS, WAVE_RAMP } from '../data/waves';
-import { SHOW_HP_BAR, EGG_BLAST, MELON_SLICES, ELITE, GIFTCARD, GUM, THEME_SUMMONS, ELITE_EXCLUDED, AFFIX, MINI_BOSS, bossFor, type BossMove } from '../data/enemies';
+import { SHOW_HP_BAR, EGG_BLAST, MELON_SLICES, ELITE, GIFTCARD, GUM, THEME_SUMMONS, ELITE_EXCLUDED, AFFIX, MINI_BOSS, bossFor, isBossId, type BossMove } from '../data/enemies';
 import { GumPuddles } from './gum';
 import { BUFFS, CRIT, ECHO, ITEMS, PLAYER, STARTER_LOOKS } from '../data/items';
 import { SETS, setCfg } from '../data/sets';
@@ -41,6 +41,7 @@ import { type Rect, pushOutCapsule, pushOutCircle, segmentHitsRect, steerAround 
 import { isDown, resetKeyboard, takePressed } from '../input/keyboard';
 import { padMove, takePadShove } from '../input/gamepad';
 import { ARENA, ENTRIES, SIDE_UNITS, DECO_SPOTS, edgeSolids } from '../data/arena';
+import { labDummies, type LabDummy } from '../lab';
 export { ARENA };
 
 interface Player {
@@ -147,7 +148,7 @@ export class ArenaScene extends Phaser.Scene {
     this.events.on(Phaser.Scenes.Events.RESUME, resetKeyboard);
 
     if (s.phase === 'combat') {
-      this.planWave();
+      if (s.labSandbox) labDummies.forEach((d) => this.labSpawn(d)); else this.planWave();
       playMusic(musicFor(this.dept.id, this.wave.boss, s.modifier));
       const room = s.modifier === 'stockroom' || s.modifier === 'coldRoom' || s.modifier === 'vipAisle' ? s.modifier : null;
       if (room) showBanner(t(`modName_${room}`), t(`roomSub_${room}`));
@@ -600,6 +601,7 @@ export class ArenaScene extends Phaser.Scene {
       }
       if (pts.length > 1) this.arcFx(pts);
     }
+    if (e.dummy?.immortal && e.hp <= 0) e.hp = e.maxHp; // lab sandbox: unkillable dummies refill
     if (e.hp <= 0) {
       this.killEnemy(e, true);
       // Kitchen L2: kitchen weapon kills sometimes heal. Blast L2: weapon kills sometimes pop (popper blasts never re-trigger).
@@ -869,8 +871,8 @@ export class ArenaScene extends Phaser.Scene {
         if ((this.regenFxT -= dt) <= 0) { this.regenFxT = 1.5; this.fx.spark(this.player.x, this.player.y - 70, 1, 0x8fcb57); }
         if (Math.floor(this.waveTime * 2) !== Math.floor((this.waveTime - dt) * 2)) store.changed();
       }
-      this.updateDirector();
-      if (this.wave.boss && !this.enraged && this.waveTime > bossTuning(store.state.shift).enrageAfter + 1.6) {
+      if (!s.labSandbox) this.updateDirector();
+      if (this.wave.boss && !s.labSandbox && !this.enraged && this.waveTime > bossTuning(store.state.shift).enrageAfter + 1.6) {
         this.enraged = true;
         const bid = this.boss?.def.id;
         showBanner(!bid || bid === 'boss' ? t('bossFurious') : t('bossFuriousN', { name: enemyT(bid).name.toUpperCase() }), t('bossFuriousSub'));
@@ -879,7 +881,7 @@ export class ArenaScene extends Phaser.Scene {
         this.enraged = true; // `enraged` speeds up every boss-behavior enemy; only the giant is one here
         showBanner(t('miniFurious', { name: enemyT(this.mini.def.id).name }), t('bossFuriousSub'));
       }
-      if (!this.wave.boss && !this.miniDue && s.modifier !== 'stockroom' && this.waveTime >= this.wave.duration) this.beginCheckout();
+      if (!this.wave.boss && !this.miniDue && !s.labSandbox && s.modifier !== 'stockroom' && this.waveTime >= this.wave.duration) this.beginCheckout();
     } else if (s.phase === 'title') {
       this.idleRig(dt);
     }
@@ -906,7 +908,7 @@ export class ArenaScene extends Phaser.Scene {
     if (this.hudT <= 0 && (s.phase === 'combat')) {
       this.hudT = 0.05;
       hud.tick({
-        timeLeft: this.wave.boss || this.miniDue || s.modifier === 'stockroom' ? -1 : Math.max(0, this.wave.duration - this.waveTime),
+        timeLeft: this.wave.boss || this.miniDue || s.labSandbox || s.modifier === 'stockroom' ? -1 : Math.max(0, this.wave.duration - this.waveTime),
         elapsed: this.waveTime,
         shoveCd: Math.max(0, this.player.shoveCd), shoveMax: s.build.shoveCooldown,
         boss: this.boss ? { hp: Math.max(0, this.boss.hp), max: this.boss.maxHp, enraged: this.enraged, name: enemyT(this.boss.def.id).name.toUpperCase() }
@@ -1216,6 +1218,32 @@ export class ArenaScene extends Phaser.Scene {
   private devHooks(): void {
     const w = window as unknown as Record<string, unknown>;
     w.__arena = this;
+  }
+
+  /** Lab sandbox: spawn one dummy away from the player. Never this.boss/this.mini, so its death ends nothing. */
+  labSpawn(d: LabDummy): void {
+    const s = store.state;
+    let x = 0, y = 0;
+    for (let i = 0; i < 10; i++) {
+      x = Phaser.Math.Between(ARENA.left + 80, ARENA.right - 80);
+      y = Phaser.Math.Between(ARENA.top + 40, ARENA.bottom - 40);
+      if (Phaser.Math.Distance.Between(x, y, this.player.x, this.player.y) > 240) break;
+    }
+    const big = isBossId(d.id) || d.mini !== undefined;
+    const e = createEnemy(this, d.id, x, y, big ? SHIFTS[s.shift].bossHpMult : this.plan.hpScale, big ? 1 : this.plan.speedScale, false, this.plan.dmgScale, 0, d.mini === undefined ? null : MINI_BOSS.variants[d.mini]);
+    e.dummy = d;
+    this.enemies.push(e);
+  }
+
+  /** Lab sandbox: remove every enemy (dummies and whatever they summoned), no credit. */
+  labDespawn(): void {
+    this.enemies.filter((e) => e.alive).forEach((e) => this.killEnemy(e, false));
+    labDummies.length = 0;
+  }
+
+  /** Lab sandbox: remember the alive dummies so the next arena respawns them. */
+  labKeepDummies(): void {
+    labDummies.splice(0, labDummies.length, ...this.enemies.filter((e) => e.alive && e.dummy).map((e) => e.dummy!));
   }
 
   /** DEV: end the current wave immediately. */

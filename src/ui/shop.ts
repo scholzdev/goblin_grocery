@@ -318,7 +318,7 @@ function render(): void {
       <div class="sell" data-sell="1">${t('dropSell')}</div>
     </div>
     <div class="bottom">
-      <button class="btn coral next" data-act="next">${isLast ? t('faceManager') : t('nextAisle')} ▸</button>
+      <button class="btn coral next" data-act="next">${s.labSandbox ? t('labFight') : isLast ? t('faceManager') : t('nextAisle')} ▸</button>
     </div>
     ${s.lab ? labPanel() : ''}
     <div class="toast" style="opacity:0"></div>`;
@@ -552,7 +552,7 @@ function onClick(e: MouseEvent): void {
   if (s.lab && act === 'lab-clear') { labClear(s); play('click'); store.changed(); return; }
   if (s.lab && act === 'lab-money') { s.money += 999; play('buy'); store.changed(); return; }
   if (s.lab && act === 'lab-reroll') { s.money += currentRerollCost(s); reroll(s, flow.rng); play('click'); store.changed(); return; }
-  if (act === 'next') { play('click'); selectedUid = null; flow.leaveShop(); return; }
+  if (act === 'next') { play('click'); selectedUid = null; if (s.labSandbox) flow.labToArena(); else flow.leaveShop(); return; }
   if (act === 'loyalty') {
     const cost = shopUpgradeCost(s);
     const r = upgradeShop(s);

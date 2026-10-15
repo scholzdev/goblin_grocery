@@ -572,6 +572,15 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 #shop .lab-item.r2 { border-color: #4a90d9; } #shop .lab-item.r3 { border-color: #9b59d0; } #shop .lab-item.legendary { border-color: #e0a526; }
 #shop .lab-item img { width: 100%; height: 100%; pointer-events: none; }
 #shop .lab-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+#sandbox { position: absolute; left: 12px; top: 96px; width: 236px; box-sizing: border-box; padding: 10px 12px; font-size: 14px; font-weight: 800; }
+#sandbox h3 { font-family: var(--display); font-weight: 400; font-size: 22px; margin: 0; }
+#sandbox .lab-items { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 3px; margin: 8px 0; }
+#sandbox .lab-item { padding: 1px; aspect-ratio: 1; border: 2px solid var(--plum); border-radius: 6px; background: var(--paper); cursor: pointer; }
+#sandbox .lab-item.r3 { border-color: #9b59d0; } #sandbox .lab-item.legendary { border-color: #e0a526; }
+#sandbox .lab-item img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+#sandbox .check { display: flex; align-items: center; gap: 6px; margin: 4px 0; }
+#sandbox select { font: inherit; border: 2px solid var(--plum); border-radius: 6px; background: var(--paper); color: var(--plum); }
+#sandbox .lab-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .codex-card .icons img { object-fit: contain; }
 
 /* Codex enemy cards: big art on the left, text on the right */

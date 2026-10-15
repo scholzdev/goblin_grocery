@@ -357,6 +357,8 @@ export interface RunState {
   labMod?: ModifierId;
   /** Aisle event forced in every lab aisle ('random' = normal roll). */
   labEvent?: 'random' | 'none' | EventKind;
+  /** Lab dummy sandbox: no waves or timer, dummies spawned from a panel, shop ↔ arena on demand. */
+  labSandbox?: boolean;
 }
 
 /** Test Lab setup (title menu); `aisle` 1..BOSS_WAVE, then overtime. */
@@ -365,6 +367,7 @@ export interface LabOpts {
   cart: [number, number]; shelf: number; shopLevel: number; god: boolean; keep: boolean;
   event?: 'random' | 'none' | EventKind;
   mod?: ModifierId;
+  sandbox?: boolean;
 }
 
 /** Result of a mutating rules operation. Never throws for gameplay-invalid input. */
