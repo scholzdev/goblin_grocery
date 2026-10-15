@@ -60,8 +60,8 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
   },
   slice: { ...base, id: 'slice', name: 'Melon Slice', blurb: "A juicy little leftover. Fast, fragile, worth no coins.", behavior: 'chase', hp: 5, speed: 95, contactDamage: 3, coins: 0, radius: 14 },
   boss: {
-    ...base, id: 'boss', name: 'The Store Manager', blurb: "Volleys, charges and summons. Gets cranky if you take too long.", behavior: 'boss', hp: 1500, speed: 55, contactDamage: 8, coins: 30, radius: 48,
-    knockbackResist: 1, tell: 0.8, attackCooldown: 2.4, attackDamage: 5, projectileSpeed: 200, projectileLife: 5,
+    ...base, id: 'boss', name: 'The Store Manager', blurb: "Volleys, charges and summons. Gets cranky if you take too long.", behavior: 'boss', hp: 1500, speed: 55, contactDamage: 14, coins: 30, radius: 48,
+    knockbackResist: 1, tell: 0.8, attackCooldown: 2.4, attackDamage: 9, projectileSpeed: 200, projectileLife: 5,
     lungeSpeed: 520, lungeTime: 0.7,
   },
 };
@@ -99,8 +99,10 @@ export const MINI_BOSS = {
   hp: 450,
   scale: 2.1,
   coins: 12,
-  /** Def overrides for the giant (the base grocery keeps its sprite, radius and contact damage). */
-  def: { knockbackResist: 1, tell: 0.85, attackCooldown: 2.8, attackDamage: 4, projectileSpeed: 190, projectileLife: 4.5, lungeSpeed: 460, lungeTime: 0.6, speed: 50 },
+  /** Seconds after it arrives before it enrages (faster moves, like the Manager). */
+  enrageAfter: 45,
+  /** Def overrides for the giant (the base grocery keeps its sprite and radius). */
+  def: { knockbackResist: 1, tell: 0.85, attackCooldown: 2.8, attackDamage: 7, contactDamage: 10, projectileSpeed: 190, projectileLife: 4.5, lungeSpeed: 460, lungeTime: 0.6, speed: 50 },
   moves: { volleyCount: 5, volleySpreadDeg: 60, summonCount: 2 },
   byTheme: { main: 'soda', frozen: 'turkey', bakery: 'baguette', electronics: 'spitter', checkout: 'banana' } as Partial<Record<DepartmentId, EnemyId>>,
   /** Crates: one legendary (when any is unlocked), the rest weapons at this tier. */

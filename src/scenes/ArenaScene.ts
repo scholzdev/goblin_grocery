@@ -450,8 +450,10 @@ export class ArenaScene extends Phaser.Scene {
     }
   }
 
-  bossBark(move: BossMove): void {
-    const lines: Record<BossMove, string> = { volley: t('bossVolley'), charge: t('bossCharge'), summon: t('bossSummon') };
+  bossBark(move: BossMove, mini = false): void {
+    const lines: Record<BossMove, string> = mini
+      ? { volley: t('miniVolley'), charge: t('miniCharge'), summon: t('miniSummon') }
+      : { volley: t('bossVolley'), charge: t('bossCharge'), summon: t('bossSummon') };
     hud.bark(lines[move]);
   }
 
@@ -871,6 +873,10 @@ export class ArenaScene extends Phaser.Scene {
         this.enraged = true;
         showBanner(t('bossFurious'), t('bossFuriousSub'));
       }
+      if (this.mini && !this.enraged && this.waveTime > MINI_BOSS.at + MINI_BOSS.enrageAfter) {
+        this.enraged = true; // `enraged` speeds up every boss-behavior enemy; only the giant is one here
+        showBanner(t('miniFurious', { name: enemyT(this.mini.def.id).name }), t('bossFuriousSub'));
+      }
       if (!this.wave.boss && !this.miniDue && s.modifier !== 'stockroom' && this.waveTime >= this.wave.duration) this.beginCheckout();
     } else if (s.phase === 'title') {
       this.idleRig(dt);
@@ -901,7 +907,7 @@ export class ArenaScene extends Phaser.Scene {
         elapsed: this.waveTime,
         shoveCd: Math.max(0, this.player.shoveCd), shoveMax: s.build.shoveCooldown,
         boss: this.boss ? { hp: Math.max(0, this.boss.hp), max: this.boss.maxHp, enraged: this.enraged, name: t('managerCaps') }
-          : this.mini ? { hp: Math.max(0, this.mini.hp), max: this.mini.maxHp, enraged: false, name: t('miniBossBar', { name: enemyT(this.mini.def.id).name.toUpperCase() }) } : null,
+          : this.mini ? { hp: Math.max(0, this.mini.hp), max: this.mini.maxHp, enraged: this.enraged, name: t('miniBossBar', { name: enemyT(this.mini.def.id).name.toUpperCase() }) } : null,
       });
     }
   }

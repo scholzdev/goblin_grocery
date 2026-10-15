@@ -5,7 +5,7 @@ import { settings, saveSettings, getBest } from '../state/settings';
 import { ITEMS, PLAYER, STARTER_LOOKS, STARTER_WEAPONS } from '../data/items';
 import { RECIPES } from '../data/recipes';
 import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS, enemyAppears } from '../data/waves';
-import { CODEX_ENEMIES, ELITE, ENEMIES } from '../data/enemies';
+import { CODEX_ENEMIES, ELITE, ENEMIES, MINI_BOSS } from '../data/enemies';
 import { LAB, loadLab, saveLab } from '../lab';
 import { play, refreshVolumes, startMusic } from '../audio/sfx';
 import { initHud, hud, svg, relabelHud } from './hud';
@@ -343,7 +343,8 @@ function routeHtml(): string {
     const id = s.route[i] ?? (i === BOSS_WAVE - 1 ? 'boss' : null);
     const cls = i < s.route.length ? 'done' : i === s.route.length ? 'next' : '';
     const m = s.mods[i];
-    return `<div class="step ${cls}" title="${id ? deptT(id).name : ''}${s.zones[i] ? ` · ${zoneT(s.zones[i]!).name}` : ''}">${id === 'boss' ? `<img src="${svg(DEPARTMENTS.boss.theme.icon)}" alt="${deptT('boss').name}">` : id ? (m && m !== 'none' ? modIcon(m, 30) : `<img src="${svg(DEPARTMENTS[id].theme.icon)}" alt="">`) : `<span>${i + 1}</span>`}</div>`;
+    const mini = i === MINI_BOSS.aisle - 1;
+    return `<div class="step ${cls}${mini ? ' mini' : ''}" title="${id ? deptT(id).name : ''}${s.zones[i] ? ` · ${zoneT(s.zones[i]!).name}` : ''}${mini ? `${id ? ' · ' : ''}${t('routeMini')}` : ''}">${id === 'boss' ? `<img src="${svg(DEPARTMENTS.boss.theme.icon)}" alt="${deptT('boss').name}">` : id ? (m && m !== 'none' ? modIcon(m, 30) : `<img src="${svg(DEPARTMENTS[id].theme.icon)}" alt="">`) : `<span>${i + 1}</span>`}</div>`;
   }).join('<i></i>');
   const cards = doors.map((id: DoorId, i) => {
     if (id === 'boss') {
@@ -749,5 +750,5 @@ function devKey(e: KeyboardEvent): void {
   const arena = (window as unknown as { __arena: { devEndWave(): void; devStress(): void } }).__arena;
   if (e.key === 'F2') { e.preventDefault(); arena.devEndWave(); }
   if (e.key === 'F4') { e.preventDefault(); arena.devStress(); }
-  if (e.key === 'F3') { e.preventDefault(); import('./dev').then((m) => m.jumpToBoss()); }
+  if (e.key === 'F3') { e.preventDefault(); import('./dev').then((m) => (e.shiftKey ? m.jumpToMini() : m.jumpToBoss())); }
 }

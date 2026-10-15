@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { AFFIX, BOSS, ELITE, MINI_BOSS, ELITE_AFFIXES, ENEMIES, EGG_BLAST, EXPIRED, GIFTCARD, GUM, HONEY, SPITTER, SPLITTER_EXCLUDED, type EliteAffix } from '../data/enemies';
+import { AFFIX, ELITE, MINI_BOSS, ELITE_AFFIXES, ENEMIES, EGG_BLAST, EXPIRED, GIFTCARD, GUM, HONEY, SPITTER, SPLITTER_EXCLUDED, type EliteAffix } from '../data/enemies';
 import { bossTuning } from '../data/waves';
 import { store } from '../state/store';
 import type { EnemyDef, EnemyId } from '../types';
@@ -81,7 +81,7 @@ export function createEnemy(scene: ArenaScene, id: EnemyId, x: number, y: number
   const dm = dmgScale * (elite ? ELITE.contactMult : 1);
   const def = mini
     // Mid-shift boss: the themed grocery's look with Manager behavior (every boss check keys on behavior).
-    ? { ...base, ...MINI_BOSS.def, behavior: 'boss' as const, radius: base.radius * MINI_BOSS.scale, contactDamage: Math.round(base.contactDamage * dm), attackDamage: Math.round(MINI_BOSS.def.attackDamage * dm) }
+    ? { ...base, ...MINI_BOSS.def, behavior: 'boss' as const, radius: base.radius * MINI_BOSS.scale, contactDamage: Math.round(MINI_BOSS.def.contactDamage * dm), attackDamage: Math.round(MINI_BOSS.def.attackDamage * dm) }
     : elite || dm !== 1 || small ? { ...base, radius: base.radius * (elite ? ELITE.scale : 1), contactDamage: Math.round(base.contactDamage * dm), attackDamage: Math.round(base.attackDamage * dm) } : base;
   const affix = elite ? pickAffix(id) : undefined;
   // `small` (Splitter copies): scale / HP of the base type; the def copy shrinks the hit radius too.
@@ -351,17 +351,12 @@ function beginAttack(scene: ArenaScene, e: Enemy): void {
       break;
     }
     case 'boss': {
-      const T = e.mini ? { ...bossTuning(store.state.shift), ...MINI_BOSS.moves } : bossTuning(store.state.shift);
+      const T = bossMoves(e);
       if (e.bossMove === 'charge') { e.stateT = d.lungeTime; play('shove', { rate: 0.7 }); }
       else if (e.bossMove === 'volley') {
         e.stateT = 0.3;
-        const base = Math.atan2(scene.player.y - e.y, scene.player.x - e.x);
-        const n = T.volleyCount + (scene.halfHp(e) ? 2 : 0);
-        const spread = Phaser.Math.DegToRad(T.volleySpreadDeg + (scene.halfHp(e) ? 20 : 0));
-        for (let i = 0; i < n; i++) {
-          const a = base + (i / (n - 1) - 0.5) * spread;
-          scene.spawnEnemyShot('proj_receipt', e.x + Math.cos(a) * 50, e.y - e.sprite.displayHeight * 0.48, a, d.projectileSpeed, d.projectileLife, d.attackDamage);
-        }
+        const v = volleyShape(scene, e);
+        for (const a of v.angles) scene.spawnEnemyShot('proj_receipt', e.x + Math.cos(a) * 50, v.y, a, d.projectileSpeed, d.projectileLife, d.attackDamage);
         play('ding', { rate: 0.8 });
       } else {
         e.stateT = 0.3;
@@ -382,6 +377,18 @@ function beginAttack(scene: ArenaScene, e: Enemy): void {
   }
 }
 
+const bossMoves = (e: Enemy) => (e.mini ? { ...bossTuning(store.state.shift), ...MINI_BOSS.moves } : bossTuning(store.state.shift));
+
+/** Receipt volley aimed at the player: shot angles and launch height (shared by the attack and its telegraph). */
+function volleyShape(scene: ArenaScene, e: Enemy): { angles: number[]; y: number } {
+  const T = bossMoves(e);
+  const half = scene.halfHp(e);
+  const n = T.volleyCount + (half ? 2 : 0);
+  const spread = Phaser.Math.DegToRad(T.volleySpreadDeg + (half ? 20 : 0));
+  const base = Math.atan2(scene.player.y - e.y, scene.player.x - e.x);
+  return { angles: Array.from({ length: n }, (_, i) => base + (i / (n - 1) - 0.5) * spread), y: e.y - e.sprite.displayHeight * 0.48 };
+}
+
 const BOSS_CYCLE: BossMove[] = ['volley', 'charge', 'summon', 'charge', 'volley', 'summon'];
 
 function bossThink(scene: ArenaScene, e: Enemy, dist: number): void {
@@ -391,7 +398,7 @@ function bossThink(scene: ArenaScene, e: Enemy, dist: number): void {
   if (e.bossMove === 'charge' && dist < 120) e.bossMove = 'volley';
   startTell(e, e.def.tell * (e.bossMove === 'summon' ? 0.75 : 1));
   play(e.bossMove === 'summon' ? 'ding' : 'swipe_tell', { rate: 0.6 });
-  scene.bossBark(e.bossMove);
+  scene.bossBark(e.bossMove, !!e.mini);
 }
 
 /** Floor telegraphs drawn into the shared graphics layer each frame. */
@@ -442,13 +449,9 @@ export function drawTelegraph(g: Phaser.GameObjects.Graphics, e: Enemy, scene: A
   } else if (d.behavior === 'spitter') {
     g.lineStyle(2, 0x3e6fd0, 0.6).strokeCircle(e.x, e.y - 34, 10 + 10 * k);
   } else if (d.behavior === 'boss' && e.bossMove === 'volley') {
-    const base = Math.atan2(scene.player.y - e.y, scene.player.x - e.x);
-    const spread = Phaser.Math.DegToRad(BOSS.volleySpreadDeg);
+    const v = volleyShape(scene, e);
     g.lineStyle(3, 0xf45f52, 0.25 + 0.4 * k);
-    for (let i = 0; i < 5; i++) {
-      const a = base + (i / 4 - 0.5) * spread;
-      g.lineBetween(e.x, e.y - 40, e.x + Math.cos(a) * 260, e.y - 40 + Math.sin(a) * 260);
-    }
+    for (const a of v.angles) g.lineBetween(e.x + Math.cos(a) * 50, v.y, e.x + Math.cos(a) * 310, v.y + Math.sin(a) * 260);
   } else if (d.behavior === 'boss') {
     g.lineStyle(4, 0xf5bd45, 0.5 + 0.4 * k).strokeEllipse(e.x, e.y, 220 * (0.6 + k * 0.4), 80 * (0.6 + k * 0.4));
   }
