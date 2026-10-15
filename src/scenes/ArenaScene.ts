@@ -1295,6 +1295,28 @@ export class ArenaScene extends Phaser.Scene {
   private devHooks(): void {
     const w = window as unknown as Record<string, unknown>;
     w.__arena = this;
+    if (store.state.labSandbox) this.labDrag();
+  }
+
+  /** Lab sandbox: grab a dummy with the mouse and drop it anywhere in the arena. */
+  private labDrag(): void {
+    let held: Enemy | null = null, dx = 0, dy = 0;
+    const pin = (p: Phaser.Input.Pointer) => {
+      if (!held?.alive) { held = null; return; }
+      held.x = p.worldX + dx; held.y = p.worldY + dy; held.kx = held.ky = 0;
+      this.clampToArena(held, held.def.radius);
+    };
+    this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
+      const body = (e: Enemy) => Math.hypot(e.x - p.worldX, e.y - e.sprite.displayHeight * 0.4 - p.worldY); // aim at the sprite, not the feet
+      held = this.enemies.filter((e) => e.alive && e.dummy && body(e) < Math.max(e.def.radius, e.sprite.displayWidth * 0.5))
+        .sort((a, b) => body(a) - body(b))[0] ?? null;
+      if (held) { dx = held.x - p.worldX; dy = held.y - p.worldY; this.input.setDefaultCursor('grabbing'); }
+    });
+    this.input.on('pointermove', pin);
+    const tick = () => { if (held) pin(this.input.activePointer); }; // walking dummies stay pinned while held
+    this.events.on('update', tick);
+    this.events.once('shutdown', () => this.events.off('update', tick));
+    this.input.on('pointerup', () => { held = null; this.input.setDefaultCursor('default'); });
   }
 
   /** Lab sandbox: spawn one dummy away from the player. Never this.boss/this.mini, so its death ends nothing. */
