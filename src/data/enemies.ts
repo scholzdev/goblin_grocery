@@ -58,7 +58,7 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
     ...base, id: 'gum', name: 'Bubble Gum', blurb: "Chews after you, leaving sticky pink puddles that slow your walk. Bursts into a trap when popped.", behavior: 'chase', hp: 26, speed: 70, contactDamage: 4, coins: 2, radius: 17,
     trail: true,
   },
-  slice: { ...base, id: 'slice', name: 'Melon Slice', blurb: "A juicy little leftover. Fast, fragile, worth no coins.", behavior: 'chase', hp: 10, speed: 95, contactDamage: 3, coins: 0, radius: 14 },
+  slice: { ...base, id: 'slice', name: 'Melon Slice', blurb: "A juicy little leftover. Fast, fragile, worth no coins.", behavior: 'chase', hp: 5, speed: 95, contactDamage: 3, coins: 0, radius: 14 },
   boss: {
     ...base, id: 'boss', name: 'The Store Manager', blurb: "Volleys, charges and summons. Gets cranky if you take too long.", behavior: 'boss', hp: 1500, speed: 55, contactDamage: 8, coins: 30, radius: 48,
     knockbackResist: 1, tell: 0.8, attackCooldown: 2.4, attackDamage: 5, projectileSpeed: 200, projectileLife: 5,

@@ -24,7 +24,7 @@ export const DEPARTMENTS: Record<DepartmentId, DepartmentDef> = {
     ...base, id: 'bakery', name: 'Bakery', short: 'BAKERY', danger: 2, hazard: 'vents',
     blurb: 'Oven vents blast heat (hurts groceries too!)', enemiesText: 'Baguettes, Eggs, Honey & Bananas',
     rewardText: 'Bread crumbs heal · kitchen deals in the shop',
-    mix: { baguette: 2.5, egg: 2.5, honey: 2.5, banana: 1.5 }, breadHeal: true, shopBias: ['pan', 'toaster', 'fuel', 'hotsauce', 'lunchbox'],
+    mix: { baguette: 1.8, egg: 1.8, honey: 2.5, banana: 1.5 }, breadHeal: true, shopBias: ['pan', 'toaster', 'fuel', 'hotsauce', 'lunchbox'],
     theme: { floor: 'floor_bakery', walls: ['bakery_rack_a', 'oven_wall', 'bakery_rack_b', 'oven_wall'], sides: ['side_bakery'], props: ['prop_breadbasket', 'prop_cereal', 'prop_breadbasket', 'prop_breadbasket', 'prop_salesign'], icon: 'dept_bakery' },
   },
   electronics: {
@@ -39,7 +39,7 @@ export const DEPARTMENTS: Record<DepartmentId, DepartmentDef> = {
     ...base, id: 'checkout', name: 'Checkout Lanes', short: 'CHECKOUT', danger: 3, hazard: 'conveyor',
     blurb: 'Conveyor belts carry everything', enemiesText: 'Bubble Gum, Melons, Bananas & Gift Cards',
     rewardText: 'No bonus',
-    mix: { gum: 2.5, melon: 2.5, banana: 2, giftcard: 2 },
+    mix: { gum: 2.5, melon: 1.5, banana: 2, giftcard: 2 },
     theme: { floor: 'floor_checkout', walls: ['checkout_counter', 'checkout_counter', 'checkout_counter', 'checkout_counter'], sides: ['side_checkout'], props: ['prop_lanesign', 'prop_cans'], icon: 'dept_checkout' },
   },
   clearance: {
