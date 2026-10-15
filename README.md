@@ -60,12 +60,12 @@ node tools/victory-check.mjs
 
 Weapons fire automatically. Losing window focus pauses the game, and you need to click Resume to continue.
 
-**Dev-only shortcuts** (on in `npm run dev` and in the test app from `npm run launch:test`; stripped from normal builds):
+**Dev-only shortcuts** (on in `npm run dev` and in the test app from `npm run launch:test`, which also opens with the Test Lab; stripped from normal builds):
 
 | Key | Action |
 |---|---|
 | F2 | End the current wave. |
-| F3 | Jump to the boss with a developed build. |
+| F3 | Jump to the boss with a developed build (Shift+F3: the aisle 4 mini-boss). |
 | F4 | Stress test: 70 enemies and 150 projectiles. |
 | F6 | +100 coins (also in the shop). |
 | F7 | +500,000 coins (also in the shop). |
