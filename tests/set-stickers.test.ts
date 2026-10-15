@@ -22,7 +22,9 @@ describe('setGains', () => {
     expect(g.find((x) => x.id === 'frost')).toMatchObject({ from: 1, to: 2, levelUp: true });
   });
   it('maxed sets are skipped', () => {
-    expect(setGains(at('bell', 'pricegun', 'coupon'), 'bubblewrap')).toEqual([]);
+    // Max level is 3 = thresholds[2] (4 types); 3 types is still gaining.
+    expect(setGains(at('bell', 'pricegun', 'coupon'), 'bubblewrap')).toEqual([{ id: 'checkout', from: 3, to: 4, levelUp: true }]);
+    expect(setGains(at('bell', 'pricegun', 'coupon', 'bubblewrap'), 'goldstar')).toEqual([]);
   });
 });
 

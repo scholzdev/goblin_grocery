@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { adjacentPairs, canPlace, footprint, normalizeRotation, rotatedSize, rotateCells } from '../src/systems/inventory';
 import { computeBuild, tierScaling } from '../src/systems/synergies';
 import { armorDamage, healTargets, shieldBlocks, killCoins, pickRicochetTarget, rollCrit, applyBurn, applySlow, isSpent, newHitTracker, newStatus, slowFactor, tickBurn, tryHit } from '../src/systems/combat';
-import { rollDoors, waveSpawnPlan, currentRerollCost, rerollCost, rollOffers, sellPrice } from '../src/systems/shop';
+import { inflation, rollDoors, waveSpawnPlan, currentRerollCost, rerollCost, rollOffers, sellPrice } from '../src/systems/shop';
 import { profile, noteEnemy, recordRun, recordOvertime, shiftUnlocked, starterUnlocked } from '../src/state/profile';
 import { mulberry32 } from '../src/systems/rng';
 import { rollEvent, outageDuration } from '../src/systems/events';
@@ -11,7 +11,7 @@ import { cart } from './cart';
 import { setLevels } from '../src/data/sets';
 import { RECIPES } from '../src/data/recipes';
 import { DEPARTMENTS, DEPT_TUNING, THEMES } from '../src/data/departments';
-import { DOOR_POOL, MODIFIERS } from '../src/data/modifiers';
+import { DOOR_POOL, MODIFIERS, ROOM_DOORS } from '../src/data/modifiers';
 import { BOSS_WAVE, ECONOMY, OVERTIME, SHIFTS, SHOP_LEVELS, WAVES, waveDef, bossTuning, eliteChance, enemyAppears } from '../src/data/waves';
 import { BOSS, THEME_SUMMONS, CODEX_ENEMIES, ELITE, ELITE_EXCLUDED, ENEMIES } from '../src/data/enemies';
 import { DATA_DE } from '../src/i18n/data-de';
@@ -87,15 +87,15 @@ describe('adjacency', () => {
   });
   it('double-edge contact does not double the buff', () => {
     const t = it_('toaster', 0, 0), h = it_('hotsauce', 0, 1), h2 = it_('hotsauce', 1, 1);
-    expect(w0(inv(t, h)).damage).toBeCloseTo(7 * 1.25 * 1.06 * 1.1);
-    expect(w0(inv(t, h, h2)).damage).toBeCloseTo(7 * 1.25 * 1.06 * 1.1);
-    expect(w0(inv(it_('toaster', 0, 0), it_('fan', 0, 1, 1))).projectileSpeed).toBeCloseTo(520 * 1.3);
+    expect(w0(inv(t, h)).damage).toBeCloseTo(9 * 1.25 * 1.06 * 1.1);
+    expect(w0(inv(t, h, h2)).damage).toBeCloseTo(9 * 1.25 * 1.06 * 1.1);
+    expect(w0(inv(it_('toaster', 0, 0), it_('fan', 0, 1, 1))).projectileSpeed).toBeCloseTo(540 * 1.3);
   });
   it('two identical fans on one toaster apply fan once', () => {
     const w = w0(inv(it_('toaster', 1, 1), it_('fan', 0, 1), it_('fan', 3, 1)));
     expect(w.buffs).toEqual(['fan']);
-    expect(w.projectileSpeed).toBeCloseTo(520 * 1.3);
-    expect(w.range).toBeCloseTo(440 * 1.3);
+    expect(w.projectileSpeed).toBeCloseTo(540 * 1.3);
+    expect(w.range).toBeCloseTo(455 * 1.3);
   });
 });
 
@@ -108,16 +108,16 @@ describe('recipes', () => {
     expect(w.recipes).toContain('toastMode');
     expect(w.count).toBe(3);
     expect(w.spreadDeg).toBe(22);
-    expect(w.damage).toBeCloseTo(7 * 1.12 * 0.75);
+    expect(w.damage).toBeCloseTo(9 * 1.12 * 0.75);
     expect(w.burn).toEqual({ dps: 2.5, duration: 3, tick: 0.5 });
-    expect(w.projectileSpeed).toBeCloseTo(520 * 1.3);
+    expect(w.projectileSpeed).toBeCloseTo(540 * 1.3);
     expect(b.recipes).toHaveLength(1);
     expect(b.recipes[0].supportUids).toHaveLength(2);
   });
   it('toast mode with hot sauce = 7*1.25*bundle*0.6', () => {
     const w = w0(inv(toaster(), it_('fan', 0, 1), it_('fuel', 3, 1), it_('hotsauce', 1, 2)));
     expect(w.recipes).toContain('toastMode');
-    expect(w.damage).toBeCloseTo(7 * 1.25 * 1.18 * 0.75 * 1.1);
+    expect(w.damage).toBeCloseTo(9 * 1.25 * 1.18 * 0.75 * 1.1);
   });
   it('only one support touching the toaster: no recipe even if supports touch each other', () => {
     // fan (0,1)-(0,2); fuel rotated horizontal at (0,3)-(1,3): touches fan, not the toaster
@@ -441,8 +441,8 @@ describe('tiers', () => {
   });
   it('weapon tier scales damage and cooldown; sell price uses tier', () => {
     const w = w0(inv(mk('toaster', 0, 0, 2)));
-    expect(w.damage).toBeCloseTo(7 * 1.5);
-    expect(w.cooldown).toBeCloseTo(0.9 * 0.9);
+    expect(w.damage).toBeCloseTo(9 * 1.5);
+    expect(w.cooldown).toBeCloseTo(ITEMS.toaster.weapon!.cooldown * 0.9);
     expect(sellPrice('toaster', 2)).toBe(12);
   });
   it('merge rejects bad pairs, state unchanged', () => {
@@ -471,7 +471,7 @@ describe('tiers', () => {
     expect(s.inventory.shelf[0]).toBeNull();
     const t = s.inventory.placed.find((p) => p.uid === 'i1')!;
     expect([t.x, t.y, t.tier]).toEqual([1, 1, 2]);
-    expect(s.build.weapons.find((w) => w.uid === 'i1')!.damage).toBeCloseTo(7 * 1.5 * 1.1);
+    expect(s.build.weapons.find((w) => w.uid === 'i1')!.damage).toBeCloseTo(9 * 1.5 * 1.1);
     // dragged placed item frees its cells
     const s2 = shopRun();
     s2.inventory.placed.push(it_('toaster', 0, 3));
@@ -497,9 +497,9 @@ describe('tiers', () => {
     expect(s).toEqual(b2);
   });
   it('max-tier fan is +60%; highest tier module wins; no stacking', () => {
-    expect(w0(inv(it_('toaster', 1, 1), mk('fan', 0, 1, 3))).projectileSpeed).toBeCloseTo(520 * 1.6);
+    expect(w0(inv(it_('toaster', 1, 1), mk('fan', 0, 1, 3))).projectileSpeed).toBeCloseTo(540 * 1.6);
     const w = w0(inv(it_('toaster', 1, 1), it_('fan', 0, 1), mk('fan', 3, 1, 2)));
-    expect(w.projectileSpeed).toBeCloseTo(520 * 1.45);
+    expect(w.projectileSpeed).toBeCloseTo(540 * 1.45);
     expect(w.buffs).toEqual(['fan']);
   });
   it('price gun crit once, ★2 = 0.225', () => {
@@ -574,18 +574,18 @@ describe('legendaries / bundle / shop levels', () => {
   });
   it('powerstrip: global vs adjacent, never both, stacks with battery', () => {
     const far = computeBuild(inv(it_('toaster', 0, 0), it_('powerstrip', 0, 3), it_('powerstrip', 2, 3)));
-    expect(far.weapons[0].cooldown).toBeCloseTo(0.9 / BUFFS.powerstripAll);
+    expect(far.weapons[0].cooldown).toBeCloseTo(ITEMS.toaster.weapon!.cooldown / BUFFS.powerstripAll);
     const near = w0(inv(it_('toaster', 0, 1), it_('powerstrip', 0, 0), it_('powerstrip', 0, 2)));
-    expect(near.cooldown).toBeCloseTo(0.9 / BUFFS.powerstripAdjacent);
+    expect(near.cooldown).toBeCloseTo(ITEMS.toaster.weapon!.cooldown / BUFFS.powerstripAdjacent);
     const bat = w0(inv(it_('toaster', 0, 1), it_('powerstrip', 0, 0), it_('battery', 2, 1)));
-    expect(bat.cooldown).toBeCloseTo(0.9 / BUFFS.powerstripAdjacent / batE / 1.08);
+    expect(bat.cooldown).toBeCloseTo(ITEMS.toaster.weapon!.cooldown / BUFFS.powerstripAdjacent / batE / 1.08);
     expect(w0(inv(it_('pan', 0, 0), it_('powerstrip', 1, 0))).cooldown).toBeCloseTo(1.15);
   });
   it('goldstar boosts adjacent fan only', () => {
     const adj = w0(inv(it_('toaster', 1, 1), mk('fan', 0, 1, 3), it_('goldstar', 0, 3)));
-    expect(adj.projectileSpeed).toBeCloseTo(520 * 1.75);
+    expect(adj.projectileSpeed).toBeCloseTo(540 * 1.75);
     const nonAdj = w0(inv(it_('toaster', 1, 1), mk('fan', 0, 1, 3), it_('goldstar', 4, 3)));
-    expect(nonAdj.projectileSpeed).toBeCloseTo(520 * 1.6);
+    expect(nonAdj.projectileSpeed).toBeCloseTo(540 * 1.6);
   });
   it('goldstar lunchbox hp = round(15*1.5)=23, no heal', () => {
     const s = shopRun();
@@ -638,7 +638,8 @@ describe('legendaries / bundle / shop levels', () => {
         const o = rollOffers(s, mulberry32(seed), idx);
         expect(new Set(o.map((x) => x.type)).size).toBe(4);
         for (const x of o) {
-          expect(x.price).toBe(Math.round(TIER.value(ITEMS[x.type].price, x.tier) * (1 + 0.1 * (idx - 1))));
+          const base = Math.round(TIER.value(ITEMS[x.type].price, x.tier) * inflation(s, idx));
+          expect(x.price).toBe(x.double ? Math.round(base * ECONOMY.doublePackPriceMult) : base); // double pack: x1.5 on the rounded price
           if (ITEMS[x.type].legendary) { legends++; expect(idx).toBeGreaterThanOrEqual(2); expect(x.tier).toBe(1); }
           if (x.tier === 3) t3++;
         }
@@ -687,7 +688,7 @@ describe('departments and routes', () => {
       const b = rollDoors(shopAt(2 + (seed % 4), 'none', 3), mulberry32(seed));
       expect(a).toHaveLength(2); expect(b).toHaveLength(3);
       expect(new Set(a).size).toBe(2); expect(new Set(b).size).toBe(3);
-      for (const d of [...a, ...b]) expect([...DOOR_POOL, 'clearance']).toContain(d);
+      for (const d of [...a, ...b]) expect([...DOOR_POOL, 'clearance', ...ROOM_DOORS]).toContain(d);
     }
   });
   it('clearance: never before shop 3, at most once, never after clearance, sometimes appears', () => {
@@ -1080,7 +1081,7 @@ describe('universal utilities and 2 combos per weapon', () => {
     expect(cw('vacuum', ['fan']).range).toBeCloseTo(150 * 1.3 * 1.15);
     expect(cw('pan', ['fan']).projectileSpeed).toBe(0);
     expect(cw('pan', ['battery']).cooldown).toBeCloseTo(1.15 / BUFFS.battery.rateMult);
-    expect(cw('toaster', ['battery']).cooldown).toBeCloseTo(0.9 / batE);
+    expect(cw('toaster', ['battery']).cooldown).toBeCloseTo(ITEMS.toaster.weapon!.cooldown / batE);
   });
   it('a pan with bell + fuel has both combos; toaster fan+fuel+hotsauce has toastMode and fiveAlarm', () => {
     expect(cw('pan', ['bell', 'fuel']).recipes).toEqual(['expressCheckout', 'sizzlingSkillet']);
@@ -1402,7 +1403,7 @@ describe('set bonuses', () => {
   it('kitchen L1 damage, cleaning L1 range, tools L1 cooldown, snacks L1 maxHp', () => {
     expect(bw('pan', 'toaster').damage).toBeCloseTo(9 * 1.1 * 1.06); // kitchen L1 x bundle (1 neighbour)
     expect(bw('mop', 'fan').range).toBeCloseTo(ITEMS.mop.weapon!.range * 1.3 * 1.15);
-    expect(bw('toaster', 'tape', 'magnet').cooldown).toBeCloseTo(0.9 / 1.08);
+    expect(bw('toaster', 'tape', 'magnet').cooldown).toBeCloseTo(ITEMS.toaster.weapon!.cooldown / 1.08);
     expect(b('lunchbox', 'energy').maxHp).toBe(PLAYER.maxHp + Math.round(BUFFS.lunchboxHp) + 10);
   });
   it('heat L1 burn duration, frost L1 slow +0.1 capped at 0.6, blast L1 popper radius', () => {
