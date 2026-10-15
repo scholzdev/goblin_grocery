@@ -38,6 +38,8 @@ import { OBSTACLES, OBSTACLE_KINDS } from '../data/obstacles';
 import { ZONES, type ZoneDef } from '../data/zones';
 import { type Rect, pushOutCapsule, pushOutCircle, segmentHitsRect, steerAround } from '../systems/obstacles';
 
+import { isDown, resetKeyboard, takePressed } from '../input/keyboard';
+import { padMove, takePadShove } from '../input/gamepad';
 import { ARENA, ENTRIES, SIDE_UNITS, DECO_SPOTS, edgeSolids } from '../data/arena';
 export { ARENA };
 
@@ -78,7 +80,6 @@ export class ArenaScene extends Phaser.Scene {
   private parts!: { legs: Phaser.GameObjects.Image; torso: Phaser.GameObjects.Image; head: Phaser.GameObjects.Image; arm: Phaser.GameObjects.Image; wheels: Phaser.GameObjects.Image[]; body: Phaser.GameObjects.Container; accHead?: Phaser.GameObjects.Image; accTorso?: Phaser.GameObjects.Image };
   private props = new Map<string, Phaser.GameObjects.Image>();
   private shadow!: Phaser.GameObjects.Image;
-  private keys!: Record<'up' | 'down' | 'left' | 'right' | 'w' | 'a' | 's' | 'd' | 'space', Phaser.Input.Keyboard.Key>;
   private animT = 0;
   private ending: '' | 'checkout' | 'victory' | 'defeat' = '';
   private boss: Enemy | null = null;
@@ -140,10 +141,7 @@ export class ArenaScene extends Phaser.Scene {
       this.coins.push({ bread: false, img: this.add.image(0, 0, 'coin').setVisible(false).setScale(0.8), active: false, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, label: '', pull: false });
     }
 
-    const kb = this.input.keyboard!;
-    const K = Phaser.Input.Keyboard.KeyCodes;
-    this.keys = kb.addKeys({ up: K.UP, down: K.DOWN, left: K.LEFT, right: K.RIGHT, w: K.W, a: K.A, s: K.S, d: K.D, space: K.SPACE }, false) as typeof this.keys;
-    this.events.on(Phaser.Scenes.Events.RESUME, () => kb.resetKeys());
+    this.events.on(Phaser.Scenes.Events.RESUME, resetKeyboard);
 
     if (s.phase === 'combat') {
       this.planWave();
@@ -917,11 +915,16 @@ export class ArenaScene extends Phaser.Scene {
 
   private input01(): { x: number; y: number } {
     if (import.meta.env.DEV && this.devInput) return this.devInput;
-    const k = this.keys;
-    let x = (k.right.isDown || k.d.isDown ? 1 : 0) - (k.left.isDown || k.a.isDown ? 1 : 0);
-    let y = (k.down.isDown || k.s.isDown ? 1 : 0) - (k.up.isDown || k.w.isDown ? 1 : 0);
+    let x = (isDown('right') ? 1 : 0) - (isDown('left') ? 1 : 0);
+    let y = (isDown('down') ? 1 : 0) - (isDown('up') ? 1 : 0);
     const l = Math.hypot(x, y);
     if (l > 0) { x /= l; y /= l; }
+    const pad = padMove(); // analog stick/d-pad, merged with the keyboard and clamped to length 1
+    if (pad.x || pad.y) {
+      x += pad.x; y += pad.y;
+      const m = Math.hypot(x, y);
+      if (m > 1) { x /= m; y /= m; }
+    }
     return { x, y };
   }
 
@@ -935,7 +938,8 @@ export class ArenaScene extends Phaser.Scene {
 
     const devShove = import.meta.env.DEV && this.devInput?.shove;
     if (devShove) this.devInput!.shove = false;
-    if ((Phaser.Input.Keyboard.JustDown(this.keys.space) || devShove) && p.shoveCd <= 0 && p.shoveT <= 0) {
+    const padShove = takePadShove(), keyShove = takePressed('shove');
+    if ((keyShove || padShove || devShove) && p.shoveCd <= 0 && p.shoveT <= 0) {
       const dx = inp.x || (inp.y ? 0 : p.facing), dy = inp.y;
       const l = Math.hypot(dx, dy) || 1;
       p.shoveDX = dx / l; p.shoveDY = dy / l;

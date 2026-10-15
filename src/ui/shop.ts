@@ -11,6 +11,9 @@ import { flow } from '../flow';
 import { play } from '../audio/sfx';
 import { svg } from './hud';
 import { settings } from '../state/settings';
+import { keyLabel, matches } from '../state/keymap';
+import type { ShopPad } from '../input/gamepad';
+import { pickNext, type Dir } from '../input/pad-core';
 import { icons, setIcon } from './icons';
 import { t, fmtNum } from '../i18n';
 import { itemRules, itemT, recipeT, tagT } from '../i18n/data';
@@ -36,6 +39,10 @@ interface Drag {
   startX: number; startY: number;
   lastX: number; lastY: number;
   target: MoveTarget | { where: 'sell' } | { where: 'merge'; uid: string } | null;
+  /** The current target would accept the drop (a gamepad drop on an invalid target keeps holding). */
+  valid: boolean;
+  /** Held with the gamepad: the ghost follows the cursor cell instead of the pointer. */
+  pad: boolean;
 }
 let drag: Drag | null = null;
 let hoverUid: string | null = null;
@@ -60,6 +67,7 @@ export function initShop(ui: HTMLElement): void {
   store.on('change', () => { if (!drag) render(); });
   store.on('shop-open', () => { ledger = []; hoverUid = null; hoverType = null; hoverSet = null; loyaltyOn = false; render(); });
   root.addEventListener('pointerdown', onPointerDown);
+  root.addEventListener('pointermove', padOff);
   root.addEventListener('click', onClick);
   root.addEventListener('pointerover', onHover);
   window.addEventListener('pointermove', onPointerMove);
@@ -72,7 +80,7 @@ export function shopKey(e: KeyboardEvent): boolean {
   if (store.state.phase !== 'shop') return false;
   if (drag && e.key === 'Escape') { cancelDrag(); return true; }
   if (!drag && selectedUid && e.key === 'Escape') { selectedUid = null; refreshHover(); return true; }
-  if (drag && (e.key === 'r' || e.key === 'R')) { rotateHeld(); return true; }
+  if (drag && matches(settings.keys, 'rotate', e.code)) { rotateHeld(); return true; }
   return false;
 }
 
@@ -315,6 +323,7 @@ function render(): void {
     ${s.lab ? labPanel() : ''}
     <div class="toast" style="opacity:0"></div>`;
   refreshHover();
+  padReapply();
 }
 
 function labPanel(): string {
@@ -603,7 +612,11 @@ function buy(slot: number): void {
 
 function onHover(e: PointerEvent): void {
   if (drag) return;
-  const el = e.target as HTMLElement;
+  hoverFrom(e.target as HTMLElement);
+}
+
+/** Shows the card / receipt preview for whatever `el` is part of (pointer hover or gamepad cursor). */
+function hoverFrom(el: HTMLElement): void {
   const item = el.closest<HTMLElement>('.item[data-uid]');
   const offer = el.closest<HTMLElement>('.card[data-type]:not(.sold)');
   const loyalty = !!el.closest('[data-act="loyalty"]');
@@ -632,6 +645,7 @@ function onPointerDown(e: PointerEvent): void {
   const found = findItem(store.state.inventory, itemEl.dataset.uid!);
   if (!found) return;
   e.preventDefault();
+  padOff();
   const rect = itemEl.getBoundingClientRect();
   const cellPx = CELL * scale();
   const rot = found.where === 'grid' ? found.inst.rot : 0;
@@ -640,7 +654,12 @@ function onPointerDown(e: PointerEvent): void {
   let gx = Math.floor((e.clientX - rect.left) / (found.where === 'grid' ? cellPx : rect.width / (Math.max(...cells.map((c) => c.x)) + 1)));
   let gy = Math.floor((e.clientY - rect.top) / (found.where === 'grid' ? cellPx : rect.height / (Math.max(...cells.map((c) => c.y)) + 1)));
   if (!cells.some((c) => c.x === gx && c.y === gy)) ({ x: gx, y: gy } = cells[0]);
-  drag = { uid: found.inst.uid, type: found.inst.type, rot, tier: found.inst.tier ?? 1, grab: { x: gx, y: gy }, ghost: null, startX: e.clientX, startY: e.clientY, lastX: e.clientX, lastY: e.clientY, target: null };
+  beginDrag(found.inst, rot, { x: gx, y: gy }, e.clientX, e.clientY);
+}
+
+/** Picks an item up (pointer press or gamepad A): `grab` is the footprint cell held, (x, y) where the ghost is anchored on screen. */
+function beginDrag(inst: ItemInstance, rot: Rotation, grab: { x: number; y: number }, x: number, y: number): void {
+  drag = { uid: inst.uid, type: inst.type, rot, tier: inst.tier ?? 1, grab, ghost: null, startX: x, startY: y, lastX: x, lastY: y, target: null, valid: false, pad: false };
 }
 
 function startGhost(): void {
@@ -724,13 +743,14 @@ function updateTarget(): void {
   let preview: Build | null = null;
   let sellHint = '';
   drag.target = null;
+  drag.valid = false;
   const over = under?.closest<HTMLElement>('.item[data-uid]');
   const overInst = over && over.dataset.uid !== drag.uid ? findItem(s.inventory, over.dataset.uid!)?.inst : null;
   root.querySelector('.item.merge')?.classList.remove('merge');
   if (overInst && overInst.type === drag.type) {
     const res = previewMerge(s, drag.uid, overInst.uid);
     drag.ghost?.classList.toggle('bad', !res.result.ok);
-    if (res.result.ok) { drag.target = { where: 'merge', uid: overInst.uid }; preview = res.build; over!.classList.add('merge'); }
+    if (res.result.ok) { drag.target = { where: 'merge', uid: overInst.uid }; drag.valid = true; preview = res.build; over!.classList.add('merge'); }
     setHint(res.result.ok
       ? `<div class="nm">${t('mergeTitle', { n: (overInst.tier ?? 1) + 1 })}</div><div>${t('mergeBody', { name: itemT(drag.type).name })}</div>`
       : `<div class="nm">${t('cantMerge')}</div><div>${esc(res.result.ok ? '' : res.result.reason)}</div>`);
@@ -747,6 +767,7 @@ function updateTarget(): void {
     const target: MoveTarget = { where: 'grid', x: px - drag.grab.x, y: py - drag.grab.y, rot: drag.rot };
     const res = previewMove(s, drag.uid, target);
     drag.target = target;
+    drag.valid = res.result.ok;
     const cells = footprint({ uid: drag.uid, type: drag.type, x: target.x, y: target.y, rot: drag.rot });
     for (const c of cells) root.querySelector(`.cell[data-cx="${c.x}"][data-cy="${c.y}"]`)?.classList.add(res.result.ok ? 'ok' : 'bad');
     drag.ghost?.classList.toggle('bad', !res.result.ok);
@@ -760,12 +781,13 @@ function updateTarget(): void {
   } else if (slot) {
     const target: MoveTarget = { where: 'shelf', slot: Number(slot.dataset.slot) };
     const res = previewMove(s, drag.uid, target);
-    if (res.result.ok) { slot.classList.add('ok'); drag.target = target; preview = res.build; }
+    if (res.result.ok) { slot.classList.add('ok'); drag.target = target; drag.valid = true; preview = res.build; }
   } else if (sell) {
     sell.classList.add('ok');
     sell.textContent = t('sellFor', { name: itemT(drag.type).name, n: sellPrice(drag.type, drag.tier) });
     sellHint = `<div class="nm">${t('sellFor', { name: itemT(drag.type).name, n: sellPrice(drag.type, drag.tier) })}</div>`;
     drag.target = { where: 'sell' };
+    drag.valid = true;
   }
   if (!sell) { const z = root.querySelector('.sell'); if (z) z.textContent = t('dropSell'); }
   const combos = root.querySelector('.combos');
@@ -777,7 +799,8 @@ function updateTarget(): void {
 
 function setHint(html: string): void {
   if (!hint) return;
-  hint.innerHTML = `${html}<div class="muted"><kbd>R</kbd> ${t('rotate')} · <kbd>ESC</kbd> ${t('cancel')}</div>`;
+  const keys = drag?.pad ? ['X', 'B'] : [keyLabel(settings.keys.rotate.find(Boolean) ?? ''), 'ESC'];
+  hint.innerHTML = `${html}<div class="muted"><kbd>${keys[0]}</kbd> ${t('rotate')} · <kbd>${keys[1]}</kbd> ${t('cancel')}</div>`;
   positionGhost();
 }
 
@@ -793,6 +816,11 @@ function onPointerUp(): void {
   endDrag();
   drag = null;
   if (!d.ghost) { selectedUid = d.uid; render(); return; } // a click selects the item for the inspector
+  commitDrop(d);
+}
+
+/** Applies a finished drag to the run (pointer release or gamepad drop). */
+function commitDrop(d: Drag): void {
   const s = store.state;
   const tg = d.target;
   let ok = false;
@@ -867,3 +895,131 @@ function cancelDrag(): void {
   drag = null;
   render();
 }
+
+// ───────────────────────────── gamepad cursor ─────────────────────────────
+// A cursor over the shop's targets (offer cards, cart cells, shelf slots, buttons; the sell zone while holding).
+// It is identified by a key so it survives the shop re-rendering, and it reuses the pointer code for buying, grabbing, previewing and dropping.
+
+let padKey: string | null = null;
+let padCenter = { x: 0, y: 0 };
+
+interface PadTarget { key: string; el: HTMLElement }
+
+function padTargets(): PadTarget[] {
+  const out: PadTarget[] = [];
+  const add = (key: string, el: HTMLElement) => { if (el.getClientRects().length) out.push({ key, el }); };
+  if (!drag) {
+    root.querySelectorAll<HTMLElement>('.card[data-offer]:not(.sold)').forEach((el) => add(`offer:${el.dataset.offer}`, el));
+    root.querySelectorAll<HTMLElement>('[data-act]:not([disabled])').forEach((el) => add(`act:${el.dataset.act}:${el.dataset.uid ?? ''}`, el));
+  }
+  root.querySelectorAll<HTMLElement>('.cell[data-cx]').forEach((el) => add(`cell:${el.dataset.cx},${el.dataset.cy}`, el));
+  root.querySelectorAll<HTMLElement>('.slot[data-slot]').forEach((el) => add(`slot:${el.dataset.slot}`, el));
+  if (drag) root.querySelectorAll<HTMLElement>('.sell').forEach((el) => add('sell', el));
+  return out;
+}
+
+const padItemAt = (key: string): ItemInstance | null => {
+  const inv = store.state.inventory;
+  if (key.startsWith('slot:')) return inv.shelf[Number(key.slice(5))] ?? null;
+  if (!key.startsWith('cell:')) return null;
+  const [cx, cy] = key.slice(5).split(',').map(Number);
+  return inv.placed.find((i) => footprint(i).some((c) => c.x === cx && c.y === cy)) ?? null;
+};
+
+function padCurrent(): PadTarget | null {
+  const list = padTargets();
+  if (!list.length) return null;
+  const hit = list.find((t) => t.key === padKey);
+  if (hit) return hit;
+  // The old target is gone (sold card, closed inspector): take the nearest remaining one.
+  const d = (t: PadTarget) => { const r = t.el.getBoundingClientRect(); return Math.hypot(r.left + r.width / 2 - padCenter.x, r.top + r.height / 2 - padCenter.y); };
+  return list.reduce((a, b) => (d(b) < d(a) ? b : a));
+}
+
+/** Highlights the cursor and, like hovering, shows the card for what is under it (or moves the held ghost there). */
+function padApply(tg: PadTarget | null, hover = true): void {
+  root.querySelectorAll('.pad-cur').forEach((n) => n.classList.remove('pad-cur'));
+  if (!tg) return;
+  padKey = tg.key;
+  const r = tg.el.getBoundingClientRect();
+  padCenter = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  tg.el.classList.add('pad-cur');
+  const inst = padItemAt(tg.key);
+  const itemEl = inst ? root.querySelector<HTMLElement>(`.item[data-uid="${inst.uid}"]`) : null;
+  if (!drag) itemEl?.classList.add('pad-cur');
+  if (drag) {
+    drag.lastX = padCenter.x;
+    drag.lastY = padCenter.y;
+    positionGhost();
+    updateTarget();
+  } else if (hover) hoverFrom(itemEl ?? tg.el);
+}
+
+function padReapply(): void {
+  if (padKey && root && !drag) padApply(padCurrent());
+}
+
+/** Pointer takes over: drop the cursor highlight. */
+function padOff(): void {
+  if (!padKey) return;
+  padKey = null;
+  root.querySelectorAll('.pad-cur').forEach((n) => n.classList.remove('pad-cur'));
+}
+
+export const shopPad: ShopPad = {
+  enter() {
+    if (!root || store.state.phase !== 'shop') return;
+    const list = padTargets();
+    padApply(list.find((t) => t.key.startsWith('offer:')) ?? list[0] ?? null);
+  },
+  move(dir: Dir) {
+    const list = padTargets();
+    if (!list.length) return;
+    const cur = padCurrent();
+    if (!cur) return;
+    if (!padKey) { padApply(cur); return; }
+    const i = list.findIndex((t) => t.key === cur.key);
+    const next = pickNext(list.map((t) => t.el.getBoundingClientRect()), i, dir);
+    if (next >= 0) padApply(list[next]);
+  },
+  confirm() {
+    const tg = padCurrent();
+    if (!tg) return;
+    if (drag) { // drop where the cursor is; an invalid spot keeps the item in hand
+      if (!drag.valid) { play('click', { rate: 0.6 }); return; }
+      const d = drag;
+      endDrag();
+      drag = null;
+      commitDrop(d);
+      return;
+    }
+    if (tg.key.startsWith('offer:')) { buy(Number(tg.key.slice(6))); return; }
+    if (tg.key.startsWith('act:')) { tg.el.click(); return; }
+    const inst = padItemAt(tg.key);
+    if (!inst) return;
+    const rot = tg.key.startsWith('cell:') ? inst.rot : 0;
+    const cells = rotateCells(ITEMS[inst.type].cells, rot);
+    let grab = cells[0];
+    if (tg.key.startsWith('cell:')) {
+      const [cx, cy] = tg.key.slice(5).split(',').map(Number);
+      grab = cells.find((c) => c.x === cx - inst.x && c.y === cy - inst.y) ?? cells[0];
+    }
+    beginDrag(inst, rot, { x: grab.x, y: grab.y }, padCenter.x, padCenter.y);
+    drag!.pad = true;
+    startGhost();
+    padApply(tg);
+  },
+  cancel() {
+    if (drag) { cancelDrag(); padReapply(); return; }
+    if (selectedUid) { selectedUid = null; refreshHover(); }
+  },
+  rotate() {
+    if (drag) rotateHeld();
+  },
+  inspect() {
+    if (drag) return;
+    const tg = padCurrent();
+    const inst = tg ? padItemAt(tg.key) : null;
+    if (inst) { selectedUid = inst.uid; render(); }
+  },
+};

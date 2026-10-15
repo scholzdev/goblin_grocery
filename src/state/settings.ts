@@ -1,5 +1,6 @@
 // Per-player settings + best run, persisted in localStorage. Every access guarded.
 import { setLang, systemLang, type Lang } from '../i18n/lang';
+import { defaultKeys, sanitizeKeys, type KeyMap } from './keymap';
 
 export interface Settings {
   master: number;
@@ -13,13 +14,15 @@ export interface Settings {
   tutorialSeen: string[];
   fullscreen: boolean;
   language: Lang;
+  /** Rebindable keyboard controls (KeyboardEvent.code per action, two slots each). */
+  keys: KeyMap;
 }
 
 export interface BestRun { score: number; wave: number; won: boolean; date: string }
 
 const KEY = 'goblin-grocery.settings.v1';
 const BEST = 'goblin-grocery.best.v1';
-const DEFAULTS: Settings = { master: 0.8, music: 0.45, sfx: 0.8, reducedMotion: false, shake: true, hintSeen: false, tutorialDone: false, tutorialSeen: [], fullscreen: true, language: systemLang() };
+const DEFAULTS: Settings = { master: 0.8, music: 0.45, sfx: 0.8, reducedMotion: false, shake: true, hintSeen: false, tutorialDone: false, tutorialSeen: [], fullscreen: true, language: systemLang(), keys: defaultKeys() };
 
 function read<T>(key: string): T | null {
   try {
@@ -38,6 +41,7 @@ function write(key: string, value: unknown): void {
 }
 
 export const settings: Settings = { ...DEFAULTS, ...(read<Partial<Settings>>(KEY) ?? {}) };
+settings.keys = sanitizeKeys(settings.keys);
 setLang(settings.language);
 export const saveSettings = (): void => write(KEY, settings);
 

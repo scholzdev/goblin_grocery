@@ -10,7 +10,11 @@ import { LAB, loadLab, saveLab } from '../lab';
 import { play, refreshVolumes, startMusic } from '../audio/sfx';
 import { initHud, hud, svg, relabelHud } from './hud';
 import { initTutorial, resetTutorial } from './tutorial';
-import { initShop, shopKey, gridHtml, combosHtml, starsHtml, rarityClass, inspectorHtml, showItemCard, hideItemCard } from './shop';
+import { KEY_ACTIONS, clearSlot, defaultKeys, keyLabel, matches, rebind, type KeyAction } from '../state/keymap';
+import { initKeyboard } from '../input/keyboard';
+import { initGamepad } from '../input/gamepad';
+import { kbdHtml, keyText, moveHtml } from './keys';
+import { initShop, shopKey, shopPad, gridHtml, combosHtml, starsHtml, rarityClass, inspectorHtml, showItemCard, hideItemCard } from './shop';
 import { DEPARTMENTS, THEMES } from '../data/departments';
 import { MODIFIERS, type DoorId, type ModifierId } from '../data/modifiers';
 import { SET_EVENTS, type SetEventKind } from '../data/events';
@@ -27,8 +31,6 @@ import { cartSkinT, deptT, enemyT, goblinSkinT, itemT, recipeT, shiftT, starterT
 
 // DOM controllers are created exactly once at boot and driven by store events,
 // so restarting a run never duplicates listeners or overlays.
-
-let game: Phaser.Game;
 
 /** Present only in the Electron desktop build (electron/preload.cjs). */
 const desktop = (window as unknown as { desktop?: { quit(): void; setFullscreen(on: boolean): void } }).desktop;
@@ -61,8 +63,7 @@ const pickWeapon = (w: StarterWeapon): void => { pickedWeapon = w; savePick(); }
 const pickTheme = (d: DepartmentId): void => { pickedTheme = d; savePick(); };
 const modT = (id: ModifierId) => ({ name: t(`modName_${id}` as UIKey), short: t(`modShort_${id}` as UIKey), fx: t(`modFx_${id}` as UIKey), rw: t(`modRw_${id}` as UIKey) });
 
-export function initUi(g: Phaser.Game): void {
-  game = g;
+export function initUi(_game: Phaser.Game): void {
   ui = document.getElementById('ui-root')!;
   document.documentElement.lang = settings.language;
   const stage = document.getElementById('stage')!;
@@ -129,6 +130,7 @@ export function initUi(g: Phaser.Game): void {
     setTimeout(() => n.remove(), 3200);
   });
   window.addEventListener('keydown', onKey);
+  initPad();
   desktop?.setFullscreen(settings.fullscreen);
   window.addEventListener('blur', () => flow.pause('blur'));
   document.addEventListener('visibilitychange', () => { if (document.hidden) flow.pause('blur'); });
@@ -168,13 +170,6 @@ function celebrate(title: string, name: string, icon: string, line: string | nul
 function render(): void {
   const s = store.state;
   if (!screens.loading.classList.contains('hidden')) return;
-  // Phaser keyboard capture only while actually fighting, so menus get Space/arrows normally.
-  const kb = game.input.keyboard;
-  if (kb) {
-    if (!kb.captures.length) kb.addCapture([32, 37, 38, 39, 40]);
-    kb.preventDefault = s.phase === 'combat' && !flow.paused;
-  }
-
   toggle('title', s.phase === 'title' && !choosingStarter, titleHtml);
   toggle('pause', flow.paused && flow.pauseReason !== 'loadout', pauseHtml);
   toggle('loadout', flow.paused && flow.pauseReason === 'loadout', loadoutHtml);
@@ -214,14 +209,15 @@ function titleHtml(): string {
       <button class="btn" data-act="wardrobe">${t('wardrobe')}</button>
       <button class="btn" data-act="history">${t('historyBtn')}</button>
       <button class="btn" data-act="settings">${t('settings')}</button>
+      <button class="btn" data-act="credits">${t('credits')}</button>
       ${LAB ? `<button class="btn gold" data-act="lab">${t('lab')}</button>` : ''}
       ${DEV_KEYS && profile.unlocked.length < UNLOCKS.length ? `<button class="btn gold" data-act="unlock-all">${t('unlockAll')}</button>` : ''}
       ${desktop ? `<button class="btn" data-act="exit">${t('quitGame')}</button>` : ''}
     </div>
     <div class="info receipt">
       <h4>${t('howToShop')}</h4>
-      <div class="keys"><kbd>WASD</kbd> / <kbd>←↑↓→</kbd> ${t('pushCart')}</div>
-      <div class="keys"><kbd>${t('keySpace')}</kbd> ${t('cartShove')} · <kbd>TAB</kbd> ${t('viewCartLc')} · <kbd>ESC</kbd> ${t('pauseLc')}</div>
+      <div class="keys">${moveHtml()} ${t('pushCart')}</div>
+      <div class="keys">${kbdHtml('shove')} ${t('cartShove')} · ${kbdHtml('loadout')} ${t('viewCartLc')} · ${kbdHtml('pause')} ${t('pauseLc')}</div>
       <div>${t('howToBlurb', { n: BOSS_WAVE - 1 })}</div>
       <hr class="dash">
       <div class="best">${best ? t('bestReceipt', { score: best.score, result: best.won ? t('victory') : t('aisleN', { n: best.wave }) }) : t('noReceipts')}</div>
@@ -237,8 +233,70 @@ function settingsHtml(): string {
     <label class="check"><input type="checkbox" data-set="reducedMotion" ${settings.reducedMotion ? 'checked' : ''}>${t('reducedMotion')}</label>
     <label class="check"><input type="checkbox" data-set="shake" ${settings.shake ? 'checked' : ''}>${t('screenShake')}</label>
     <button class="btn small" data-act="replay-tutorial">${t('tutReplay')}</button>
+    ${controlsHtml()}
     ${desktop ? `<label class="check"><input type="checkbox" data-set="fullscreen" ${settings.fullscreen ? 'checked' : ''}>${t('fullscreen')}</label>` : ''}
   </div>`;
+}
+
+const CTL_LABEL: Record<KeyAction, UIKey> = { up: 'ctlUp', down: 'ctlDown', left: 'ctlLeft', right: 'ctlRight', shove: 'ctlShove', loadout: 'ctlLoadout', rotate: 'ctlRotate', pause: 'ctlPause' };
+/** Key currently being rebound (waiting for the next key press), or null. */
+let listening: { action: KeyAction; slot: number } | null = null;
+
+/** Two key buttons per action; the one being rebound shows "press a key…". */
+function bindRowsHtml(): string {
+  return KEY_ACTIONS.map((a) => `<div class="kb-row"><span>${t(CTL_LABEL[a])}</span>${[0, 1].map((i) => {
+    const on = listening?.action === a && listening.slot === i;
+    return `<button class="kb ${on ? 'listening' : ''}" data-act="bind" data-action="${a}" data-slot="${i}">${on ? t('ctlPress') : keyLabel(settings.keys[a][i], t('keySpace'))}</button>`;
+  }).join('')}</div>`).join('');
+}
+
+function controlsHtml(): string {
+  return `<details class="controls"><summary>${t('ctlTitle')}</summary>
+    <div class="kb-help">${t('ctlHelp')}</div>
+    <div class="kb-list">${bindRowsHtml()}</div>
+    <div class="kb-note" role="status"></div>
+    <button class="btn small" data-act="reset-keys">${t('ctlReset')}</button>
+    <div class="padinfo"><b>${t('ctlPadTitle')}</b>
+      <div>${t('ctlPadMove')}</div><div>${t('ctlPadShove')}</div><div>${t('ctlPadPause')}</div><div>${t('ctlPadLoadout')}</div><div>${t('ctlPadBack')}</div><div>${t('ctlPadShop')}</div></div>
+  </details>`;
+}
+
+/** Re-draws every key list on screen; `focus` puts the focus ring back on the edited button. */
+function refreshBinds(note = '', focus?: { action: KeyAction; slot: number }): void {
+  ui.querySelectorAll<HTMLElement>('.kb-list').forEach((l) => { l.innerHTML = bindRowsHtml(); });
+  ui.querySelectorAll<HTMLElement>('.kb-note').forEach((n) => { n.textContent = note; });
+  if (focus) ui.querySelector<HTMLElement>(`.kb-list [data-action="${focus.action}"][data-slot="${focus.slot}"]`)?.focus();
+}
+
+function stopListening(): void {
+  if (!listening) return;
+  const was = listening;
+  listening = null;
+  refreshBinds('', was);
+}
+
+/** Next key press while a binding is selected: Esc cancels, Backspace clears, anything else is bound (swapping on conflict). */
+function listenKey(e: KeyboardEvent): void {
+  e.preventDefault();
+  if (e.repeat || e.code === 'MetaLeft' || e.code === 'MetaRight') return;
+  const at = listening!;
+  if (e.code === 'Escape') { stopListening(); return; }
+  listening = null;
+  const r = e.code === 'Backspace' || e.code === 'Delete' ? clearSlot(settings.keys, at.action, at.slot) : rebind(settings.keys, at.action, at.slot, e.code);
+  let note = '';
+  if (r.ok) {
+    settings.keys = r.keys;
+    saveSettings();
+    if (r.displaced) note = t('ctlSwapped', { name: t(CTL_LABEL[r.displaced]) });
+    play('click');
+  } else note = t(r.reason === 'last' ? 'ctlLast' : 'ctlReserved');
+  refreshBinds(note, at);
+}
+
+function creditsHtml(): string {
+  return `<h2>${t('credits')}</h2><div class="credits"><div class="display">Goblin Grocery</div>
+    <p>${t('creditsBuilt')}</p><p>${t('creditsFonts')}</p><p>${t('creditsArt')}</p><p>${t('creditsAudio')}</p>
+    <p class="made">${t('creditsMade')} <b>${t('creditsTeam')}</b></p></div>`;
 }
 
 function pauseHtml(): string {
@@ -261,7 +319,7 @@ function loadoutHtml(): string {
     <h2>${t('yourCart')}</h2><div style="font-weight:800">${t('cartReadOnly')}</div>
     <div class="grid">${gridHtml(s)}</div>
     <div class="combos" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:left">${combosHtml(s.build, null, s.inventory.placed.map((i) => i.type))}</div>
-    <div class="row"><button class="btn coral" data-act="resume" data-focus>${t('backToAisle')}</button></div></div>
+    <div class="row"><button class="btn coral" data-act="resume" data-focus>${t('backToAisle', { key: keyText('loadout') })}</button></div></div>
     <div class="inspector receipt"><div class="nm">${t('inspector')}</div><div class="muted">${t('inspectorLoadout')}</div></div></div>`;
 }
 
@@ -456,6 +514,7 @@ function endHtml(): string {
 
 function onClick(e: MouseEvent): void {
   const act = (e.target as HTMLElement).closest<HTMLElement>('[data-act]')?.dataset.act;
+  if (listening && act !== 'bind') stopListening();
   if (!act || store.state.phase === 'shop') return; // shop handles its own buttons
   play('click');
   switch (act) {
@@ -479,6 +538,14 @@ function onClick(e: MouseEvent): void {
     case 'close-settings':
       closeTitleSettings();
       break;
+    case 'credits': openTitleModal(creditsHtml()); break;
+    case 'bind': {
+      const b = (e.target as HTMLElement).closest<HTMLElement>('[data-act="bind"]')!;
+      listening = { action: b.dataset.action as KeyAction, slot: Number(b.dataset.slot) };
+      refreshBinds('', listening);
+      break;
+    }
+    case 'reset-keys': listening = null; settings.keys = defaultKeys(); saveSettings(); refreshBinds(); break;
     case 'lab': openTitleModal(labHtml(loadLab())); break;
     case 'unlock-all': // dev/test builds only: every unlock plus every shift for every starter
       profile.unlocked = UNLOCKS.map((u) => u.id);
@@ -707,6 +774,7 @@ function onInput(e: Event): void {
 }
 
 function onKey(e: KeyboardEvent): void {
+  if (listening) { listenKey(e); return; }
   if (shopKey(e)) { e.preventDefault(); return; }
   const s = store.state;
   if (e.key === 'F11' && desktop) {
@@ -730,17 +798,62 @@ function onKey(e: KeyboardEvent): void {
     if (pick) { pickStarter(pick); play('click'); screens.starter.innerHTML = starterHtml(); return; }
     if (e.key === 'Enter' && !(e.target as HTMLElement).closest('[data-act="start-run"],[data-act="close-starter"]')) { startPicked(); e.preventDefault(); }
   }
-  if (e.key === 'Escape') {
-    if (flow.paused) flow.resume();
-    else if (s.phase === 'combat') flow.pause('menu');
+  // Escape always backs out of a pause; the pause key (Escape by default) also starts one.
+  if (matches(settings.keys, 'pause', e.code) || (e.key === 'Escape' && flow.paused)) {
+    togglePause();
     e.preventDefault();
-  } else if (e.key === 'Tab') {
+  } else if (e.key === 'Escape') {
     e.preventDefault();
-    if (flow.paused && flow.pauseReason === 'loadout') flow.resume();
-    else if (!flow.paused && s.phase === 'combat') flow.pause('loadout');
+  } else if (matches(settings.keys, 'loadout', e.code)) {
+    e.preventDefault();
+    toggleLoadout();
   } else if (DEV_KEYS && !flow.paused && (e.key === 'F6' || e.key === 'F7')) {
     e.preventDefault(); s.money += e.key === 'F7' ? 500_000 : 100; store.changed(); // test money, also in the shop
   } else if (DEV_KEYS && s.phase === 'combat' && !flow.paused) devKey(e);
+}
+
+function togglePause(): void {
+  if (flow.paused) flow.resume();
+  else if (store.state.phase === 'combat') flow.pause('menu');
+}
+
+function toggleLoadout(): void {
+  if (flow.paused && flow.pauseReason === 'loadout') flow.resume();
+  else if (!flow.paused && store.state.phase === 'combat') flow.pause('loadout');
+}
+
+// ───────────────────────────── keyboard / gamepad glue ─────────────────────────────
+
+/** Menu focus stays inside the topmost modal, else the visible screen. */
+function padScope(): HTMLElement | null {
+  const modal = screens.title.querySelector<HTMLElement>('.settings-modal');
+  if (modal && !screens.title.classList.contains('hidden')) return modal;
+  for (const k of ['starter', 'pause', 'loadout', 'end', 'route', 'title'] as const) if (!screens[k].classList.contains('hidden')) return screens[k];
+  return null;
+}
+
+/** B in menus: Escape's behaviour (close the modal or starter screen, resume from a pause). */
+function padBack(): void {
+  if (listening) { stopListening(); return; }
+  if (closeTitleSettings()) return;
+  if (choosingStarter && store.state.phase === 'title') { choosingStarter = false; render(); return; }
+  if (flow.paused) flow.resume();
+}
+
+function initPad(): void {
+  initKeyboard(() => store.state.phase === 'combat' && !flow.paused);
+  initGamepad({
+    mode: () => {
+      const ph = store.state.phase;
+      return ph === 'shop' ? 'shop' : (ph === 'combat' || ph === 'checkout') && !flow.paused ? 'combat' : 'menu';
+    },
+    scope: padScope,
+    pause: togglePause,
+    loadout: toggleLoadout,
+    back: padBack,
+    lost: () => { if (store.state.phase === 'combat') flow.pause('menu'); },
+    shop: shopPad,
+  });
 }
 
 /** Dev shortcuts: on in `npm run dev` and in test builds (`npm run launch:test`), stripped from release builds. */

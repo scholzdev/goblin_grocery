@@ -5,11 +5,14 @@ import { mergeTargetFor } from '../state/run';
 import { BOSS_WAVE } from '../data/waves';
 import { ITEMS } from '../data/items';
 import { t } from '../i18n';
+import { matches } from '../state/keymap';
+import { isDown } from '../input/keyboard';
+import { padMove, padShoves } from '../input/gamepad';
+import { keyVars } from './keys';
 import { advance, freshProgress, pick, skipAll, type Progress, type Snap } from './tutorial-core';
 
 // First-run tutorial: speech-bubble callouts that never block the game. The bubble ignores the pointer (only "Skip" takes clicks),
 // never pauses combat and advances by itself when the player does the thing. All logic lives in tutorial-core.ts.
-const MOVE_KEYS = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
 const ANCHOR: Record<string, string> = { buy: '#shop .offers', place: '#shop .grid-wrap', merge: '#shop .grid-wrap', combos: '#shop .combos' };
 const TICK = 150;
 
@@ -22,8 +25,8 @@ let shownMoney = 0;
 let rendered = '';
 let moveMs = 0;
 let dashes = 0;
+let padDashBase = 0;
 let flags: string[] = [];
-const held = new Set<string>();
 
 const save = (p: Progress): void => {
   prog = p;
@@ -45,12 +48,9 @@ export function initTutorial(root: HTMLElement): void {
   el.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('.skip')) save(skipAll()); });
   ui.append(el);
   window.addEventListener('keydown', (e) => {
-    held.add(e.code);
-    if (e.code === 'Space' && !e.repeat && !flow.paused && store.state.phase === 'combat') dashes++;
+    if (matches(settings.keys, 'shove', e.code) && !e.repeat && !flow.paused && store.state.phase === 'combat') dashes++;
   });
-  window.addEventListener('keyup', (e) => held.delete(e.code));
-  window.addEventListener('blur', () => held.clear());
-  store.on('run-start', () => { moveMs = 0; dashes = 0; flags = []; });
+  store.on('run-start', () => { moveMs = 0; dashes = 0; padDashBase = padShoves(); flags = []; });
   store.on('shop-open', () => { flags = []; });
   for (const f of ['elite', 'obstacles', 'event']) store.on(`tut:${f}`, () => { if (!flags.includes(f)) flags.push(f); });
   setInterval(tick, TICK);
@@ -67,7 +67,7 @@ function snap(): Snap {
     ms: shownMs,
     kills: s.stats.kills,
     moved: moveMs >= 600,
-    dashed: dashes > 0,
+    dashed: dashes + padShoves() - padDashBase > 0,
     moneyUp: s.money > shownMoney,
     bought: !!s.shop?.offers.some((o) => o.sold),
     supported: s.build.weapons.some((w) => s.build.adjacency.some((p) => p.includes(w.uid))),
@@ -80,7 +80,7 @@ function snap(): Snap {
 function tick(): void {
   if (!store.state) return;
   const paused = flow.paused;
-  if (!paused && store.state.phase === 'combat' && [...held].some((k) => MOVE_KEYS.has(k))) moveMs += TICK;
+  if (!paused && store.state.phase === 'combat' && (isDown('up') || isDown('down') || isDown('left') || isDown('right') || padMove().x !== 0 || padMove().y !== 0)) moveMs += TICK;
   const before = snap();
   const cur = advance(prog, before);
   if (cur !== prog) save(cur);
@@ -99,10 +99,10 @@ function render(pk: { id: string; tip: boolean } | null): void {
   if (!pk) { rendered = ''; return; }
   const { id, tip: isTip } = pk;
   const key = `${isTip ? 'tip' : 'tut'}${id[0].toUpperCase()}${id.slice(1)}` as Parameters<typeof t>[0];
-  const sig = `${key}|${settings.language}`;
+  const sig = `${key}|${settings.language}|${JSON.stringify(settings.keys)}`;
   if (sig !== rendered) {
     rendered = sig;
-    el.innerHTML = `${t(key)}<button class="skip">${t('tutSkip')}</button>`;
+    el.innerHTML = `${t(key, keyVars())}<button class="skip">${t('tutSkip')}</button>`;
     el.classList.toggle('tip', isTip);
   }
   place(ANCHOR[id], id === 'door' ? 680 : 96);
