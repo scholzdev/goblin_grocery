@@ -46,9 +46,28 @@ describe('footprints', () => {
     expect(rotatedSize('pan', 0)).toEqual({ w: 1, h: 3 });
     expect(rotatedSize('pan', 1)).toEqual({ w: 3, h: 1 });
   });
-  it('2x2 is symmetric', () => {
-    expect(rotatedSize('vacuum', 1)).toEqual({ w: 2, h: 2 });
-    expect(normalizeRotation('vacuum', 3)).toBe(0);
+  it('2x2 cooker is a Z: 3x2, rot1 2x3, rot2 is a distinct S-less repeat', () => {
+    expect(rotatedSize('cooker', 0)).toEqual({ w: 3, h: 2 });
+    expect(rotatedSize('cooker', 1)).toEqual({ w: 2, h: 3 });
+    expect(normalizeRotation('cooker', 2)).toBe(0);
+    expect(normalizeRotation('cooker', 3)).toBe(1);
+  });
+  it('T vacuum rotates through 4 distinct footprints', () => {
+    expect(rotatedSize('vacuum', 0)).toEqual({ w: 3, h: 2 });
+    expect(rotatedSize('vacuum', 1)).toEqual({ w: 2, h: 3 });
+    expect([0, 1, 2, 3].map((r) => normalizeRotation('vacuum', r as Rotation))).toEqual([0, 1, 2, 3]);
+  });
+  it('plus laser is fully symmetric 3x3', () => {
+    expect(rotatedSize('laser', 1)).toEqual({ w: 3, h: 3 });
+    expect(normalizeRotation('laser', 3)).toBe(0);
+  });
+  it('odd shapes nest: S microwave tucks its notch under a Z cooker', () => {
+    const inv = { cols: 6, rows: 4, placed: [{ uid: 'a', type: 'microwave', x: 0, y: 0, rot: 0 }], shelf: [] } as unknown as Inventory;
+    expect(canPlace(inv, 'microwave', 1, 0, 0).ok).toBe(false); // overlaps
+    expect(canPlace(inv, 'cooker', 0, 1, 0).ok).toBe(false); // Z bar hits S bottom row
+    expect(canPlace(inv, 'cooker', 3, 0, 0).ok).toBe(true); // fits beside S
+    expect(canPlace(inv, 'laser', 4, 2, 0).ok).toBe(false); // plus sticks out of cart
+    expect(canPlace(inv, 'laser', 3, 1, 0).ok).toBe(true);
   });
   it('normalizeRotation maps 180/270 on lines', () => {
     expect(normalizeRotation('pan', 2)).toBe(0);
@@ -989,7 +1008,7 @@ describe('aoe / multi-hit modules', () => {
     expect(lz.damage).toBeCloseTo(20 * 1.2 * 1.06);
   });
   it('fan ignores cone/mortar; tape adds arc/aoe', () => {
-    const c = w0(inv(it_('cooker', 0, 0), it_('fan', 2, 0), it_('tape', 0, 2)));
+    const c = w0(inv(it_('cooker', 0, 0), it_('fan', 3, 0), it_('tape', 0, 1)));
     expect(c.projectileSpeed).toBe(380);
     expect(c.aoe).toBeCloseTo(90 * 1.2);
     expect(w0(inv(it_('spray', 0, 0), it_('tape', 1, 0))).arcDeg).toBe(100);
