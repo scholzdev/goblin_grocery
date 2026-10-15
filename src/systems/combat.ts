@@ -66,12 +66,12 @@ export function shieldBlocks(shotVx: number, shotVy: number, faceX: number, face
   return (-shotVx * faceX - shotVy * faceY) / (sl * fl) > Math.cos((halfDeg * Math.PI) / 180);
 }
 
-interface Healable { x: number; y: number; hp: number; maxHp: number; alive: boolean; def: { id: string } }
+interface Healable { x: number; y: number; hp: number; maxHp: number; alive: boolean; def: { id: string; behavior?: string } }
 /** Honey heal tick: HP each ally in range gains (capped at max). Skips the healer, boss and other honey jars. */
 export function healTargets<T extends Healable>(healer: T, all: T[], radius = HONEY.radius, pct = HONEY.pct): { target: T; amount: number }[] {
   const out: { target: T; amount: number }[] = [];
   for (const o of all) {
-    if (o === healer || !o.alive || o.def.id === 'boss' || o.def.id === 'honey' || o.hp >= o.maxHp) continue;
+    if (o === healer || !o.alive || o.def.id === 'boss' || o.def.behavior === 'boss' || o.def.id === 'honey' || o.hp >= o.maxHp) continue;
     if (Math.hypot(o.x - healer.x, o.y - healer.y) > radius) continue;
     out.push({ target: o, amount: Math.min(o.maxHp - o.hp, o.maxHp * pct) });
   }

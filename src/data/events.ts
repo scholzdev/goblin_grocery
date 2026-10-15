@@ -19,7 +19,8 @@ export const EVENTS = {
     puddleR: 40,
     puddleSpacing: 125,      // gaps between puddles so a streak is dodgeable, not a river
     dryAfter: 12,           // seconds until a puddle is gone
-    playerSlow: 0.35,
+    playerSlow: 0,          // puddles make you slide instead of slowing you
+    playerAccel: 2.5,       // player velocity ease rate on a puddle (1/s): you keep your momentum and steer late
     enemySlow: 0.2,
     robotSpeed: 300,        // px/s
   },
@@ -34,6 +35,7 @@ export const EVENTS = {
     coneRange: 380,
     glowR: 110,
     darkness: 0.88,
+    mouseHold: 4,           // seconds the mouse keeps aiming the headlight after its last move
   },
   happyHour: {
     duration: 15,

@@ -40,7 +40,7 @@ All five are open from the start. Theme multipliers (HP, speed, count, coins) ar
 | Modifier | Effect on the aisle | Reward |
 |---|---|---|
 | Regular aisle | none | none |
-| Rush Hour (★★) | +40% groceries | +50% coins |
+| Rush Hour (★★) | +40% groceries | +25% coins |
 | Quiet Aisle (★) | -30% groceries | -25% coins |
 | Aisle Event (★★) | a wet floor or power outage always hits | 1 free reroll in the next shop |
 | Clearance Sale (★★★) | +15% HP, +15% elite chance | guaranteed legendary in the next shop |

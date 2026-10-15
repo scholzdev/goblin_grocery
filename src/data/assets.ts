@@ -14,6 +14,7 @@ export const ICON_IDS = [
   'microwave', 'blender', 'fizz', 'mop', 'pricegun', 'tape', 'coupon', 'bubblewrap', 'energy',
   'powerstrip', 'goldstar', 'laser', 'snackbag',
   'cooker', 'spray', 'popper', 'doublebag', 'multipack',
+  'fortune', 'sample', 'piggy',
 ] as const;
 
 export interface SvgAsset { key: string; w: number; h: number; ax?: number; ay?: number }

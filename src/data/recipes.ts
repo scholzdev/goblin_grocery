@@ -12,9 +12,9 @@ export const RECIPES: Record<RecipeId, RecipeDef> = {
     detail: 'Each nail pierces one extra enemy and curves toward a nearby target after its first hit. Battery attack rate still applies.',
   },
   coldStorage: {
-    id: 'coldStorage', short: 'Huge freezing pulse', name: 'Cold Storage', weapon: 'vacuum', supports: ['ice'],
-    summary: 'Vacuum touching an Ice Pack: frost ring pulse.',
-    detail: 'Pulses reach 20% farther, deal 2.5× damage and leave a frost ring that slows enemies 50% for 1.5 s. Replaces the Ice Pack slow (never added together).',
+    id: 'coldStorage', short: 'Huge freezing suction', name: 'Cold Storage', weapon: 'vacuum', supports: ['ice'],
+    summary: 'Vacuum touching an Ice Pack: freezing suction.',
+    detail: 'Suction reaches 20% farther, and its damage ticks deal 2.5× damage and slow enemies 50% for 1.5 s. Replaces the Ice Pack slow (never added together).',
   },
   expressCheckout: {
     id: 'expressCheckout', short: 'Shove → bonus pan sweep', name: 'Express Checkout', weapon: 'pan', supports: ['bell'],
@@ -67,9 +67,9 @@ export const RECIPES: Record<RecipeId, RecipeDef> = {
     detail: 'Nails pierce 1 extra enemy, and every 3rd nail that hits the same enemy freezes it solid for 0.7 s.',
   },
   staticCling: {
-    id: 'staticCling', short: 'Pulses zap 3', name: 'Static Cling', weapon: 'vacuum', supports: ['battery'],
-    summary: 'Vacuum touching a Battery: pulses throw out lightning.',
-    detail: 'Each pulse also zaps up to 3 enemies inside its radius for 150% pulse damage.',
+    id: 'staticCling', short: 'Ticks zap 3', name: 'Static Cling', weapon: 'vacuum', supports: ['battery'],
+    summary: 'Vacuum touching a Battery: the suction throws out lightning.',
+    detail: 'Each damage tick also zaps up to 3 enemies inside the suction radius for 150% tick damage.',
   },
   reheat: {
     id: 'reheat', short: 'Zaps leave fire', name: 'Reheat', weapon: 'microwave', supports: ['fuel'],

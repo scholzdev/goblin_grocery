@@ -13,6 +13,7 @@ export class Fx {
   private flames: Phaser.GameObjects.Particles.ParticleEmitter;
   private frost: Phaser.GameObjects.Particles.ParticleEmitter;
   private confettiEm: Phaser.GameObjects.Particles.ParticleEmitter;
+  private dust: Phaser.GameObjects.Particles.ParticleEmitter;
   private numbers: Phaser.GameObjects.Text[] = [];
   private numberIdx = 0;
 
@@ -33,6 +34,10 @@ export class Fx {
     this.frost = scene.add.particles(0, 0, 'fx_spark', {
       ...base, speed: { min: 40, max: 120 }, lifespan: 380, scale: { start: 0.7, end: 0 }, tint: 0xcff3ff,
     }).setDepth(DEPTH.fx);
+    // Particles live in emitter space, so moving the emitter drags in-flight dust along with the player.
+    this.dust = scene.add.particles(0, 0, 'fx_puff', {
+      ...base, lifespan: 420, moveToX: 0, moveToY: -8, scale: { start: 0.55, end: 0.15 }, alpha: { start: 0.35, end: 0.9 },
+    }).setDepth(DEPTH.decal + 1);
     this.confettiEm = scene.add.particles(0, 0, 'fx_confetti', {
       ...base, speed: { min: 80, max: 230 }, lifespan: 650, gravityY: 320, rotate: { min: 0, max: 360 }, scale: { start: 1, end: 0.6 },
       tint: [0xf45f52, 0xf5bd45, 0x3fb7a6, 0x9081b6, 0x8fcb57],
@@ -72,6 +77,15 @@ export class Fx {
     this.frost.explode(this.n(count), x, y);
   }
 
+  /** Vacuum dust: keeps the emitter on (x, y) and optionally spawns one mote on the suction ring. */
+  suck(x: number, y: number, radius: number, emit: boolean, tint = 0x8c8173): void {
+    this.dust.setPosition(x, y);
+    if (!emit || (settings.reducedMotion && Math.random() < 0.5)) return;
+    const a = Math.random() * Math.PI * 2, r = radius * (0.75 + Math.random() * 0.25);
+    this.dust.setParticleTint(tint);
+    this.dust.emitParticleAt(Math.cos(a) * r, Math.sin(a) * r * 0.62);
+  }
+
   number(x: number, y: number, value: number, color = '#FFF2D5', size = 22): void {
     this.label(x, y, String(Math.round(value)), color, size);
   }
@@ -86,12 +100,13 @@ export class Fx {
     this.scene.tweens.add({ targets: t, alpha: 0, delay: 380, duration: 220, onComplete: () => t.setVisible(false) });
   }
 
-  /** Expanding one-shot image (rings, receipts). */
-  ring(key: string, x: number, y: number, size: number, duration = 320, tint?: number): void {
-    const img = this.scene.add.image(x, y, key).setDepth(DEPTH.decal + 1).setDisplaySize(size * 0.4, size * 0.4 * 0.62);
+  /** One-shot ring image (rings, receipts): expands to `size`, or with `inward` shrinks from it. */
+  ring(key: string, x: number, y: number, size: number, duration = 320, tint?: number, inward = false): void {
+    const [from, to] = inward ? [size, size * 0.35] : [size * 0.4, size];
+    const img = this.scene.add.image(x, y, key).setDepth(DEPTH.decal + 1).setDisplaySize(from, from * 0.62);
     if (tint !== undefined) img.setTint(tint);
     this.scene.tweens.add({
-      targets: img, displayWidth: size, displayHeight: size * 0.62, alpha: { from: 0.95, to: 0 }, duration, ease: 'Cubic.Out',
+      targets: img, displayWidth: to, displayHeight: to * 0.62, alpha: inward ? { from: 0.6, to: 0 } : { from: 0.95, to: 0 }, duration, ease: inward ? 'Quad.In' : 'Cubic.Out',
       onComplete: () => img.destroy(),
     });
   }

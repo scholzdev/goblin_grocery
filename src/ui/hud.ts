@@ -89,7 +89,7 @@ function render(): void {
 }
 
 export const hud = {
-  tick(o: { timeLeft: number; elapsed: number; shoveCd: number; shoveMax: number; boss: { hp: number; max: number; enraged: boolean } | null }): void {
+  tick(o: { timeLeft: number; elapsed: number; shoveCd: number; shoveMax: number; boss: { hp: number; max: number; enraged: boolean; name: string } | null }): void {
     if (!els.t) return;
     const t = o.timeLeft >= 0 ? `${Math.ceil(o.timeLeft)}s` : `${Math.floor(o.elapsed)}s`;
     set('t', t);
@@ -104,6 +104,7 @@ export const hud = {
     }
     els.boss.classList.toggle('hidden', !o.boss);
     if (o.boss) {
+      if (last.bossName !== o.boss.name) { last.bossName = o.boss.name; els.boss.querySelector('.name')!.textContent = o.boss.name; }
       els.bossfill.style.width = `${(100 * o.boss.hp) / o.boss.max}%`;
       els.boss.classList.toggle('enraged', o.boss.enraged);
     }

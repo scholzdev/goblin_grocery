@@ -4,7 +4,6 @@ export type ModifierId = 'none' | 'rush' | 'clearance' | 'event' | 'quiet' | 'st
 export type DoorId = ModifierId | 'boss';
 
 export interface ModifierDef {
-  icon: string;
   countMult: number;
   coinMult: number;
   hpMult: number;
@@ -18,15 +17,15 @@ export interface ModifierDef {
 const n = { countMult: 1, coinMult: 1, hpMult: 1, eliteBonus: 0, forceLegendary: false, forceEvent: false, freeRerolls: 0 };
 
 export const MODIFIERS: Record<ModifierId, ModifierDef> = {
-  none: { ...n, icon: '🛒', risk: 0 },
-  rush: { ...n, icon: '🏃', countMult: 1.4, coinMult: 1.5, risk: 2 },
-  clearance: { ...n, icon: '🏷️', hpMult: 1.15, eliteBonus: 0.15, forceLegendary: true, risk: 3 },
-  event: { ...n, icon: '⚡', forceEvent: true, freeRerolls: 1, risk: 2 },
-  quiet: { ...n, icon: '🌙', countMult: 0.7, coinMult: 0.75, risk: 1 },
+  none: { ...n, risk: 0 },
+  rush: { ...n, countMult: 1.4, coinMult: 1.25, risk: 2 },
+  clearance: { ...n, hpMult: 1.15, eliteBonus: 0.15, forceLegendary: true, risk: 3 },
+  event: { ...n, forceEvent: true, freeRerolls: 1, risk: 2 },
+  quiet: { ...n, countMult: 0.7, coinMult: 0.75, risk: 1 },
   // Special rooms (see ROOMS): never in the regular door pool.
-  stockroom: { ...n, icon: '📦', countMult: 0, risk: 0 },
-  coldRoom: { ...n, icon: '🧊', countMult: 0.8, coinMult: 1.5, risk: 2 },
-  vipAisle: { ...n, icon: '👑', countMult: 0.35, coinMult: 1.5, eliteBonus: 1, risk: 3 }, // eliteBonus 1 = every eligible spawn is Elite
+  stockroom: { ...n, countMult: 0, risk: 0 },
+  coldRoom: { ...n, countMult: 0.8, coinMult: 1.25, risk: 2 },
+  vipAisle: { ...n, countMult: 0.35, coinMult: 1.25, eliteBonus: 1, risk: 3 }, // eliteBonus 1 = every eligible spawn is Elite
 };
 
 export const DOOR_POOL: ModifierId[] = ['none', 'rush', 'event', 'quiet'];

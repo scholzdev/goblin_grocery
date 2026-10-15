@@ -17,7 +17,7 @@ export function hideStockroom(): void {
   el = null;
 }
 
-export function showStockroom(offers: ShopOffer[], onPick: (o: ShopOffer) => void): void {
+export function showStockroom(offers: ShopOffer[], onPick: (o: ShopOffer) => void, labels = { title: t('stockroomTitle'), hint: t('stockroomHint') }): void {
   hideStockroom();
   const root = uiRoot();
   if (!root) return;
@@ -30,8 +30,8 @@ export function showStockroom(offers: ShopOffer[], onPick: (o: ShopOffer) => voi
   el = document.createElement('div');
   el.className = 'stockroom interactive';
   el.setAttribute('role', 'dialog');
-  el.setAttribute('aria-label', t('stockroomTitle'));
-  el.innerHTML = `<h2 class="display">${t('stockroomTitle')}</h2><p>${t('stockroomHint')}</p>
+  el.setAttribute('aria-label', labels.title);
+  el.innerHTML = `<h2 class="display">${labels.title}</h2><p>${labels.hint}</p>
     <div class="stock-cards">${offers.map((o, i) => `<div class="card ${rarityClass(o.type, o.tier)}" data-i="${i}" role="button" tabindex="0" aria-label="${itemT(o.type).name}">
       <span class="key">${i + 1}</span>
       <img class="art" src="${svg(`icon_${o.type}`)}" alt="">

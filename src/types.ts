@@ -9,7 +9,8 @@ export type ItemTypeId =
   | 'microwave' | 'blender' | 'fizz' | 'mop'
   | 'pricegun' | 'tape' | 'coupon' | 'bubblewrap' | 'energy'
   | 'powerstrip' | 'goldstar' | 'laser' | 'snackbag'
-  | 'cooker' | 'spray' | 'popper' | 'doublebag' | 'multipack';
+  | 'cooker' | 'spray' | 'popper' | 'doublebag' | 'multipack'
+  | 'fortune' | 'sample' | 'piggy';
 
 export type WeaponPattern = 'toast' | 'sweep' | 'burst' | 'pulse' | 'zap' | 'aura' | 'ricochet' | 'puddle' | 'laser' | 'mortar' | 'cone';
 export type ItemKind = 'weapon' | 'module' | 'passive';
@@ -37,7 +38,7 @@ export interface WeaponBase {
   count: number;           // projectiles per attack (burst nails, toast count)
   burstInterval: number;   // seconds between burst projectiles
   arcDeg: number;          // sweep arc width
-  pull: number;            // vacuum pull distance per pulse
+  pull: number;            // vacuum suction speed (px/s)
   tick: number;            // aura/puddle damage tick interval (s)
   duration: number;        // puddle lifetime (s)
   bounces: number;         // ricochet: extra enemies after the first
@@ -171,6 +172,8 @@ export interface Build {
   armor: number;           // bubble wrap: flat damage reduction (min 1 damage taken)
   invulnBonus: number;     // bubble wrap: extra seconds of post-hit invulnerability
   regen: number;           // HP per second during combat (snack bag)
+  critHeal: number;        // free sample: HP healed per crit (capped per second)
+  killCoinMult: number;    // piggy bank: multiplier on regular kill coins
   recipes: ActiveRecipe[];
   /** Set-bonus level per set (0/1/2), counted over distinct placed types. */
   sets: Record<SetId, 0 | 1 | 2 | 3>;

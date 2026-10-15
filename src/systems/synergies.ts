@@ -106,6 +106,7 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
       s.count += PROJECTILE_PATTERNS.has(b.pattern) ? MULTIPACK.extra + (multi >= 3 ? 1 : 0) : 1;
       s.buffs.push('multipack');
     }
+    if (has('fortune')) s.critChance += BUFFS.fortuneCrit * gm('fortune'); // cart-wide, on top of the Price Gun
     s.damage *= perk.damageMult ?? 1;
     weapons.push(s);
   }
@@ -114,6 +115,8 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
     weapons, recipes, adjacency: adjacentPairs(placed),
     maxHp: PLAYER.maxHp + (sets.snacks ? setCfg('snacks', sets.snacks).maxHp : 0) + (has('lunchbox') ? Math.round(BUFFS.lunchboxHp * gm('lunchbox')) : 0) + (has('snackbag') ? BUFFS.snackHp : 0) + (perk.maxHp ?? 0),
     regen: (has('snackbag') ? BUFFS.snackRegen : 0) + (sets.snacks >= 2 ? setCfg('snacks', sets.snacks).regen : 0),
+    critHeal: has('sample') ? BUFFS.sampleHeal * gm('sample') : 0,
+    killCoinMult: has('piggy') ? 1 + BUFFS.piggyCoins * gm('piggy') : 1,
     pickupRadius: PLAYER.pickupRadius + (has('magnet') ? Math.round(BUFFS.magnetPickup * gm('magnet')) : 0) + (has('vacuum') ? BUFFS.vacuumPickup : 0) + (perk.pickupRadius ?? 0),
     shoveCooldown: PLAYER.shove.cooldown - (has('bell') ? BUFFS.bellShove * gm('bell') : 0) + (perk.shoveCooldown ?? 0),
     shoveDistMult: has('boot') ? 1 + BUFFS.bootDistance * gm('boot') : 1,
@@ -204,6 +207,9 @@ export function tierScaling(type: ItemTypeId): ScaleRow[] {
     magnet: () => [row(t('rowPickup'), (tr) => `+${Math.round(BUFFS.magnetPickup * m(tr))}`)],
     bell: () => [row(t('rowDashCd'), (tr) => `−${fmt(BUFFS.bellShove * m(tr))} s`)],
     energy: () => [row(t('rowMove'), (tr) => pctUp(BUFFS.energySpeed * m(tr)))],
+    fortune: () => [row(t('rowCrit'), (tr) => `+${fmtNum(+(BUFFS.fortuneCrit * m(tr) * 100).toFixed(1))}%`)],
+    piggy: () => [row(t('rowKillCoins'), (tr) => `+${fmtNum(+(BUFFS.piggyCoins * m(tr) * 100).toFixed(1))}%`)],
+    sample: () => [row(t('rowCritHeal'), (tr) => `+${fmtNum(+(BUFFS.sampleHeal * m(tr)).toFixed(1))}`)],
     coupon: () => [row(t('rowCoin'), (tr) => `${Math.round(Math.min(0.9, BUFFS.couponChance * m(tr)) * 100)}%`)],
     bubblewrap: () => [row(t('rowArmor'), (tr) => `${tr}`)],
     boot: () => [row(t('rowDashDist'), (tr) => pctUp(BUFFS.bootDistance * m(tr))), row(t('rowDashDmg'), (tr) => `+${fmt(BUFFS.bootDamage * m(tr))}`)],

@@ -1207,6 +1207,50 @@ add('icon_energy', () => {
   return icon(s, 176);
 });
 
+add('icon_fortune', () => {
+  // folded cookie with the paper slip sticking out
+  const ck = [[24, 118], [44, 70], [96, 46], [148, 70], [168, 118], [136, 108], [114, 132], [96, 104], [78, 132], [56, 108]];
+  let s = S5(ck, C.breadL, C.bread, { dx: 7, dy: 7 });
+  s += line([[96, 104], [96, 56]], C.breadD, 4);
+  s += flat([[46, 76], [92, 54], [92, 62], [52, 84]], C.cream, 'opacity=".75"');
+  const slip = [[100, 92], [170, 58], [178, 74], [108, 108]];
+  s += shape(slip, C.white, C.creamD, { sw: 4, dx: 2, dy: 3 });
+  for (const [x, y] of [[124, 88], [138, 81], [152, 74]]) s += `<circle cx="${x}" cy="${y}" r="3.6" fill="${C.coral}"/>`;
+  for (const [x, y] of [[40, 108], [70, 92], [148, 98]]) s += `<circle cx="${x}" cy="${y}" r="2.6" fill="${C.breadD}" opacity=".7"/>`;
+  return icon(s, 156);
+});
+
+add('icon_sample', () => {
+  // cheese cube on a toothpick, little plate, a green heart for the heal
+  let s = ell(92, 150, 64, 15, C.white, C.creamD, { sw: SWi });
+  const cube = [[50, 100], [92, 86], [130, 100], [130, 140], [90, 156], [50, 140]];
+  s += S5(cube, C.gold, C.goldD, { dx: 7, dy: 7 });
+  s += flat([[50, 100], [92, 86], [130, 100], [90, 114]], '#FFDA7A');
+  s += line([[90, 114], [90, 156]], C.goldD, 3) + line([[50, 100], [90, 114], [130, 100]], C.plum, 3);
+  for (const [x, y, r] of [[68, 126, 6], [108, 132, 5], [98, 98, 4], [72, 100, 3]]) s += `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 0.8}" fill="${C.goldD}"/>`;
+  s += line([[92, 104], [112, 34]], C.plum, 9) + line([[92, 104], [112, 34]], C.breadL, 4.5);
+  const heart = [[150, 74], [128, 54], [126, 42], [134, 32], [146, 34], [150, 40], [154, 34], [166, 32], [174, 42], [172, 54]];
+  s += shape(heart, C.green, C.greenD, { sw: 4, dx: 3, dy: 3 }) + flat([[132, 40], [140, 36], [134, 48]], C.white, 'opacity=".7"');
+  return icon(s, 166);
+});
+
+add('icon_piggy', () => {
+  // pink piggy bank, coin dropping into the slot
+  const PINK = '#F7A6B8', PINKD = '#D9748B';
+  let s = '';
+  for (const x of [58, 86, 112, 136]) s += S5(rect(x - 8, 128, 18, 26), PINK, PINKD, { dx: 3, dy: 0, sw: 4 });
+  s += ell(96, 110, 64, 44, PINK, PINKD, { sw: SWi, dx: 7, dy: 7 });
+  s += S5([[54, 76], [62, 52], [80, 70]], PINK, PINKD, { dx: 2, dy: 2, sw: 4 }); // ear
+  s += ell(156, 112, 15, 18, '#FBC3CF', PINKD, { sw: 4, dx: 2, dy: 2 }); // snout
+  s += `<ellipse cx="152" cy="108" rx="2.6" ry="4" fill="${C.plum}"/><ellipse cx="160" cy="108" rx="2.6" ry="4" fill="${C.plum}"/>`;
+  s += `<circle cx="128" cy="92" r="5" fill="${C.plum}"/><circle cx="126.5" cy="90.5" r="1.6" fill="${C.white}"/>`;
+  s += line([[30, 104], [22, 96], [30, 90]], C.plum, 4); // tail
+  s += line([[78, 70], [108, 70]], C.plum, 6); // coin slot
+  s += ell(93, 42, 16, 16, C.gold, C.goldD, { sw: 4, dx: 2, dy: 2 }) + flat([[86, 34], [92, 32], [88, 44]], C.white, 'opacity=".7"');
+  s += flat([[50, 96], [70, 80], [72, 86], [54, 102]], C.white, 'opacity=".5"');
+  return icon(s, 160);
+});
+
 add('proj_cap', () => {
   const k = 12, pts = [];
   for (let i = 0; i < k * 2; i++) { const t = (i * Math.PI) / k, r = i % 2 ? 10.2 : 12; pts.push([14 + Math.cos(t) * r, 14 + Math.sin(t) * r]); }

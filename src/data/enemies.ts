@@ -90,6 +90,25 @@ export const BOSS = {
 };
 
 /**
+ * Mid-shift boss: a giant grocery from the run's theme with slimmed-down Manager moves.
+ * Arrives `at` seconds into its aisle; the aisle ends when it dies and it drops 3 crates (pick 1).
+ */
+export const MINI_BOSS = {
+  aisle: 4,
+  at: 8,
+  hp: 450,
+  scale: 2.1,
+  coins: 12,
+  /** Def overrides for the giant (the base grocery keeps its sprite, radius and contact damage). */
+  def: { knockbackResist: 1, tell: 0.85, attackCooldown: 2.8, attackDamage: 4, projectileSpeed: 190, projectileLife: 4.5, lungeSpeed: 460, lungeTime: 0.6, speed: 50 },
+  moves: { volleyCount: 5, volleySpreadDeg: 60, summonCount: 2 },
+  byTheme: { main: 'soda', frozen: 'turkey', bakery: 'baguette', electronics: 'spitter', checkout: 'banana' } as Partial<Record<DepartmentId, EnemyId>>,
+  /** Crates: one legendary (when any is unlocked), the rest weapons at this tier. */
+  crates: 3,
+  weaponTier: 2,
+};
+
+/**
  * Elite groceries: tougher, bigger, gold-ringed, pay more. Rolled per spawn; never boss/slice/egg.
  * chanceByAisle[i] is the chance in aisle i+1 (regular aisles only); overtime uses overtimeChance;
  * each shift adds shiftBonus.

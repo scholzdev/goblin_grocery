@@ -14,8 +14,8 @@ export const ITEMS: Record<ItemTypeId, ItemDef> = {
   toaster: {
     id: 'toaster', family: 'kitchen', element: 'heat', tags: ['ranged'], name: 'Toaster', kind: 'weapon', cells: rect(2, 1), price: 12, electrical: true,
     blurb: 'Lobs hot toast at the nearest grocery.',
-    rules: 'Fires toast for {0} damage every {1}. 440 range. Each toast hits one enemy.',
-    weapon: weapon({ pattern: 'toast', damage: 7, cooldown: 0.9, range: 440, projectileSpeed: 520 }),
+    rules: 'Fires toast for {0} damage every {1}. 455 range. Each toast hits one enemy.',
+    weapon: weapon({ pattern: 'toast', damage: 9, cooldown: 1.0, range: 455, projectileSpeed: 540 }),
   },
   pan: {
     id: 'pan', family: 'kitchen', element: 'heat', tags: ['melee'], name: 'Frying Pan', kind: 'weapon', cells: rect(1, 3), price: 10, electrical: false,
@@ -32,8 +32,8 @@ export const ITEMS: Record<ItemTypeId, ItemDef> = {
   vacuum: {
     id: 'vacuum', family: 'cleaning', tags: ['area'], name: 'Vacuum', kind: 'weapon', cells: rect(2, 2), price: 18, electrical: true,
     blurb: 'Sucks groceries closer. Sucks coins closer too.',
-    rules: 'Pulses every {1} for {0} damage, drawing nearby enemies slightly inward. +60 coin pickup radius.',
-    weapon: weapon({ pattern: 'pulse', damage: 4, cooldown: 1.3, range: 150, pull: 26 }),
+    rules: 'Constantly pulls nearby enemies toward the cart. Every {1}, enemies in range take {0} damage. +60 coin pickup radius.',
+    weapon: weapon({ pattern: 'pulse', damage: 2, cooldown: 0.65, range: 150, pull: 70 }),
   },
   fan: {
     id: 'fan', family: 'cleaning', name: 'Desk Fan', kind: 'module', cells: rect(1, 2), price: 9, electrical: false, buff: 'fan',
@@ -83,7 +83,7 @@ export const ITEMS: Record<ItemTypeId, ItemDef> = {
   microwave: {
     id: 'microwave', family: 'kitchen', element: 'heat', tags: ['area'], name: 'Microwave', kind: 'weapon', cells: rect(2, 2), price: 20, electrical: true,
     blurb: 'Ding! Nukes a grocery from across the aisle.',
-    rules: 'Every {1} zaps an enemy within 380 for {0} damage, splashing everything within 70. Electrical.',
+    rules: 'Every {1} zaps the toughest enemy within 380 (Elites first, then most HP) for {0} damage, splashing everything within 70. Electrical.',
     weapon: weapon({ pattern: 'zap', damage: 24, cooldown: 2.4, range: 380, aoe: 70 }),
   },
   blender: {
@@ -128,6 +128,21 @@ export const ITEMS: Record<ItemTypeId, ItemDef> = {
     id: 'energy', family: 'snacks', name: 'Energy Drink', kind: 'passive', cells: rect(1, 1), price: 8, electrical: false,
     blurb: 'Zoom zoom. Faster cart.',
     rules: '{0} movement speed (does not stack).',
+  },
+  fortune: {
+    id: 'fortune', family: 'snacks', name: 'Fortune Cookie', kind: 'passive', cells: rect(1, 1), price: 8, electrical: false,
+    blurb: 'Your lucky numbers: 2, 2, 2.',
+    rules: 'Every weapon gains {0} chance to crit for double damage (adds to the Price Gun, does not stack).',
+  },
+  sample: {
+    id: 'sample', family: 'kitchen', name: 'Free Sample', kind: 'passive', cells: rect(1, 1), price: 10, electrical: false,
+    blurb: 'Just a taste. Every crit is a snack.',
+    rules: 'Every crit heals {0} HP, at most 2 HP per second (does not stack). Needs a crit source like the Price Gun or Fortune Cookie.',
+  },
+  piggy: {
+    id: 'piggy', family: 'checkout', name: 'Piggy Bank', kind: 'passive', cells: rect(1, 1), price: 10, electrical: false,
+    blurb: 'Oink. Every grocery chips in.',
+    rules: 'Groceries drop {0} coins (does not stack).',
   },
   powerstrip: {
     id: 'powerstrip', family: 'tools', name: 'Power Strip', kind: 'module', cells: rect(3, 1), price: 32, electrical: true, legendary: true,
@@ -239,6 +254,10 @@ export const BUFFS = {
   powerstripAdjacent: 1.4,
   snackHp: 20,
   snackRegen: 0.25, // HP per second
+  fortuneCrit: 0.05, // crit chance for every weapon
+  sampleHeal: 1,     // HP per crit
+  sampleHealCap: 2,  // HP per second at most
+  piggyCoins: 0.15,  // extra kill coins (x tier mult)
 };
 
 /** Bundle Deal: each weapon gains +6% damage per distinct item type touching it. */

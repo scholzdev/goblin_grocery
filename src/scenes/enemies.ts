@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { AFFIX, BOSS, ELITE, ELITE_AFFIXES, ENEMIES, EGG_BLAST, EXPIRED, GIFTCARD, GUM, HONEY, SPITTER, SPLITTER_EXCLUDED, type EliteAffix } from '../data/enemies';
+import { AFFIX, BOSS, ELITE, MINI_BOSS, ELITE_AFFIXES, ENEMIES, EGG_BLAST, EXPIRED, GIFTCARD, GUM, HONEY, SPITTER, SPLITTER_EXCLUDED, type EliteAffix } from '../data/enemies';
 import { bossTuning } from '../data/waves';
 import { store } from '../state/store';
 import type { EnemyDef, EnemyId } from '../types';
@@ -60,6 +60,8 @@ export interface Enemy {
   loot: number;                    // Pickpocket: coins absorbed so far
   trailT: number;                  // Swift afterimage timer
   tag?: Phaser.GameObjects.Text;   // affix name above the HP bar
+  /** Mid-shift boss (giant themed grocery with Manager moves). */
+  mini?: boolean;
 }
 
 export const pickAffix = (id: EnemyId): EliteAffix => {
@@ -73,14 +75,17 @@ const frameKey = (id: EnemyId, f: 0 | 1) => (id === 'boss' ? `boss_${f ? 'b' : '
 
 let nextId = 1;
 
-export function createEnemy(scene: ArenaScene, id: EnemyId, x: number, y: number, hpScale: number, speedScale: number, elite = false, dmgScale = 1, small = 0): Enemy {
+export function createEnemy(scene: ArenaScene, id: EnemyId, x: number, y: number, hpScale: number, speedScale: number, elite = false, dmgScale = 1, small = 0, mini = false): Enemy {
   const base = ENEMIES[id];
   // Aisle damage scaling and elites get their own def copy so every e.def reader picks it up.
   const dm = dmgScale * (elite ? ELITE.contactMult : 1);
-  const def = elite || dm !== 1 || small ? { ...base, radius: base.radius * (elite ? ELITE.scale : 1), contactDamage: Math.round(base.contactDamage * dm), attackDamage: Math.round(base.attackDamage * dm) } : base;
+  const def = mini
+    // Mid-shift boss: the themed grocery's look with Manager behavior (every boss check keys on behavior).
+    ? { ...base, ...MINI_BOSS.def, behavior: 'boss' as const, radius: base.radius * MINI_BOSS.scale, contactDamage: Math.round(base.contactDamage * dm), attackDamage: Math.round(MINI_BOSS.def.attackDamage * dm) }
+    : elite || dm !== 1 || small ? { ...base, radius: base.radius * (elite ? ELITE.scale : 1), contactDamage: Math.round(base.contactDamage * dm), attackDamage: Math.round(base.attackDamage * dm) } : base;
   const affix = elite ? pickAffix(id) : undefined;
   // `small` (Splitter copies): scale / HP of the base type; the def copy shrinks the hit radius too.
-  const hp = Math.max(1, Math.round(base.hp * hpScale * (elite ? ELITE.hpMult : 1) * (small ? AFFIX.splitter.hpMult : 1)));
+  const hp = mini ? Math.round(MINI_BOSS.hp * hpScale) : Math.max(1, Math.round(base.hp * hpScale * (elite ? ELITE.hpMult : 1) * (small ? AFFIX.splitter.hpMult : 1)));
   if (small) def.radius = base.radius * small;
   const sprite = scene.add.image(x, y, frameKey(id, 0)).setOrigin(0.5, 0.95).setScale(0);
   const shadow = scene.add.image(x, y, 'shadow').setDepth(DEPTH.decal).setAlpha(0);
@@ -92,13 +97,14 @@ export function createEnemy(scene: ArenaScene, id: EnemyId, x: number, y: number
     dirX: 1, dirY: 0, flashT: 0, animT: Math.random(), facing: 1, alive: true, lastHitNumberAt: 0, lastFlashAt: 0,
     auxT: id === 'expired' ? EXPIRED.interval * (0.5 + Math.random() * 0.5) : id === 'honey' ? 0.5 : id === 'gum' ? 0.6 : 0, tx: x, ty: y, linkT: 0,
   };
-  scene.tweens.add({ targets: sprite, scale: SCALE[id] * (elite ? ELITE.scale : 1) * (small || 1), duration: 260, ease: 'Back.Out' });
+  if (mini) e.mini = true;
+  scene.tweens.add({ targets: sprite, scale: SCALE[id] * (elite ? ELITE.scale : 1) * (small || 1) * (mini ? MINI_BOSS.scale : 1), duration: 260, ease: 'Back.Out' });
   if (affix) {
     e.tag = scene.add.text(x, y, t(`affix_${affix}`), { fontFamily: '"Luckiest Guy", "Arial Black", sans-serif', fontSize: '15px', color: '#' + AFFIX[affix].color.toString(16).padStart(6, '0'), stroke: '#30203F', strokeThickness: 4 })
       .setOrigin(0.5, 1).setDepth(DEPTH.bars + 1).setAlpha(0);
   }
   scene.tweens.add({ targets: shadow, alpha: 1, duration: 200 });
-  if (id === 'boss') { e.bossMove = 'volley'; e.bossStep = 0; e.atkCd = 1.8; }
+  if (def.behavior === 'boss') { e.bossMove = 'volley'; e.bossStep = 0; e.atkCd = 1.8; }
   return e;
 }
 
@@ -238,7 +244,7 @@ export function updateEnemy(scene: ArenaScene, e: Enemy, dt: number, now: number
   if (d.behavior === 'teleporter') e.sprite.setAlpha(e.state === 'tell' ? 0.3 + 0.4 * Math.abs(Math.sin(now * 28)) : 1);
   const tex = (e.state === 'tell' || (e.state === 'attack' && d.behavior !== 'chase')) && tellTex ? tellTex : frameKey(d.id, (Math.floor(e.animT) % 2) as 0 | 1);
   if (e.sprite.texture.key !== tex) e.sprite.setTexture(tex);
-  const s = SCALE[d.id] * (e.elite ? ELITE.scale : 1) * (e.small || 1);
+  const s = SCALE[d.id] * (e.elite ? ELITE.scale : 1) * (e.small || 1) * (e.mini ? MINI_BOSS.scale : 1);
   const squash = e.state === 'tell' ? 0.06 * Math.sin(now * 40) : Math.sin(e.animT * Math.PI) * 0.035;
   e.sprite.setScale(s * e.facing * (1 + squash), s * (1 - squash));
   e.sprite.setPosition(e.x + (e.state === 'tell' ? Math.sin(now * 70) * 1.5 : 0), e.y).setDepth(DEPTH.world + e.y);
@@ -345,7 +351,7 @@ function beginAttack(scene: ArenaScene, e: Enemy): void {
       break;
     }
     case 'boss': {
-      const T = bossTuning(store.state.shift);
+      const T = e.mini ? { ...bossTuning(store.state.shift), ...MINI_BOSS.moves } : bossTuning(store.state.shift);
       if (e.bossMove === 'charge') { e.stateT = d.lungeTime; play('shove', { rate: 0.7 }); }
       else if (e.bossMove === 'volley') {
         e.stateT = 0.3;
@@ -354,7 +360,7 @@ function beginAttack(scene: ArenaScene, e: Enemy): void {
         const spread = Phaser.Math.DegToRad(T.volleySpreadDeg + (scene.halfHp(e) ? 20 : 0));
         for (let i = 0; i < n; i++) {
           const a = base + (i / (n - 1) - 0.5) * spread;
-          scene.spawnEnemyShot('proj_receipt', e.x + Math.cos(a) * 50, e.y - 90, a, d.projectileSpeed, d.projectileLife, d.attackDamage);
+          scene.spawnEnemyShot('proj_receipt', e.x + Math.cos(a) * 50, e.y - e.sprite.displayHeight * 0.48, a, d.projectileSpeed, d.projectileLife, d.attackDamage);
         }
         play('ding', { rate: 0.8 });
       } else {

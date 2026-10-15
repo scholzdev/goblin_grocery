@@ -84,6 +84,7 @@ export class Arsenal {
         w.blades.rotation += dt * (w.stats.recipes.includes('brainFreeze') ? 9 : 12);
         if (w.stats.recipes.includes('brainFreeze')) w.blades.setTint(0xcff3ff);
       }
+      if (firing && w.stats.pattern === 'pulse') this.suction(w, dt);
       w.expressIcd -= dt;
       if (w.burstLeft > 0) {
         w.burstT -= dt;
@@ -98,14 +99,13 @@ export class Arsenal {
       w.cd -= dt * (ITEMS[w.stats.type].electrical ? sc.dept.electricalRate * sc.aisleEvent.electricRate() : 1);
       if (!firing || w.cd > 0) continue;
       if (w.stats.pattern === 'puddle') { w.cd = w.stats.cooldown; this.dropPuddle(w); continue; }
-      const reach = w.stats.pattern === 'sweep' ? w.stats.range + 30 : w.stats.range;
-      const target = sc.nearestEnemy(reach);
+      const target = sc.nearestEnemy(w.stats.range);
       if (!target) { w.cd = 0.05; continue; }
       w.cd = w.stats.cooldown;
       switch (w.stats.pattern) {
         case 'toast': this.fireToast(w, target); break;
         case 'burst': w.burstLeft = w.stats.count; w.burstT = 0; break;
-        case 'sweep': this.repeat(w, () => { const t = sc.nearestEnemy(w.stats.range + 30); if (t) this.sweep(w, Math.atan2(t.y - sc.player.y, t.x - sc.player.x)); }); break;
+        case 'sweep': this.repeat(w, () => { const t = sc.nearestEnemy(w.stats.range); if (t) this.sweep(w, Math.atan2(t.y - sc.player.y, t.x - sc.player.x)); }); break;
         case 'pulse': this.pulse(w); break;
         case 'aura': this.aura(w); break;
         case 'zap': this.zap(w); break;
@@ -185,18 +185,27 @@ export class Arsenal {
     });
     const st = w.stats;
     const o = this.origin();
-    const a = Math.atan2(target.y - o.y, target.x - o.x);
+    const inBeam = (e: Enemy, cx: number, cy: number): boolean => {
+      const dx = e.x - o.x, dy = e.y - o.y, along = dx * cx + dy * cy;
+      return along >= 0 && along <= st.range && Math.abs(dx * cy - dy * cx) <= e.def.radius + 14;
+    };
+    // Aim down the line that crosses the most groceries; the nearest target is tried first, so it wins ties.
+    // ponytail: O(n²) over live enemies every ~1.6 s (n ≤ ~70); sweep sorted angles if counts ever grow.
+    const live = sc.enemies.filter((e) => e.alive && e.state !== 'spawn');
+    let a = Math.atan2(target.y - o.y, target.x - o.x), best = -1;
+    for (const t of [target, ...live]) {
+      if (Math.hypot(t.x - o.x, t.y - o.y) > st.range) continue;
+      const ta = Math.atan2(t.y - o.y, t.x - o.x), tx = Math.cos(ta), ty = Math.sin(ta);
+      const n = live.reduce((k, e) => k + (inBeam(e, tx, ty) ? 1 : 0), 0);
+      if (n > best) { best = n; a = ta; }
+    }
     const cx = Math.cos(a), cy = Math.sin(a);
     const beam = sc.add.image(o.x, o.y - 30, 'fx_laser').setOrigin(0, 0.5).setRotation(a).setDepth(DEPTH.fx)
       .setDisplaySize(st.range, 34);
     sc.tweens.add({ targets: beam, displayHeight: 4, alpha: 0, duration: 260, ease: 'Cubic.In', onComplete: () => beam.destroy() });
     const tracker = newHitTracker(Infinity);
-    for (const e of sc.enemies) {
-      if (!e.alive || e.state === 'spawn') continue;
-      const dx = e.x - o.x, dy = e.y - o.y;
-      const along = dx * cx + dy * cy;
-      if (along < 0 || along > st.range) continue;
-      if (Math.abs(dx * cy - dy * cx) > e.def.radius + 14 || !tryHit(tracker, e.id)) continue;
+    for (const e of live) {
+      if (!inBeam(e, cx, cy) || !tryHit(tracker, e.id)) continue;
       if (st.recipes.includes('priceCheck')) e.markedUntil = sc.time.now / 1000 + RECIPE_TUNING.priceCheck.duration;
       sc.damageEnemy(e, st.damage * (echo ? RECIPE_TUNING.powerSurge.damageMult : 1), st, { kb: echo ? 20 : 70, kbX: cx, kbY: cy });
     }
@@ -233,7 +242,8 @@ export class Arsenal {
     const pool = sc.enemies.filter((e) => e.alive && e.state !== 'spawn' && (e.x - p.x) ** 2 + (e.y - p.y) ** 2 < st.range * st.range);
     if (!pool.length) return;
     const tracker = newHitTracker(Infinity);
-    let target: Enemy | null = pool[Math.floor(Math.random() * pool.length)];
+    // Sniper role: the toughest grocery in range (Elites first, then most HP); the splash handles the small fry.
+    let target: Enemy | null = pool.reduce((b, e) => (e.elite !== b.elite ? (e.elite ? e : b) : e.hp > b.hp ? e : b));
     // Reheat: the first zap target's spot keeps burning.
     if (st.recipes.includes('reheat')) this.firePool(target.x, target.y, st.aoe, RECIPE_TUNING.reheat.poolTime, st);
     for (let link = 0; target && link <= st.chain; link++) {
@@ -433,20 +443,35 @@ export class Arsenal {
     play('pan_clang', { rate: bonus ? 1.25 : 1 });
   }
 
-  private pulse(w: WeaponRt): void {
+  /** Vacuum, every frame: drags enemies in range toward the cart and draws dust into the nozzle. */
+  private suction(w: WeaponRt, dt: number): void {
     const sc = this.scene;
     const p = sc.player;
     const st = w.stats;
-    const tracker = newHitTracker(Infinity);
-    sc.fx.ring('fx_pulse', p.x, p.y, st.range * 2.2, 360);
-    if (st.frostRing) { sc.fx.ring('fx_frost', p.x, p.y, st.range * 2.3, 520); play('frost'); }
+    let pulling = false;
     for (const e of sc.enemies) {
       if (!e.alive || e.state === 'spawn') continue;
       const dx = p.x - e.x, dy = p.y - e.y;
       const d = Math.hypot(dx, dy);
-      if (d > st.range + e.def.radius || !tryHit(tracker, e.id)) continue;
-      const pull = Math.min(st.pull * (1 - e.def.knockbackResist * 0.7), Math.max(0, d - p.radius - e.def.radius));
-      e.x += (dx / (d || 1)) * pull; e.y += (dy / (d || 1)) * pull;
+      // Stop short of the cart so suction doesn't just feed melee enemies into the goblin.
+      if (d > st.range + e.def.radius || d < p.radius + e.def.radius + 12) continue;
+      pulling = true;
+      // Knockback velocity decays at 9/s (updateEnemy), so this settles at `pull` px/s.
+      const f = st.pull * 9 * dt * (1 - e.def.knockbackResist * 0.7) / d;
+      e.kx += dx * f; e.ky += dy * f;
+    }
+    sc.fx.suck(p.x, p.y, st.range, pulling && Math.random() < dt * 22, st.frostRing ? 0xcff3ff : undefined);
+  }
+
+  /** Vacuum damage tick: everything inside the suction radius. */
+  private pulse(w: WeaponRt): void {
+    const sc = this.scene;
+    const p = sc.player;
+    const st = w.stats;
+    sc.fx.ring(st.frostRing ? 'fx_frost' : 'fx_pulse', p.x, p.y, st.range * 2.2, 420, undefined, true);
+    for (const e of sc.enemies) {
+      if (!e.alive || e.state === 'spawn') continue;
+      if (Math.hypot(p.x - e.x, p.y - e.y) > st.range + e.def.radius) continue;
       sc.damageEnemy(e, st.damage, st, {});
       if (st.frostRing) sc.fx.frostBurst(e.x, e.y - 20, 3);
     }
@@ -460,7 +485,7 @@ export class Arsenal {
       }
       if (inside.length) play('zap', { rate: 1.3, volume: 0.6 });
     }
-    play('vacuum_pulse');
+    play('vacuum_pulse', { volume: 0.7 });
   }
 
   /** Express Checkout: bonus pan sweeps after a shove that connected. */

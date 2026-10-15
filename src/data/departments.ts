@@ -45,8 +45,8 @@ export const DEPARTMENTS: Record<DepartmentId, DepartmentDef> = {
   clearance: {
     ...base, id: 'clearance', name: 'Clearance Bin', short: 'CLEARANCE', danger: 3, hazard: 'none',
     blurb: 'No hazards, just a LOT of groceries', enemiesText: '+35% groceries, +25% HP, Cereal & Honey',
-    rewardText: '+50% coins · guaranteed legendary next shop',
-    mix: { cereal: 1.8, honey: 2 }, hpMult: 1.25, countMult: 1.35, coinMult: 1.5, forceLegendary: true,
+    rewardText: '+25% coins · guaranteed legendary next shop',
+    mix: { cereal: 1.8, honey: 2 }, hpMult: 1.25, countMult: 1.35, coinMult: 1.25, forceLegendary: true,
     theme: { floor: 'floor_tile', walls: ['shelf_a', 'shelf_b', 'shelf_a', 'shelf_b'], sides: ['shelf_side'], props: ['prop_salesign', 'prop_salesign', 'prop_cans', 'prop_cereal'], tint: 0xffd6d0, icon: 'dept_clearance' },
   },
   boss: {
@@ -58,7 +58,6 @@ export const DEPARTMENTS: Record<DepartmentId, DepartmentDef> = {
 
 /** Run themes the player can pick on the start screen. */
 export const THEMES: DepartmentId[] = ['main', 'frozen', 'bakery', 'electronics', 'checkout'];
-
 export const DEPT_TUNING = {
   /** Off-theme enemies spawn at this weight; basics stay at 1. */
   offTheme: 0.35,
@@ -69,7 +68,7 @@ export const DEPT_TUNING = {
   threeDoorsAtLoyalty: 3,
   ice: { patches: 4, enemySlow: 0.3, knockbackMult: 1.6, shoveMult: 1.5 },
   vents: { count: 3, interval: 5, tell: 1, active: 0.6, radius: 62, playerDamage: 6, enemyDamage: 15 },
-  cables: { count: 3, interval: 4, tell: 0.8, active: 0.5, width: 26, playerDamage: 5, enemyDamage: 12, stun: 0.6 },
+  cables: { count: 3, interval: 4, tell: 0.8, active: 0.5, width: 26, playerDamage: 5, enemyDamage: 15, stun: 0.7 },
   conveyor: { speed: 90, height: 64 },
-  bread: { chance: 0.08, heal: 2, capPerAisle: 8 },
+  bread: { chance: 0.08, heal: 1, capPerAisle: 8 },
 };

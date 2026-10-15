@@ -786,8 +786,8 @@ describe('departments and routes', () => {
     const s = createRun(1);
     s.modifier = 'rush';
     finishWave(s);
-    expect(s.coinLog).toEqual([{ label: 'Wave clear bonus', amount: 18 }]);
-    expect(s.money).toBe(18);
+    expect(s.coinLog).toEqual([{ label: 'Wave clear bonus', amount: 15 }]);
+    expect(s.money).toBe(15);
     const m = createRun(1);
     finishWave(m);
     expect(m.money).toBe(12);
@@ -1111,7 +1111,7 @@ describe('universal utilities and 2 combos per weapon', () => {
   });
   it('multipack on a vacuum is +20% damage and listed in buffs', () => {
     const v = cw('vacuum', ['multipack']);
-    expect(v.damage).toBeCloseTo(4 * 1.2 * 1.06);
+    expect(v.damage).toBeCloseTo(2 * 1.2 * 1.06);
     expect(v.buffs).toContain('multipack');
     expect(v.count).toBe(1);
   });

@@ -232,25 +232,6 @@ function setCardHtml(id: SetId): string {
   return `<div class="setcard set-${id}"><div class="hd">${chipHtml(id)}<span class="cnt">${t('setProgress', { n, m: SETS.thresholds[2] })}</span>${setPips(id, n)}</div>${setTiers(id, setLv(n))}<div class="mem">${t('setMembers')}</div><div class="members">${members}</div></div>`;
 }
 
-/** Overflow fallback (never scroll): hide dim coupons from the end until the receipt fits, add a "+N more" line. */
-function fitSets(): void {
-  const col = root.querySelector<HTMLElement>('.col-left');
-  const sets = root.querySelector<HTMLElement>('.sets');
-  if (!col || !sets) return;
-  sets.querySelectorAll('.more').forEach((e) => e.remove());
-  const dim = [...sets.querySelectorAll<HTMLElement>('.coupon.dim')];
-  dim.forEach((e) => (e.style.display = ''));
-  // .receipt::after (zigzag) is absolute, so scrollHeight is useless: compare the last child's real bottom to #shop and col-left
-  const over = () => { const b = (col.lastElementChild as HTMLElement).getBoundingClientRect().bottom; return b > Math.min(root.getBoundingClientRect().bottom - 16, col.getBoundingClientRect().bottom); };
-  if (!over()) return;
-  const more = document.createElement('div');
-  more.className = 'more';
-  sets.appendChild(more);
-  let n = 0;
-  for (let i = dim.length - 1; i >= 0 && over(); i--) { dim[i].style.display = 'none'; n++; more.textContent = t('setsMore', { n }); }
-  if (!n) more.remove();
-}
-
 /** Sticker/hover detail for a set gain. */
 const gainText = (g: ReturnType<typeof setGains>[number]): string => { const th = SETS.thresholds, ni = th.findIndex((x) => x > g.to); return g.levelUp ? t('setStkUp', { n: lvOf(g.to) }) : t((['setStkMore', 'setStkMore2', 'setStkMore3'] as const)[Math.max(0, ni < 0 ? 2 : ni)], { n: th[Math.max(0, ni < 0 ? 2 : ni)] - g.to }); };
 
@@ -293,7 +274,7 @@ function render(): void {
       <div class="nm">${itemT(o.type).name}</div><div class="fp" style="grid-template-columns:repeat(${w},10px)">${fp}</div>
       <span class="price-tag">${costPill(o.price, s.money >= o.price)}${infl > 1 && !o.sold ? `<s class="base">${Math.max(1, Math.round(o.price / infl))}</s>` : ''}</span>
       ${lv ? `<span class="lvlup" title="${t('combinesTip', { name: itemT(o.type).name })}">${t('combinesTag', { n: (lv.tier ?? 1) + 1 })}</span>` : ''}
-      ${o.double && !o.sold ? `<span class="dblpack" title="${esc(t('setDouble', { set: tagT(def.family) }))}">${t('doubleSticker')}</span>` : ''}
+      ${o.double && !o.sold ? `<span class="dblpack" title="${esc(t('setDouble', { set: tagT(def.family) }))}">${t('packSticker')}</span>` : ''}
       ${stks ? `<div class="seticons">${stks}</div>` : ''}
       <div class="why">${why}</div></div>`;
   }).join('');
@@ -333,7 +314,6 @@ function render(): void {
     </div>
     ${s.lab ? labPanel() : ''}
     <div class="toast" style="opacity:0"></div>`;
-  fitSets();
   refreshHover();
 }
 
@@ -382,7 +362,7 @@ export function inspectorHtml(type: ItemTypeId, uid: string | null, offerTier?: 
   const kind = def.kind === 'weapon' && weaponTag ? t(KIND_BY_TAG[weaponTag]) : kindLabel(type);
   const otherTags = (def.tags ?? []).filter((tg) => !(tg in KIND_BY_TAG));
   const gains = offerTier !== undefined && !loc && s ? setGains(s.inventory.placed, type, offerDouble) : [];
-  const dblNote = offerDouble || (loc?.inst.double ?? false) ? `<span class="chip dbl">2× ${esc(t('setDouble', { set: tagT(def.family) }))}</span>` : '';
+  const dblNote = offerDouble || (loc?.inst.double ?? false) ? `<span class="chip dbl">${esc(t('setDouble', { set: tagT(def.family) }))}</span>` : '';
   const setChips = setsOf(type).map((id) => { const g = gains.find((x) => x.id === id); return `<span class="chip set-${id}${s?.build?.sets?.[id] ? ' act' : ''}">${setIcon(id, 14)}${tagT(id)}${g ? ` <small>(${gainText(g)})</small>` : ''}</span>`; }).join('');
   const head = `<header><span class="ico-tile ${rc}"><img src="${svg(`icon_${type}`)}" alt=""></span>
     <div class="hd"><div class="nm"><span style="font-size:${fitName(itemT(type).name)}px">${itemT(type).name}</span><b class="lv ${def.legendary ? 'leg' : `t${tier}`}">★${def.legendary ? '' : tier}</b></div>
@@ -465,7 +445,7 @@ function refreshHover(): void {
   if (pv !== receiptPreview) {
     receiptPreview = pv;
     const sets = root.querySelector('.sets');
-    if (sets) { sets.innerHTML = setsHtml(pv ?? undefined, hoverDouble); fitSets(); }
+    if (sets) { sets.innerHTML = setsHtml(pv ?? undefined, hoverDouble); }
   }
   if (hoverSet) { // set coupon hover: glow member items, card to the right of the receipt
     for (const p of s.inventory.placed) if (setsOf(p.type).includes(hoverSet)) root.querySelector(`.grid .item[data-uid="${p.uid}"]`)?.classList.add('setlit');
@@ -757,7 +737,7 @@ function updateTarget(): void {
     const combos = root.querySelector('.combos');
     if (combos) combos.innerHTML = combosHtml(s.build, preview, relevantTypes());
     const sets = root.querySelector('.sets');
-    if (sets) { sets.innerHTML = setsHtml(); fitSets(); }
+    if (sets) { sets.innerHTML = setsHtml(); }
     return;
   }
   if (under && grid.contains(under)) {
@@ -791,7 +771,7 @@ function updateTarget(): void {
   const combos = root.querySelector('.combos');
   if (combos) combos.innerHTML = combosHtml(s.build, preview, relevantTypes());
   const sets = root.querySelector('.sets');
-  if (sets) { sets.innerHTML = setsHtml(); fitSets(); }
+  if (sets) { sets.innerHTML = setsHtml(); }
   setHint(sellHint || `<div class="nm">${itemT(drag.type).name}${starsHtml(drag.tier)}</div>`);
 }
 

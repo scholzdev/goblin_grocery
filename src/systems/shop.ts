@@ -1,3 +1,4 @@
+import { MINI_BOSS } from '../data/enemies';
 import { DEPARTMENTS, DEPT_TUNING } from '../data/departments';
 import { DOOR_POOL, MODIFIERS, ROOMS, ROOM_DOORS, type DoorId } from '../data/modifiers';
 import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS, waveDef } from '../data/waves';
@@ -85,6 +86,18 @@ export function rollDoors(state: RunState, rng: Rng): DoorId[] {
 /** Stockroom: three free items from the unlocked pool, pick one. */
 export function rollStockroom(state: RunState, rng: Rng): ShopOffer[] {
   return rollOffers(state, rng, Math.max(2, state.wave), false).slice(0, ROOMS.stockroom.choices).map((o, slot) => ({ ...o, slot, price: 0 }));
+}
+
+/** Mid-shift boss loot: one unlocked legendary you don't own yet (if any), the rest distinct weapons at MINI_BOSS.weaponTier. Pick one. */
+export function rollMiniCrates(state: RunState, rng: Rng): ShopOffer[] {
+  const allowed = (t: ItemTypeId) => !state.unlocked || state.unlocked.includes(t);
+  const owned = new Set([...state.inventory.placed, ...state.inventory.shelf].filter((i) => !!i).map((i) => i!.type));
+  const take = (pool: ItemTypeId[]) => pool.splice(Math.floor(rng() * pool.length), 1)[0];
+  const legends = ITEM_IDS.filter((t) => allowed(t) && ITEMS[t].legendary && !owned.has(t));
+  const weapons = ITEM_IDS.filter((t) => allowed(t) && ITEMS[t].kind === 'weapon' && !ITEMS[t].legendary);
+  const picks: { type: ItemTypeId; tier: number }[] = legends.length ? [{ type: take(legends), tier: 1 }] : [];
+  while (picks.length < MINI_BOSS.crates && weapons.length) picks.push({ type: take(weapons), tier: MINI_BOSS.weaponTier });
+  return picks.map((p, slot) => ({ ...p, slot, price: 0, sold: false }));
 }
 
 /** Zone behind each door (parallel to `doors`): distinct per route screen, repeats get rarer; clearance / boss have none. */

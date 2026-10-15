@@ -3,14 +3,14 @@ import { deptT, enemyT, itemT } from '../i18n/data';
 import { store } from '../state/store';
 import { flow } from '../flow';
 import { waveDef, eliteChance, bossTuning, ECONOMY, SHIFTS, WAVE_RAMP } from '../data/waves';
-import { SHOW_HP_BAR, EGG_BLAST, MELON_SLICES, ELITE, GIFTCARD, GUM, THEME_SUMMONS, ELITE_EXCLUDED, AFFIX } from '../data/enemies';
+import { SHOW_HP_BAR, EGG_BLAST, MELON_SLICES, ELITE, GIFTCARD, GUM, THEME_SUMMONS, ELITE_EXCLUDED, AFFIX, MINI_BOSS } from '../data/enemies';
 import { GumPuddles } from './gum';
-import { CRIT, ECHO, ITEMS, PLAYER, STARTER_LOOKS } from '../data/items';
+import { BUFFS, CRIT, ECHO, ITEMS, PLAYER, STARTER_LOOKS } from '../data/items';
 import { SETS, setCfg } from '../data/sets';
 import { RECIPE_TUNING } from '../data/recipes';
 import { addCoins, damagePlayer, takeStockroomItem } from '../state/run';
 import { applyBurn, applySlow, armorDamage, newHitTracker, pickRicochetTarget, tryHit, type HitTracker } from '../systems/combat';
-import type { EnemyId, WaveDef, WeaponStats } from '../types';
+import type { EnemyId, ShopOffer, WaveDef, WeaponStats } from '../types';
 import { play, setWheel } from '../audio/sfx';
 import { musicFor, playMusic } from '../audio/music';
 import { settings } from '../state/settings';
@@ -31,7 +31,7 @@ const sk = (key: string): string =>
     : CART_PARTS.includes(key) && profile.cart !== 'chrome' ? `${key}__${profile.cart}` : key;
 import { DEPARTMENTS, DEPT_TUNING } from '../data/departments';
 import { MODIFIERS, ROOMS } from '../data/modifiers';
-import { waveSpawnPlan, rollStockroom } from '../systems/shop';
+import { waveSpawnPlan, rollStockroom, rollMiniCrates } from '../systems/shop';
 import { killCoins } from '../systems/combat';
 import type { DepartmentDef } from '../types';
 import { OBSTACLES, OBSTACLE_KINDS } from '../data/obstacles';
@@ -82,6 +82,12 @@ export class ArenaScene extends Phaser.Scene {
   private animT = 0;
   private ending: '' | 'checkout' | 'victory' | 'defeat' = '';
   private boss: Enemy | null = null;
+  /** Mid-shift boss while alive; `miniDue` holds the aisle open until its loot is picked. */
+  private mini: Enemy | null = null;
+  private miniDue = false;
+  /** Free Sample heal budget: HP healed by crits in the current second. */
+  private critHealSec = -1;
+  private critHealed = 0;
   private coinStreak = 0;
   private coinStreakT = 0;
   gum!: GumPuddles;
@@ -102,6 +108,8 @@ export class ArenaScene extends Phaser.Scene {
     this.enraged = false;
     this.ending = '';
     this.boss = null;
+    this.mini = null;
+    this.miniDue = false;
     this.waveTime = 0;
     this.wave = waveDef(s.wave);
     this.dept = DEPARTMENTS[s.phase === 'title' ? 'main' : s.department];
@@ -262,8 +270,11 @@ export class ArenaScene extends Phaser.Scene {
     const body = this.add.container(0, 0, [...wheels.slice(0, 2), cartBack]);
     // Props go between cart back and front wires.
     const shown = this.chooseProps(s.build.weapons, s.build.recipes.map((r) => [r.weaponUid, ...r.supportUids]).flat());
+    // Piled in the basket (cart_back spans ≈ x -2..56, rim ≈ y -66): two side by side, the third on top.
+    const pile: [number, number, number][][] = [[], [[27, -74, 0]], [[15, -72, -8], [39, -72, 8]], [[13, -72, -10], [41, -72, 10], [27, -86, 4]]];
     shown.forEach(({ uid, type }, i) => {
-      const img = this.add.image(0 + i * 24, -60 - (i % 2) * 6, `prop_${type}`).setScale(0.78);
+      const [x, y, angle] = pile[shown.length][i];
+      const img = this.add.image(x, y, `prop_${type}`).setScale(0.78).setAngle(angle);
       this.props.set(uid, img);
       body.add(img);
     });
@@ -326,6 +337,10 @@ export class ArenaScene extends Phaser.Scene {
       this.groups.push({ at, ids: Array.from({ length: n }, pick), entry: -1, told: false, done: false });
     });
     if (w.boss) this.time.delayedCall(1600, () => this.spawnBoss());
+    if (w.index === MINI_BOSS.aisle && store.state.modifier !== 'stockroom') {
+      this.miniDue = true;
+      this.time.delayedCall(MINI_BOSS.at * 1000, () => this.spawnMini());
+    }
   }
 
   private pickEntry(): number {
@@ -381,6 +396,43 @@ export class ArenaScene extends Phaser.Scene {
     showBanner(t('managerCaps'), t('watchFloor'));
   }
 
+  /** Mid-shift boss: a giant grocery from the run's theme drops in; the aisle ends when it falls. */
+  private spawnMini(): void {
+    if (this.ending) return;
+    const id = MINI_BOSS.byTheme[store.state.theme] ?? MINI_BOSS.byTheme.main!;
+    const e = createEnemy(this, id, 640, 330, SHIFTS[store.state.shift].bossHpMult, 1, false, this.plan.dmgScale, 0, true);
+    e.state = 'spawn';
+    e.stateT = 1.2;
+    e.sprite.setY(-100); // createEnemy's grow-in tween still scales it up on the way down
+    this.tweens.add({ targets: e.sprite, y: 330, duration: 700, ease: 'Bounce.Out', onComplete: () => { this.fx.shake(0.008, 220); this.fx.puff(640, 330, 8); play('boss_hit'); } });
+    this.enemies.push(e);
+    this.mini = e;
+    showBanner(t('miniBossCaps'), t('miniBossSub', { name: enemyT(id).name }));
+  }
+
+  private miniDefeated(): void {
+    const m = this.mini!;
+    this.mini = null;
+    this.hazards.stop();
+    this.gum.clear();
+    this.ending = 'checkout';
+    showBanner(t('miniBossDown'), t('miniBossDownSub'));
+    this.fx.shake(0.008, 260);
+    for (let i = 0; i < 4; i++) this.time.delayedCall(120 * i, () => {
+      this.fx.puff(m.x + Phaser.Math.Between(-50, 50), m.y - 50, 4);
+      play('ding', { rate: 1 + i * 0.1 });
+    });
+    this.arsenal.clearAll(true);
+    this.groups.forEach((g) => (g.done = true));
+    this.enemies.filter((e) => e.alive).forEach((e) => this.killEnemy(e, false));
+    this.time.delayedCall(600, () => this.coins.forEach((c) => (c.pull = c.active)));
+    this.time.delayedCall(1300, () => this.offerCrates(rollMiniCrates(store.state, flow.rng), { title: t('miniCratesTitle'), hint: t('miniCratesHint') }, () => {
+      this.miniDue = false;
+      this.ending = '';
+      this.beginCheckout();
+    }));
+  }
+
   summonMinions(n: number): void {
     const T = bossTuning(store.state.shift);
     const entries = [this.pickEntry(), this.pickEntry()];
@@ -403,7 +455,7 @@ export class ArenaScene extends Phaser.Scene {
   private regenFxT = 0;
 
   stunEnemy(e: Enemy, t: number): void {
-    if (!e.alive || e.def.id === 'boss') return;
+    if (!e.alive || e.def.behavior === 'boss') return;
     e.state = 'stun';
     e.stateT = Math.max(e.stateT, t);
   }
@@ -472,6 +524,13 @@ export class ArenaScene extends Phaser.Scene {
       this.fx.popImage('fx_crit', e.x + Phaser.Math.Between(-10, 10), e.y - e.sprite.displayHeight - 6, 0.8);
       play('crit');
       if (stats!.critCoin && !e.critCoinDropped) { e.critCoinDropped = true; this.dropCoin(e.x, e.y, t('coinClearance')); }
+      // Free Sample: crits heal, capped per (whole) second so fast area weapons can't out-heal everything.
+      if (s.build.critHeal > 0 && !this.player.dead) {
+        const sec = Math.floor(now);
+        if (sec !== this.critHealSec) { this.critHealSec = sec; this.critHealed = 0; }
+        const h = Math.min(s.build.critHeal, BUFFS.sampleHealCap - this.critHealed, s.build.maxHp - s.hp);
+        if (h > 0) { s.hp += h; this.critHealed += h; this.fx.spark(this.player.x, this.player.y - 46, 2, 0x8fcb57); }
+      }
     }
     // Armor (Canned Beans): direct hits only; burn, puddles, auras and pulses (isDot/quiet) pass through.
     let armored = false;
@@ -500,11 +559,11 @@ export class ArenaScene extends Phaser.Scene {
       if (now - e.lastFlashAt > 0.16) {
         e.lastFlashAt = now;
         e.flashT = 0.06;
-        if (e.def.id === 'boss') e.sprite.setTint(0xffb8ae); else e.sprite.setTintFill(0xffffff);
+        if (e.def.behavior === 'boss') e.sprite.setTint(0xffb8ae); else e.sprite.setTintFill(0xffffff);
       }
       this.fx.spark(e.x, e.y - 30, 3, armored ? 0xaab2c2 : stats?.recipes.includes('toastMode') ? 0xf5bd45 : 0xffffff);
       if (armored) { this.fx.label(e.x, e.y - e.sprite.displayHeight - 10, lang() === 'de' ? '-Panzer' : '-armor', '#AAB2C2', 16); play('cap_ping', { rate: 0.7 }); }
-      if (e.def.id === 'boss') play('boss_hit');
+      if (e.def.behavior === 'boss') play('boss_hit');
     }
     if (crit || now - e.lastHitNumberAt > 0.14 || dmg >= 10) {
       e.lastHitNumberAt = now;
@@ -575,7 +634,7 @@ export class ArenaScene extends Phaser.Scene {
 
   /** Frost L2: marks the enemy frozen (ice block drawn by updateEnemy). */
   private freezeFx(e: Enemy): void {
-    if (!e.alive || e.def.id === 'boss') return;
+    if (!e.alive || e.def.behavior === 'boss') return;
     e.frozenT = setCfg('frost', store.state.build.sets.frost).stun;
     play('frost', { rate: 1.3, volume: 0.5 });
   }
@@ -609,7 +668,7 @@ export class ArenaScene extends Phaser.Scene {
     this.fx.shake(0.005, 140);
     play('pop');
     for (const o of this.enemies) {
-      if (o === e || !o.alive || o.state === 'spawn' || o.def.id === 'boss') continue;
+      if (o === e || !o.alive || o.state === 'spawn' || o.def.behavior === 'boss') continue;
       if (Math.hypot(o.x - e.x, o.y - e.y) < EGG_BLAST.radius + o.def.radius) this.damageEnemy(o, EGG_BLAST.enemyDamage, null, { label: 'Egg Carton' });
     }
     this.killEnemy(e, false);
@@ -622,8 +681,8 @@ export class ArenaScene extends Phaser.Scene {
     e.ice?.destroy(); e.ice = undefined; e.frozenT = 0;
     e.tag?.destroy(); e.tag = undefined;
     const tint = ({ milk: 0xfff2d5, banana: 0xf6d24a, soda: 0xe2473f, spitter: 0x7cc4e8, baguette: 0xd9954a, egg: 0xfff2d5, melon: 0x8fcb57, slice: 0xf45f52, turkey: 0xcff3ff, beans: 0xb9895a, cereal: 0xe8b04a, honey: 0xf5bd45, giftcard: 0xf45f52, expired: 0xd5ebdd, gum: 0xff7fb8, boss: 0xf5bd45 } as const)[e.def.id];
-    this.fx.puff(e.x, e.y - 24, e.def.id === 'boss' ? 14 : 4);
-    this.fx.crumbsAt(e.x, e.y - 30, e.def.id === 'boss' ? 24 : 7, tint);
+    this.fx.puff(e.x, e.y - 24, e.def.behavior === 'boss' ? 14 : 4);
+    this.fx.crumbsAt(e.x, e.y - 30, e.def.behavior === 'boss' ? 24 : 7, tint);
     if (e.def.trail && !this.ending) this.gum.drop(0, e.x, e.y, GUM.trapRadiusMult);
     this.tweens.killTweensOf(e.sprite);
     e.sprite.clearTint();
@@ -640,9 +699,10 @@ export class ArenaScene extends Phaser.Scene {
     const thief = e.def.id === 'giftcard';
     const coins = thief ? Math.round(e.def.coins * GIFTCARD.coinMult * this.dept.coinMult * MODIFIERS[s.modifier].coinMult * SHIFTS[store.state.shift].coinMult) : e === this.boss
       ? bossTuning(store.state.shift).coins
-      : killCoins(e.def.coins * (e.elite ? ELITE.coinMult : 1), this.dept.coinMult * MODIFIERS[s.modifier].coinMult * SHIFTS[store.state.shift].coinMult * this.aisleEvent.coinMult(), flow.rng);
+      : e.mini ? MINI_BOSS.coins
+      : killCoins(e.def.coins * (e.elite ? ELITE.coinMult : 1), this.dept.coinMult * MODIFIERS[s.modifier].coinMult * SHIFTS[store.state.shift].coinMult * this.aisleEvent.coinMult() * s.build.killCoinMult, flow.rng);
     // Bosses always pay out in full; regular groceries drop each coin only sometimes.
-    for (let i = 0; i < coins; i++) if (thief || e.def.id === 'boss' || flow.rng() < ECONOMY.killCoinChance) this.dropCoin(e.x, e.y, enemyT(e.def.id).name);
+    for (let i = 0; i < coins; i++) if (thief || e.def.behavior === 'boss' || flow.rng() < ECONOMY.killCoinChance) this.dropCoin(e.x, e.y, enemyT(e.def.id).name);
     const B = DEPT_TUNING.bread;
     if (this.dept.breadHeal && this.breadDropped + B.heal <= B.capPerAisle && flow.rng() < B.chance) {
       this.breadDropped += B.heal;
@@ -670,6 +730,7 @@ export class ArenaScene extends Phaser.Scene {
       }
     }
     if (e === this.boss) this.bossDefeated();
+    else if (e === this.mini) this.miniDefeated();
   }
 
   /** Nearest loose floor coin within `r` (Pickpocket Elites home in on it). */
@@ -806,7 +867,7 @@ export class ArenaScene extends Phaser.Scene {
         this.enraged = true;
         showBanner(t('bossFurious'), t('bossFuriousSub'));
       }
-      if (!this.wave.boss && s.modifier !== 'stockroom' && this.waveTime >= this.wave.duration) this.beginCheckout();
+      if (!this.wave.boss && !this.miniDue && s.modifier !== 'stockroom' && this.waveTime >= this.wave.duration) this.beginCheckout();
     } else if (s.phase === 'title') {
       this.idleRig(dt);
     }
@@ -832,10 +893,11 @@ export class ArenaScene extends Phaser.Scene {
     if (this.hudT <= 0 && (s.phase === 'combat')) {
       this.hudT = 0.05;
       hud.tick({
-        timeLeft: this.wave.boss || s.modifier === 'stockroom' ? -1 : Math.max(0, this.wave.duration - this.waveTime),
+        timeLeft: this.wave.boss || this.miniDue || s.modifier === 'stockroom' ? -1 : Math.max(0, this.wave.duration - this.waveTime),
         elapsed: this.waveTime,
         shoveCd: Math.max(0, this.player.shoveCd), shoveMax: s.build.shoveCooldown,
-        boss: this.boss ? { hp: Math.max(0, this.boss.hp), max: this.boss.maxHp, enraged: this.enraged } : null,
+        boss: this.boss ? { hp: Math.max(0, this.boss.hp), max: this.boss.maxHp, enraged: this.enraged, name: t('managerCaps') }
+          : this.mini ? { hp: Math.max(0, this.mini.hp), max: this.mini.maxHp, enraged: false, name: t('miniBossBar', { name: enemyT(this.mini.def.id).name.toUpperCase() }) } : null,
       });
     }
   }
@@ -944,7 +1006,7 @@ export class ArenaScene extends Phaser.Scene {
         if (d2 >= r * r || d2 === 0) continue;
         const d = Math.sqrt(d2);
         const push = (r - d) / 2;
-        const ra = b.def.id === 'boss' ? 1.8 : a.def.id === 'boss' ? 0.2 : 1;
+        const ra = b.def.behavior === 'boss' ? 1.8 : a.def.behavior === 'boss' ? 0.2 : 1;
         a.x -= (dx / d) * push * ra; a.y -= (dy / d) * push * ra;
         b.x += (dx / d) * push * (2 - ra); b.y += (dy / d) * push * (2 - ra);
       }
@@ -973,7 +1035,7 @@ export class ArenaScene extends Phaser.Scene {
       this.hurtPlayer(e.def.contactDamage + (charging ? 3 : 0));
       // Keep groceries from stacking inside the cart.
       const d = Math.sqrt(d2) || 1;
-      if (e.def.id !== 'boss') { e.x = near.x + (dx / d) * r; e.y = near.y + (dy / d) * r; }
+      if (e.def.behavior !== 'boss') { e.x = near.x + (dx / d) * r; e.y = near.y + (dy / d) * r; }
     }
   }
 
@@ -984,7 +1046,7 @@ export class ArenaScene extends Phaser.Scene {
     const b = this.bars;
     b.clear();
     for (const e of this.enemies) {
-      if (!e.alive || (!e.elite && (e.hp >= e.maxHp || !SHOW_HP_BAR.includes(e.def.id)))) continue;
+      if (!e.alive || e.mini || (!e.elite && (e.hp >= e.maxHp || !SHOW_HP_BAR.includes(e.def.id)))) continue; // mini uses the HUD boss bar
       const w = 40, x = e.x - w / 2, y = e.y - e.sprite.displayHeight - 8;
       b.fillStyle(0x30203f, 0.85).fillRect(x - 2, y - 2, w + 4, 8);
       b.fillStyle(0xf45f52, 1).fillRect(x, y, w * Math.max(0, e.hp / e.maxHp), 4);
@@ -1046,8 +1108,12 @@ export class ArenaScene extends Phaser.Scene {
 
   /** Stockroom aisle: no groceries, three crates, three free items; picking one ends the aisle. */
   private openStockroom(): void {
-    const offers = rollStockroom(store.state, flow.rng);
-    const crates = Array.from({ length: ROOMS.stockroom.crates }, (_, i) => {
+    this.offerCrates(rollStockroom(store.state, flow.rng), undefined, () => { if (!this.ending) this.beginCheckout(); });
+  }
+
+  /** Crates + pick-one overlay (stockroom, mid-shift boss loot). `done` runs shortly after the pick. */
+  private offerCrates(offers: ShopOffer[], labels: { title: string; hint: string } | undefined, done: () => void): void {
+    const crates = Array.from({ length: Math.min(offers.length, ROOMS.stockroom.crates) }, (_, i) => {
       const x = ARENA.w * (0.3 + 0.2 * i), y = 520 + (i === 1 ? -40 : 0);
       return this.add.image(x, y, 'ob_tv_boxes').setOrigin(0.5, 0.9).setDepth(DEPTH.world + y);
     });
@@ -1057,8 +1123,8 @@ export class ArenaScene extends Phaser.Scene {
       play('ding');
       this.fx.label(this.player.x, this.player.y - 90, shelved ? itemT(o.type).name : t('coinStockroom'), '#FFF2D5', 26);
       crates.forEach((c, i) => this.time.delayedCall(80 * i, () => { this.fx.puff(c.x, c.y - 20, 6); c.destroy(); }));
-      this.time.delayedCall(1100, () => { if (!this.ending) this.beginCheckout(); });
-    }));
+      this.time.delayedCall(1100, done);
+    }, labels));
   }
 
   // ───────────────────────────── endings ─────────────────────────────

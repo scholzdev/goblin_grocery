@@ -4,7 +4,7 @@ import type { DepartmentId, ItemTypeId, StarterId } from '../types';
 
 /** Items available from the very first run. Everything else unlocks via UNLOCKS below. */
 export const STARTING_ITEMS: ItemTypeId[] = [
-  'toaster', 'pan', 'nailgun', 'vacuum', 'fan', 'fuel', 'battery', 'magnet', 'ice', 'hotsauce', 'lunchbox', 'bell',
+  'toaster', 'pan', 'nailgun', 'vacuum', 'fan', 'fuel', 'battery', 'magnet', 'ice', 'hotsauce', 'lunchbox', 'bell', 'fortune', 'sample', 'piggy',
 ];
 
 export type GoblinSkin = 'classic' | 'night' | 'frost' | 'gold';

@@ -36,6 +36,7 @@ export class AisleEvents {
   private brush?: Phaser.GameObjects.Image;
   private glow?: Phaser.GameObjects.Graphics;
   private angle = 0;
+  private mouseT = 0;              // seconds the mouse keeps aiming the light after its last move
   private backShown = false;
   // set events
   private live: SetEventKind | null = null;
@@ -87,10 +88,11 @@ export class AisleEvents {
   electricRate(): number { return this.live === 'powerSurge' ? this.stretch(EVENTS.powerSurge.fireRate) : 1; }
   /** Kill coin multiplier (Flash Sale). */
   coinMult(): number { return this.live === 'flashSale' ? EVENTS.flashSale.coinMult * this.boost() : 1; }
-  /** Player velocity ease rate on slippery floor (cold room, freezer patches); 0 = normal grip. */
+  /** Player velocity ease rate on slippery floor (cold room, freezer patches, wet-floor puddles); 0 = normal grip. */
   slipAccel(x: number, y: number): number {
     let a = 0;
     if (store.state.modifier === 'coldRoom') a = ROOMS.coldRoom.playerAccel;
+    if (this.playerWet) a = a ? Math.min(a, WET.playerAccel) : WET.playerAccel;
     if (this.live === 'freezerFail') {
       const R = EVENTS.freezerFail.patchR * 0.75;
       if (this.patches.some((p) => ((x - p.x) / R) ** 2 + ((y - p.y) / (R * 0.63)) ** 2 < 1)) a = a ? Math.min(a, EVENTS.freezerFail.playerAccel) : EVENTS.freezerFail.playerAccel;
@@ -320,9 +322,13 @@ export class AisleEvents {
     this.brush = sc.make.image({ key: BRUSH, add: false });
     this.glow = sc.add.graphics().setDepth(DEPTH.fx + 600);
     this.angle = sc.player.facing > 0 ? 0 : Math.PI;
+    sc.input.on('pointermove', this.onMouse);
   }
 
+  private onMouse = (): void => { this.mouseT = OUT.mouseHold; };
+
   private destroyDark(): void {
+    this.scene.input.off('pointermove', this.onMouse);
     this.rt?.destroy(); this.brush?.destroy(); this.glow?.destroy();
     this.rt = this.brush = this.glow = undefined;
   }
@@ -335,10 +341,14 @@ export class AisleEvents {
     if (rt.width !== w || rt.height !== h) rt.resize(w, h);
     const ox = cam.worldView.x - pad, oy = cam.worldView.y - pad;
     rt.setPosition(ox, oy).setAlpha(k);
-    const moving = Math.hypot(p.vx, p.vy) > 10;
-    const target = moving ? Math.atan2(p.vy, p.vx) : p.shoveT > 0 ? Math.atan2(p.shoveDY, p.shoveDX) : p.facing > 0 ? 0 : Math.PI;
-    this.angle = Phaser.Math.Angle.RotateTo(this.angle, target, 9 * dt);
     const lx = p.x + p.facing * 22, ly = p.y - 28;
+    // The mouse aims the headlight once it has moved; without one (keys, pad, touch) the light follows the cart.
+    this.mouseT = Math.max(0, this.mouseT - dt);
+    const ptr = sc.input.activePointer;
+    const aim = this.mouseT > 0 ? ptr.positionToCamera(cam) as Phaser.Math.Vector2 : null;
+    const moving = Math.hypot(p.vx, p.vy) > 10;
+    const target = aim ? Math.atan2(aim.y - ly, aim.x - lx) : moving ? Math.atan2(p.vy, p.vx) : p.shoveT > 0 ? Math.atan2(p.shoveDY, p.shoveDX) : p.facing > 0 ? 0 : Math.PI;
+    this.angle = Phaser.Math.Angle.RotateTo(this.angle, target, (aim ? 18 : 9) * dt);
     rt.clear().fill(0x07040d, OUT.darkness);
     brush.setRotation(this.angle);
     rt.erase(brush, lx - ox, ly - oy);
