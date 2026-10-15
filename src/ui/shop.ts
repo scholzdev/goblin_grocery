@@ -1,7 +1,7 @@
 import { store } from '../state/store';
-import { profile } from '../state/profile';
-import { ITEMS, ITEM_IDS, TIER } from '../data/items';
-import { RECIPES } from '../data/recipes';
+import { profile, unlockedItems } from '../state/profile';
+import { ITEMS, ITEM_IDS, TIER, cellsFor, cellsOf } from '../data/items';
+import { RECIPES, recipeIcon, recipeParts } from '../data/recipes';
 import { BOSS_WAVE, ECONOMY, SHOP_LEVELS } from '../data/waves';
 import { labAddItem, labClear, cartUpgradeCost, nextCartSize, shelfUpgradeCost, upgradeCart, upgradeShelf, buyOffer, mergeItems, mergeTargetFor, upgradeShop, shopUpgradeCost, moveItem, previewMerge, previewMove, repair, reroll, sellItem, type MoveTarget } from '../state/run';
 import { findItem, rotateCells, footprint } from '../systems/inventory';
@@ -17,7 +17,7 @@ import { pickNext, type Dir } from '../input/pad-core';
 import { icons, setIcon } from './icons';
 import { t, fmtNum } from '../i18n';
 import { itemRules, itemT, recipeT, tagT } from '../i18n/data';
-import { SETS, lvOf, setCfg, setCount as setCountOf, setGains, setsOf } from '../data/sets';
+import { SETS, flavorOf, lvOf, setCfg, setCount as setCountOf, setGains, setsOf } from '../data/sets';
 import type { Build, ItemInstance, ItemTypeId, RecipeId, Rotation, RunState, SetId } from '../types';
 
 // Cell pitch in design pixels (cell + 4px gap). 92 for the 4×4 and 5×4 carts; shrinks so bigger carts fit the same 460×368 area.
@@ -69,6 +69,7 @@ export function initShop(ui: HTMLElement): void {
   root.addEventListener('pointerdown', onPointerDown);
   root.addEventListener('pointermove', padOff);
   root.addEventListener('click', onClick);
+  root.addEventListener('contextmenu', onContext);
   root.addEventListener('pointerover', onHover);
   window.addEventListener('pointermove', onPointerMove);
   window.addEventListener('pointerup', onPointerUp);
@@ -113,8 +114,7 @@ export const starsHtml = (tier = 1): string =>
  * shape's best-connected "anchor" cell, so nothing spills over items sitting in the empty corners.
  */
 function itemInner(type: ItemTypeId, rot: Rotation, tier = 1, cellPx = CELL): { html: string; w: number; h: number; shaped: boolean } {
-  const def = ITEMS[type];
-  const cells = rotateCells(def.cells, rot);
+  const cells = rotateCells(cellsFor(type, tier), rot);
   const w = Math.max(...cells.map((c) => c.x)) + 1, h = Math.max(...cells.map((c) => c.y)) + 1;
   const shaped = cells.length !== w * h;
   const content = `<img src="${svg(`icon_${type}`)}" alt="${itemT(type).name}"><span class="tag">${itemT(type).name}</span>${starsHtml(tier)}`;
@@ -140,8 +140,9 @@ function itemEl(it: ItemInstance, build: Build, extra = '', compact = false): st
   const inner = compact ? { ...full, shaped: false, html: full.html.replace(/<i class="icell"[^>]*><\/i>/g, '') } : full;
   const on = build.recipes.some((r) => r.weaponUid === it.uid || r.supportUids.includes(it.uid));
   const canCombine = store.state.phase === 'shop' && !!mergePartner(it);
-  return `<div class="item ${def.kind} ${rarityClass(it.type, it.tier)} ${canCombine ? 'mergeable' : ''} ${inner.shaped ? 'shaped' : ''} ${on ? 'recipe-on' : ''} ${it.uid === selectedUid ? 'selected' : ''} ${extra}" data-uid="${it.uid}"
-    style="left:${it.x * CELL}px;top:${it.y * CELL}px;width:${inner.w * CELL - 4}px;height:${inner.h * CELL - 4}px">${inner.html}${it.double ? `<b class="dbl-mark" title="${esc(t('setDouble', { set: tagT(def.family) }))}">${t('doubleSticker')}</b>` : ''}</div>`;
+  const flavor = it.type === 'jellybeans' ? flavorOf(it) : null;
+  return `<div class="item ${def.kind} ${rarityClass(it.type, it.tier)} ${flavor ? `flavor flavor-${flavor}` : ''} ${canCombine ? 'mergeable' : ''} ${inner.shaped ? 'shaped' : ''} ${on ? 'recipe-on' : ''} ${it.uid === selectedUid ? 'selected' : ''} ${extra}" data-uid="${it.uid}"
+    style="left:${it.x * CELL}px;top:${it.y * CELL}px;width:${inner.w * CELL - 4}px;height:${inner.h * CELL - 4}px">${inner.html}${flavor ? `<b class="flavor-tag" title="${esc(t('flavorLabel', { f: tagT(flavor) }))}">${esc(tagT(flavor))}</b>` : ''}${it.double ? `<b class="dbl-mark" title="${esc(t('setDouble', { set: tagT(def.family) }))}">${t('doubleSticker')}</b>` : ''}</div>`;
 }
 
 export function gridHtml(s: RunState): string {
@@ -159,21 +160,24 @@ export function combosHtml(build: Build, preview?: Build | null, relevant: ItemT
   const owned = new Set([...inv.placed.map((i) => i.type), ...inv.shelf.flatMap((i) => (i ? [i.type] : []))]);
   // Only four fit: active / previewed first, then the combos you're closest to completing.
   const have = new Set(relevant);
+  const open = new Set(unlockedItems());
   const score = (id: RecipeId) => (now.has(id) ? 100 : 0) + (next?.has(id) ? 50 : 0) +
-    [RECIPES[id].weapon, ...RECIPES[id].supports].filter((t) => have.has(t)).length * 10 + (have.has(RECIPES[id].weapon) ? 5 : 0);
+    recipeParts(RECIPES[id]).filter((t) => have.has(t)).length * 10 + (have.has(recipeIcon(RECIPES[id])) ? 5 : 0);
   // Only combos already in the Catalog are shown; an undiscovered one only appears as a mystery while a drop would trigger it.
   const known = (id: RecipeId) => profile.recipes.includes(id) || now.has(id);
-  const ids = [...RECIPE_ORDER].filter((id) => known(id) || next?.has(id)).sort((a, b) => score(b) - score(a)).slice(0, 4);
+  // ...and only if every component item is unlocked (or the combo is live / about to trigger).
+  const shown = (id: RecipeId) => now.has(id) || next?.has(id) || (known(id) && recipeParts(RECIPES[id]).every((ty) => open.has(ty)));
+  const ids = [...RECIPE_ORDER].filter(shown).sort((a, b) => score(b) - score(a)).slice(0, 4);
   if (!ids.length) return `<div class="combo empty"><div class="eff">${t('noCombos')}</div><div class="hint">${t('noCombosHint')}</div></div>`;
   return ids.map((id) => {
     if (!known(id)) {
       const r = RECIPES[id];
       return `<div class="combo preview mystery"><div class="ch"><span class="name">???</span><span class="chip">${t('dropDiscover')}</span></div>
-        <div class="icons"><img src="${svg(`icon_${r.weapon}`)}" alt="">${r.supports.map(() => '<b>+</b><span class="q">?</span>').join('')}</div>
+        <div class="icons"><img src="${svg(`icon_${recipeIcon(r)}`)}" alt="">${r.supports.slice(r.weapon ? 0 : 1).map((ty) => `<b>+</b>${open.has(ty) ? `<img src="${svg(`icon_${ty}`)}" alt="${itemT(ty).name}">` : '<span class="q">?</span>'}`).join('')}</div>
         <div class="eff">${t('comboWaiting')}</div></div>`;
     }
     const r = RECIPES[id];
-    const parts = [r.weapon, ...r.supports];
+    const parts = recipeParts(r);
     let cls = now.has(id) ? 'on' : '';
     if (next && next.has(id) && !now.has(id)) cls = 'preview';
     if (next && !next.has(id) && now.has(id)) cls = 'lose';
@@ -270,8 +274,9 @@ function render(): void {
     const poor = !o.sold && s.money < o.price; // shown by the red pill + title, not as text over the footprint
     const why = o.sold || poor ? '' : s.inventory.shelf.every(Boolean) ? t('shelfFull') : '';
     // Cards have width to spare but not height: show tall footprints lying down.
-    const tall = Math.max(...def.cells.map((c) => c.y)) > Math.max(...def.cells.map((c) => c.x));
-    const cells = tall ? def.cells.map((c) => ({ x: c.y, y: c.x })) : def.cells;
+    const base = cellsFor(o.type, o.tier);
+    const tall = Math.max(...base.map((c) => c.y)) > Math.max(...base.map((c) => c.x));
+    const cells = tall ? base.map((c) => ({ x: c.y, y: c.x })) : base;
     const w = Math.max(...cells.map((c) => c.x)) + 1;
     const fp = cells.map((c) => `<i style="grid-column:${c.x + 1};grid-row:${c.y + 1}"></i>`).join('');
     const rar = def.legendary ? t('legendaryKind', { k: kindLabel(o.type) }) : o.tier === 3 ? t('epicKind', { k: kindLabel(o.type) }) : o.tier === 2 ? t('rareKind', { k: kindLabel(o.type) }) : kindLabel(o.type);
@@ -324,6 +329,7 @@ function render(): void {
     <div class="toast" style="opacity:0"></div>`;
   refreshHover();
   padReapply();
+  if (shop.riseWait) { shop.riseWait = false; toast(t('toastRise')); }
 }
 
 function labPanel(): string {
@@ -360,11 +366,11 @@ const fitName = (n: string): number => (n.length > 14 ? 19 : n.length > 11 ? 22 
 export function inspectorHtml(type: ItemTypeId, uid: string | null, offerTier?: number, offerDouble = false): string {
   const s = store.state;
   const def = ITEMS[type];
-  const cells = def.cells;
-  const w = Math.max(...cells.map((c) => c.x)) + 1, h = Math.max(...cells.map((c) => c.y)) + 1;
   const ws = uid ? s.build.weapons.find((x) => x.uid === uid) : null;
   const loc = uid ? findItem(s.inventory, uid) : null;
   const tier = loc?.inst.tier ?? offerTier ?? 1;
+  const cells = cellsFor(type, tier);
+  const w = Math.max(...cells.map((c) => c.x)) + 1, h = Math.max(...cells.map((c) => c.y)) + 1;
   const rc = rarityClass(type, tier);
   const rarity = t(def.legendary ? 'rarLegendary' : tier === 3 ? 'rarEpic' : tier === 2 ? 'rarRare' : 'rarCommon');
   const weaponTag = (def.tags ?? []).find((tg): tg is keyof typeof KIND_BY_TAG => tg in KIND_BY_TAG);
@@ -372,11 +378,12 @@ export function inspectorHtml(type: ItemTypeId, uid: string | null, offerTier?: 
   const otherTags = (def.tags ?? []).filter((tg) => !(tg in KIND_BY_TAG));
   const gains = offerTier !== undefined && !loc && s ? setGains(s.inventory.placed, type, offerDouble) : [];
   const dblNote = offerDouble || (loc?.inst.double ?? false) ? `<span class="chip dbl">${esc(t('setDouble', { set: tagT(def.family) }))}</span>` : '';
-  const setChips = setsOf(type).map((id) => { const g = gains.find((x) => x.id === id); return `<span class="chip set-${id}${s?.build?.sets?.[id] ? ' act' : ''}">${setIcon(id, 14)}${tagT(id)}${g ? ` <small>(${gainText(g)})</small>` : ''}</span>`; }).join('');
+  const flavor = type === 'jellybeans' ? (loc ? flavorOf(loc.inst) : null) : null;
+  const setChips = setsOf(type, flavor ?? undefined).map((id) => { const g = gains.find((x) => x.id === id); return `<span class="chip set-${id}${s?.build?.sets?.[id] ? ' act' : ''}">${setIcon(id, 14)}${tagT(id)}${g ? ` <small>(${gainText(g)})</small>` : ''}</span>`; }).join('');
   const head = `<header><span class="ico-tile ${rc}"><img src="${svg(`icon_${type}`)}" alt=""></span>
     <div class="hd"><div class="nm"><span style="font-size:${fitName(itemT(type).name)}px">${itemT(type).name}</span><b class="lv ${def.legendary ? 'leg' : `t${tier}`}">★${def.legendary ? '' : tier}</b></div>
     <span class="sub ${rc}">${rarity} · ${kind}</span></div></header>
-    <div class="chips">${dblNote}${setChips}${otherTags.map((tg) => `<span class="chip">${tagT(tg)}</span>`).join('')}<span class="chip">${icons.grid(15)}${w}×${h}</span>
+    <div class="chips">${dblNote}${flavor ? `<span class="chip flavor-chip flavor-${flavor}">${esc(t('flavorLabel', { f: tagT(flavor) }))}</span>` : ''}${setChips}${otherTags.map((tg) => `<span class="chip">${tagT(tg)}</span>`).join('')}<span class="chip">${icons.grid(15)}${w}×${h}</span>
     <span class="chip coin"><img class="coin-ico" src="${svg('coin')}" alt="">${loc ? t('sells', { n: sellPrice(type, tier) }) : def.price}</span></div>`;
 
   let body = '';
@@ -418,13 +425,14 @@ export function inspectorHtml(type: ItemTypeId, uid: string | null, offerTier?: 
   }
 
   // Combos this item belongs to: compact rows (partner icons · name · effect). Undiscovered ones are not shown at all.
-  const combos = RECIPE_ORDER.filter((id) => RECIPES[id].weapon === type || RECIPES[id].supports.includes(type));
-  const seen = combos.filter((id) => profile.recipes.includes(id) || !!ws?.recipes.includes(id));
+  const combos = RECIPE_ORDER.filter((id) => recipeParts(RECIPES[id]).includes(type));
+  const live = (id: RecipeId) => !!uid && s.build.recipes.some((x) => x.id === id && (x.weaponUid === uid || x.supportUids.includes(uid)));
+  const seen = combos.filter((id) => profile.recipes.includes(id) || live(id));
   if (seen.length) {
     body += `<h5>${t('combos')}</h5>` + seen.map((id) => {
       const r = RECIPES[id], rt = recipeT(id);
-      const on = !!ws?.recipes.includes(id);
-      const partners = [r.weapon, ...r.supports].filter((ty) => ty !== type);
+      const on = live(id);
+      const partners = recipeParts(r).filter((ty) => ty !== type);
       const icons = partners.map((ty) => `<img src="${svg(`icon_${ty}`)}" alt="" title="${itemT(ty).name}">`).join('');
       return `<div class="combo-row ${on ? 'on' : ''}" title="${t('needsTouching', { names: esc(partners.map((ty) => itemT(ty).name).join(' + ')) })}"><span class="ci">${icons}</span><span><b>${rt.name}</b><small>${esc(rt.short)}</small></span>${on ? `<em>${t('on')}</em>` : ''}</div>`;
     }).join('');
@@ -457,12 +465,12 @@ function refreshHover(): void {
     if (sets) { sets.innerHTML = setsHtml(pv ?? undefined, hoverDouble); }
   }
   if (hoverSet) { // set coupon hover: glow member items, card to the right of the receipt
-    for (const p of s.inventory.placed) if (setsOf(p.type).includes(hoverSet)) root.querySelector(`.grid .item[data-uid="${p.uid}"]`)?.classList.add('setlit');
+    for (const p of s.inventory.placed) if (setsOf(p.type, flavorOf(p)).includes(hoverSet)) root.querySelector(`.grid .item[data-uid="${p.uid}"]`)?.classList.add('setlit');
     showCard(setCardHtml(hoverSet), root.querySelector(`.coupon[data-set="${hoverSet}"]`), false);
     return;
   }
   if (loyaltyOn) { showCard(loyaltyHtml_(), root.querySelector('[data-act="loyalty"]'), false); return; }
-  const focusUid = hoverUid ?? (hoverType ? null : selectedUid);
+  const focusUid = hoverType ? null : selectedUid; // cart item details only on right click
   const type = hoverType ?? (focusUid ? findItem(s.inventory, focusUid)?.inst.type : null);
   if (!type) { hideCard(); return; }
   if (focusUid) for (const [a, b] of s.build.adjacency) {
@@ -610,6 +618,17 @@ function buy(slot: number): void {
   toast(t(into ? 'toastBoughtMerge' : 'toastBought', { name: itemT(offer.type).name }));
 }
 
+/** Right click on a cart item toggles its details card; elsewhere it clears it. */
+function onContext(e: MouseEvent): void {
+  const s = store.state;
+  if (s.phase !== 'shop' || drag) return;
+  const uid = (e.target as HTMLElement).closest<HTMLElement>('.item[data-uid]')?.dataset.uid ?? null;
+  if (!uid && !selectedUid) return;
+  e.preventDefault();
+  selectedUid = uid && uid !== selectedUid ? uid : null;
+  refreshHover();
+}
+
 function onHover(e: PointerEvent): void {
   if (drag) return;
   hoverFrom(e.target as HTMLElement);
@@ -649,7 +668,7 @@ function onPointerDown(e: PointerEvent): void {
   const rect = itemEl.getBoundingClientRect();
   const cellPx = CELL * scale();
   const rot = found.where === 'grid' ? found.inst.rot : 0;
-  const cells = rotateCells(ITEMS[found.inst.type].cells, rot);
+  const cells = rotateCells(cellsOf(found.inst), rot);
   // Grabbed cell = the footprint cell under the pointer (clamped onto the footprint).
   let gx = Math.floor((e.clientX - rect.left) / (found.where === 'grid' ? cellPx : rect.width / (Math.max(...cells.map((c) => c.x)) + 1)));
   let gy = Math.floor((e.clientY - rect.top) / (found.where === 'grid' ? cellPx : rect.height / (Math.max(...cells.map((c) => c.y)) + 1)));
@@ -706,15 +725,15 @@ function positionGhost(): void {
 
 function rotateHeld(): void {
   if (!drag) return;
-  const def = ITEMS[drag.type];
-  const before = rotateCells(def.cells, drag.rot);
+  const base = cellsFor(drag.type, drag.tier);
+  const before = rotateCells(base, drag.rot);
   const idx = before.findIndex((c) => c.x === drag!.grab.x && c.y === drag!.grab.y);
   drag.rot = ((drag.rot + 1) % 4) as Rotation;
   // Rotate the grab cell along with the footprint (cw: (x,y) → (h-1-y, x)).
   const h = Math.max(...before.map((c) => c.y)) + 1;
   const g = before[Math.max(0, idx)];
   drag.grab = { x: h - 1 - g.y, y: g.x };
-  if (!rotateCells(def.cells, drag.rot).some((c) => c.x === drag!.grab.x && c.y === drag!.grab.y)) drag.grab = rotateCells(def.cells, drag.rot)[0];
+  if (!rotateCells(base, drag.rot).some((c) => c.x === drag!.grab.x && c.y === drag!.grab.y)) drag.grab = rotateCells(base, drag.rot)[0];
   play('click', { rate: 1.3 });
   sizeGhost();
   updateTarget();
@@ -768,7 +787,7 @@ function updateTarget(): void {
     const res = previewMove(s, drag.uid, target);
     drag.target = target;
     drag.valid = res.result.ok;
-    const cells = footprint({ uid: drag.uid, type: drag.type, x: target.x, y: target.y, rot: drag.rot });
+    const cells = footprint({ uid: drag.uid, type: drag.type, tier: drag.tier, x: target.x, y: target.y, rot: drag.rot });
     for (const c of cells) root.querySelector(`.cell[data-cx="${c.x}"][data-cy="${c.y}"]`)?.classList.add(res.result.ok ? 'ok' : 'bad');
     drag.ghost?.classList.toggle('bad', !res.result.ok);
     if (res.build) {
@@ -815,7 +834,7 @@ function onPointerUp(): void {
   const d = drag;
   endDrag();
   drag = null;
-  if (!d.ghost) { selectedUid = d.uid; render(); return; } // a click selects the item for the inspector
+  if (!d.ghost) return; // a plain click does nothing; right click opens the inspector
   commitDrop(d);
 }
 
@@ -998,7 +1017,7 @@ export const shopPad: ShopPad = {
     const inst = padItemAt(tg.key);
     if (!inst) return;
     const rot = tg.key.startsWith('cell:') ? inst.rot : 0;
-    const cells = rotateCells(ITEMS[inst.type].cells, rot);
+    const cells = rotateCells(cellsOf(inst), rot);
     let grab = cells[0];
     if (tg.key.startsWith('cell:')) {
       const [cx, cy] = tg.key.slice(5).split(',').map(Number);

@@ -14,7 +14,7 @@ export const ICON_IDS = [
   'microwave', 'blender', 'fizz', 'mop', 'pricegun', 'tape', 'coupon', 'bubblewrap', 'energy',
   'powerstrip', 'goldstar', 'laser', 'snackbag',
   'cooker', 'spray', 'popper', 'doublebag', 'multipack',
-  'fortune', 'sample', 'piggy',
+  'fortune', 'sample', 'piggy', 'expiredmilk', 'tinfoilhat', 'jellybeans', 'leafblower', 'sourdough',
 ] as const;
 
 export interface SvgAsset { key: string; w: number; h: number; ax?: number; ay?: number }
@@ -112,6 +112,8 @@ export const SVG_ASSETS: SvgAsset[] = [
   // Effects / projectiles.
   { key: 'proj_toast', w: 36, h: 32 },
   { key: 'proj_nail', w: 28, h: 10 },
+  { key: 'proj_raybolt', w: 34, h: 14 },
+  { key: 'proj_raybolt_red', w: 34, h: 14 },
   { key: 'proj_bubble', w: 36, h: 36 },
   { key: 'proj_receipt', w: 40, h: 24 },
   { key: 'fx_sweep', w: 160, h: 160 },
@@ -184,6 +186,7 @@ export const SVG_ASSETS: SvgAsset[] = [
   { key: 'proj_pot', w: 40, h: 36 },
   { key: 'fx_boom', w: 200, h: 130 },
   { key: 'fx_spray', w: 220, h: 160, ax: 0, ay: 0.5 },
+  { key: 'fx_gust', w: 220, h: 160, ax: 0, ay: 0.5 },
   { key: 'fx_confetti', w: 16, h: 12 },
   { key: 'fx_echo', w: 64, h: 64 },
   // Skins (src/data/unlocks.ts): recolored goblin + cart layers, same size/anchor as the base keys.

@@ -1,6 +1,6 @@
-import { BUFFS, BUNDLE, ECHO, ITEMS, MULTIPACK, POPPER, PLAYER, PROJECTILE_PATTERNS, TIER } from '../data/items';
+import { BUFFS, BUNDLE, ECHO, EXPIRED_MILK, ITEMS, JELLY, MULTIPACK, SOURDOUGH, POPPER, PLAYER, PROJECTILE_PATTERNS, TINFOIL, TIER } from '../data/items';
 import { RECIPES, RECIPE_TUNING } from '../data/recipes';
-import { SETS, setCfg, setLevels } from '../data/sets';
+import { SETS, flavorOf, setCfg, setLevels } from '../data/sets';
 import type { ActiveRecipe, BuffId, Build, Inventory, ItemInstance, ItemTypeId, Perk, RecipeId, WeaponStats } from '../types';
 import { adjacentPairs, neighbors } from './inventory';
 import { fmtNum, t } from '../i18n';
@@ -73,6 +73,16 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
       }
       s.buffs.push(id);
     }
+    // Jelly Beans: each touching bag adds its flavor's effect at reduced strength (never weaker than what the real module gave).
+    for (const n of near) {
+      if (n.type !== 'jellybeans') continue;
+      const m = TIER.mult(eff(n)) * JELLY.strength, f = flavorOf(n);
+      if (f === 'heat' && (s.burn?.dps ?? 0) < BUFFS.fuel.dps * m) s.burn = { dps: BUFFS.fuel.dps * m, duration: BUFFS.fuel.duration, tick: BUFFS.fuel.tick };
+      else if (f === 'frost') s.slow = { pct: Math.max(s.slow?.pct ?? 0, Math.min(0.6, BUFFS.ice.pct * m)), duration: BUFFS.ice.duration };
+      else if (f === 'blast' && (s.popper?.damage ?? 0) < POPPER.damage * m) s.popper = { damage: POPPER.damage * m, radius: POPPER.radius };
+    }
+    // Sourdough Starter: +6% damage per effective star, per touching starter.
+    for (const n of near) if (n.type === 'sourdough') s.damage *= 1 + SOURDOUGH.perStar * eff(n);
     if (def.electrical && has('powerstrip')) s.cooldown /= nearTypes.has('powerstrip') ? BUFFS.powerstripAdjacent : BUFFS.powerstripAll;
     // Set bonuses (cart-wide, distinct types). Frost is applied after recipes, see below.
     const fam = def.family, el = def.element;
@@ -94,8 +104,9 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
     s.bundle = nearTypes.size + (nearTypes.has('goldstar') ? 1 : 0);
     s.damage *= 1 + BUNDLE.perItem * s.bundle;
     const tapeArc = s.arcDeg - b.arcDeg;
-    for (const r of Object.values(RECIPES)) {
-      if (r.weapon !== w.type || !r.supports.every((t) => nearTypes.has(t))) continue;
+    const matching = Object.values(RECIPES).filter((r) => r.weapon === w.type && r.supports.every((t) => nearTypes.has(t)));
+    for (const r of matching) {
+      if (matching.some((o) => o.replaces?.includes(r.id))) continue; // e.g. Ray Gun replaces Nailstorm
       const sup = near.filter((n) => r.supports.includes(n.type));
       applyRecipe(s, r.id, tapeArc);
       s.recipes.push(r.id);
@@ -111,9 +122,24 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
     weapons.push(s);
   }
 
+  // Cart combos (no weapon): active when every other support touches an instance of the first one.
+  for (const r of Object.values(RECIPES)) {
+    if (r.weapon) continue;
+    for (const a of placed.filter((p) => p.type === r.supports[0])) {
+      const near = neighbors(placed, a.uid);
+      const rest = r.supports.slice(1).map((ty) => near.find((n) => n.type === ty));
+      if (rest.some((n) => !n)) continue;
+      recipes.push({ id: r.id, weaponUid: null, supportUids: [a.uid, ...rest.map((n) => n!.uid)].sort() });
+      break;
+    }
+  }
+
   return {
     weapons, recipes, adjacency: adjacentPairs(placed),
-    maxHp: PLAYER.maxHp + (sets.snacks ? setCfg('snacks', sets.snacks).maxHp : 0) + (has('lunchbox') ? Math.round(BUFFS.lunchboxHp * gm('lunchbox')) : 0) + (has('snackbag') ? BUFFS.snackHp : 0) + (perk.maxHp ?? 0),
+    // Expired Milk's curse multiplies the finished total (not a flat -10).
+    maxHp: Math.round((PLAYER.maxHp + (sets.snacks ? setCfg('snacks', sets.snacks).maxHp : 0) + (has('lunchbox') ? Math.round(BUFFS.lunchboxHp * gm('lunchbox')) : 0) + (has('snackbag') ? BUFFS.snackHp : 0) + (perk.maxHp ?? 0)) * (has('expiredmilk') ? EXPIRED_MILK.hpMult : 1)),
+    reflectMult: has('tinfoilhat') ? TINFOIL.reflectMult * gm('tinfoilhat') : 0,
+    stinkDps: has('expiredmilk') ? EXPIRED_MILK.dps * gm('expiredmilk') : 0,
     regen: (has('snackbag') ? BUFFS.snackRegen : 0) + (sets.snacks >= 2 ? setCfg('snacks', sets.snacks).regen : 0),
     critHeal: has('sample') ? BUFFS.sampleHeal * gm('sample') : 0,
     killCoinMult: has('piggy') ? 1 + BUFFS.piggyCoins * gm('piggy') : 1,
@@ -143,6 +169,7 @@ function applyRecipe(s: WeaponStats, id: RecipeId, tapeArc: number): void {
   else if (id === 'expressCheckout') s.expressSweep = true;
   else if (id === 'brainFreeze') { s.range *= RECIPE_TUNING.brainFreeze.radiusMult; s.slow = { pct: RECIPE_TUNING.brainFreeze.pct, duration: RECIPE_TUNING.brainFreeze.duration }; }
   else if (id === 'tvDinner') { s.chain += RECIPE_TUNING.tvDinner.chain; s.cooldown *= RECIPE_TUNING.tvDinner.cooldownMult; }
+  else if (id === 'sparksFly') s.chain += RECIPE_TUNING.sparksFly.chain;
   else if (id === 'clearanceSale') { s.bounces += RECIPE_TUNING.clearanceSale.extraBounces; s.critCoin = true; }
   else if (id === 'pressurePoint') s.firePool = true;
   else if (id === 'mistMachine') { s.arcDeg += RECIPE_TUNING.mistMachine.arcDeg - ITEMS[s.type].weapon!.arcDeg; s.range *= RECIPE_TUNING.mistMachine.rangeMult; }
@@ -212,6 +239,10 @@ export function tierScaling(type: ItemTypeId): ScaleRow[] {
     sample: () => [row(t('rowCritHeal'), (tr) => `+${fmtNum(+(BUFFS.sampleHeal * m(tr)).toFixed(1))}`)],
     coupon: () => [row(t('rowCoin'), (tr) => `${Math.round(Math.min(0.9, BUFFS.couponChance * m(tr)) * 100)}%`)],
     bubblewrap: () => [row(t('rowArmor'), (tr) => `${tr}`)],
+    tinfoilhat: () => [row(t('rowReflect'), (tr) => `${fmt(TINFOIL.reflectMult * m(tr))}×`)],
+    sourdough: () => [row(t('rowDamage'), (tr) => pctUp(SOURDOUGH.perStar * tr))],
+    jellybeans: () => [row(t('rowStrength'), (tr) => `${Math.round(JELLY.strength * m(tr) * 100)}%`)],
+    expiredmilk: () => [row(t('rowPoison'), (tr) => `${fmt(EXPIRED_MILK.dps * m(tr))}/s`)],
     boot: () => [row(t('rowDashDist'), (tr) => pctUp(BUFFS.bootDistance * m(tr))), row(t('rowDashDmg'), (tr) => `+${fmt(BUFFS.bootDamage * m(tr))}`)],
   };
   return rows[type]?.() ?? [];

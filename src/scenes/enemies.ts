@@ -3,7 +3,7 @@ import { AFFIX, BOSS, BOSS_KITS, BOSS_SPECIAL, ELITE, MINI_BOSS, ELITE_AFFIXES, 
 import { bossTuning } from '../data/waves';
 import { store } from '../state/store';
 import type { EnemyDef, EnemyId } from '../types';
-import { healTargets, newStatus, slowFactor, tickBurn, type StatusFx } from '../systems/combat';
+import { healTargets, newStatus, slowFactor, tickBurn, tickPoison, type StatusFx } from '../systems/combat';
 import { pushOutCircle } from '../systems/obstacles';
 import { lang, t } from '../i18n';
 import { play } from '../audio/sfx';
@@ -42,6 +42,9 @@ export interface Enemy {
   critCoinDropped?: boolean;
   /** Price Check mark: takes extra damage from everything until this time (s). */
   markedUntil?: number;
+  /** Leaf Blower: blown until this time (s); stopped by a wall/prop while marked = slam for blownDmg. */
+  blownUntil?: number;
+  blownDmg?: number;
   /** Frostbite Nails hit counter. */
   nailHits?: number;
   /** Cereal Box: shots its cardboard front has blocked so far. */
@@ -132,6 +135,13 @@ export function updateEnemy(scene: ArenaScene, e: Enemy, dt: number, now: number
     if (!e.alive) return;
   }
   if (e.status.burnUntil > now && Math.random() < dt * 10) scene.fx.flame(e.x + Phaser.Math.Between(-10, 10), e.y - 30);
+  // Poison ticks on its own clock, alongside burn.
+  const poison = tickPoison(e.status, now);
+  if (poison > 0) {
+    scene.damageEnemy(e, poison, null, { isDot: true, poison: true });
+    if (!e.alive) return;
+  }
+  if (e.status.poisonUntil > now && Math.random() < dt * 5) scene.fx.spark(e.x + Phaser.Math.Between(-10, 10), e.y - 30, 1, 0x8fcb57);
 
   e.stateT -= dt;
   e.atkCd -= dt;
@@ -234,12 +244,15 @@ export function updateEnemy(scene: ArenaScene, e: Enemy, dt: number, now: number
   // Integrate movement + knockback.
   e.x += mx * speed * dt + e.kx * dt;
   e.y += my * speed * dt + e.ky * dt;
+  const blownFast = (e.blownUntil ?? 0) > now && Math.hypot(e.kx, e.ky) > 60; // still flying from the blast
   const decay = Math.exp(-9 * dt);
   e.kx *= decay; e.ky *= decay;
-  scene.clampToArena(e, d.radius);
-  if (d.behavior !== 'boss' && scene.pushEnemyOut(e, d.radius) && e.state === 'attack' && d.behavior === 'charger') {
+  const wall = scene.clampToArena(e, d.radius);
+  const prop = d.behavior !== 'boss' && scene.pushEnemyOut(e, d.radius);
+  if (prop && e.state === 'attack' && d.behavior === 'charger') {
     e.stateT = 0; e.kx -= e.dirX * 140; e.ky -= e.dirY * 140; // lunge bumps into the prop
   }
+  if (blownFast && (wall || prop)) { scene.slamEnemy(e); if (!e.alive) return; }
   if (Math.abs(mx) > 0.05) e.facing = mx > 0 ? 1 : -1;
   else if (e.state === 'tell' || e.state === 'walk') e.facing = nx > 0 ? 1 : -1;
 
@@ -259,6 +272,7 @@ export function updateEnemy(scene: ArenaScene, e: Enemy, dt: number, now: number
     e.flashT -= dt;
     if (e.flashT <= 0) e.sprite.clearTint();
   } else if (slow < 1) e.sprite.setTint(0xcfefff);
+  else if (e.status.poisonUntil > now) e.sprite.setTint(0xb8e08a);
   else if (e.sprite.isTinted) e.sprite.clearTint();
   if (e.frozenT) updateIce(scene, e, dt);
   if (e.tag) e.tag.setPosition(e.x, e.y - e.sprite.displayHeight - 14).setAlpha(e.state === 'spawn' ? 0 : 1);

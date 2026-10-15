@@ -10,14 +10,15 @@ export type ItemTypeId =
   | 'pricegun' | 'tape' | 'coupon' | 'bubblewrap' | 'energy'
   | 'powerstrip' | 'goldstar' | 'laser' | 'snackbag'
   | 'cooker' | 'spray' | 'popper' | 'doublebag' | 'multipack'
-  | 'fortune' | 'sample' | 'piggy';
+  | 'fortune' | 'sample' | 'piggy' | 'expiredmilk' | 'tinfoilhat' | 'jellybeans' | 'leafblower' | 'sourdough';
 
 export type WeaponPattern = 'toast' | 'sweep' | 'burst' | 'pulse' | 'zap' | 'aura' | 'ricochet' | 'puddle' | 'laser' | 'mortar' | 'cone';
 export type ItemKind = 'weapon' | 'module' | 'passive';
 export type Rotation = 0 | 1 | 2 | 3;
 export type RecipeId = 'toastMode' | 'nailstorm' | 'coldStorage' | 'expressCheckout' | 'brainFreeze' | 'tvDinner' | 'clearanceSale' | 'greaseFire' | 'pressurePoint' | 'mistMachine'
-  | 'fiveAlarm' | 'sizzlingSkillet' | 'frostbiteNails' | 'staticCling' | 'reheat' | 'smoothieShield'
-  | 'confettiCannon' | 'blackIce' | 'shrapnel' | 'pressureWasher' | 'powerSurge' | 'priceCheck';
+  | 'fiveAlarm' | 'sizzlingSkillet' | 'chickenDinner' | 'frostbiteNails' | 'staticCling' | 'reheat' | 'smoothieShield'
+  | 'confettiCannon' | 'blackIce' | 'shrapnel' | 'pressureWasher' | 'powerSurge' | 'priceCheck'
+  | 'sugarRush' | 'smashBank' | 'bagIt' | 'sourMist' | 'sparksFly' | 'rayGun' | 'tailwind';
 /** Set-bonus tags: one family per item, optional element; 'electric' = the `electrical` flag. See data/sets.ts. */
 export type FamilyTag = 'kitchen' | 'cleaning' | 'tools' | 'snacks' | 'checkout';
 export type ElementTag = 'heat' | 'frost' | 'blast';
@@ -44,6 +45,7 @@ export interface WeaponBase {
   bounces: number;         // ricochet: extra enemies after the first
   chain: number;           // zap: extra chained targets
   aoe: number;             // zap: splash radius around the target
+  knockback?: number;      // cone: per-weapon knockback (default: the spray's 40)
 }
 
 export interface ItemDef {
@@ -80,6 +82,10 @@ export interface ItemInstance {
   tier?: number;
   /** Bought as a double pack: counts as 2 distinct types toward its family set. */
   double?: boolean;
+  /** Jelly Beans only: current flavor (= which element set it counts for). Missing = heat. */
+  flavor?: ElementTag;
+  /** Sourdough Starter only: completed waves since bought / last rise (grows at 2). */
+  rise?: number;
 }
 
 export interface Inventory {
@@ -140,7 +146,8 @@ export interface WeaponStats {
 
 export interface ActiveRecipe {
   id: RecipeId;
-  weaponUid: string;
+  /** null for weaponless cart combos. */
+  weaponUid: string | null;
   supportUids: string[];
 }
 
@@ -168,6 +175,9 @@ export interface Build {
   shoveDistMult: number;   // running boot: dash distance multiplier
   shoveDamage: number;     // dash hit damage (running boot adds)
   moveSpeedMult: number;   // energy drink
+  /** Tin Foil Hat: damage multiplier of reflected enemy shots while dashing (0 = no hat). */
+  reflectMult: number;
+  stinkDps: number;        // expired milk: poison dps of the toxic aura around the cart (0 = off)
   coinChance: number;      // coupon: chance of +1 coin per kill
   armor: number;           // bubble wrap: flat damage reduction (min 1 damage taken)
   invulnBonus: number;     // bubble wrap: extra seconds of post-hit invulnerability
@@ -186,8 +196,11 @@ export interface Build {
 export interface RecipeDef {
   id: RecipeId;
   name: string;
-  weapon: ItemTypeId;
+  /** Omitted for cart combos: active when every other support touches the first one. */
+  weapon?: ItemTypeId;
   supports: ItemTypeId[];
+  /** Recipes this one overrides on the same weapon (they never apply while this one is active). */
+  replaces?: RecipeId[];
   short: string;     // one-line effect for compact combo cards
   summary: string;   // badge hover text
   detail: string;    // full shop explanation
@@ -261,6 +274,8 @@ export interface ShopState {
   /** Free rerolls granted by the aisle modifier (event). */
   bonusFreeRerolls: number;
   shopIndex: number;     // 1-based (after wave N)
+  /** Sourdough could not rise this shop visit (no room): shown once as a toast. */
+  riseWait?: boolean;
 }
 
 export type Phase = 'title' | 'combat' | 'checkout' | 'shop' | 'route' | 'victory' | 'defeat';

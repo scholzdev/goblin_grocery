@@ -5,7 +5,7 @@ import { flow } from '../flow';
 import { waveDef, eliteChance, bossTuning, ECONOMY, SHIFTS, WAVE_RAMP } from '../data/waves';
 import { SHOW_HP_BAR, EGG_BLAST, MELON_SLICES, ELITE, GIFTCARD, GUM, THEME_SUMMONS, ELITE_EXCLUDED, AFFIX, MINI_BOSS, bossFor, type BossMove } from '../data/enemies';
 import { GumPuddles } from './gum';
-import { BUFFS, CRIT, ECHO, ITEMS, PLAYER, STARTER_LOOKS } from '../data/items';
+import { BUFFS, CRIT, ECHO, ITEMS, PLAYER, STARTER_LOOKS, TINFOIL } from '../data/items';
 import { SETS, setCfg } from '../data/sets';
 import { RECIPE_TUNING } from '../data/recipes';
 import { addCoins, damagePlayer, takeStockroomItem } from '../state/run';
@@ -18,6 +18,7 @@ import { hud, showBanner } from '../ui/hud';
 import { Fx, DEPTH } from './fx';
 import { createEnemy, drawTelegraph, updateEnemy, type Enemy } from './enemies';
 import { Arsenal } from './weapons';
+import { CartCombos } from './cartCombos';
 import { Hazards } from './hazards';
 import { AisleEvents } from './events';
 import { rollEvent } from '../systems/events';
@@ -47,6 +48,8 @@ interface Player {
   x: number; y: number; radius: number; facing: 1 | -1;
   vx: number; vy: number;
   invulnT: number; protectT: number; hurtT: number;
+  /** Tin Foil Hat: > 0 while dashing and for TINFOIL.grace s after (enemy shots reflect). */
+  reflectT: number;
   shoveT: number; shoveCd: number; shoveDX: number; shoveDY: number; shoveTracker: HitTracker; shoveHit: boolean;
   dead: boolean;
 }
@@ -60,6 +63,7 @@ export class ArenaScene extends Phaser.Scene {
   enemies: Enemy[] = [];
   fx!: Fx;
   arsenal!: Arsenal;
+  cartCombos!: CartCombos;
   enraged = false;
   dept!: DepartmentDef;
   hazards!: Hazards;
@@ -138,6 +142,7 @@ export class ArenaScene extends Phaser.Scene {
     this.bars = this.add.graphics().setDepth(DEPTH.bars);
     this.fx = new Fx(this);
     this.arsenal = new Arsenal(this);
+    this.cartCombos = new CartCombos(this);
     this.buildPlayer();
     this.arsenal.setBuild(s.build.weapons);
     for (let i = 0; i < 140; i++) {
@@ -256,7 +261,7 @@ export class ArenaScene extends Phaser.Scene {
     const s = store.state;
     this.player = {
       x: 640, y: 500, radius: PLAYER.radius, facing: 1, vx: 0, vy: 0, invulnT: 0, protectT: 0, hurtT: 0,
-      shoveT: 0, shoveCd: 0, shoveDX: 1, shoveDY: 0, shoveTracker: newHitTracker(Infinity), shoveHit: false, dead: false,
+      reflectT: 0, shoveT: 0, shoveCd: 0, shoveDX: 1, shoveDY: 0, shoveTracker: newHitTracker(Infinity), shoveHit: false, dead: false,
     };
     this.shadow = this.add.image(0, 0, 'shadow').setDepth(DEPTH.decal).setDisplaySize(150, 40);
     const wheels = [
@@ -272,7 +277,7 @@ export class ArenaScene extends Phaser.Scene {
     const arm = this.add.image(-46, -48, sk('goblin_arm')).setOrigin(0.1, 0.5).setScale(0.8);
     const body = this.add.container(0, 0, [...wheels.slice(0, 2), cartBack]);
     // Props go between cart back and front wires.
-    const shown = this.chooseProps(s.build.weapons, s.build.recipes.map((r) => [r.weaponUid, ...r.supportUids]).flat());
+    const shown = this.chooseProps(s.build.weapons, s.build.recipes.flatMap((r) => [...(r.weaponUid ? [r.weaponUid] : []), ...r.supportUids]));
     // Piled in the basket (cart_back spans ≈ x -2..56, rim ≈ y -66): two side by side, the third on top.
     const pile: [number, number, number][][] = [[], [[27, -74, 0]], [[15, -72, -8], [39, -72, 8]], [[13, -72, -10], [41, -72, 10], [27, -86, 4]]];
     shown.forEach(({ uid, type }, i) => {
@@ -461,6 +466,16 @@ export class ArenaScene extends Phaser.Scene {
   /** Stun from hazards. The boss shrugs it off to keep its patterns readable. */
   private regenFxT = 0;
 
+  /** Leaf Blower slam: a blown grocery stopped by the arena edge or a prop takes impact damage once. */
+  slamEnemy(e: Enemy): void {
+    const dmg = e.blownDmg ?? 0;
+    e.blownUntil = 0;
+    this.fx.puff(e.x, e.y - 10, 2);
+    this.fx.spark(e.x, e.y - 30, 4, 0xcfefff);
+    this.fx.shake(0.003, 80);
+    this.damageEnemy(e, dmg, null, { label: 'Slam' });
+  }
+
   stunEnemy(e: Enemy, t: number): void {
     if (!e.alive || e.def.behavior === 'boss') return;
     e.state = 'stun';
@@ -514,7 +529,7 @@ export class ArenaScene extends Phaser.Scene {
     return hit;
   }
 
-  damageEnemy(e: Enemy, dmg: number, stats: WeaponStats | null, o: { kb?: number; kbX?: number; kbY?: number; isDot?: boolean; label?: string; quiet?: boolean; echo?: boolean; fromPopper?: boolean; chained?: boolean }): void {
+  damageEnemy(e: Enemy, dmg: number, stats: WeaponStats | null, o: { kb?: number; kbX?: number; kbY?: number; isDot?: boolean; label?: string; quiet?: boolean; echo?: boolean; fromPopper?: boolean; chained?: boolean; poison?: boolean; blow?: number }): void {
     if (!e.alive) return;
     const baseDmg = dmg;
     const now = this.time.now / 1000;
@@ -548,7 +563,7 @@ export class ArenaScene extends Phaser.Scene {
     }
     e.hp -= dmg;
     if (!o.isDot) e.lastHitT = now;
-    const key = o.isDot ? 'burn' : stats?.uid ?? o.label ?? 'shove';
+    const key = o.poison ? 'poison' : o.isDot ? 'burn' : stats?.uid ?? o.label ?? 'shove';
     s.stats.damageByWeapon[key] = (s.stats.damageByWeapon[key] ?? 0) + dmg;
     if (stats?.burn) applyBurn(e.status, this.aisleEvent.burn(stats.burn), now);
     if (!o.isDot && stats?.ignite && !stats.burn && Math.random() < stats.ignite.chance) { applyBurn(e.status, this.aisleEvent.burn(stats.ignite.burn), now); this.igniteFx(e); } // Heat L2
@@ -558,6 +573,7 @@ export class ArenaScene extends Phaser.Scene {
     if (o.kb) {
       const k = o.kb * (1 - e.def.knockbackResist) * (this.hazards.onIce(e.x, e.y) ? DEPT_TUNING.ice.knockbackMult : 1) * (stats && sets.cleaning >= 2 && ITEMS[stats.type].family === 'cleaning' ? setCfg('cleaning', sets.cleaning).knockbackMult : 1);
       e.kx += (o.kbX ?? 0) * k * 3; e.ky += (o.kbY ?? 0) * k * 3;
+      if (o.blow) { e.blownUntil = now + 0.6; e.blownDmg = o.blow; } // Leaf Blower: marked until it stops against a wall or prop
       // Cleaning L2: teal spritz on its boosted knockback (direct hits only).
       if (!o.isDot && stats && stats.pattern !== 'aura' && stats.pattern !== 'puddle' && sets.cleaning >= 2 && ITEMS[stats.type].family === 'cleaning') this.fx.spark(e.x, e.y - 30, 3, 0x3fb7a6);
     }
@@ -574,7 +590,7 @@ export class ArenaScene extends Phaser.Scene {
     }
     if (crit || now - e.lastHitNumberAt > 0.14 || dmg >= 10) {
       e.lastHitNumberAt = now;
-      this.fx.number(e.x, e.y - e.sprite.displayHeight * 0.9, dmg, crit ? '#F45F52' : o.isDot ? '#F5BD45' : '#FFF2D5', crit ? 28 : o.isDot ? 16 : 22);
+      this.fx.number(e.x, e.y - e.sprite.displayHeight * 0.9, dmg, crit ? '#F45F52' : o.poison ? '#8FCB57' : o.isDot ? '#F5BD45' : '#FFF2D5', crit ? 28 : o.isDot ? 16 : 22);
     }
     // Double Bag: one delayed second strike per direct hit (echoes never echo).
     if (stats && stats.echo > 0 && !o.isDot && !o.echo && !o.fromPopper && !o.chained) {
@@ -602,6 +618,7 @@ export class ArenaScene extends Phaser.Scene {
     }
     if (e.hp <= 0) {
       this.killEnemy(e, true);
+      if (stats?.recipes.includes('bagIt')) this.cartCombos.bagKill(); // Bag It: vacuum kills charge the garbage bomb
       // Kitchen L2: kitchen weapon kills sometimes heal. Blast L2: weapon kills sometimes pop (popper blasts never re-trigger).
       if (stats && sets.kitchen >= 2 && ITEMS[stats.type].family === 'kitchen' && Math.random() < setCfg('kitchen', sets.kitchen).healChance) {
         s.hp = Math.min(s.build.maxHp, s.hp + setCfg('kitchen', sets.kitchen).heal);
@@ -762,7 +779,7 @@ export class ArenaScene extends Phaser.Scene {
     return false;
   }
 
-  private dropCoin(x: number, y: number, label: string, bread = false): void {
+  dropCoin(x: number, y: number, label: string, bread = false): void {
     const c = this.coins.find((k) => !k.active);
     if (!c) { if (!bread) addCoins(store.state, 1, label); return; } // pool exhausted: credit directly, never lose money
     c.bread = bread;
@@ -895,6 +912,7 @@ export class ArenaScene extends Phaser.Scene {
       this.contactDamage();
     }
     this.arsenal.update(this.ending ? dt : dt, combat && !this.player.dead);
+    this.cartCombos.update(dt, now, combat && !this.player.dead);
     this.updateCoins(dt);
     this.hazards.update(dt, combat);
     this.aisleEvent.update(dt, combat);
@@ -955,10 +973,12 @@ export class ArenaScene extends Phaser.Scene {
       p.shoveCd = s.build.shoveCooldown;
       p.shoveTracker = newHitTracker(Infinity);
       p.shoveHit = false;
+      this.cartCombos.onShove();
       play('shove');
       this.fx.puff(p.x - p.shoveDX * 40, p.y, 3);
     }
 
+    if (p.shoveT > 0) p.reflectT = TINFOIL.grace; else p.reflectT -= dt;
     if (p.shoveT > 0) {
       const step = Math.min(dt, p.shoveT);
       p.shoveT -= dt;
@@ -987,7 +1007,7 @@ export class ArenaScene extends Phaser.Scene {
         this.fx.popImage('fx_receipt_burst', p.x + p.shoveDX * 50, p.y - 50, 0.9);
       }
     } else {
-      const speed = PLAYER.speed * s.build.moveSpeedMult * this.aisleEvent.playerSlow() * this.gum.slow();
+      const speed = PLAYER.speed * s.build.moveSpeedMult * this.cartCombos.sugarMult(this.time.now / 1000) * this.cartCombos.windMult(this.time.now / 1000) * this.aisleEvent.playerSlow() * this.gum.slow();
       const slip = this.aisleEvent.slipAccel(p.x, p.y);
       if (slip > 0) { // ice: velocity eases toward the input instead of snapping
         const k = Math.min(1, slip * dt);

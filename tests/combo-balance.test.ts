@@ -44,14 +44,22 @@ export function comboDps(w: WeaponStats, shoveCd: number): { single: number; cro
   if (has('frostbiteNails')) crowd *= 1.15; // crowd-control value
   if (has('smoothieShield')) crowd *= 1.2;  // defensive value
   if (has('blackIce')) crowd *= 1.2;        // crowd-control value
+  if (has('sourMist')) { single += RECIPE_TUNING.sourMist.dps; crowd += RECIPE_TUNING.sourMist.dps * 3; }
+  if (has('bagIt')) { const x = (RECIPE_TUNING.bagIt.dmgPerCharge * 3) / shoveCd; single += x; crowd += x * 3; } // ~3 charges per dash
+  if (has('sparksFly')) { const k = RECIPE_TUNING.sparksFly; crowd += per * (k.chainMult - 0.6) * k.chain * r + per * k.chain * k.stunChance * 0.3 * r; } // chain at 50% not 60% + stun value
+  if (has('rayGun')) { const x = per * w.count * r * RECIPE_TUNING.rayGun.splashMult * 3; crowd += x; } // splash on ~3 neighbours (no pierce)
+  if (w.type === 'leafblower') { const x = 8 * w.tier; single += x * 0.3 * r; crowd += x * 3 * 0.5 * r; } // slam: ~half of the blown pack hits a wall or prop
+  if (has('tailwind')) crowd *= 1.1;        // mobility value
+  if (has('smashBank')) crowd *= 1.1;       // economy value
   if (has('powerSurge')) { const k = 1 + RECIPE_TUNING.powerSurge.damageMult; single *= k; crowd *= k; }
   if (has('priceCheck')) { single = single * RECIPE_TUNING.priceCheck.damageMult + 0.3 * 20; crowd = crowd * RECIPE_TUNING.priceCheck.damageMult + 0.3 * 20; }
   return { single, crowd };
 }
 
 test('no combo is far stronger or weaker than the rest', async () => {
-  const rows = (Object.keys(RECIPES) as RecipeId[]).map((id) => {
+  const rows = (Object.keys(RECIPES) as RecipeId[]).filter((id) => RECIPES[id].weapon).map((id) => {
     const r = RECIPES[id];
+    if (!r.weapon) throw new Error('cart combo');
     const base = computeBuild(cart(r.weapon, []));
     const full = computeBuild(cart(r.weapon, r.supports));
     expect(full.recipes.map((x) => x.id)).toContain(id);

@@ -338,12 +338,17 @@ function soda(f) {
   const L = (...p) => stick(p, 3.2);
   let legs = a ? L([24, 68], [20, 74], [17, 80]) + L([36, 69], [38, 75], [41, 80]) + L([55, 72], [50, 76], [48, 81]) + L([66, 72], [69, 77], [72, 81]) + L([76, 68], [74, 74], [70, 80]) + L([89, 66], [93, 73], [96, 80])
     : L([24, 68], [27, 75], [26, 80]) + L([36, 69], [33, 74], [34, 80]) + L([55, 72], [58, 77], [60, 81]) + L([66, 72], [62, 77], [64, 81]) + L([76, 68], [80, 75], [82, 80]) + L([89, 66], [86, 73], [88, 80]);
-  let b = sodaCan(40, 14, 34, false) + sodaCan(70, 12, 34, false);
+  let b = sodaCan(22, 12, 34, false) + sodaCan(55, 10, 34, false) + sodaCan(88, 12, 34, false);
   b += sodaCan(22, 30, 38, true) + sodaCan(88, 30, 38, true) + sodaCan(55, 36, 38, true);
-  // plastic ring links
-  b += `<path d="M${P([[16, 40], [42, 52], [68, 52], [95, 41]])}" fill="none" stroke="${C.plum}" stroke-width="6.5" stroke-linejoin="round" stroke-linecap="round" opacity=".0"/>`;
-  const ring = (cx, cy, rx, ry) => `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="${C.plum}" stroke-width="6" opacity=".9"/><ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="${C.frost}" stroke-width="2.6"/>`;
-  b += ring(38, 37, 18, 4.5) + ring(72, 37, 18, 4.5);
+  // six-pack plastic: one wavy strip per row, dipping around each can and rising between them
+  const strip = (ys, r = 15.5) => {
+    const cx = [22, 55, 88];
+    let d = `M${cx[0] - r - 1} ${ys[0] - 2}`;
+    cx.forEach((x, i) => { d += ` A${r} 4 0 0 0 ${x + r} ${ys[i]}`; if (i < 2) d += ` L${cx[i + 1] - r} ${ys[i + 1]}`; });
+    d += ` L${cx[2] + r + 1} ${ys[2] - 2}`;
+    return `<path d="${d}" fill="none" stroke="${C.plum}" stroke-width="4.6" stroke-linejoin="round" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${C.frost}" stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round"/>`;
+  };
+  b += strip([21, 19, 21]) + strip([39, 45, 39]);
   if (tell) { // shaken up: fizz spurting from the tabs
     for (const [x, y, r] of [[22, 22, 7], [14, 12, 5], [88, 22, 7], [96, 11, 5], [55, 26, 6]]) b += `<circle cx="${x}" cy="${y}" r="${r}" fill="${C.frost}" stroke="${C.plum}" stroke-width="2" opacity=".95"/>`;
     b += spark(55, 8, 9) + line([[4, 40], [10, 48]], C.coral, 2.5) + line([[106, 40], [100, 48]], C.coral, 2.5);
@@ -1183,6 +1188,12 @@ add('proj_toast', () => {
 add('proj_nail', () => `<g transform="translate(1.5 .5) scale(.91 .9)">` +
   shape([[1, 1.5], [6, 1.5], [6, 8.5], [1, 8.5]], C.chrome, C.chromeD, { sw: 1.6, dx: 1, dy: 1.5 }) +
   shape([[6, 3.8], [22, 4.2], [27, 5], [22, 5.8], [6, 6.2]], C.chrome, C.chromeD, { sw: 1.5, dx: 0, dy: 1 }) + flat([[8, 4.3], [20, 4.5], [20, 5]], C.white) + '</g>');
+const rayBolt = (core, mid, glow) => `<ellipse cx="17" cy="7" rx="16" ry="6" fill="${glow}" opacity=".35"/>` +
+  `<path d="M2 7 L9 3 L26 4.2 L32 7 L26 9.8 L9 11 Z" fill="${mid}" stroke="${C.plum}" stroke-width="1.4" stroke-linejoin="round"/>` +
+  `<path d="M7 7 L12 5.2 L25 5.6 L28 7 L25 8.4 L12 8.8 Z" fill="${core}"/>` +
+  `<circle cx="27" cy="7" r="2.6" fill="#FFFFFF"/>`;
+add('proj_raybolt', () => rayBolt('#E8FFD0', '#5FD35A', '#8FEF6F'));
+add('proj_raybolt_red', () => rayBolt('#FFE0D0', '#F45F52', '#FF8F6F'));
 add('proj_bubble', () =>
   `<circle cx="18" cy="18" r="15.5" fill="${C.plum}"/>` + shape(ellPath(18, 18, 14.2, 14.2), '#D8F1FF', '#9FD2EE', { sw: 1.6, dx: 3, dy: 3, stroke: C.plum }) +
   `<path d="M9 14 A10 10 0 0 1 17 8" fill="none" stroke="${C.white}" stroke-width="2.6" stroke-linecap="round"/><circle cx="12" cy="20" r="1.5" fill="${C.white}"/><circle cx="26" cy="24" r="2" fill="${C.coralL}" opacity=".7"/>`);
@@ -1413,6 +1424,50 @@ add('icon_piggy', () => {
   s += ell(93, 42, 16, 16, C.gold, C.goldD, { sw: 4, dx: 2, dy: 2 }) + flat([[86, 34], [92, 32], [88, 44]], C.white, 'opacity=".7"');
   s += flat([[50, 96], [70, 80], [72, 86], [54, 102]], C.white, 'opacity=".5"');
   return icon(s, 160);
+});
+
+add('icon_expiredmilk', () => {
+  // green-tinted milk carton, skull label, EXP sticker, stink waves rising off it
+  const MG = '#D6EDB0', MGD = '#A3C874', STINK = '#8FCB57';
+  let s = '';
+  for (const x of [68, 96, 124]) s += line([[x, 50], [x - 9, 38], [x + 7, 26], [x - 3, 12]], STINK, 5);
+  s += S5([[58, 88], [134, 88], [134, 160], [58, 160]], MG, MGD, { dx: 7, dy: 6 });
+  s += S5([[58, 88], [96, 58], [134, 88]], MGD, '#7FA84C', { dx: 3, dy: 3 });
+  s += flat(rect(58, 112, 76, 30), STINK);
+  s += ell(96, 126, 13, 11, C.white, C.creamD, { sw: 3 }) + `<circle cx="91" cy="124" r="3.2" fill="${C.plum}"/><circle cx="101" cy="124" r="3.2" fill="${C.plum}"/>`;
+  s += line([[91, 134], [91, 139], [96, 139], [96, 134], [96, 139], [101, 139], [101, 134]], C.plum, 2);
+  s += shape(star(132, 96, 20, 14, 10, -90), C.coral, C.coralD, { sw: 3.5, dx: 2, dy: 2 });
+  s += flat(rect(121, 94, 4, 8), C.cream) + flat(rect(127, 94, 10, 3), C.cream) + flat(rect(127, 98.5, 8, 3), C.cream) + flat(rect(127, 103, 10, 3), C.cream);
+  s += flat([[64, 94], [71, 94], [71, 154], [66, 150]], C.white, 'opacity=".5"');
+  return icon(s, 172);
+});
+
+add('icon_tinfoilhat', () => {
+  // crinkled tin-foil cone hat: silver facets, bright highlights, brim
+  const FL = '#C9D0DC', FLD = '#8B95A8', FLL = '#F4F7FC';
+  let s = '';
+  s += S5([[34, 140], [96, 22], [158, 140]], FL, FLD, { dx: 8, dy: 6 });
+  s += flat([[96, 22], [70, 82], [96, 70]], FLL);
+  s += flat([[96, 70], [70, 82], [58, 140], [92, 118]], FL);
+  s += flat([[96, 22], [124, 90], [104, 84]], FLD, 'opacity=".55"');
+  s += flat([[104, 84], [124, 90], [150, 140], [112, 124]], FLD, 'opacity=".4"');
+  s += line([[96, 22], [92, 118]], FLD, 2.5) + line([[96, 22], [124, 90], [112, 124]], FLD, 2.5) + line([[70, 82], [58, 140]], FLD, 2.5) + line([[70, 82], [92, 118]], FLD, 2.5);
+  s += ell(96, 142, 70, 15, FL, FLD, { sw: SWi, dx: 0, dy: 6 });
+  s += flat([[46, 140], [76, 136], [70, 142], [48, 144]], FLL);
+  s += flat([[84, 38], [90, 34], [80, 62]], C.white, 'opacity=".9"');
+  s += spark(142, 54, 9, C.white) + spark(52, 100, 6, C.white);
+  return icon(s, 164);
+});
+
+add('icon_jellybeans', () => {
+  // glass jar of multicolored jelly beans
+  let s = '';
+  s += S5([[46, 54], [146, 54], [158, 76], [158, 154], [34, 154], [34, 76]], '#E4F4F8', '#B7DCE6', { dx: 7, dy: 0 });
+  const beans = [[58, 138, C.coral], [82, 140, C.gold], [108, 138, C.green], [134, 138, C.sky], [70, 118, C.green], [96, 120, C.coral], [122, 118, C.gold], [52, 102, C.sky], [80, 100, C.gold], [108, 100, C.sky], [136, 102, C.coral], [66, 82, C.coral], [94, 80, C.green], [122, 82, '#B987E8']];
+  beans.forEach(([x, y, col], i) => { s += rot(ell(x, y, 12, 8, col, C.plum, { sw: 3 }) + flat([[x - 6, y - 4], [x, y - 5], [x - 5, y - 1]], C.white, 'opacity=".7"'), (i * 47) % 120 - 60, x, y); });
+  s += flat([[42, 70], [50, 70], [48, 148], [42, 142]], C.white, 'opacity=".5"');
+  s += S5(rect(42, 38, 108, 20), C.coral, C.coralD, { dx: 0, dy: 5, sw: 4 });
+  return icon(s, 164);
 });
 
 add('proj_cap', () => {
@@ -1981,6 +2036,35 @@ add('icon_spray', () => {
   return icon(s, 176);
 });
 
+add('icon_leafblower', () => {
+  // handheld leaf blower: orange motor body, grip, long nozzle pointing right, a few leaves in the gust
+  let s = '';
+  s += line([[132, 96], [160, 90], [186, 94]], C.frost, 4, 'opacity=".9"') + line([[132, 108], [168, 108], [186, 112]], C.frost, 4, 'opacity=".9"');
+  s += S5([[96, 82], [140, 82], [150, 92], [150, 118], [140, 128], [96, 128]], C.coral, C.coralD, { dx: 7, dy: 5 });
+  s += S5([[140, 86], [176, 92], [176, 118], [140, 124]], C.chrome, C.chromeD, { dx: 5, dy: 4 });
+  s += flat([[144, 94], [170, 98], [170, 104], [144, 102]], C.chromeL, 'opacity=".8"');
+  s += S5([[44, 70], [96, 66], [100, 100], [96, 140], [44, 142], [38, 106]], C.coral, C.coralD, { dx: 7, dy: 6 });
+  s += ell(66, 104, 14, 16, C.cream, C.creamD, { sw: 3.5, dx: 2, dy: 2 }) + line([[58, 104], [74, 104]], C.plum, 3);
+  s += S5([[76, 126], [96, 126], [92, 168], [72, 170]], C.plumSoft, C.plum, { dx: 4, dy: 3 });
+  s += flat([[48, 76], [86, 72], [50, 84]], C.coralL, 'opacity=".8"');
+  for (const [x, y, a, col] of [[160, 54, -30, C.green], [180, 138, 40, C.gold], [128, 142, 150, C.coral]]) s += rot(ell(x, y, 13, 7, col, C.plum, { sw: 3 }) + line([[x - 10, y], [x + 10, y]], C.plum, 2), a, x, y);
+  return icon(s, 176);
+});
+
+add('icon_sourdough', () => {
+  // glass jar of bubbly dough, cloth lid held by a rubber band
+  let s = '';
+  s += S5([[50, 62], [142, 62], [154, 82], [154, 158], [38, 158], [38, 82]], '#E4F4F8', '#B7DCE6', { dx: 7, dy: 0 });
+  s += S5([[42, 104], [150, 104], [150, 154], [42, 154]], C.creamD, C.breadL, { sw: 3, dx: 0, dy: 0 });
+  s += flat([[42, 104], [60, 98], [80, 106], [100, 98], [122, 106], [150, 100], [150, 112], [42, 112]], C.cream);
+  for (const [x, y, r] of [[62, 128, 7], [92, 138, 9], [120, 124, 6], [78, 118, 4], [108, 146, 4], [134, 140, 5]]) s += `<circle cx="${x}" cy="${y}" r="${r}" fill="${C.cream}" stroke="${C.breadD}" stroke-width="2.2"/>`;
+  s += flat([[44, 74], [52, 74], [50, 150], [44, 144]], C.white, 'opacity=".55"');
+  s += S5([[34, 50], [150, 50], [158, 66], [26, 66]], C.coral, C.coralD, { dx: 0, dy: 4, sw: 4 });
+  s += flat([[34, 54], [150, 54], [154, 60], [30, 60]], C.cream, 'opacity=".6"');
+  s += line([[34, 76], [150, 76]], C.gold, 5) + line([[38, 80], [146, 80]], C.goldD, 2);
+  return icon(s, 164);
+});
+
 add('icon_popper', () => {
   const tip = [34, 168], A = [66, 90], B = [128, 128], cone = [tip, A, B];
   const at = (t) => [[tip[0] + (A[0] - tip[0]) * t, tip[1] + (A[1] - tip[1]) * t], [tip[0] + (B[0] - tip[0]) * t, tip[1] + (B[1] - tip[1]) * t]];
@@ -2059,6 +2143,16 @@ add('fx_spray', () => {
   const r = rng(31);
   for (let i = 0; i < 90; i++) { const rr = 10 + Math.pow(r(), 0.8) * 200, a = (r() - 0.5) * 66, [x, y] = pt(rr, a), f = 1 - rr / 230; s += `<circle cx="${n(x)}" cy="${n(y)}" r="${n(2 + r() * 3.2)}" fill="${r() > 0.5 ? C.cream : '#7FD6CB'}" fill-opacity="${n(0.4 + 0.6 * f)}"/>`; }
   for (let i = 0; i < 7; i++) { const a = -28 + i * 9.3, pts = []; for (let rr = 14; rr < 150 + (i % 3) * 20; rr += 8) { const [x, y] = pt(rr, a + Math.sin(rr / 14 + i) * 2.2); pts.push([x, y]); } s += line(pts, C.white, 2, `opacity="${0.45}"`); }
+  return s;
+});
+
+add('fx_gust', () => {
+  // wind streaks fanning out of the nozzle, with a few leaves riding along
+  const pt = (rr, deg) => [rr * Math.cos((deg * Math.PI) / 180), 80 + rr * Math.sin((deg * Math.PI) / 180)];
+  let s = '';
+  const r = rng(77);
+  for (let i = 0; i < 9; i++) { const a = -26 + i * 6.5, pts = []; for (let rr = 10 + (i % 3) * 14; rr < 120 + r() * 90; rr += 9) pts.push(pt(rr, a + Math.sin(rr / 18 + i) * 3.5)); s += line(pts, i % 2 ? C.white : C.frost, 3.2, `opacity="${n(0.5 + 0.3 * r())}"`); }
+  for (let i = 0; i < 6; i++) { const [x, y] = pt(40 + r() * 160, (r() - 0.5) * 48), a = r() * 180; s += rot(`<ellipse cx="${n(x)}" cy="${n(y)}" rx="9" ry="4.5" fill="${[C.green, C.gold, C.coralL][i % 3]}" stroke="${C.plum}" stroke-width="1.6"/>`, a, x, y); }
   return s;
 });
 

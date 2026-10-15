@@ -1,6 +1,6 @@
 import { store } from '../state/store';
 import { BOSS_WAVE } from '../data/waves';
-import { RECIPES } from '../data/recipes';
+import { RECIPES, recipeIcon } from '../data/recipes';
 import { deptT, recipeT, zoneT } from '../i18n/data';
 import { fmtNum, t, type UIKey } from '../i18n';
 
@@ -83,7 +83,7 @@ function render(): void {
   if (last.recipes !== key) {
     last.recipes = key;
     els.recipes.innerHTML = s.build.recipes
-      .map((r) => `<span class="badge" title="${recipeT(r.id).summary}"><img src="${svg(`icon_${RECIPES[r.id].weapon}`)}" alt="">${recipeT(r.id).name}</span>`)
+      .map((r) => `<span class="badge" title="${recipeT(r.id).summary}"><img src="${svg(`icon_${recipeIcon(RECIPES[r.id])}`)}" alt="">${recipeT(r.id).name}</span>`)
       .join('');
   }
 }

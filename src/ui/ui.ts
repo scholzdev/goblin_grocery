@@ -3,7 +3,7 @@ import { store } from '../state/store';
 import { flow } from '../flow';
 import { settings, saveSettings, getBest } from '../state/settings';
 import { ITEMS, PLAYER, STARTER_LOOKS, STARTER_WEAPONS } from '../data/items';
-import { RECIPES } from '../data/recipes';
+import { RECIPES, recipeIcon, recipeParts } from '../data/recipes';
 import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS, enemyAppears } from '../data/waves';
 import { CODEX_ENEMIES, ELITE, ENEMIES, MINI_BOSS, bossFor, enemyFrame, isBossId } from '../data/enemies';
 import { LAB, loadLab, saveLab } from '../lab';
@@ -25,7 +25,7 @@ import type { DepartmentId, EnemyId, ItemTypeId, LabOpts, Perk, RecipeId, Starte
 import type { Fresh } from '../state/profile';
 import { modIcon, setIcon } from './icons';
 import { t, fmtNum, lang, setLang, LANGS, type Lang, type UIKey } from '../i18n';
-import { newSetLevels, setsOf } from '../data/sets';
+import { flavorOf, newSetLevels, setsOf } from '../data/sets';
 import { ZONES } from '../data/zones';
 import { cartSkinT, deptT, enemyT, goblinSkinT, itemT, recipeT, shiftT, starterT, tagT, unlockNeedT, zoneT } from '../i18n/data';
 
@@ -62,6 +62,14 @@ const pickStarter = (id: StarterId): void => { pickedStarter = id; savePick(); }
 const pickWeapon = (w: StarterWeapon): void => { pickedWeapon = w; savePick(); };
 const pickTheme = (d: DepartmentId): void => { pickedTheme = d; savePick(); };
 const modT = (id: ModifierId) => ({ name: t(`modName_${id}` as UIKey), short: t(`modShort_${id}` as UIKey), fx: t(`modFx_${id}` as UIKey), rw: t(`modRw_${id}` as UIKey) });
+
+/** Dev/test builds only: every unlock plus every shift for every starter. */
+function unlockAll(): void {
+  profile.unlocked = UNLOCKS.map((u) => u.id);
+  profile.recipes = Object.keys(RECIPES) as RecipeId[];
+  for (const st of STARTERS) profile.stats.bestShift[st] = SHIFTS.length - 1;
+  saveProfile();
+}
 
 export function initUi(_game: Phaser.Game): void {
   ui = document.getElementById('ui-root')!;
@@ -100,7 +108,7 @@ export function initUi(_game: Phaser.Game): void {
   store.on('change', () => {
     const st = store.state;
     if ((st.phase !== 'shop' && st.phase !== 'combat') || st.lab) return;
-    for (const r of st.build.recipes) if (discoverRecipe(r.id)) celebrate(t('newCombo'), recipeT(r.id).name, `icon_${RECIPES[r.id].weapon}`);
+    for (const r of st.build.recipes) if (discoverRecipe(r.id)) celebrate(t('newCombo'), recipeT(r.id).name, `icon_${recipeIcon(RECIPES[r.id])}`);
   });
   // Set bonus level-ups: compare against the last baseline (reset whenever a shop/run opens), only while shopping.
   let setBase: Record<string, number> | null = null;
@@ -113,7 +121,7 @@ export function initUi(_game: Phaser.Game): void {
     const now = snap();
     if (setBase) for (const { id, lv } of newSetLevels(setBase, now)) {
       const last = st.inventory.placed[st.inventory.placed.length - 1];
-      const member = (last && setsOf(last.type).includes(id) ? last.type : ITEM_IDS.find((i) => setsOf(i).includes(id))) as ItemTypeId;
+      const member = (last && setsOf(last.type, flavorOf(last)).includes(id) ? last.type : ITEM_IDS.find((i) => setsOf(i).includes(id))) as ItemTypeId;
       celebrate(t('setUp'), t('setUpName', { set: tagT(id), n: lv }), `icon_${member}`, t('setUpLine'));
     }
     setBase = now;
@@ -446,7 +454,7 @@ function freshCards(f: Fresh): FreshCard[] {
     ...of('item').map((u) => ({ icon: `icon_${(u as any).item}`, name: itemT((u as any).item).name, kind: 'kindItem' as UIKey })),
     ...of('goblin').map((u) => ({ icon: `goblin_head__${(u as any).skin}`, name: goblinSkinT((u as any).skin).name, kind: 'kindGoblin' as UIKey })),
     ...of('cart').map((u) => ({ icon: `cart_back__${(u as any).skin}`, name: cartSkinT((u as any).skin).name, kind: 'kindCart' as UIKey })),
-    ...f.recipes.map((r) => ({ icon: `icon_${RECIPES[r].weapon}`, name: recipeT(r).name, kind: 'kindCombo' as UIKey })),
+    ...f.recipes.map((r) => ({ icon: `icon_${recipeIcon(RECIPES[r])}`, name: recipeT(r).name, kind: 'kindCombo' as UIKey })),
     ...f.enemies.map((e) => ({ icon: enemyFrame(e), name: enemyT(e).name, kind: 'kindEnemy' as UIKey })),
   ];
 }
@@ -469,7 +477,7 @@ function freshHtml(res: NonNullable<typeof flow.lastResult>): string {
   return `${grid}${rows ? `<div class="almost"><h5 class="sec">${t('almostThere')}</h5>${rows}</div>` : ''}`;
 }
 
-const DMG_LABELS: Record<string, UIKey> = { burn: 'dmgBurn', shove: 'dmgShove', 'Oven vent': 'dmgVent', 'Live cable': 'dmgCable', 'Party Popper': 'dmgPopper', 'Egg Carton': 'dmgEgg' };
+const DMG_LABELS: Record<string, UIKey> = { burn: 'dmgBurn', poison: 'dmgPoison', 'Bag It': 'dmgBag', 'Tin Foil Hat': 'dmgFoil', Slam: 'dmgSlam', shove: 'dmgShove', 'Oven vent': 'dmgVent', 'Live cable': 'dmgCable', 'Party Popper': 'dmgPopper', 'Egg Carton': 'dmgEgg' };
 
 function endHtml(): string {
   const s = store.state;
@@ -547,10 +555,8 @@ function onClick(e: MouseEvent): void {
     }
     case 'reset-keys': listening = null; settings.keys = defaultKeys(); saveSettings(); refreshBinds(); break;
     case 'lab': openTitleModal(labHtml(loadLab())); break;
-    case 'unlock-all': // dev/test builds only: every unlock plus every shift for every starter
-      profile.unlocked = UNLOCKS.map((u) => u.id);
-      for (const st of STARTERS) profile.stats.bestShift[st] = SHIFTS.length - 1;
-      saveProfile();
+    case 'unlock-all':
+      unlockAll();
       screens.title.innerHTML = titleHtml();
       break;
     case 'lab-open': {
@@ -657,10 +663,10 @@ function codexTab(tab: 'combos' | 'items' | 'enemies'): string {
     const cards = ids.map((id) => {
       const r = RECIPES[id], rt = recipeT(id);
       const known = profile.recipes.includes(id);
-      const icons = [r.weapon, ...r.supports].map((ty, i) => (known || i === 0) ? `<img src="${svg(`icon_${ty}`)}" alt="${itemT(ty).name}" data-card="${ty}">` : '<span class="q">?</span>').join('<b>+</b>');
+      const icons = recipeParts(r).map((ty, i) => (known || i === 0 || unlocked.has(ty)) ? `<img src="${svg(`icon_${ty}`)}" alt="${itemT(ty).name}" data-card="${ty}">` : '<span class="q">?</span>').join('<b>+</b>');
       return known
         ? `<div class="codex-card known">${newTag(`recipe:${id}`)}<div class="icons">${icons}</div><div class="nm">${rt.name}</div><div class="eff">${rt.short}</div><div class="det">${rt.detail}</div></div>`
-        : `<div class="codex-card"><div class="icons">${icons}</div><div class="nm">???</div><div class="det">${r.supports.length === 1 ? t('comboHintOne', { item: itemT(r.weapon).name }) : t('comboHintMany', { item: itemT(r.weapon).name, n: r.supports.length })}</div></div>`;
+        : `<div class="codex-card"><div class="icons">${icons}</div><div class="nm">???</div><div class="det">${recipeParts(r).length === 2 ? t('comboHintOne', { item: itemT(recipeIcon(r)).name }) : t('comboHintMany', { item: itemT(recipeIcon(r)).name, n: recipeParts(r).length - 1 })}</div></div>`;
     }).join('');
     return `<h2>${t('catalog')}</h2>${tabs}<div class="codex-grid">${cards}</div>`;
   }

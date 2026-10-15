@@ -10,8 +10,8 @@ export function tryHit(t: HitTracker, enemyId: number): boolean {
   return true;
 }
 
-export interface StatusFx { burnDps: number; burnUntil: number; burnTick: number; nextBurnAt: number; slowPct: number; slowUntil: number }
-export const newStatus = (): StatusFx => ({ burnDps: 0, burnUntil: 0, burnTick: 0.5, nextBurnAt: 0, slowPct: 0, slowUntil: 0 });
+export interface StatusFx { burnDps: number; burnUntil: number; burnTick: number; nextBurnAt: number; slowPct: number; slowUntil: number; poisonDps: number; poisonUntil: number; nextPoisonAt: number }
+export const newStatus = (): StatusFx => ({ burnDps: 0, burnUntil: 0, burnTick: 0.5, nextBurnAt: 0, slowPct: 0, slowUntil: 0, poisonDps: 0, poisonUntil: 0, nextPoisonAt: 0 });
 
 const EPS = 1e-9;
 
@@ -27,6 +27,23 @@ export function tickBurn(s: StatusFx, now: number): number {
   let dmg = 0;
   const end = Math.min(now, s.burnUntil) + EPS;
   while (s.nextBurnAt <= end) { dmg += s.burnDps * s.burnTick; s.nextBurnAt += s.burnTick; }
+  return dmg;
+}
+
+/** Poison: refreshes its duration, never stacks dps (keeps the higher one). Ticks every POISON_TICK, independent of burn. */
+export const POISON_TICK = 0.5;
+export function applyPoison(s: StatusFx, dps: number, duration: number, now: number): void {
+  const active = s.poisonUntil > now;
+  s.poisonDps = active ? Math.max(s.poisonDps, dps) : dps;
+  if (!active) s.nextPoisonAt = now + POISON_TICK;
+  s.poisonUntil = now + duration;
+}
+
+export function tickPoison(s: StatusFx, now: number): number {
+  if (s.poisonDps <= 0) return 0;
+  let dmg = 0;
+  const end = Math.min(now, s.poisonUntil) + EPS;
+  while (s.nextPoisonAt <= end) { dmg += s.poisonDps * POISON_TICK; s.nextPoisonAt += POISON_TICK; }
   return dmg;
 }
 
@@ -77,3 +94,6 @@ export function healTargets<T extends Healable>(healer: T, all: T[], radius = HO
   }
   return out;
 }
+
+/** Tailwind gating: a blast only feeds Sugar Rush when Sugar Rush is active and the internal cooldown has passed. */
+export const tailwindFeedsSugar = (sugarActive: boolean, now: number, lastFeed: number, icd: number): boolean => sugarActive && now - lastFeed >= icd;

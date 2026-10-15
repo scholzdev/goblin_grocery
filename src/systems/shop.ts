@@ -18,7 +18,7 @@ export const repairCost = (state: RunState): number => ECONOMY.repairBase + ECON
 const anyWeapon = (o: Set<ItemTypeId>) => [...o].some((t) => ITEMS[t].kind === 'weapon');
 const ENHANCES: Partial<Record<ItemTypeId, (own: Set<ItemTypeId>) => boolean>> = {
   fan: anyWeapon, fuel: anyWeapon, battery: anyWeapon, ice: anyWeapon, hotsauce: anyWeapon, pricegun: anyWeapon, tape: anyWeapon,
-  popper: anyWeapon, doublebag: anyWeapon, multipack: anyWeapon,
+  popper: anyWeapon, doublebag: anyWeapon, multipack: anyWeapon, expiredmilk: anyWeapon, tinfoilhat: () => true, jellybeans: anyWeapon, sourdough: anyWeapon,
   magnet: (o) => o.has('nailgun'),
   bell: (o) => o.has('pan'),
   lunchbox: (o) => o.has('microwave'),
@@ -27,7 +27,7 @@ const ENHANCES: Partial<Record<ItemTypeId, (own: Set<ItemTypeId>) => boolean>> =
 
 function weight(t: ItemTypeId, own: Set<ItemTypeId>): number {
   if (ITEMS[t].kind === 'weapon') return own.has(t) ? 1.6 : 1.3;
-  if (Object.values(RECIPES).some((r) => own.has(r.weapon) && r.supports.includes(t))) return 2.2;
+  if (Object.values(RECIPES).some((r) => (r.weapon ? own.has(r.weapon) : r.supports.some((s) => s !== t && own.has(s))) && r.supports.includes(t))) return 2.2;
   return ENHANCES[t]?.(own) ? 1.8 : 1;
 }
 

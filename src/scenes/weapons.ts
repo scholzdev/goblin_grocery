@@ -2,11 +2,12 @@ import Phaser from 'phaser';
 import type { WeaponStats } from '../types';
 import { RECIPE_TUNING } from '../data/recipes';
 import { newHitTracker, shieldBlocks, tryHit, isSpent, pickRicochetTarget, type HitTracker } from '../systems/combat';
-import { ITEMS, MULTIPACK, PUDDLE } from '../data/items';
+import { ITEMS, MULTIPACK, PUDDLE, TIER } from '../data/items';
 import { SETS, setCfg } from '../data/sets';
 import { store } from '../state/store';
 import { SHIELD } from '../data/enemies';
-import { applyBurn } from '../systems/combat';
+import { applyBurn, applyPoison } from '../systems/combat';
+import { t } from '../i18n';
 import { play } from '../audio/sfx';
 import { DEPTH } from './fx';
 import type { ArenaScene } from './ArenaScene';
@@ -17,6 +18,8 @@ export interface WeaponRt {
   cd: number;
   burstLeft: number;
   burstT: number;
+  /** Ray Gun: shots fired so far (every 3rd is overcharged). */
+  rayShots?: number;
   expressIcd: number;
   blades: Phaser.GameObjects.Image | null;
 }
@@ -37,6 +40,8 @@ export interface Shot {
   spin: number;
   maxLife: number;
   ricochet: boolean;
+  /** Ray Gun: splash on impact (radius, fraction of the hit damage). */
+  splash: { r: number; m: number } | null;
 }
 
 const SHOT_POOL = 200;
@@ -47,6 +52,7 @@ export class Arsenal {
   shots: Shot[] = [];
   enemyShots: Shot[] = [];
   puddles: Puddle[] = [];
+  private chickenSweeps = 0;
   pots: Pot[] = [];
   private time = 0;
 
@@ -58,7 +64,7 @@ export class Arsenal {
   private makeShot(key: string): Shot {
     const img = this.scene.add.image(0, 0, key).setVisible(false);
     const shadow = this.scene.add.image(0, 0, 'shadow').setVisible(false).setDisplaySize(22, 7).setAlpha(0.6).setDepth(DEPTH.decal);
-    return { img, shadow, active: false, x: 0, y: 0, vx: 0, vy: 0, life: 0, damage: 0, tracker: newHitTracker(1), stats: null, homing: false, spin: 0, maxLife: 1, ricochet: false };
+    return { img, shadow, active: false, x: 0, y: 0, vx: 0, vy: 0, life: 0, damage: 0, tracker: newHitTracker(1), stats: null, homing: false, spin: 0, maxLife: 1, ricochet: false, splash: null };
   }
 
   setBuild(weapons: WeaponStats[]): void {
@@ -131,9 +137,10 @@ export class Arsenal {
     s.life = life; s.maxLife = life; s.damage = damage; s.stats = stats;
     s.tracker = newHitTracker(maxHits);
     s.homing = false;
+    s.splash = null;
     s.ricochet = key === 'proj_cap';
     s.spin = key === 'proj_toast' ? 9 : key === 'proj_receipt' ? 6 : key === 'proj_cap' ? 14 : 0;
-    s.img.setTexture(key).setVisible(true).setAlpha(1).setScale(1).setRotation(key === 'proj_nail' ? a : 0).setPosition(x, y - 26);
+    s.img.setTexture(key).setVisible(true).setAlpha(1).setScale(1).setRotation(key === 'proj_nail' || key.startsWith('proj_raybolt') ? a : 0).setPosition(x, y - 26);
     s.shadow.setVisible(true).setPosition(x, y);
     return s;
   }
@@ -160,6 +167,13 @@ export class Arsenal {
     const o = this.origin();
     const st = w.stats;
     const a = Math.atan2(target.y - o.y, target.x - o.x) + (Math.random() - 0.5) * 0.08;
+    if (st.recipes.includes('rayGun')) { // energy bolt: never pierces, splashes on impact; every 3rd shot is the big red one
+      const rg = RECIPE_TUNING.rayGun, big = (w.rayShots = (w.rayShots ?? 0) + 1) % rg.every === 0;
+      const s = this.spawn(big ? 'proj_raybolt_red' : 'proj_raybolt', o.x, o.y, a, st.projectileSpeed, st.range / st.projectileSpeed, st.damage, st, 1);
+      if (s) s.splash = big ? { r: rg.bigR, m: rg.bigMult } : { r: rg.splashR, m: rg.splashMult };
+      if (w.burstLeft === st.count) play('zap', { volume: 0.5, rate: big ? 0.7 : 1.4 });
+      return;
+    }
     this.spawn('proj_nail', o.x, o.y, a, st.projectileSpeed, st.range / st.projectileSpeed, st.damage, st, 1 + st.pierce);
     if (w.burstLeft === st.count) play('nail_burst');
   }
@@ -242,6 +256,7 @@ export class Arsenal {
     const pool = sc.enemies.filter((e) => e.alive && e.state !== 'spawn' && (e.x - p.x) ** 2 + (e.y - p.y) ** 2 < st.range * st.range);
     if (!pool.length) return;
     const tracker = newHitTracker(Infinity);
+    const sparks = st.recipes.includes('sparksFly') ? RECIPE_TUNING.sparksFly.chain : 0;
     // Sniper role: the toughest grocery in range (Elites first, then most HP); the splash handles the small fry.
     let target: Enemy | null = pool.reduce((b, e) => (e.elite !== b.elite ? (e.elite ? e : b) : e.hp > b.hp ? e : b));
     // Reheat: the first zap target's spot keeps burning.
@@ -253,7 +268,10 @@ export class Arsenal {
         if (!e.alive || e.state === 'spawn') continue;
         if ((e.x - t.x) ** 2 + (e.y - t.y) ** 2 > (st.aoe + e.def.radius) ** 2) continue;
         if (!tryHit(tracker, e.id)) continue;
-        sc.damageEnemy(e, link > 0 ? st.damage * 0.6 : st.damage, st, { kb: 80, kbX: Math.sign(e.x - t.x), kbY: 0 });
+        // Sparks Fly links come last (after TV Dinner's): 50% damage and a chance to stun.
+        const spark = link > 0 && link > st.chain - sparks;
+        sc.damageEnemy(e, link > 0 ? st.damage * (spark ? RECIPE_TUNING.sparksFly.chainMult : 0.6) : st.damage, st, { kb: 80, kbX: Math.sign(e.x - t.x), kbY: 0 });
+        if (sparks && link > 0 && e.alive && Math.random() < RECIPE_TUNING.sparksFly.stunChance) sc.stunEnemy(e, RECIPE_TUNING.sparksFly.stun);
       }
       target = pickRicochetTarget(t, sc.enemies.filter((e) => e.alive && e.state !== 'spawn'), tracker.hits, 220);
     }
@@ -283,7 +301,8 @@ export class Arsenal {
     if (!t) return;
     const a = Math.atan2(t.y - p.y, t.x - p.x);
     const half = Phaser.Math.DegToRad(st.arcDeg / 2);
-    const fx = sc.add.image(p.x + Math.cos(a) * 20, p.y - 26 + Math.sin(a) * 20, 'fx_spray').setOrigin(0, 0.5).setRotation(a).setDepth(DEPTH.fx - 2)
+    const blower = st.type === 'leafblower';
+    const fx = sc.add.image(p.x + Math.cos(a) * 20, p.y - 26 + Math.sin(a) * 20, blower ? 'fx_gust' : 'fx_spray').setOrigin(0, 0.5).setRotation(a).setDepth(DEPTH.fx - 2)
       .setDisplaySize(st.range * 0.6, st.range * Math.tan(half) * 1.2 + 20).setAlpha(0.9);
     sc.tweens.add({ targets: fx, displayWidth: st.range * 1.05, alpha: 0, duration: 260, ease: 'Cubic.Out', onComplete: () => fx.destroy() });
     const tracker = newHitTracker(Infinity);
@@ -293,9 +312,11 @@ export class Arsenal {
       if (d > st.range + e.def.radius) continue;
       if (Math.abs(Phaser.Math.Angle.Wrap(Math.atan2(dy, dx) - a)) > half && d > e.def.radius + p.radius) continue;
       if (!tryHit(tracker, e.id)) continue;
-      sc.damageEnemy(e, st.damage, st, { kb: 40, kbX: dx / (d || 1), kbY: dy / (d || 1), quiet: true });
+      sc.damageEnemy(e, st.damage, st, { kb: ITEMS[st.type].weapon!.knockback ?? 40, kbX: dx / (d || 1), kbY: dy / (d || 1), quiet: true, blow: blower ? 8 * TIER.weaponDamage(st.tier) : undefined });
+      if (st.recipes.includes('sourMist')) applyPoison(e.status, RECIPE_TUNING.sourMist.dps, RECIPE_TUNING.sourMist.duration, sc.time.now / 1000);
     }
     play('spray');
+    if (st.recipes.includes('tailwind')) sc.cartCombos.onBlast(); // Tailwind: each blast pushes the cart (and may feed Sugar Rush)
   }
 
   /** Pressure Cooker: lob a pot at the densest cluster in range; it explodes on landing. */
@@ -416,21 +437,27 @@ export class Arsenal {
     const sc = this.scene;
     const p = sc.player;
     const st = w.stats;
+    // Chicken Dinner: every Nth sweep is a big serving.
+    const T = RECIPE_TUNING.chickenDinner;
+    const big = st.recipes.includes('chickenDinner') && ++this.chickenSweeps % T.every === 0;
+    const range = big ? st.range * T.rangeMult : st.range, dmg = big ? st.damage * T.damageMult : st.damage;
     const tracker = newHitTracker(Infinity);
     const half = Phaser.Math.DegToRad(st.arcDeg / 2);
     const fx = sc.add.image(p.x, p.y - 22, 'fx_sweep').setRotation(angle + Math.PI).setDepth(DEPTH.fx - 2)
-      .setScale(st.range / 70 * 0.55).setAlpha(0.95);
+      .setScale(range / 70 * 0.55).setAlpha(0.95);
     if (bonus) fx.setTint(0xfff2d5);
-    sc.tweens.add({ targets: fx, scale: st.range / 70, alpha: 0, rotation: angle + Math.PI + 0.5 * (Math.random() < 0.5 ? 1 : -1), duration: 220, ease: 'Cubic.Out', onComplete: () => fx.destroy() });
+    sc.tweens.add({ targets: fx, scale: range / 70, alpha: 0, rotation: angle + Math.PI + 0.5 * (Math.random() < 0.5 ? 1 : -1), duration: 220, ease: 'Cubic.Out', onComplete: () => fx.destroy() });
     for (const e of sc.enemies) {
       if (!e.alive || e.state === 'spawn') continue;
       const dx = e.x - p.x, dy = e.y - p.y;
       const d = Math.hypot(dx, dy);
-      if (d > st.range + e.def.radius) continue;
+      if (d > range + e.def.radius) continue;
       const diff = Math.abs(Phaser.Math.Angle.Wrap(Math.atan2(dy, dx) - angle));
       if (diff > half && d > e.def.radius + p.radius) continue;
       if (!tryHit(tracker, e.id)) continue;
-      sc.damageEnemy(e, st.damage, st, { kb: 150, kbX: dx / (d || 1), kbY: dy / (d || 1) });
+      sc.damageEnemy(e, dmg, st, { kb: 150, kbX: dx / (d || 1), kbY: dy / (d || 1) });
+      // Smash the Bank: pan hits may knock a coin loose.
+      if (st.recipes.includes('smashBank') && Math.random() < RECIPE_TUNING.smashBank.chance) sc.dropCoin(e.x, e.y, t('coinSmash'));
     }
     // Sizzling Skillet: the arc scorches the floor.
     if (st.recipes.includes('sizzlingSkillet')) {
@@ -546,6 +573,14 @@ export class Arsenal {
         if (!tryHit(s.tracker, e.id)) continue;
         const sp = Math.hypot(s.vx, s.vy) || 1;
         sc.damageEnemy(e, s.damage, st, { kb: 60, kbX: s.vx / sp, kbY: s.vy / sp });
+        if (s.splash) { // Ray Gun: green ring burst, splash on everyone else nearby
+          const { r, m } = s.splash;
+          sc.fx.ring('fx_pulse', s.x, s.y, r * 2, 300, m > RECIPE_TUNING.rayGun.splashMult ? 0xf45f52 : 0x5fd35a);
+          for (const o of sc.enemies) {
+            if (o === e || !o.alive || o.state === 'spawn' || (o.x - s.x) ** 2 + (o.y - s.y) ** 2 > (r + o.def.radius) ** 2) continue;
+            sc.damageEnemy(o, s.damage * m, st, { quiet: true, chained: true });
+          }
+        }
         // Frostbite Nails: every 3rd nail on the same grocery freezes it.
         if (st.recipes.includes('frostbiteNails') && st.pattern === 'burst' && e.alive) {
           e.nailHits = (e.nailHits ?? 0) + 1;
@@ -586,11 +621,28 @@ export class Arsenal {
       s.shadow.setPosition(s.x, s.y);
       // Shots arriving from above (screen-up) also hit the goblin's drawn torso/head, not just its feet.
       const sy = s.y < p.y ? Math.min(p.y, s.y + 34) : s.y;
-      if (sc.playerNear(s.x, sy).d < p.radius && sc.hurtPlayer(s.damage)) {
+      const hit = sc.playerNear(s.x, sy).d < p.radius;
+      // Tin Foil Hat: while dashing (plus a short grace) shots bounce back at the groceries instead of hurting.
+      if (hit && store.state.build.reflectMult > 0 && p.reflectT > 0) { this.reflect(s); continue; }
+      if (hit && sc.hurtPlayer(s.damage)) {
         sc.fx.puff(s.x, s.y - 20, 3);
         this.kill(s);
       }
     }
+  }
+
+  private reflect(s: Shot): void {
+    const sc = this.scene;
+    const base = this.weapons[0]?.stats;
+    if (!base) return;
+    // Plain stats: no burn/slow/recipes; damage is booked under the hat's own label.
+    const stats: WeaponStats = { ...base, uid: 'Tin Foil Hat', recipes: [], burn: null, ignite: null, slow: null, popper: null, echo: 0, critChance: 0, critCoin: false, chainChance: 0, pierce: 0, homing: false, buffs: [] };
+    const r = this.spawn(s.img.texture.key, s.x, s.y, Math.atan2(-s.vy, -s.vx), Math.hypot(s.vx, s.vy), 1.6, s.damage * store.state.build.reflectMult, stats, 1);
+    if (r) r.spin = 0;
+    sc.fx.spark(s.x, s.y - 22, 6, 0xdfe6f0);
+    sc.fx.ring('fx_pulse', s.x, s.y - 20, 60, 220, 0xdfe6f0);
+    play('cap_ping', { rate: 1.6 });
+    this.kill(s);
   }
 
   spawnEnemyShot(key: string, x: number, y: number, a: number, speed: number, life: number, damage: number): void {

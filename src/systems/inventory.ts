@@ -1,6 +1,6 @@
 import { t } from '../i18n';
 import { itemT } from '../i18n/data';
-import { ITEMS } from '../data/items';
+import { cellsFor, cellsOf } from '../data/items';
 import type { Cell, Inventory, ItemInstance, ItemTypeId, OpResult, Rotation } from '../types';
 
 const norm = (cells: Cell[]): Cell[] => {
@@ -16,15 +16,15 @@ export function rotateCells(cells: Cell[], rot: Rotation): Cell[] {
 }
 
 export const footprint = (inst: ItemInstance): Cell[] =>
-  rotateCells(ITEMS[inst.type].cells, inst.rot).map((c) => ({ x: c.x + inst.x, y: c.y + inst.y }));
+  rotateCells(cellsOf(inst), inst.rot).map((c) => ({ x: c.x + inst.x, y: c.y + inst.y }));
 
-export function rotatedSize(type: ItemTypeId, rot: Rotation): { w: number; h: number } {
-  const cs = rotateCells(ITEMS[type].cells, rot);
+export function rotatedSize(type: ItemTypeId, rot: Rotation, tier = 1): { w: number; h: number } {
+  const cs = rotateCells(cellsFor(type, tier), rot);
   return { w: Math.max(...cs.map((c) => c.x)) + 1, h: Math.max(...cs.map((c) => c.y)) + 1 };
 }
 
-export function canPlace(inv: Inventory, type: ItemTypeId, x: number, y: number, rot: Rotation, ignoreUid?: string): OpResult {
-  const cells = rotateCells(ITEMS[type].cells, rot).map((c) => ({ x: c.x + x, y: c.y + y }));
+export function canPlace(inv: Inventory, type: ItemTypeId, x: number, y: number, rot: Rotation, ignoreUid?: string, tier = 1): OpResult {
+  const cells = rotateCells(cellsFor(type, tier), rot).map((c) => ({ x: c.x + x, y: c.y + y }));
   if (cells.some((c) => c.x < 0 || c.y < 0 || c.x >= inv.cols || c.y >= inv.rows)) return { ok: false, reason: t('rNoFit') };
   for (const o of inv.placed) {
     if (o.uid === ignoreUid) continue;
@@ -63,8 +63,8 @@ export function findItem(inv: Inventory, uid: string): Found | null {
 const key = (cs: Cell[]) => cs.map((c) => `${c.x},${c.y}`).sort().join(';');
 
 /** Smallest rotation with an identical footprint. */
-export function normalizeRotation(type: ItemTypeId, rot: Rotation): Rotation {
-  const k = key(rotateCells(ITEMS[type].cells, rot));
-  for (let r = 0 as Rotation; r < rot; r++) if (key(rotateCells(ITEMS[type].cells, r)) === k) return r;
+export function normalizeRotation(type: ItemTypeId, rot: Rotation, tier = 1): Rotation {
+  const cs = cellsFor(type, tier), k = key(rotateCells(cs, rot));
+  for (let r = 0 as Rotation; r < rot; r++) if (key(rotateCells(cs, r)) === k) return r;
   return rot;
 }

@@ -1,9 +1,9 @@
 import { t } from '../i18n';
-import { ITEMS, ITEM_IDS, PLAYER, STARTER_WEAPONS, TIER } from '../data/items';
+import { ITEMS, ITEM_IDS, PLAYER, SOURDOUGH, STARTER_WEAPONS, TIER } from '../data/items';
 import { DEPARTMENTS } from '../data/departments';
 import { MODIFIERS, type DoorId } from '../data/modifiers';
 import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS } from '../data/waves';
-import type { DepartmentId, Build, Inventory, ItemInstance, ItemTypeId, LabOpts, OpResult, Rotation, RunState, StarterId, StarterWeapon } from '../types';
+import type { DepartmentId, ElementTag, Build, Inventory, ItemInstance, ItemTypeId, LabOpts, OpResult, Rotation, RunState, StarterId, StarterWeapon } from '../types';
 import { canPlace, findItem, normalizeRotation } from '../systems/inventory';
 import { mulberry32, type Rng } from '../systems/rng';
 import { zonesOf } from '../data/zones';
@@ -16,6 +16,17 @@ const OK: OpResult = { ok: true };
 
 export function newUid(state: RunState): string {
   return `i${state.nextUid++}`;
+}
+
+const FLAVORS: ElementTag[] = ['heat', 'frost', 'blast'];
+/** Jelly Beans start with a flavor drawn from the run seed (no rng at the creation sites); reshuffled by rollFlavors on every shop open. */
+const newFlavor = (state: RunState, type: ItemTypeId): { flavor?: ElementTag } =>
+  type === 'jellybeans' ? { flavor: FLAVORS[Math.floor(mulberry32(state.seed ^ Math.imul(state.nextUid, 0x9e3779b1) ^ state.wave)() * 3)] } : {};
+
+/** Every shop visit re-rolls the flavor of all owned Jelly Beans (cart and shelf). */
+export function rollFlavors(state: RunState, rng: Rng): void {
+  for (const i of [...state.inventory.placed, ...state.inventory.shelf]) if (i?.type === 'jellybeans') i.flavor = FLAVORS[Math.floor(rng() * 3)];
+  recomputeBuild(state);
 }
 
 export function createRun(seed: number, starter: StarterId = 'toaster', shift = 0, weapon: StarterWeapon = 'toaster', theme: DepartmentId = 'main'): RunState {
@@ -62,7 +73,7 @@ export function labAddItem(state: RunState, type: ItemTypeId, tier: number): OpR
   if (state.phase !== 'shop') return fail(t('rShopClosed'));
   const free = state.inventory.shelf.indexOf(null);
   if (free < 0) return fail(t('rShelfFull'));
-  state.inventory.shelf[free] = { uid: newUid(state), type, x: 0, y: 0, rot: 0, tier: ITEMS[type].legendary ? 1 : Math.max(1, Math.min(TIER.max, tier)) };
+  state.inventory.shelf[free] = { uid: newUid(state), type, x: 0, y: 0, rot: 0, tier: ITEMS[type].legendary ? 1 : Math.max(1, Math.min(TIER.max, tier)), ...newFlavor(state, type) };
   return OK;
 }
 
@@ -90,8 +101,8 @@ function applyMove(inv: Inventory, uid: string, tg: MoveTarget): OpResult {
   if (!f) return fail(t('rNoItem'));
   const inst = f.inst;
   if (tg.where === 'grid') {
-    const rot = normalizeRotation(inst.type, tg.rot);
-    const r = canPlace(inv, inst.type, tg.x, tg.y, rot, uid);
+    const rot = normalizeRotation(inst.type, tg.rot, inst.tier);
+    const r = canPlace(inv, inst.type, tg.x, tg.y, rot, uid, inst.tier);
     if (!r.ok) return r;
     if (f.where === 'shelf') { inv.shelf[f.slot] = null; inv.placed.push(inst); }
     inst.x = tg.x; inst.y = tg.y; inst.rot = rot;
@@ -135,6 +146,8 @@ function applyMerge(inv: Inventory, uid: string, targetUid: string): OpResult {
   if (ITEMS[a.inst.type].legendary) return fail(t('rLegNoMerge'));
   if ((a.inst.tier ?? 1) !== (b.inst.tier ?? 1)) return fail(t('rTiersMatch'));
   if ((b.inst.tier ?? 1) >= TIER.max) return fail(t('rMaxTier'));
+  // Sourdough changes shape with its tier: the merged shape must fit where it sits (the consumed copy's cells are free).
+  if (b.where === 'grid' && !canPlace({ ...inv, placed: inv.placed.filter((p) => p !== a.inst) }, b.inst.type, b.inst.x, b.inst.y, b.inst.rot, b.inst.uid, (b.inst.tier ?? 1) + 1).ok) return fail(t('rNoFit'));
   if (a.where === 'grid') inv.placed.splice(inv.placed.indexOf(a.inst), 1);
   else inv.shelf[a.slot] = null;
   b.inst.tier = (b.inst.tier ?? 1) + 1;
@@ -170,6 +183,7 @@ export function upgradeItem(state: RunState, uid: string): OpResult {
   const cost = upgradeCost(f.inst);
   if (cost === null) return fail(t('rMaxTier'));
   if (state.money < cost) return fail(t('needCoins', { n: cost - state.money }));
+  if (f.where === 'grid' && !canPlace(state.inventory, f.inst.type, f.inst.x, f.inst.y, f.inst.rot, f.inst.uid, (f.inst.tier ?? 1) + 1).ok) return fail(t('rNoFit'));
   state.money -= cost;
   f.inst.tier = (f.inst.tier ?? 1) + 1;
   recomputeBuild(state);
@@ -197,7 +211,7 @@ export function buyOffer(state: RunState, slot: number): OpResult {
   const free = state.inventory.shelf.indexOf(null);
   if (free < 0) return fail(t('rShelfFullSell'));
   state.money -= o.price;
-  state.inventory.shelf[free] = { uid: newUid(state), type: o.type, x: 0, y: 0, rot: 0, tier: o.tier, ...(o.double ? { double: true } : {}) };
+  state.inventory.shelf[free] = { uid: newUid(state), type: o.type, x: 0, y: 0, rot: 0, tier: o.tier, ...(o.double ? { double: true } : {}), ...newFlavor(state, o.type) };
   o.sold = true;
   return OK;
 }
@@ -206,7 +220,7 @@ export function buyOffer(state: RunState, slot: number): OpResult {
 export function takeStockroomItem(state: RunState, o: { type: ItemTypeId; tier: number; double?: boolean }): boolean {
   const free = state.inventory.shelf.indexOf(null);
   if (free < 0) { addCoins(state, sellPrice(o.type, o.tier), t('coinStockroom')); return false; }
-  state.inventory.shelf[free] = { uid: newUid(state), type: o.type, x: 0, y: 0, rot: 0, tier: o.tier, ...(o.double ? { double: true } : {}) };
+  state.inventory.shelf[free] = { uid: newUid(state), type: o.type, x: 0, y: 0, rot: 0, tier: o.tier, ...(o.double ? { double: true } : {}), ...newFlavor(state, o.type) };
   return true;
 }
 
@@ -244,12 +258,30 @@ export function repair(state: RunState): OpResult {
   return OK;
 }
 
+/**
+ * Sourdough Starter: one aisle more cooked; every SOURDOUGH.every aisles it rises a star (and a cell).
+ * In the cart the grown shape must fit at its anchor and rotation, otherwise it stays pending and retries next shop. Returns true if any is pending.
+ */
+export function riseSourdough(state: RunState): boolean {
+  let wait = false;
+  for (const i of [...state.inventory.placed, ...state.inventory.shelf]) {
+    if (i?.type !== 'sourdough' || (i.tier ?? 1) >= TIER.max) continue;
+    if ((i.rise = (i.rise ?? 0) + 1) < SOURDOUGH.every) continue;
+    const nt = (i.tier ?? 1) + 1;
+    if (state.inventory.placed.includes(i) && !canPlace(state.inventory, i.type, i.x, i.y, i.rot, i.uid, nt).ok) { i.rise = SOURDOUGH.every; wait = true; continue; }
+    i.tier = nt; i.rise = 0;
+  }
+  return wait;
+}
+
 export function openShop(state: RunState, rng: Rng): void {
   state.phase = 'shop';
   const d = DEPARTMENTS[state.department];
   const m = MODIFIERS[state.modifier];
   const opts = { bias: [...d.shopBias], legendaryBonus: d.legendaryBonus, forceLegendary: d.forceLegendary || m.forceLegendary };
   state.shop = { offers: rollOffers(state, rng, state.wave, state.wave === 1, opts), rerolls: 0, repairUsed: false, freeRerollUsed: false, bonusFreeRerolls: m.freeRerolls, shopIndex: state.wave, ...opts };
+  state.shop.riseWait = riseSourdough(state);
+  rollFlavors(state, rng); // recomputes the build (after sourdough tiers changed)
 }
 
 export function addCoins(state: RunState, amount: number, label: string): void {

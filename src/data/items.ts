@@ -144,6 +144,32 @@ export const ITEMS: Record<ItemTypeId, ItemDef> = {
     blurb: 'Oink. Every grocery chips in.',
     rules: 'Groceries drop {0} coins (does not stack).',
   },
+  expiredmilk: {
+    id: 'expiredmilk', family: 'snacks', name: 'Expired Milk', kind: 'passive', cells: rect(1, 2), price: 7, electrical: false,
+    blurb: 'Cursed. Smells like a bad decision.',
+    rules: 'Cursed: poisons enemies within 110 of the cart for {0} damage/s (refreshes every 0.5 s, does not stack). Your max HP is reduced by 10%. Enables Sour Mist.',
+  },
+  tinfoilhat: {
+    id: 'tinfoilhat', family: 'tools', name: 'Tin Foil Hat', kind: 'passive', cells: rect(1, 1), price: 9, electrical: false,
+    blurb: 'Blocks the signal. And the soda.',
+    rules: 'While dashing (and 0.1 s after), enemy shots that touch you are reflected back at the groceries for {0} of their damage instead of hurting you. Enables Sparks Fly and Ray Gun.',
+  },
+  jellybeans: {
+    id: 'jellybeans', family: 'snacks', name: 'Jelly Beans', kind: 'module', cells: rect(1, 1), price: 10, electrical: false,
+    blurb: 'Every shop visit, a new flavor.',
+    rules: 'The flavor changes every shop visit: Heat (Fuel Can burn), Frost (Ice Pack slow) or Blast (Party Popper blast). Adjacent weapons get that effect at {0} strength, and the beans count toward that flavor\'s set.',
+  },
+  leafblower: {
+    id: 'leafblower', family: 'cleaning', tags: ['area'], name: 'Leaf Blower', kind: 'weapon', cells: rect(2, 1), price: 14, electrical: false,
+    blurb: 'Huff and puff. Slams groceries into things.',
+    rules: 'Every {1} blasts a 50° cone (220 reach) for {0} damage and a heavy shove. Blown groceries that hit a wall or prop take 8 slam damage (scales with level).',
+    weapon: weapon({ pattern: 'cone', damage: 3, cooldown: 0.9, range: 220, arcDeg: 50, knockback: 300 }),
+  },
+  sourdough: {
+    id: 'sourdough', family: 'kitchen', name: 'Sourdough Starter', kind: 'passive', cells: rect(1, 1), price: 6, electrical: false,
+    blurb: 'Feed it and it grows. Bubbles with potential.',
+    rules: 'Weapons touching it gain {0} damage. Grows one level every 2 aisles (needs room to rise): 2 cells at ★2, 3 cells at ★3.',
+  },
   powerstrip: {
     id: 'powerstrip', family: 'tools', name: 'Power Strip', kind: 'module', cells: rect(3, 1), price: 32, electrical: true, legendary: true,
     blurb: 'Plugs the whole cart in at once.',
@@ -193,6 +219,12 @@ export const ITEMS: Record<ItemTypeId, ItemDef> = {
     rules: 'Any adjacent weapon: projectiles {0}, sweeps/cones/mortars attack one extra time, other weapons {1} damage.',
   },
 };
+
+/** Sourdough Starter grows with its tier: 1 cell, 2 cells, then an L of 3. Everything else keeps its def footprint. */
+const SOURDOUGH_CELLS: Cell[][] = [rect(1, 1), rect(2, 1), [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }]];
+export const cellsFor = (type: ItemTypeId, tier = 1): Cell[] => (type === 'sourdough' ? SOURDOUGH_CELLS[Math.min(Math.max(tier, 1), 3) - 1] : ITEMS[type].cells);
+/** Footprint of an item instance (pre-rotation): the one place cells are read from. */
+export const cellsOf = (i: { type: ItemTypeId; tier?: number }): Cell[] => cellsFor(i.type, i.tier ?? 1);
 
 export const ITEM_IDS = Object.keys(ITEMS) as ItemTypeId[];
 export const WEAPON_IDS = ITEM_IDS.filter((id) => ITEMS[id].kind === 'weapon');
@@ -260,6 +292,17 @@ export const BUFFS = {
   sampleHealCap: 2,  // HP per second at most
   piggyCoins: 0.15,  // extra kill coins (x tier mult)
 };
+
+/** Expired Milk curse: toxic aura around the cart (dps scales with tier), and a multiplicative max HP penalty. */
+export const EXPIRED_MILK = { radius: 110, interval: 0.5, dps: 3, duration: 1, hpMult: 0.9 };
+
+/** Tin Foil Hat: dash-reflect grace window after a dash ends (s) and the reflected-damage multiplier (x tier mult). */
+export const TINFOIL = { grace: 0.1, reflectMult: 1.5 };
+/** Jelly Beans: strength of the flavor effect relative to the full Fuel Can / Ice Pack / Party Popper (x tier mult). */
+export const JELLY = { strength: 0.7 };
+
+/** Sourdough Starter: weapon damage bonus per effective star, and the aisles between rises. */
+export const SOURDOUGH = { perStar: 0.06, every: 2 };
 
 /** Bundle Deal: each weapon gains +6% damage per distinct item type touching it. */
 export const BUNDLE = { perItem: 0.06 };

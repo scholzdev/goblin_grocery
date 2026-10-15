@@ -40,6 +40,11 @@ const items: Record<ItemTypeId, IR> = {
   spray: { name: 'Sprühflasche', blurb: 'Pssht pssht pssht. Trifft alles davor.', rules: 'Sprüht alle {1} einen 70°-Kegel (170 Reichweite) und macht {0} Schaden an jedem Gegner darin (je einmal pro Sprühstoß).' },
   popper: { name: 'Partyknaller', blurb: 'Jeder Abschuss ist ein Fest.', rules: 'Von angrenzenden Waffen besiegte Gegner explodieren in Konfetti: {0} Schaden im Umkreis von 70. Knaller-Explosionen lösen keine Kettenreaktion aus.' },
   doublebag: { name: 'Doppeltüte', blurb: 'Doppelte Tüte, doppelter Wumms.', rules: 'Direkte Treffer angrenzender Waffen schlagen 0,12 s später ein zweites Mal zu, für {0} Schaden.' },
+  expiredmilk: { name: 'Abgelaufene Milch', blurb: 'Verflucht. Riecht nach einer schlechten Entscheidung.', rules: 'Verflucht: vergiftet Gegner im Umkreis von 110 um den Wagen für {0} Schaden/s (erneuert sich alle 0,5 s, stapelt sich nicht). Deine max. LP sinken um 10%. Schaltet Sauernebel frei.' },
+  tinfoilhat: { name: 'Aluhut', blurb: 'Blockt das Signal. Und die Limo.', rules: 'Beim Dashen (und 0,1 s danach) werden Gegnerschüsse, die dich berühren, mit {0} ihres Schadens auf die Gegner zurückgeworfen, statt dich zu treffen. Schaltet Funkenflug und Strahlenkanone frei.' },
+  leafblower: { name: 'Laubbläser', blurb: 'Puff puff. Schleudert Gegner gegen Sachen.', rules: 'Bläst alle {1} einen 50°-Kegel (220 Reichweite) für {0} Schaden und einen kräftigen Stoß. Weggeblasene Gegner, die gegen eine Wand oder Deko prallen, erleiden 8 Aufprallschaden (skaliert mit der Stufe).' },
+  sourdough: { name: 'Sauerteig-Ansatz', blurb: 'Füttern, und er wächst. Blubbert vor Potenzial.', rules: 'Angrenzende Waffen erhalten {0} Schaden. Wächst alle 2 Gänge um eine Stufe (braucht Platz zum Aufgehen): 2 Felder bei ★2, 3 Felder bei ★3.' },
+  jellybeans: { name: 'Gummibohnen', blurb: 'Bei jedem Einkauf eine neue Sorte.', rules: 'Die Sorte wechselt bei jedem Einkauf: Hitze (Brand des Benzinkanisters), Frost (Verlangsamung des Kühlakkus) oder Wumms (Explosion des Partyknallers). Angrenzende Waffen erhalten diesen Effekt mit {0} Stärke, und die Bohnen zählen für das Set dieser Sorte.' },
   multipack: { name: 'Multipack', blurb: 'Eins kaufen, zwei feuern.', rules: 'Jede angrenzende Waffe: Projektile {0}, Schwünge/Kegel/Mörser greifen einmal zusätzlich an, andere Waffen {1} Schaden.' },
 };
 
@@ -55,6 +60,7 @@ const recipes: Record<RecipeId, { name: string; short: string; summary: string; 
   pressurePoint: { name: 'Druckpunkt', short: 'Explosionen hinterlassen Feuerlachen', summary: 'Schnellkochtopf berührt Benzinkanister: Explosionen hinterlassen brennende Lachen.', detail: 'Jede Explosion hinterlässt 2,5 s lang eine Feuerlache: Gegner darin brennen (3 Schaden/s, kein Stapeln).' },
   mistMachine: { name: 'Nebelmaschine', short: 'Riesiger 120°-Sprühkegel', summary: 'Sprühflasche berührt Tischventilator: ein riesiger Nebelkegel.', detail: 'Der Sprühkegel wird 120° breit und reicht 40% weiter. (Der Ventilator-Bonus auf Tempo/Reichweite gilt nicht für Sprühstöße, dies ersetzt ihn.)' },
   fiveAlarm: { name: 'Fünf-Alarm-Toast', short: '+80% gegen Brennende', summary: 'Toaster berührt Scharfe Soße UND Benzinkanister: Toast versengt brennende Gegner.', detail: 'Toast macht +80% Schaden an Gegnern, die bereits brennen.' },
+  chickenDinner: { name: 'Hähnchen-Menü', short: 'Jeder 4. Schwung ist riesig', summary: 'Bratpfanne berührt Brotdose: Winner Winner, jeder 4. Schwung ist eine große Portion.', detail: 'Jeder 4. Schwung reicht 40% weiter und verursacht 2,5-fachen Schaden.' },
   sizzlingSkillet: { name: 'Zischende Pfanne', short: 'Schwünge hinterlassen Feuer', summary: 'Bratpfanne berührt Benzinkanister: jeder Schwung versengt den Boden.', detail: 'Jeder Schwung hinterlässt 2 s lang einen brennenden Bogen auf dem Boden. Gegner, die hindurchlaufen, fangen Feuer.' },
   frostbiteNails: { name: 'Frostbeulen-Nägel', short: '3. Treffer friert ein', summary: 'Nagelpistole berührt Kühlakku: Nägel frieren Gegner steif.', detail: 'Nägel durchschlagen 1 weiteren Gegner, und jeder 3. Nagel, der denselben Gegner trifft, friert ihn 0,7 s lang fest.' },
   staticCling: { name: 'Statische Aufladung', short: 'Ticks zappen 3', summary: 'Staubsauger berührt Batterie: der Sog schleudert Blitze.', detail: 'Jeder Schadenstick zappt zusätzlich bis zu 3 Gegner im Sogradius für 150% Tickschaden.' },
@@ -66,6 +72,13 @@ const recipes: Record<RecipeId, { name: string; short: string; summary: string; 
   pressureWasher: { name: 'Hochdruckreiniger', short: 'Langer, harter Strahl', summary: 'Sprühflasche berührt Batterie: motorisierter Strahl.', detail: 'Der Sprühstoß wird zum schmalen Strahl: 25° breit, doppelte Reichweite, 2,5× Schaden.' },
   powerSurge: { name: 'Stromstoß', short: 'Strahl-Nachbeben', summary: 'Selbstscan-Laser berührt Steckdosenleiste: doppelter Scan.', detail: 'Jeder Strahl löst 0,25 s später ein Nachbeben für 25% Schaden aus.' },
   priceCheck: { name: 'Preisprüfung', short: 'Markiert: +20% Schaden', summary: 'Selbstscan-Laser berührt Preisauszeichner: alles bekommt einen Aufkleber.', detail: 'Vom Strahl getroffene Gegner sind 3 s lang markiert und erleiden +20% Schaden von allem.' },
+  sugarRush: { name: 'Zuckerschock', short: 'Jeder Dash: +8% Tempo (x5)', summary: 'Energydrink berührt Rennstiefel: jeder Dash löst einen Zuckerrausch aus.', detail: 'Jeder Dash fügt einen Stapel hinzu: +8% Bewegungstempo für 3 s, bis zu 5 Stapel (jeder Stapel läuft einzeln ab).' },
+  smashBank: { name: 'Sparschwein-Schlag', short: 'Pfannentreffer lassen Münzen fallen', summary: 'Bratpfanne berührt Sparschwein: draufhauen, und Münzen purzeln heraus.', detail: 'Jeder von einem Pfannenschwung getroffene Gegner lässt mit 15% Chance eine Münze fallen.' },
+  bagIt: { name: 'Eingetütet', short: 'Abschüsse laden eine Müllbombe', summary: 'Staubsauger berührt Doppeltüte UND Rennstiefel: Müll einsacken, dann werfen.', detail: 'Jeder vom Staubsauger besiegte Gegner gibt 1 Ladung (max. 10). Ein Dash mit Ladungen wirft einen Müllsack, der nach 0,4 s explodiert: 6 Schaden pro Ladung im Umkreis von 120, mit Rückstoß. Die Ladungen werden zurückgesetzt.' },
+  sparksFly: { name: 'Funkenflug', short: 'Zaps springen +2, können betäuben', summary: 'Mikrowelle berührt Aluhut UND Batterie: die Funken fliegen überallhin.', detail: 'Jeder Zap springt auf 2 weitere Gegner in der Nähe über (50% Schaden), und jeder Kettentreffer betäubt mit 25% Chance für 0,3 s. Stapelt sich mit TV-Dinner.' },
+  rayGun: { name: 'Strahlenkanone', short: 'Energiestrahlen, Splash, jeder 3. riesig', summary: 'Nagelpistole berührt Batterie, Aluhut UND Magnet: Piu piu.', detail: 'Nägel werden zu grünen Energiestrahlen (ohne Durchschlag), die 60% Schaden auf Gegner im Umkreis von 60 verteilen. Jeder 3. Schuss ist ein roter Überladungsstrahl: Splash-Radius 120 und +20% Splash-Schaden. Ersetzt Nagelsturm.' },
+  tailwind: { name: 'Rückenwind', short: 'Böen schieben den Wagen vor', summary: 'Laubbläser berührt Tischventilator UND Rennstiefel: reite auf deinem eigenen Wind.', detail: 'Jede Bläser-Böe gibt dem Wagen einen kurzen Schub nach vorn: +30% Bewegungstempo für 0,4 s, solange du dich bewegst. Ist auch Zuckerschock aktiv, gibt jede Böe einen Zuckerschock-Stapel (1,5 s interne Abklingzeit).' },
+  sourMist: { name: 'Sauernebel', short: 'Sprühstoß vergiftet (4/s)', summary: 'Sprühflasche berührt Abgelaufene Milch UND Tischventilator: eine geronnene Wolke.', detail: 'Sprühtreffer vergiften Gegner für 4 Schaden/s über 3 s (erneuert sich, stapelt sich nie).' },
 };
 
 const enemies: Record<EnemyId, NB> = {
@@ -139,6 +152,11 @@ const unlocks: Record<string, string> = {
   pricegun: 'Verdiene 400 Münzen (insgesamt)',
   coupon: 'Räume 3 Kassenzonen-Gänge',
   bubblewrap: 'Lass dich einmal plattmachen',
+  expiredmilk: 'Lass dich 3-mal plattmachen',
+  tinfoilhat: 'Erreiche Gang 5',
+  jellybeans: 'Entdecke 3 Kombos',
+  leafblower: 'Besiege 300 Gegner (insgesamt)',
+  sourdough: 'Beende einen Durchlauf',
   energy: 'Besiege 500 Gegner (insgesamt)',
   cooker: 'Räume 3 Elektronik-Gänge',
   popper: 'Erreiche Gang 6',

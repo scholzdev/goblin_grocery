@@ -199,7 +199,7 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .item.ghost { position: fixed; z-index: 50; pointer-events: none; opacity: 0.92; cursor: grabbing; transform-origin: 0 0; }
 .item.ghost.bad { border-color: var(--coral); }
 
-#shop .combos { margin: 14px auto 0; width: 488px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+#shop .combos { margin: 14px auto 0; width: 488px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
 .combo { display: flex; gap: 8px; align-items: center; padding: 8px 10px; border: 2px dashed rgba(48, 32, 63, 0.45); border-radius: 10px; background: rgba(255, 250, 240, 0.65); font-size: 13px; font-weight: 700; line-height: 1.25; }
 .combo .icons { display: flex; align-items: center; gap: 1px; flex: none; }
 .combo .icons img { width: 26px; height: 26px; }
@@ -212,7 +212,7 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 #shop .col-right { position: absolute; right: 20px; top: 22px; width: 396px; }
 #shop .offers-head { display: flex; align-items: center; }
 #shop .offers-head h3 { font-family: var(--display); font-weight: 400; font-size: 30px; margin: 0; color: var(--plum); }
-#shop .offers { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 12px; margin-top: 8px; }
+#shop .offers { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 12px; margin-top: 8px; }
 .card {
   position: relative; padding: 10px 10px 10px; height: 196px; display: flex; flex-direction: column; align-items: center; text-align: center;
   border: 3px solid var(--plum); border-radius: 12px; background: var(--paper); box-shadow: 0 5px 0 var(--plum); cursor: pointer;
@@ -227,18 +227,18 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .card.sold { opacity: 0.45; cursor: default; }
 .card.sold::after { content: attr(data-sold); position: absolute; inset: 60px 10px auto; font-family: var(--display); font-size: 40px; color: var(--coral); transform: rotate(-12deg); border: 4px solid var(--coral); border-radius: 8px; }
 .card .why { position: absolute; bottom: -2px; left: 6px; right: 6px; font-size: 11px; font-weight: 800; color: var(--coral-deep); }
-#shop .shelf-head { display: flex; justify-content: space-between; align-items: end; margin-top: 18px; }
+#shop .shelf-head { display: flex; justify-content: space-between; align-items: end; margin-top: 10px; }
 #shop .shelf-head h3 { font-family: var(--display); font-weight: 400; font-size: 22px; margin: 0; }
 #shop .shelf { display: grid; grid-template-columns: repeat(4, 86px); gap: 8px; margin-top: 6px; padding: 10px; background: var(--lavender); border: 3px solid var(--plum); border-radius: 12px; box-shadow: inset 0 -10px 0 var(--lavender-deep); }
 #shop .slot { position: relative; width: 86px; height: 86px; border-radius: 10px; border: 2px dashed rgba(255, 242, 213, 0.7); }
 #shop .slot.ok { border: 3px solid var(--green); background: rgba(201, 240, 164, 0.35); }
 #shop .slot .item { inset: 0; }
 #shop .slot .item img { left: 10%; top: 10%; width: 80%; height: 80%; }
-#shop .sell { margin-top: 14px; height: 70px; border: 3px dashed var(--coral-deep); border-radius: 12px; display: grid; place-items: center; font-family: var(--display); font-size: 22px; color: var(--coral-deep); background: rgba(255, 216, 210, 0.6); }
+#shop .sell { margin-top: 10px; height: 54px; border: 3px dashed var(--coral-deep); border-radius: 12px; display: grid; place-items: center; font-family: var(--display); font-size: 22px; color: var(--coral-deep); background: rgba(255, 216, 210, 0.6); }
 #shop .sell.ok { background: var(--coral); color: var(--cream); border-style: solid; }
 #shop .bottom { position: absolute; right: 24px; bottom: 22px; display: flex; gap: 14px; align-items: center; }
 #shop .bottom .help { font-size: 14px; font-weight: 800; background: var(--paper); padding: 6px 12px; border-radius: 8px; border: 2px solid var(--plum); }
-#shop .next { font-size: 30px; padding: 14px 30px 10px; }
+#shop .next { font-size: 26px; padding: 10px 26px 8px; }
 #shop .toast { position: absolute; left: 50%; top: 14px; transform: translateX(-50%); font-weight: 800; padding: 8px 16px; background: var(--plum); color: var(--cream); border-radius: 8px; z-index: 40; }
 #shop .toast.show { animation: bark 2s ease forwards; }
 
@@ -383,7 +383,9 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .combo { height: auto; display: grid; grid-template-rows: auto auto auto; gap: 4px; padding: 8px 10px 9px; font-size: 14px; overflow: visible; }
 .combo > div:last-child { display: block; -webkit-line-clamp: unset; }
 .combo .ch { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
-.combo .name { font-family: var(--display); font-weight: 400; font-size: 19px; line-height: 1; white-space: nowrap; }
+.combo { min-width: 0; }
+.combo .name { font-family: var(--display); font-weight: 400; font-size: 19px; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.combo .chip { flex: none; }
 .combo .chip { font-size: 10px; font-weight: 800; letter-spacing: 0.06em; padding: 2px 7px; border-radius: 999px; background: rgba(48, 32, 63, 0.1); white-space: nowrap; }
 .combo .icons { display: flex; align-items: center; gap: 2px; }
 .combo .icons img { width: 34px; height: 34px; }
@@ -536,6 +538,14 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 
 /* Double pack: "2×" sticker on the offer card, small marker on the placed item */
 .card .dblpack { position: absolute; right: 6px; top: 52px; z-index: 4; padding: 1px 8px; border-radius: 999px; border: 2px solid var(--plum); background: var(--gold); color: var(--plum); font-family: var(--display); font-size: 15px; line-height: 1.3; rotate: 6deg; box-shadow: 0 2px 0 rgba(48, 32, 63, 0.35); }
+.item.flavor-heat { box-shadow: inset 0 0 0 3px #f45f52; }
+.item.flavor-frost { box-shadow: inset 0 0 0 3px #7cc4e8; }
+.item.flavor-blast { box-shadow: inset 0 0 0 3px #f5bd45; }
+.item .flavor-tag { position: absolute; left: 2px; bottom: 2px; z-index: 3; padding: 0 4px; border-radius: 999px; border: 1.5px solid var(--plum); color: var(--plum); font-size: 9px; font-weight: 900; line-height: 1.3; pointer-events: none; }
+.item.flavor-heat .flavor-tag, .chip.flavor-heat { background: #f45f52; }
+.item.flavor-frost .flavor-tag, .chip.flavor-frost { background: #7cc4e8; }
+.item.flavor-blast .flavor-tag, .chip.flavor-blast { background: #f5bd45; }
+.chip.flavor-chip { color: var(--plum); font-weight: 800; }
 .item .dbl-mark { position: absolute; right: -3px; top: -3px; z-index: 3; padding: 0 4px; border-radius: 999px; border: 1.5px solid var(--plum); background: var(--gold); color: var(--plum); font-size: 10px; font-weight: 900; line-height: 1.3; pointer-events: none; }
 .chip.dbl { background: var(--gold); color: var(--plum); font-weight: 900; }
 
@@ -608,12 +618,13 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .loadout-pick .weapon-row .weapon-pick img { width: 40px; height: 40px; }
 .loadout-pick .weapon-row .wp-text { min-width: 0; }
 .loadout-pick .weapon-row .wp-head { flex-wrap: wrap; gap: 4px 8px; }
-.loadout-pick .weapon-row .wp-head b { font-size: 19px; }
+.loadout-pick .weapon-row .wp-head b { font-size: 16px; min-width: 0; overflow-wrap: anywhere; }
+.loadout-pick .weapon-row .weapon-pick { overflow: hidden; }
 .loadout-pick .weapon-row .wp-stat { font-size: 12px; }
 .loadout-pick .pills { display: flex; gap: 6px; flex-wrap: wrap; }
 .loadout-pick .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .loadout-pick .tile { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px 6px; background: var(--cream); border: 3px solid var(--plum); border-radius: 12px; box-shadow: 0 4px 0 var(--plum); transition: transform 80ms; }
-.loadout-pick .tile:hover { transform: translateY(-2px); }
+.loadout-pick .tile:hover:not(.locked) { transform: translateY(-2px); }
 .loadout-pick .tile.sel { background: var(--coral); color: var(--cream); }
 .loadout-pick .tile.sel.locked { outline: 3px solid var(--gold); outline-offset: 2px; }
 .loadout-pick .tile.locked { filter: grayscale(0.85); opacity: 0.75; }

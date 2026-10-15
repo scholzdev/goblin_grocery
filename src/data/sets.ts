@@ -1,5 +1,5 @@
 import { ITEMS } from './items';
-import type { ItemInstance, ItemTypeId, SetId } from '../types';
+import type { ElementTag, ItemInstance, ItemTypeId, SetId } from '../types';
 
 /** Set-bonus tuning. Level 1/2/3 = thresholds[0/1/2] distinct item types in the cart (each level includes the lower ones). Level 3 values live in SET_L3 (use setCfg). */
 export const SETS = {
@@ -34,12 +34,16 @@ export function setCfg<K extends keyof typeof SET_L3>(id: K, lv: number): (typeo
 }
 
 /** Every set an item type counts toward: its family, its element, and 'electric' for electrical items. */
-export function setsOf(type: ItemTypeId): SetId[] {
+export function setsOf(type: ItemTypeId, flavor?: ElementTag): SetId[] {
   const d = ITEMS[type];
-  return [d.family, ...(d.element ? [d.element] : []), ...(d.electrical ? ['electric' as const] : [])];
+  const el = d.element ?? (type === 'jellybeans' ? flavor : undefined); // Jelly Beans: the current flavor is the element
+  return [d.family, ...(el ? [el] : []), ...(d.electrical ? ['electric' as const] : [])];
 }
 
 export const lvOf = (n: number): 0 | 1 | 2 | 3 => (n >= SETS.thresholds[2] ? 3 : n >= SETS.thresholds[1] ? 2 : n >= SETS.thresholds[0] ? 1 : 0);
+
+/** Jelly Beans flavor of an instance (missing = heat). */
+export const flavorOf = (p: ItemInstance): ElementTag => p.flavor ?? 'heat';
 
 /** Set-membership weight of a placed item: a double pack counts as 2 distinct types for its family set only. */
 const weightIn = (p: ItemInstance, id: SetId): number => (p.double && ITEMS[p.type].family === id ? 2 : 1);
@@ -47,14 +51,14 @@ const weightIn = (p: ItemInstance, id: SetId): number => (p.double && ITEMS[p.ty
 /** Effective type count in one set (double packs count 2 in their family set). */
 export function setCount(placed: ItemInstance[], id: SetId): number {
   const best = new Map<ItemTypeId, number>();
-  for (const p of placed) if (setsOf(p.type).includes(id)) best.set(p.type, Math.max(best.get(p.type) ?? 0, weightIn(p, id)));
+  for (const p of placed) if (setsOf(p.type, flavorOf(p)).includes(id)) best.set(p.type, Math.max(best.get(p.type) ?? 0, weightIn(p, id)));
   return [...best.values()].reduce((a, b) => a + b, 0);
 }
 
 /** Distinct item types per set among placed items (shelf excluded), level via thresholds. A double pack counts +1 in its family set. */
 export function setLevels(placed: ItemInstance[]): Record<SetId, 0 | 1 | 2 | 3> {
   const types: Record<SetId, Map<ItemTypeId, number>> = { kitchen: new Map(), cleaning: new Map(), tools: new Map(), snacks: new Map(), checkout: new Map(), heat: new Map(), frost: new Map(), blast: new Map(), electric: new Map() };
-  for (const p of placed) for (const s of setsOf(p.type)) types[s].set(p.type, Math.max(types[s].get(p.type) ?? 0, weightIn(p, s)));
+  for (const p of placed) for (const s of setsOf(p.type, flavorOf(p))) types[s].set(p.type, Math.max(types[s].get(p.type) ?? 0, weightIn(p, s)));
   const lv = {} as Record<SetId, 0 | 1 | 2 | 3>;
   for (const s of Object.keys(types) as SetId[]) lv[s] = lvOf([...types[s].values()].reduce((a, b) => a + b, 0));
   return lv;
@@ -66,7 +70,7 @@ export function setGains(placed: ItemInstance[], type: ItemTypeId, double = fals
   for (const id of setsOf(type)) {
     let have = 0;
     const seen = new Set<ItemTypeId>();
-    for (const p of placed) if (setsOf(p.type).includes(id) && !seen.has(p.type)) { seen.add(p.type); have += weightIn(p, id); }
+    for (const p of placed) if (setsOf(p.type, flavorOf(p)).includes(id) && !seen.has(p.type)) { seen.add(p.type); have += weightIn(p, id); }
     const add = double && ITEMS[type].family === id ? 2 : 1;
     if (seen.has(type) && !(double && add === 2)) continue;
     if (have >= SETS.thresholds[2]) continue;

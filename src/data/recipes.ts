@@ -1,4 +1,4 @@
-import type { RecipeDef, RecipeId } from '../types';
+import type { ItemTypeId, RecipeDef, RecipeId } from '../types';
 
 export const RECIPES: Record<RecipeId, RecipeDef> = {
   toastMode: {
@@ -61,6 +61,11 @@ export const RECIPES: Record<RecipeId, RecipeDef> = {
     summary: 'Frying Pan touching a Fuel Can: every sweep scorches the floor.',
     detail: 'Each sweep leaves a burning arc on the floor for 2 s. Enemies walking through it catch fire.',
   },
+  chickenDinner: {
+    id: 'chickenDinner', short: 'Every 4th sweep is huge', name: 'Chicken Dinner', weapon: 'pan', supports: ['lunchbox'],
+    summary: 'Frying Pan touching a Lunchbox: winner winner, every 4th sweep is a big serving.',
+    detail: 'Every 4th sweep reaches 40% farther and deals 2.5x damage.',
+  },
   frostbiteNails: {
     id: 'frostbiteNails', short: '3rd hit freezes', name: 'Frostbite Nails', weapon: 'nailgun', supports: ['ice'],
     summary: 'Nail Gun touching an Ice Pack: nails freeze groceries solid.',
@@ -111,6 +116,41 @@ export const RECIPES: Record<RecipeId, RecipeDef> = {
     summary: 'Self-Checkout Laser touching a Price Gun: everything gets a sticker.',
     detail: 'Enemies hit by the beam are marked for 3 s and take +20% damage from everything.',
   },
+  sugarRush: {
+    id: 'sugarRush', short: 'Each dash: +8% speed (x5)', name: 'Sugar Rush', supports: ['energy', 'boot'],
+    summary: 'Energy Drink touching Running Boots: every dash fuels a sugar high.',
+    detail: 'Each dash adds a stack: +8% move speed for 3 s, up to 5 stacks (each stack expires on its own).',
+  },
+  smashBank: {
+    id: 'smashBank', short: 'Pan hits may drop coins', name: 'Smash the Bank', weapon: 'pan', supports: ['piggy'],
+    summary: 'Frying Pan touching a Piggy Bank: whack it and coins fall out.',
+    detail: 'Every enemy hit by a pan sweep has a 15% chance to drop a coin.',
+  },
+  bagIt: {
+    id: 'bagIt', short: 'Kills charge a garbage bomb', name: 'Bag It', weapon: 'vacuum', supports: ['doublebag', 'boot'],
+    summary: 'Vacuum touching a Double Bag AND Running Boots: bag the trash, then toss it.',
+    detail: 'Each enemy the vacuum kills adds 1 charge (max 10). Dashing with charges drops a garbage bag that explodes after 0.4 s: 6 damage per charge within 120, with knockback. Charges reset.',
+  },
+  sourMist: {
+    id: 'sourMist', short: 'Spray poisons (4/s)', name: 'Sour Mist', weapon: 'spray', supports: ['expiredmilk', 'fan'],
+    summary: 'Spray Bottle touching Expired Milk AND a Desk Fan: a curdled cloud.',
+    detail: 'Spray hits poison enemies for 4 damage/s for 3 s (refreshes, never stacks).',
+  },
+  sparksFly: {
+    id: 'sparksFly', short: 'Zaps chain +2, may stun', name: 'Sparks Fly', weapon: 'microwave', supports: ['tinfoilhat', 'battery'],
+    summary: 'Microwave touching a Tin Foil Hat AND a Battery: the sparks go everywhere.',
+    detail: 'Each zap arcs to 2 more nearby enemies for 50% damage, and every chained hit has a 25% chance to stun for 0.3 s. Stacks with TV Dinner.',
+  },
+  rayGun: {
+    id: 'rayGun', short: 'Energy bolts, splash, 3rd is huge', name: 'Ray Gun', weapon: 'nailgun', supports: ['battery', 'tinfoilhat', 'magnet'], replaces: ['nailstorm'],
+    summary: 'Nail Gun touching a Battery, a Tin Foil Hat AND a Magnet: pew pew.',
+    detail: 'Nails become green energy bolts (no piercing) that splash 60% damage to enemies within 60. Every 3rd shot is a red overcharged bolt: splash radius 120 and +20% splash damage. Replaces Nailstorm.',
+  },
+  tailwind: {
+    id: 'tailwind', short: 'Blasts push the cart forward', name: 'Tailwind', weapon: 'leafblower', supports: ['fan', 'boot'],
+    summary: 'Leaf Blower touching a Desk Fan AND Running Boots: ride your own breeze.',
+    detail: 'Each blower blast gives the cart a short forward push: +30% move speed for 0.4 s while you are moving. With Sugar Rush also active, every blast adds a Sugar Rush stack (1.5 s internal cooldown).',
+  },
 };
 
 export const RECIPE_TUNING = {
@@ -126,6 +166,7 @@ export const RECIPE_TUNING = {
   mistMachine: { arcDeg: 120, rangeMult: 1.4 },
   greaseFireBoost: { radiusMult: 1.4, burnMult: 2 },
   fiveAlarm: { vsBurning: 1.8 },
+  chickenDinner: { every: 4, rangeMult: 1.4, damageMult: 2.5 },
   sizzlingSkillet: { dps: 4, duration: 2, tick: 0.5, poolTime: 2, pools: 3 },
   frostbiteNails: { every: 3, freeze: 0.7, extraPierce: 1 },
   staticCling: { targets: 3, damageMult: 1.5 },
@@ -137,4 +178,16 @@ export const RECIPE_TUNING = {
   pressureWasher: { arcDeg: 25, rangeMult: 2, damageMult: 2.5 },
   powerSurge: { delay: 0.25, damageMult: 0.25 },
   priceCheck: { duration: 3, damageMult: 1.2 },
+  sugarRush: { perStack: 0.08, duration: 3, max: 5 },
+  smashBank: { chance: 0.15 },
+  bagIt: { perKill: 1, max: 10, fuse: 0.4, radius: 120, dmgPerCharge: 6 },
+  sourMist: { dps: 4, duration: 3 },
+  sparksFly: { chain: 2, chainMult: 0.5, stunChance: 0.25, stun: 0.3 },
+  tailwind: { boost: 0.3, boostTime: 0.4, sugarIcd: 1.5 },
+  rayGun: { splashR: 60, splashMult: 0.6, every: 3, bigR: 120, bigMult: 1.2 },
 };
+
+/** Every item type a combo needs (weapon first, if any). Cart combos have no weapon. */
+export const recipeParts = (r: RecipeDef): ItemTypeId[] => [...(r.weapon ? [r.weapon] : []), ...r.supports];
+/** Item whose icon stands for the combo. */
+export const recipeIcon = (r: RecipeDef): ItemTypeId => r.weapon ?? r.supports[0];
