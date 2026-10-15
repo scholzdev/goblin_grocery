@@ -9,6 +9,7 @@ import { CODEX_ENEMIES, ELITE, ENEMIES, MINI_BOSS, bossFor, enemyFrame, isBossId
 import { LAB, loadLab, saveLab } from '../lab';
 import { play, refreshVolumes, startMusic } from '../audio/sfx';
 import { initHud, hud, svg, relabelHud } from './hud';
+import { initSandbox, sandboxKey } from './sandbox';
 import { initTutorial, resetTutorial } from './tutorial';
 import { KEY_ACTIONS, clearSlot, defaultKeys, keyLabel, matches, rebind, type KeyAction } from '../state/keymap';
 import { initKeyboard } from '../input/keyboard';
@@ -94,6 +95,7 @@ export function initUi(_game: Phaser.Game): void {
   }
   applyMotion();
   initHud(ui);
+  if (LAB) initSandbox(ui);
   initShop(ui);
   initTutorial(ui);
   ui.append(...Object.values(screens));
@@ -727,6 +729,7 @@ function labHtml(o: LabOpts): string {
     ${row('event', t('labEvent'), opts(['random', 'none', 'wetFloor', 'outage', 'happyHour', 'heatwave', 'powerSurge', 'flashSale', 'freezerFail'], o.event ?? 'random', (v) => v in SET_EVENTS ? t(`evName_${v as SetEventKind}`) : t(({ random: 'evRandom', none: 'evNone', wetFloor: 'evWet', outage: 'evOutage' } as const)[v as 'random'])))}
     <label class="check"><input type="checkbox" data-lab="god" ${o.god ? 'checked' : ''}>${t('labGod')}</label>
     <label class="check"><input type="checkbox" data-lab="keep" ${o.keep ? 'checked' : ''}>${t('labKeep')}</label>
+    <label class="check"><input type="checkbox" data-lab="sandbox" ${o.sandbox ? 'checked' : ''}>${t('labSandbox')}</label>
     <div class="row"><button class="btn coral" data-act="lab-open">${t('labOpen')}</button></div></div>`;
 }
 
@@ -736,7 +739,7 @@ function readLab(): LabOpts {
   return {
     aisle, dept: f('dept').value as DepartmentId, shift: Number(f('shift').value), starter: f('starter').value as StarterId, weapon: f('weapon').value as StarterWeapon,
     money: Math.max(0, Math.floor(Number(f('money').value)) || 0), cart: f('cart').value.split('x').map(Number) as [number, number],
-    shelf: Number(f('shelf').value), shopLevel: Number(f('shopLevel').value), event: f('event').value as LabOpts['event'], mod: f('mod').value as ModifierId, god: f('god').checked, keep: f('keep').checked,
+    shelf: Number(f('shelf').value), shopLevel: Number(f('shopLevel').value), event: f('event').value as LabOpts['event'], mod: f('mod').value as ModifierId, god: f('god').checked, keep: f('keep').checked, sandbox: f('sandbox').checked,
   };
 }
 
@@ -782,6 +785,7 @@ function onInput(e: Event): void {
 function onKey(e: KeyboardEvent): void {
   if (listening) { listenKey(e); return; }
   if (shopKey(e)) { e.preventDefault(); return; }
+  if (LAB && sandboxKey(e)) { e.preventDefault(); return; }
   const s = store.state;
   if (e.key === 'F11' && desktop) {
     e.preventDefault();

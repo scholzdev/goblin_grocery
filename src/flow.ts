@@ -1,5 +1,7 @@
 import type Phaser from 'phaser';
+import type { ArenaScene } from './scenes/ArenaScene';
 import { store } from './state/store';
+import { labDummies } from './lab';
 import { chooseDoor, createLabRun, createRun, finishWave, leaveShop, openShop, recomputeBuild, startNextWave } from './state/run';
 import type { DoorId } from './data/modifiers';
 import type { DepartmentId, LabOpts } from './types';
@@ -59,7 +61,7 @@ export const flow = {
     const s = createLabRun(seed, o);
     store.state = s;
     labOpts = o;
-    if (!restore) labSnap = null;
+    if (!restore) { labSnap = null; labDummies.length = 0; }
     rng = mulberry32(seed);
     openShop(s, rng);
     if (restore && o.keep && labSnap) {
@@ -76,6 +78,30 @@ export const flow = {
 
   labBack(): void {
     if (labOpts) this.startLab(labOpts, true);
+  },
+
+  /** Lab sandbox: arena → cart editor, keeping the alive dummies for the way back (no wave clear, no coins). */
+  labToShop(): void {
+    const s = store.state;
+    if (!s.labSandbox || s.phase !== 'combat') return;
+    (this.arena() as ArenaScene).labKeepDummies();
+    openShop(s, rng);
+    stopLoops();
+    store.changed();
+    store.emit('shop-open');
+  },
+
+  /** Lab sandbox: cart editor → same aisle again; the arena respawns the kept dummies. */
+  labToArena(): void {
+    const s = store.state;
+    if (!s.labSandbox || s.phase !== 'shop') return;
+    labSnap = structuredClone({ inventory: s.inventory, money: s.money, nextUid: s.nextUid });
+    s.phase = 'combat';
+    s.shop = null;
+    s.coinLog = [];
+    s.hp = s.build.maxHp;
+    this.restartArena();
+    store.changed();
   },
 
   restartArena(): void {

@@ -9,6 +9,7 @@ import { lang, t } from '../i18n';
 import { play } from '../audio/sfx';
 import { DEPTH } from './fx';
 import { ARENA, type ArenaScene } from './ArenaScene';
+import type { LabDummy } from '../lab';
 
 export type EnemyState = 'spawn' | 'walk' | 'tell' | 'attack' | 'recover' | 'stun' | 'dying';
 export type { BossMove };
@@ -69,6 +70,8 @@ export interface Enemy {
   tag?: Phaser.GameObjects.Text;   // affix name above the HP bar
   /** Mid-shift boss (giant themed grocery with Manager moves). */
   mini?: boolean;
+  /** Lab sandbox dummy: `still` skips the AI (no walking/attacks), `immortal` refills HP instead of dying. */
+  dummy?: LabDummy;
 }
 
 export const pickAffix = (id: EnemyId): EliteAffix => {
@@ -148,7 +151,7 @@ export function updateEnemy(scene: ArenaScene, e: Enemy, dt: number, now: number
   e.linkT -= dt;
   if (e.affix && e.state !== 'spawn') affixTick(scene, e, dt, now);
   const d = e.def;
-  if (d.behavior === 'thief' && e.state !== 'spawn' && (e.auxT += dt) >= GIFTCARD.escapeAfter) {
+  if (d.behavior === 'thief' && !e.dummy && e.state !== 'spawn' && (e.auxT += dt) >= GIFTCARD.escapeAfter) {
     scene.fx.puff(e.x, e.y - 24, 6);
     scene.fx.label(e.x, e.y - 80, lang() === 'de' ? 'entwischt!' : 'escaped!', '#FFF2D5', 22);
     play('pop', { rate: 1.4 });
@@ -156,7 +159,8 @@ export function updateEnemy(scene: ArenaScene, e: Enemy, dt: number, now: number
     return;
   }
 
-  switch (e.state) {
+  if (e.dummy?.still) { if (e.stateT <= 0) e.state = 'walk'; } // stands there: burn/knockback/visuals still run
+  else switch (e.state) {
     case 'spawn':
       if (e.stateT <= 0) e.state = 'walk';
       if (d.behavior === 'boss') return; // drop-in tween owns the sprite

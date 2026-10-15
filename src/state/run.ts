@@ -48,7 +48,7 @@ export function createRun(seed: number, starter: StarterId = 'toaster', shift = 
 export function createLabRun(seed: number, o: LabOpts): RunState {
   const s = createRun(seed, o.starter, o.shift, o.weapon, o.dept === 'boss' || o.dept === 'clearance' ? 'main' : o.dept);
   s.inventory = { cols: o.cart[0], rows: o.cart[1], placed: [], shelf: Array(o.shelf).fill(null) };
-  s.wave = o.aisle - 1;
+  s.wave = o.sandbox ? o.aisle : o.aisle - 1; // the sandbox never advances, so it sits on the chosen aisle
   s.money = o.money;
   s.shopLevel = o.shopLevel;
   s.unlocked = [...ITEM_IDS];
@@ -57,6 +57,7 @@ export function createLabRun(seed: number, o: LabOpts): RunState {
   s.labEvent = o.event ?? 'random';
   s.labDept = o.aisle === BOSS_WAVE ? 'boss' : s.theme;
   s.labMod = o.mod ?? 'none';
+  s.labSandbox = !!o.sandbox;
   s.department = s.labDept;
   if (o.aisle > BOSS_WAVE) s.overtime = true;
   recomputeBuild(s);
