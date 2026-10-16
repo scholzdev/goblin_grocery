@@ -857,3 +857,11 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 /* gamepad: the same ring for menu focus and for the shop cursor */
 body.pad-nav :focus { outline: 4px solid var(--gold); outline-offset: 3px; }
 .pad-cur { outline: 4px solid var(--gold) !important; outline-offset: 2px; }
+
+/* ───────────── sims (src/sims): tag, start notes, error card ───────────── */
+#simtag { position: absolute; left: 12px; bottom: 12px; font-size: 16px; padding: 8px 18px 4px; transform: rotate(-1deg); z-index: 3; }
+#simnote { position: absolute; right: 14px; top: 96px; width: 300px; box-sizing: border-box; padding: 10px 14px; font-size: 14px; font-weight: 800; line-height: 1.35; white-space: pre-wrap; pointer-events: auto; cursor: pointer; z-index: 3; }
+#simerror { z-index: 90; }
+.sim-error-card { max-width: 640px; padding: 20px 28px; text-align: left; font-weight: 800; }
+.sim-error-card h2 { font-family: var(--display); font-weight: 400; margin: 0 0 8px; }
+.sim-error-card ul { margin: 0 0 14px; padding-left: 20px; max-height: 360px; overflow: auto; font-size: 14px; }

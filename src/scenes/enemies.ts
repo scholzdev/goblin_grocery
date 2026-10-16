@@ -86,7 +86,7 @@ const frameKey = (id: EnemyId, f: 0 | 1) => enemyFrame(id, f ? 'b' : 'a');
 
 let nextId = 1;
 
-export function createEnemy(scene: ArenaScene, id: EnemyId, x: number, y: number, hpScale: number, speedScale: number, elite = false, dmgScale = 1, small = 0, mini: MiniVariant | null = null): Enemy {
+export function createEnemy(scene: ArenaScene, id: EnemyId, x: number, y: number, hpScale: number, speedScale: number, elite = false, dmgScale = 1, small = 0, mini: MiniVariant | null = null, forceAffix?: EliteAffix): Enemy {
   const base = ENEMIES[id];
   // Aisle damage scaling and elites get their own def copy so every e.def reader picks it up.
   const dm = dmgScale * (elite ? ELITE.contactMult : 1);
@@ -94,7 +94,7 @@ export function createEnemy(scene: ArenaScene, id: EnemyId, x: number, y: number
     // Mid-shift boss: the themed grocery's look with Manager behavior (every boss check keys on behavior).
     ? { ...base, ...MINI_BOSS.def, ...mini.def, behavior: 'boss' as const, radius: base.radius * MINI_BOSS.scale, contactDamage: Math.round(MINI_BOSS.def.contactDamage * dm), attackDamage: Math.round(MINI_BOSS.def.attackDamage * dm) }
     : elite || dm !== 1 || small ? { ...base, radius: base.radius * (elite ? ELITE.scale : 1), contactDamage: Math.round(base.contactDamage * dm), attackDamage: Math.round(base.attackDamage * dm) } : base;
-  const affix = elite ? pickAffix(id, scene.rng) : undefined;
+  const affix = elite ? forceAffix ?? pickAffix(id, scene.rng) : undefined; // forceAffix: lab sims pin one
   // `small` (Splitter copies): scale / HP of the base type; the def copy shrinks the hit radius too.
   const hp = mini ? Math.round(MINI_BOSS.hp * hpScale) : Math.max(1, Math.round(base.hp * hpScale * (elite ? ELITE.hpMult : 1) * (small ? AFFIX.splitter.hpMult : 1)));
   if (small) def.radius = base.radius * small;

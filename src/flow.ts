@@ -2,6 +2,8 @@ import type Phaser from 'phaser';
 import type { ArenaScene } from './scenes/ArenaScene';
 import { store } from './state/store';
 import { labDummies } from './lab';
+import { createSimRun } from './state/sim';
+import { SIM_DEFAULTS, simDummies, type SimDef } from './sims/_sim';
 import { chooseDoor, createLabRun, createRun, finishWave, leaveShop, openShop, recomputeBuild, startNextWave } from './state/run';
 import type { DoorId } from './data/modifiers';
 import type { DepartmentId, LabOpts } from './types';
@@ -17,6 +19,8 @@ let game: Phaser.Game;
 let rng: Rng = Math.random;
 /** Last lab setup and the loadout as combat started, for "Back to Lab". */
 let labOpts: LabOpts | null = null;
+/** The sim this run came from (src/sims), for "restart sim"; null in normal runs and the plain Test Lab. */
+let activeSim: SimDef | null = null;
 /** Profile as the run (or overtime) began, to diff for the end screen's "Newly unlocked". */
 let runSnap: ProfileSnap | null = null;
 let labSnap: { inventory: RunState['inventory']; money: number; nextUid: number } | null = null;
@@ -35,6 +39,10 @@ export const flow = {
     return rng;
   },
 
+  get sim(): SimDef | null {
+    return activeSim;
+  },
+
   arena(): Phaser.Scene {
     return game.scene.getScene('Arena');
   },
@@ -42,6 +50,7 @@ export const flow = {
   startRun(starter: StarterId = store.state?.starter ?? 'toaster', shift = store.state?.shift ?? 0, weapon: StarterWeapon = store.state?.weapon ?? 'toaster', theme: DepartmentId = store.state?.theme ?? 'main', opts: { daily?: boolean } = {}): void {
     if (opts.daily) { starter = 'toaster'; shift = 0; weapon = 'toaster'; theme = 'main'; }
     const seed = opts.daily ? dailySeed() : (Date.now() ^ (Math.random() * 1e9)) >>> 0;
+    activeSim = null;
     store.state = createRun(seed, starter, shift, weapon, theme);
     if (opts.daily) { store.state.daily = true; noteDailyStart(); }
     else if (useCoupon()) { store.state.money += COUPON_COINS; store.state.voucher = true; }
@@ -61,6 +70,7 @@ export const flow = {
     const s = createLabRun(seed, o);
     store.state = s;
     labOpts = o;
+    activeSim = null;
     if (!restore) { labSnap = null; labDummies.length = 0; }
     rng = mulberry32(seed);
     openShop(s, rng);
@@ -77,7 +87,29 @@ export const flow = {
   },
 
   labBack(): void {
-    if (labOpts) this.startLab(labOpts, true);
+    if (activeSim) this.restartSim();
+    else if (labOpts) this.startLab(labOpts, true);
+  },
+
+  /** Sims: start the scenario from scratch with its (fixed) seed: the dummy sandbox, a real aisle, or the cart editor. Throws SimError if it is invalid. */
+  startSim(sim: SimDef): void {
+    rng = mulberry32(sim.seed ?? SIM_DEFAULTS.seed);
+    const s = createSimRun(sim, rng);
+    store.state = s;
+    activeSim = sim;
+    labOpts = null;
+    labSnap = null;
+    labDummies.length = 0;
+    labDummies.push(...simDummies(sim));
+    this.lastResult = null;
+    this.restartArena();
+    store.emit('run-start');
+    if (s.phase === 'shop') store.emit('shop-open');
+    store.changed();
+  },
+
+  restartSim(): void {
+    if (activeSim) this.startSim(activeSim);
   },
 
   /** Lab sandbox: arena → cart editor, keeping the alive dummies for the way back (no wave clear, no coins). */
@@ -190,6 +222,7 @@ export const flow = {
   },
 
   toTitle(): void {
+    activeSim = null;
     store.state = createRun(1);
     this.restartArena();
     store.changed();

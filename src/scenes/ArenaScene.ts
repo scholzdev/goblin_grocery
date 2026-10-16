@@ -16,6 +16,7 @@ import { settings } from '../state/settings';
 import { hud, showBanner } from '../ui/hud';
 import { Fx, DEPTH } from './fx';
 import { combatRng, type Rng } from '../systems/rng';
+import { clampPoint, spreadPoint, type Pt } from '../systems/spread';
 import { EMPTY_HOOKS, buildHooks, type HitEvent, type HitOpts, type HookTable } from '../engine/hooks';
 import { applyHitStatuses, scheduleEcho } from '../engine/onHitStatuses';
 import { applyKillEffects } from '../engine/onKillEffects';
@@ -165,7 +166,7 @@ export class ArenaScene extends Phaser.Scene {
     this.events.on(Phaser.Scenes.Events.RESUME, resetKeyboard);
 
     if (s.phase === 'combat') {
-      if (s.labSandbox) labDummies.forEach((d) => this.labSpawn(d)); else this.planWave();
+      if (s.labSandbox) this.labSpawnAll(labDummies); else this.planWave();
       playMusic(musicFor(this.dept.id, this.wave.boss, s.modifier));
       const room = s.modifier === 'stockroom' || s.modifier === 'coldRoom' || s.modifier === 'vipAisle' ? s.modifier : null;
       if (room) showBanner(t(`modName_${room}`), t(`roomSub_${room}`));
@@ -1303,17 +1304,45 @@ export class ArenaScene extends Phaser.Scene {
     this.input.on('pointerup', () => { held = null; this.input.setDefaultCursor('default'); });
   }
 
-  /** Lab sandbox: spawn one dummy away from the player. Never this.boss/this.mini, so its death ends nothing. */
-  labSpawn(d: LabDummy): void {
-    const s = store.state;
+  /** Lab sandbox: spawn every dummy. Plain ones land at random spots; sim dummies with a `place` follow their cluster / ring / fixed spot. */
+  private labSpawnAll(ds: LabDummy[]): void {
+    const centers = new Map<number, Pt>();
+    const box = { left: ARENA.left, right: ARENA.right, top: ARENA.top, bottom: ARENA.bottom };
+    for (const d of ds) {
+      const pl = d.place;
+      if (!pl) { this.labSpawn(d); continue; }
+      if (pl.spread === 'random') {
+        this.labSpawn(d, pl.at && clampPoint({ x: pl.at[0] + this.rngBetween(-60, 60), y: pl.at[1] + this.rngBetween(-40, 40) }, box, 40));
+        continue;
+      }
+      let c = centers.get(pl.group);
+      if (!c) {
+        if (pl.at) c = { x: pl.at[0], y: pl.at[1] };
+        else if (pl.spread === 'ring') c = { x: this.player.x, y: this.player.y };
+        else c = this.labSpot(160, 120);
+        centers.set(pl.group, c);
+      }
+      this.labSpawn(d, clampPoint(spreadPoint(pl.spread, pl.slot, pl.of, c), box, 40));
+    }
+  }
+
+  /** Random spot at least 240px from the player, `mx`/`my` away from the arena edge (the dummy default is 80/40). */
+  private labSpot(mx = 80, my = 40): Pt {
     let x = 0, y = 0;
     for (let i = 0; i < 10; i++) {
-      x = this.rngBetween(ARENA.left + 80, ARENA.right - 80);
-      y = this.rngBetween(ARENA.top + 40, ARENA.bottom - 40);
+      x = this.rngBetween(ARENA.left + mx, ARENA.right - mx);
+      y = this.rngBetween(ARENA.top + my, ARENA.bottom - my);
       if (Phaser.Math.Distance.Between(x, y, this.player.x, this.player.y) > 240) break;
     }
+    return { x, y };
+  }
+
+  /** Lab sandbox: spawn one dummy away from the player (or at `pos`). Never this.boss/this.mini, so its death ends nothing. */
+  labSpawn(d: LabDummy, pos?: Pt): void {
+    const s = store.state;
+    const { x, y } = pos ?? this.labSpot();
     const big = isBossId(d.id) || d.mini !== undefined;
-    const e = createEnemy(this, d.id, x, y, big ? SHIFTS[s.shift].bossHpMult : this.plan.hpScale, big ? 1 : this.plan.speedScale, false, this.plan.dmgScale, 0, d.mini === undefined ? null : MINI_BOSS.variants[d.mini]);
+    const e = createEnemy(this, d.id, x, y, big ? SHIFTS[s.shift].bossHpMult : this.plan.hpScale, big ? 1 : this.plan.speedScale, !!d.affix, this.plan.dmgScale, 0, d.mini === undefined ? null : MINI_BOSS.variants[d.mini], d.affix === 'elite' ? undefined : d.affix);
     e.dummy = d;
     this.enemies.push(e);
   }

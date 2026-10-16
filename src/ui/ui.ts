@@ -6,10 +6,12 @@ import { ITEMS, PLAYER, STARTER_LOOKS, STARTER_WEAPONS } from '../data/items';
 import { RECIPES, recipeIcon, recipeParts } from '../data/recipes';
 import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS, enemyAppears } from '../data/waves';
 import { CODEX_ENEMIES, ELITE, ENEMIES, MINI_BOSS, bossFor, enemyFrame, isBossId } from '../data/enemies';
-import { LAB, loadLab, saveLab } from '../lab';
+import { LAB, SIM_PARAM, loadLab, saveLab } from '../lab';
 import { play, refreshVolumes, startMusic } from '../audio/sfx';
 import { initHud, hud, svg, relabelHud } from './hud';
 import { initSandbox, sandboxKey } from './sandbox';
+import { initSimTag, launchSim } from './simTag';
+import { simRegistry } from '../sims/_registry';
 import { initTutorial, resetTutorial } from './tutorial';
 import { KEY_ACTIONS, clearSlot, defaultKeys, keyLabel, matches, rebind, type KeyAction } from '../state/keymap';
 import { initKeyboard } from '../input/keyboard';
@@ -99,10 +101,11 @@ export function initUi(_game: Phaser.Game): void {
   initShop(ui);
   initTutorial(ui);
   ui.append(...Object.values(screens));
+  if (LAB) initSimTag(ui);
 
   screens.loading.classList.remove('hidden');
   screens.loading.innerHTML = `<div class="sticker display" style="font-size:40px">${t('loading')} <span class="pct">0%</span></div>`;
-  store.on('boot-ready', () => { screens.loading.classList.add('hidden'); render(); });
+  store.on('boot-ready', () => { screens.loading.classList.add('hidden'); render(); if (SIM_PARAM !== null) launchSim(SIM_PARAM); });
   for (let i = 0; i <= 100; i++) store.on(`boot-progress:${i}`, () => { const p = screens.loading.querySelector('.pct'); if (p) p.textContent = `${i}%`; });
 
   store.on('change', render);
@@ -568,6 +571,7 @@ function onClick(e: MouseEvent): void {
       flow.startLab(o);
       break;
     }
+    case 'sim-start': launchSim(screens.title.querySelector<HTMLSelectElement>('[data-lab="sim"]')!.value); break;
     case 'lab-back': startMusic(); flow.labBack(); break;
     case 'codex': openTitleModal(codexHtml('combos')); break;
     case 'codex-tab': {
@@ -715,7 +719,10 @@ function labHtml(o: LabOpts): string {
   const aisles = Array.from({ length: 15 }, (_, i) => i + 1);
   const carts = [[4, 4], ...ECONOMY.cartSizes].map(([c, r]) => `${c}x${r}`);
   const shelves = [ECONOMY.shelfSlots, ...ECONOMY.shelfSizes];
+  const sims = simRegistry.ids.map((id) => `<option value="${id}">${id}</option>`).join('');
   return `<h2>${t('lab')}</h2><div class="settings lab-form">
+    <label>${t('simSelect')}<select data-lab="sim">${sims}</select></label>
+    <div class="row"><button class="btn" data-act="sim-start">${t('simStart')}</button></div>
     ${row('aisle', t('labAisle'), opts(aisles, o.aisle, (a) => (a === BOSS_WAVE ? `${a} (${t('labBoss')})` : a > BOSS_WAVE ? `${a} (${t('labOvertime')})` : a)))}
     ${row('dept', t('labDept'), opts(THEMES, THEMES.includes(o.dept) ? o.dept : 'main', (d: DepartmentId) => deptT(d).name))}
     ${row('mod', t('labMod'), opts(Object.keys(MODIFIERS), o.mod ?? 'none', (m: ModifierId) => modT(m).name))}
@@ -786,6 +793,7 @@ function onKey(e: KeyboardEvent): void {
   if (listening) { listenKey(e); return; }
   if (shopKey(e)) { e.preventDefault(); return; }
   if (LAB && sandboxKey(e)) { e.preventDefault(); return; }
+  if (e.key === 'F9' && flow.sim) { e.preventDefault(); play('click'); flow.restartSim(); return; } // restart the sim from scratch, same seed
   const s = store.state;
   if (e.key === 'F11' && desktop) {
     e.preventDefault();
