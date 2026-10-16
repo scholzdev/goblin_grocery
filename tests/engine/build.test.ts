@@ -3,8 +3,9 @@ import { describe, expect, it, vi } from 'vitest';
 // Dispatch points of computeBuild: every phase must call content hooks at its position. The registry is replaced by fixture content
 // (ids of real items, so they can sit in a cart; where an id is real content too, the fixture replaces its build hooks); the lookups (`contentItem`, ...) stay real,
 // so ITEMS and RECIPES remain the real tables.
-const { calls, fixtures } = vi.hoisted(() => {
+const { calls, tunes, fixtures } = vi.hoisted(() => {
   const calls: string[] = [];
+  const tunes: string[] = [];
   const text = (name: string) => ({ en: { name, blurb: 'x', rules: 'x' }, de: { name, blurb: 'x', rules: 'x' } });
   const item = (id: string, build: unknown, extra: Record<string, unknown> = {}) => ({ id, kind: 'passive', sets: ['snacks'], shape: '1x1', price: 5, text: text(id), build, ...extra });
   const fixtures = {
@@ -16,7 +17,7 @@ const { calls, fixtures } = vi.hoisted(() => {
       // module that applies
       item('battery', { phase: 'module', weapon: (w: { cooldown: number }, c: { tier: number }) => { calls.push(`module:battery:${c.tier}`); w.cooldown = 7; } }, { kind: 'module', buff: 'battery' }),
       // flavor: reads its touching instances
-      item('jellybeans', { phase: 'flavor', weapon: (w: { uid: string }, c: { touching: (w: { uid: string }) => unknown[] }) => { calls.push(`flavor:${c.touching(w).length}`); } }, { kind: 'module' }),
+      item('jellybeans', { phase: 'flavor', weapon: (w: { uid: string }, c: { touching: (w: { uid: string }) => unknown[]; tuneOf: (id: string, tier: number) => Record<string, number> }) => { calls.push(`flavor:${c.touching(w).length}`); tunes.push(`${c.tuneOf('fuel', 2).dps}:${c.tuneOf('fuel', 3).dps}:${Object.keys(c.tuneOf('toaster', 1)).length}`); } }, { kind: 'module' }),
       // global-mod / post-combo / final, cart-wide (placed anywhere)
       item('powerstrip', { phase: 'global-mod', weapon: (w: { cooldown: number }) => { calls.push('global-mod'); w.cooldown += 0.5; } }),
       item('fortune', { phase: 'post-combo', weapon: (w: { critChance: number }) => { calls.push('post-combo'); w.critChance += 0.5; } }),
@@ -33,7 +34,7 @@ const { calls, fixtures } = vi.hoisted(() => {
         build: { phase: 'combo', weapon: (w: { count: number }) => { calls.push('combo'); w.count = 99; } } },
     ],
   };
-  return { calls, fixtures };
+  return { calls, tunes, fixtures };
 });
 
 vi.mock('../../src/engine/registry', async (original) => {
@@ -93,6 +94,13 @@ describe('computeBuild dispatch', () => {
   it('gives flavor-style hooks the touching instances of their item', () => {
     run('toaster', ['jellybeans']);
     expect(calls).toContain('flavor:1');
+  });
+
+  it('gives hooks other content items\' tunes through ctx.tuneOf (resolved per tier; empty for a legacy item)', () => {
+    const inv = cart('toaster', ['jellybeans']); // cart() builds while placing
+    tunes.length = 0;
+    computeBuild(inv);
+    expect(tunes).toEqual(['3.75:5:0']); // Fuel Can dps [2.5, 3.75, 5] at ★2 and ★3; the Toaster is not content
   });
 
   it('runs player hooks after all weapons, by order, only for owned items', () => {

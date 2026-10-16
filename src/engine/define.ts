@@ -1,5 +1,5 @@
 import type { Unlock } from '../data/unlocks';
-import type { ActiveRecipe, Build, Cell, DepartmentId, ElementTag, FamilyTag, Inventory, ItemDef, ItemTypeId, Perk, RecipeId, SetId, StarterWeapon, WeaponStats } from '../types';
+import type { ActiveRecipe, Build, Cell, DepartmentId, ElementTag, FamilyTag, Inventory, ItemDef, ItemInstance, ItemTypeId, Perk, RecipeId, SetId, StarterWeapon, WeaponStats } from '../types';
 
 // Content definitions for the item-hooks refactor (docs/item-hooks-refactor.md). Types only plus identity `define*` helpers:
 // a content file is data (tune, text) and pure build behavior together. No Phaser, no DOM, no imports from data/*.
@@ -16,6 +16,14 @@ export type TuneValue = number | TierTriple;
 export type Tune = Readonly<Record<string, TuneValue>>;
 /** A tune with every per-tier array resolved to one number. */
 export type Resolved<T extends Tune> = { readonly [K in keyof T]: number };
+
+/** `TIER.mult` (data/items re-exports it): the multiplier of a ★-scaled bonus, ★1 = 1, +0.5 per tier, also above ★3 (Gold Star's ★4 = 2.5). */
+export const tierMult = (tier: number): number => 1 + 0.5 * (tier - 1);
+
+/** The flavors a Jelly Beans instance can take (rerolled every shop visit). */
+export const FLAVORS: readonly ElementTag[] = ['heat', 'frost', 'blast'];
+/** Flavor of an instance (a missing one = heat). Re-exported by data/sets. */
+export const flavorOf = (p: Pick<ItemInstance, 'flavor'>): ElementTag => p.flavor ?? 'heat';
 
 /**
  * Value of one tune entry at `tier`. Arrays hold ★1..★3. Above ★3 (Gold Star lifts a ★3 module to an effective ★4) the last
@@ -75,6 +83,11 @@ export interface BuildCtx<T extends Tune = Tune> {
   touching(weapon: { uid: string }): { instance: Inventory['placed'][number]; tier: number }[];
   /** Highest effective tier of `id` anywhere in the cart (0 = not placed). */
   owned(id: ItemTypeId): number;
+  /**
+   * Another content item's tune resolved at `tier` (content may not import the registry). Empty for an item that is not content.
+   * Jelly Beans reads the Fuel Can / Ice Pack / Party Popper numbers this way.
+   */
+  tuneOf(id: ItemTypeId, tier: number): Readonly<Record<string, number>>;
   /** Effective number of distinct item types in a set (a double pack counts 2 in its family). */
   count(set: SetId): number;
   /** Level (0..3) of a set. */
@@ -158,6 +171,12 @@ export interface ItemContent<T extends Tune = Tune> extends RuntimeHooks {
   shopBias?: readonly DepartmentId[];
   enhancedBy?: EnhancedBy;
   starterGuarantee?: readonly StarterWeapon[];
+  /**
+   * Gold Star: placed items touching one of these work `tune[key]` effective tiers higher. Read by `eff()` in computeBuild and
+   * `describeBuffs`, through `tierBoostOf` (engine/build.ts). No chaining (it lifts the touching item once, however many
+   * boosters touch it), and never the kinds listed in `excludes`.
+   */
+  tierBoost?: { key: keyof T & string; excludes: readonly ('weapon' | 'legendary')[] };
 }
 
 export interface ComboContent<T extends Tune = Tune> extends RuntimeHooks {

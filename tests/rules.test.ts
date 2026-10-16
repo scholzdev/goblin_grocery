@@ -594,11 +594,11 @@ describe('legendaries / bundle / shop levels', () => {
   });
   it('powerstrip: global vs adjacent, never both, stacks with battery', () => {
     const far = computeBuild(inv(it_('toaster', 0, 0), it_('powerstrip', 0, 3), it_('powerstrip', 2, 3)));
-    expect(far.weapons[0].cooldown).toBeCloseTo(ITEMS.toaster.weapon!.cooldown / BUFFS.powerstripAll);
+    expect(far.weapons[0].cooldown).toBeCloseTo(ITEMS.toaster.weapon!.cooldown / contentTune('powerstrip', 1).all);
     const near = w0(inv(it_('toaster', 0, 1), it_('powerstrip', 0, 0), it_('powerstrip', 0, 2)));
-    expect(near.cooldown).toBeCloseTo(ITEMS.toaster.weapon!.cooldown / BUFFS.powerstripAdjacent);
+    expect(near.cooldown).toBeCloseTo(ITEMS.toaster.weapon!.cooldown / contentTune('powerstrip', 1).adjacent);
     const bat = w0(inv(it_('toaster', 0, 1), it_('powerstrip', 0, 0), it_('battery', 2, 1)));
-    expect(bat.cooldown).toBeCloseTo(ITEMS.toaster.weapon!.cooldown / BUFFS.powerstripAdjacent / batE / 1.08);
+    expect(bat.cooldown).toBeCloseTo(ITEMS.toaster.weapon!.cooldown / contentTune('powerstrip', 1).adjacent / batE / 1.08);
     expect(w0(inv(it_('pan', 0, 0), it_('powerstrip', 1, 0))).cooldown).toBeCloseTo(1.15);
   });
   it('goldstar boosts adjacent fan only', () => {

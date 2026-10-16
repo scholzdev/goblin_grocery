@@ -1,4 +1,5 @@
 import { ITEMS } from './items';
+import { flavorOf } from '../engine/define';
 import type { ElementTag, ItemInstance, ItemTypeId, SetId } from '../types';
 
 /** Set-bonus tuning. Level 1/2/3 = thresholds[0/1/2] distinct item types in the cart (each level includes the lower ones). Level 3 values live in SET_L3 (use setCfg). */
@@ -42,8 +43,8 @@ export function setsOf(type: ItemTypeId, flavor?: ElementTag): SetId[] {
 
 export const lvOf = (n: number): 0 | 1 | 2 | 3 => (n >= SETS.thresholds[2] ? 3 : n >= SETS.thresholds[1] ? 2 : n >= SETS.thresholds[0] ? 1 : 0);
 
-/** Jelly Beans flavor of an instance (missing = heat). */
-export const flavorOf = (p: ItemInstance): ElementTag => p.flavor ?? 'heat';
+/** Jelly Beans flavor of an instance (missing = heat): defined in engine/define so the content file shares it. */
+export { flavorOf };
 
 /** Set-membership weight of a placed item: a double pack counts as 2 distinct types for its family set only. */
 const weightIn = (p: ItemInstance, id: SetId): number => (p.double && ITEMS[p.type].family === id ? 2 : 1);

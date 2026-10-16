@@ -3,7 +3,7 @@ import { setCount } from '../data/sets';
 import { neighbors } from '../systems/inventory';
 import type { ActiveRecipe, BuffId, Build, Inventory, ItemInstance, ItemTypeId, Perk, RecipeId, SetId, WeaponStats } from '../types';
 import { resolveTune, type BuildCtx, type BuildPhase, type BuildSpec, type ComboContent, type ItemContent, type SetContent, type Tune } from './define';
-import { contentCombos, contentItems, contentSets } from './registry';
+import { contentCombos, contentItems, contentSets, contentTune } from './registry';
 
 // Build-phase dispatch for content files. `computeBuild` (systems/synergies.ts) calls these at the position of each legacy
 // branch: if content defines a hook there it runs, otherwise the legacy branch does. Pure: no Phaser, no RNG.
@@ -40,6 +40,7 @@ function makeCtx(env: BuildEnv, owner: Owner, tier: number, w?: WeaponEnv, activ
     touches: (weapon) => !owner.item || near(weapon).some((n) => n.type === owner.id),
     touching: (weapon) => (owner.item ? near(weapon).filter((n) => n.type === owner.id).map((n) => ({ instance: n, tier: env.eff(n) })) : []),
     owned: (id) => env.top(id),
+    tuneOf: (id, tier) => contentTune(id, tier),
     count: (set) => setCount(placed, set),
     level: (set) => env.sets[set],
     def: (id) => ITEMS[id],
@@ -73,6 +74,32 @@ const COMBOS = new Map<RecipeId, ComboContent>();
 for (const e of ALL) if (e.kind === 'combo' && e.build.weapon) COMBOS.set(e.content.id as RecipeId, e.content as ComboContent);
 
 const ownerOf = (e: Entry): Owner => ({ id: e.content.id, tune: e.content.tune, item: e.kind === 'item' });
+
+// ---- tier boost (Gold Star) -------------------------------------------------------------------------------------------
+
+interface Boost { amount: number; excludes: readonly ('weapon' | 'legendary')[] }
+const BOOSTS = new Map<ItemTypeId, Boost>();
+for (const c of contentItems()) if (c.tierBoost) BOOSTS.set(c.id, { amount: resolveTune(c.tune, 1)[c.tierBoost.key], excludes: c.tierBoost.excludes });
+
+/**
+ * The effective-tier lift of an instance in this cart: the largest `tierBoost` among the booster items touching it (so two stars
+ * never add up), 0 when none applies. A booster does not lift the kinds it `excludes`. Used by `eff()` in computeBuild and `describeBuffs`.
+ */
+export function tierBoostOf(placed: ItemInstance[]): (i: ItemInstance) => number {
+  const boosters = new Map<string, Boost>();
+  for (const p of placed) { const b = BOOSTS.get(p.type); if (b) boosters.set(p.uid, b); }
+  if (!boosters.size) return () => 0;
+  return (i) => {
+    const def = ITEMS[i.type];
+    let best = 0;
+    for (const n of neighbors(placed, i.uid)) {
+      const b = boosters.get(n.uid);
+      if (!b || (b.excludes.includes('weapon') && def.kind === 'weapon') || (b.excludes.includes('legendary') && def.legendary)) continue;
+      best = Math.max(best, b.amount);
+    }
+    return best;
+  };
+}
 
 // ---- dispatch ---------------------------------------------------------------------------------------------------------
 

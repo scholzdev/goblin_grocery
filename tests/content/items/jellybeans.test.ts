@@ -1,0 +1,254 @@
+import { afterEach, describe, expect, it } from 'vitest';
+import { ITEMS, TIER } from '../../../src/data/items';
+import jellybeans from '../../../src/content/items/jellybeans';
+import { flavorOf, setCfg, setsOf } from '../../../src/data/sets';
+import { FLAVORS } from '../../../src/engine/define';
+import { contentItem, contentTune } from '../../../src/engine/registry';
+import { itemRules, itemT } from '../../../src/i18n/data';
+import { setLang } from '../../../src/i18n/lang';
+import { createRun, labAddItem, rollFlavors } from '../../../src/state/run';
+import { computeBuild, tierScaling } from '../../../src/systems/synergies';
+import type { ElementTag, ItemInstance } from '../../../src/types';
+import { around, at, gilded, stats } from '../helpers';
+
+afterEach(() => setLang('en'));
+
+const fuel = contentTune('fuel', 1), ice = contentTune('ice', 1), popper = contentTune('popper', 1);
+const STRENGTH = 0.7;
+const beans = (flavor?: ElementTag, tier?: number, extra = {}) => at('jellybeans', tier, { ...(flavor ? { flavor } : {}), ...extra });
+// Vacuum (cleaning, no element, no fuel/popper combo) for heat; Nail Gun (tools / blast) for frost and blast.
+const vac = at('vacuum'), gun = at('nailgun');
+
+// Legacy: each touching bag adds its flavor's real module effect at 70% x TIER.mult of its own effective tier, never weaker than what a real
+// Fuel Can / Ice Pack / Party Popper already gave. No flavor = heat. The bags also count toward the flavor's set.
+describe('Jelly Beans: flavors', () => {
+  it('heat burns like a Fuel Can at 70%', () => {
+    const w = stats([vac, beans('heat')]);
+    expect(w.burn).toEqual({ dps: fuel.dps * STRENGTH, duration: fuel.duration, tick: fuel.tick });
+  });
+
+  it('frost slows like an Ice Pack at 70%', () => {
+    const w = stats([gun, beans('frost')]);
+    expect(w.slow).toEqual({ pct: ice.pct * STRENGTH, duration: ice.duration });
+  });
+
+  it('blast pops like a Party Popper at 70%', () => {
+    const w = stats([gun, beans('blast')]);
+    // Blast set (Nail Gun is blast, the beans are blast) is L1: popper radius x1.15
+    expect(w.popper).toEqual({ damage: popper.damage * STRENGTH, radius: popper.radius * setCfg('blast', 1).radiusMult });
+  });
+
+  it('a flavor adds nothing of the other two', () => {
+    const heat = stats([vac, beans('heat')]);
+    expect(heat.slow).toBeNull();
+    expect(heat.popper).toBeNull();
+    const frost = stats([gun, beans('frost')]);
+    expect(frost.burn).toBeNull();
+    expect(frost.popper).toBeNull();
+    const blast = stats([gun, beans('blast')]);
+    expect(blast.burn).toBeNull();
+    expect(blast.slow).toBeNull();
+  });
+
+  it('a missing flavor is heat (flavorOf)', () => {
+    expect(flavorOf({})).toBe('heat');
+    expect(flavorOf({ flavor: 'frost' })).toBe('frost');
+    expect(stats([vac, beans()]).burn).toEqual(stats([vac, beans('heat')]).burn);
+  });
+
+  it('records no buff (it is not a BUFF_ORDER module) and touches nothing else', () => {
+    const plain = stats([vac]), w = stats([vac, beans('heat')]);
+    expect(w.buffs).toEqual([]);
+    expect({ ...w, burn: null, bundle: 0, damage: 0 }).toEqual({ ...plain, burn: null, bundle: 0, damage: 0 });
+  });
+
+  it('does nothing for a weapon it does not touch', () => {
+    const w = stats([vac, beans('heat', 3, { near: [], apart: [0] })]);
+    expect(w.burn).toBeNull();
+  });
+});
+
+describe('Jelly Beans: 70% x tier', () => {
+  it('scales with the tier: 70% / 105% / 140% of the full module at ★1', () => {
+    for (const tier of [1, 2, 3]) {
+      expect(stats([vac, beans('heat', tier)]).burn!.dps).toBe(fuel.dps * (TIER.mult(tier) * STRENGTH));
+      expect(stats([gun, beans('frost', tier)]).slow!.pct).toBe(ice.pct * (TIER.mult(tier) * STRENGTH));
+      expect(stats([gun, beans('blast', tier)]).popper!.damage).toBe(popper.damage * (TIER.mult(tier) * STRENGTH));
+    }
+    [1.75, 2.625, 3.5].forEach((dps, i) => expect(stats([vac, beans('heat', i + 1)]).burn!.dps).toBeCloseTo(dps, 12));
+  });
+
+  it('Gold Star lifts it (★3 -> effective ★4: 175%); the Ice Pack slow stays under its cap', () => {
+    expect(stats([vac, beans('heat', 3), gilded(1)]).burn!.dps).toBeCloseTo(fuel.dps * STRENGTH * 2.5, 12);
+    expect(stats([gun, beans('frost', 3), gilded(1)]).slow!.pct).toBeCloseTo(ice.pct * STRENGTH * 2.5, 12);
+    expect(ice.pct * STRENGTH * 2.5).toBeLessThan(ice.cap);
+  });
+
+  it('frost is capped at the Ice Pack cap (60%)', () => {
+    const w = stats([gun, beans('frost', 3), beans('frost', 3, { near: [0] }), gilded(1)]);
+    expect(w.slow!.pct).toBeLessThanOrEqual(ice.cap);
+  });
+
+  it('each instance uses its own tier (not the best copy in the cart)', () => {
+    const w = stats([vac, beans('heat', 1), beans('heat', 3, { near: [], apart: [0] })]);
+    expect(w.burn!.dps).toBe(fuel.dps * STRENGTH);
+  });
+});
+
+describe('Jelly Beans: never weaker than the real module (max)', () => {
+  it('a stronger Fuel Can keeps its burn; weaker beans do not replace it', () => {
+    const w = stats([vac, at('fuel', 3), beans('heat', 1)]);
+    expect(w.burn!.dps).toBe(contentTune('fuel', 3).dps); // 5 > 1.75
+    expect(w.buffs).toEqual(['fuel']);
+  });
+
+  it('stronger beans replace a weaker Fuel Can (and keep the Fuel Can buff)', () => {
+    const w = stats([vac, at('fuel', 1), beans('heat', 3)]);
+    expect(w.burn!.dps).toBe(fuel.dps * (TIER.mult(3) * STRENGTH)); // 3.5 > 2.5
+    expect(w.buffs).toEqual(['fuel']);
+  });
+
+  it('equal strength keeps the Fuel Can\'s burn', () => {
+    // beans never equal exactly (1.75 vs 2.5 vs 3.75 ...): a Fuel Can ★1 against ★1 beans is the strictly stronger one
+    expect(stats([vac, at('fuel', 1), beans('heat', 1)]).burn!.dps).toBe(fuel.dps);
+  });
+
+  it('frost: a stronger Ice Pack wins, a weaker one is raised to the beans', () => {
+    const FROST_BONUS = setCfg('frost', 1).slowBonus; // Ice Pack + frost beans = Frost L1: +10% (capped) after the combos
+    const strong = stats([gun, at('ice', 3), beans('frost', 1)]).slow!;
+    expect(strong.pct).toBeCloseTo(Math.min(setCfg('frost', 1).slowCap, contentTune('ice', 3).pct + FROST_BONUS), 12);
+    const weak = stats([gun, at('ice', 1), beans('frost', 3)]).slow!;
+    expect(weak.pct).toBeCloseTo(Math.min(setCfg('frost', 1).slowCap, ice.pct * TIER.mult(3) * STRENGTH + FROST_BONUS), 12);
+  });
+
+  it('blast: a stronger Party Popper keeps its blast, stronger beans replace it', () => {
+    // Popper + blast beans + Nail Gun (blast) = three blast types: Blast L2 (radius x1.15 too)
+    const strong = stats([gun, at('popper', 3), beans('blast', 1)]).popper!;
+    expect(strong.damage).toBe(contentTune('popper', 3).damage);
+    const weak = stats([gun, at('popper', 1), beans('blast', 3)]).popper!;
+    expect(weak.damage).toBe(popper.damage * (TIER.mult(3) * STRENGTH)); // 8.4 > 6
+  });
+
+  it('two bags: the stronger one decides, in any order; different flavors both apply', () => {
+    expect(stats([vac, beans('heat', 1), beans('heat', 3, { near: [0] })]).burn!.dps).toBe(fuel.dps * (TIER.mult(3) * STRENGTH));
+    expect(stats([vac, beans('heat', 3), beans('heat', 1, { near: [0] })]).burn!.dps).toBe(fuel.dps * (TIER.mult(3) * STRENGTH));
+    const mixed = stats([gun, beans('frost', 2), beans('blast', 1, { near: [0] })]);
+    expect(mixed.slow!.pct).toBe(ice.pct * (TIER.mult(2) * STRENGTH));
+    expect(mixed.popper!.damage).toBe(popper.damage * STRENGTH);
+  });
+});
+
+describe('Jelly Beans: sets', () => {
+  const setsFor = (weapon: Parameters<typeof at>[0], flavor?: ElementTag) => computeBuild(cartOf(weapon, flavor)).sets;
+  const cartOf = (weapon: Parameters<typeof at>[0], flavor?: ElementTag) => {
+    const inv = { cols: 5, rows: 4, shelf: [], placed: [] as ItemInstance[] };
+    inv.placed.push({ uid: 'u0', type: weapon, x: 1, y: 1, rot: 0 }, { uid: 'u1', type: 'jellybeans', x: 4, y: 3, rot: 0, ...(flavor ? { flavor } : {}) });
+    return inv;
+  };
+
+  it('counts toward the snacks set and the flavor\'s set (setsOf)', () => {
+    expect(setsOf('jellybeans', 'heat')).toEqual(['snacks', 'heat']);
+    expect(setsOf('jellybeans', 'frost')).toEqual(['snacks', 'frost']);
+    expect(setsOf('jellybeans', 'blast')).toEqual(['snacks', 'blast']);
+    expect(setsOf('jellybeans')).toEqual(['snacks']); // no flavor given: only the family
+  });
+
+  it('each flavor gives its set a type (Pan is heat, Mop is frost, Nail Gun is blast)', () => {
+    expect(setsFor('pan', 'heat').heat).toBe(1);
+    expect(setsFor('pan', 'frost').heat).toBe(0);
+    expect(setsFor('mop', 'frost').frost).toBe(1);
+    expect(setsFor('mop', 'heat').frost).toBe(0);
+    expect(setsFor('nailgun', 'blast').blast).toBe(1);
+    expect(setsFor('nailgun', 'frost').blast).toBe(0);
+  });
+
+  it('a missing flavor counts for heat', () => {
+    expect(setsFor('pan').heat).toBe(1);
+  });
+
+  it('is a snacks item that is not electrical', () => {
+    expect(ITEMS.jellybeans.family).toBe('snacks');
+    expect(ITEMS.jellybeans.electrical).toBe(false);
+    expect(ITEMS.jellybeans.element).toBeUndefined(); // the element is the instance's flavor
+  });
+});
+
+describe('Jelly Beans: flavor reroll (state/run.ts)', () => {
+  const run = () => {
+    const s = createRun(3);
+    s.phase = 'shop';
+    const placed: ItemInstance = { uid: 'jp', type: 'jellybeans', x: 1, y: 2, rot: 0, flavor: 'heat' }; // touches the toaster at (1,1)-(2,1)
+    const shelved: ItemInstance = { uid: 'js', type: 'jellybeans', x: 0, y: 0, rot: 0, flavor: 'heat' };
+    s.inventory.placed.push(placed);
+    s.inventory.shelf[0] = shelved;
+    return { s, placed, shelved };
+  };
+
+  it('rerolls the cart and the shelf from the content flavor list: rng 0 / .5 / .99 = heat / frost / blast', () => {
+    expect(FLAVORS).toEqual(['heat', 'frost', 'blast']);
+    for (const [r, f] of [[0, 'heat'], [0.5, 'frost'], [0.99, 'blast']] as const) {
+      const { s, placed, shelved } = run();
+      rollFlavors(s, () => r);
+      expect(placed.flavor).toBe(f);
+      expect(shelved.flavor).toBe(f);
+    }
+  });
+
+  it('only touches Jelly Beans', () => {
+    const { s } = run();
+    rollFlavors(s, () => 0.99);
+    expect(s.inventory.placed.filter((p) => p.type !== 'jellybeans').every((p) => p.flavor === undefined)).toBe(true);
+  });
+
+  it('recomputes the build: the touching bag\'s new flavor shows in the weapon', () => {
+    const { s } = run();
+    rollFlavors(s, () => 0); // heat
+    expect(s.build.weapons[0].burn).not.toBeNull();
+    expect(s.build.weapons[0].slow).toBeNull();
+    rollFlavors(s, () => 0.5); // frost
+    expect(s.build.weapons[0].slow!.pct).toBeCloseTo(ice.pct * STRENGTH, 12);
+    expect(s.build.weapons[0].burn).toBeNull();
+  });
+
+  it('a Lab-added bag starts with a flavor from the list', () => {
+    const s = createRun(3);
+    s.phase = 'shop';
+    expect(labAddItem(s, 'jellybeans', 1).ok).toBe(true);
+    const bag = s.inventory.shelf.find((i) => i?.type === 'jellybeans')!;
+    expect(FLAVORS).toContain(bag.flavor);
+  });
+});
+
+describe('Jelly Beans: content', () => {
+  it('is the registered content file and the legacy lookups return its converted def', () => {
+    expect(contentItem('jellybeans')).toBe(jellybeans);
+    expect(ITEMS.jellybeans).toMatchObject({ id: 'jellybeans', family: 'snacks', name: 'Jelly Beans', kind: 'module', price: 10, electrical: false });
+    expect(ITEMS.jellybeans.cells).toEqual([{ x: 0, y: 0 }]);
+    expect(ITEMS.jellybeans.legendary).toBeUndefined();
+    expect(ITEMS.jellybeans.buff).toBeUndefined();
+    expect(ITEMS.jellybeans.rules).toBe('The flavor changes every shop visit: Heat (Fuel Can burn), Frost (Ice Pack slow) or Blast (Party Popper blast). Adjacent weapons get that effect at {0} strength, and the beans count toward that flavor\'s set.');
+  });
+
+  it('keeps its tune in one place (the row is the base strength x TIER.mult)', () => {
+    expect(contentTune('jellybeans', 1).base).toBe(0.7);
+    for (const tier of [1, 2, 3]) expect(contentTune('jellybeans', tier).strength).toBeCloseTo(0.7 * TIER.mult(tier), 12);
+  });
+
+  it('keeps its position in the item order', () => {
+    expect(around('jellybeans', 1, 1)).toEqual(['tinfoilhat', 'jellybeans', 'leafblower']);
+  });
+
+  it('renders its text for every level, EN and DE', () => {
+    const en = (s: string) => `The flavor changes every shop visit: Heat (Fuel Can burn), Frost (Ice Pack slow) or Blast (Party Popper blast). Adjacent weapons get that effect at ${s} strength, and the beans count toward that flavor's set.`;
+    expect([1, 2, 3].map((t) => itemRules('jellybeans', t))).toEqual([en('70%'), en('105%'), en('140%')]);
+    setLang('de');
+    expect(itemRules('jellybeans', 2)).toBe('Die Sorte wechselt bei jedem Einkauf: Hitze (Brand des Benzinkanisters), Frost (Verlangsamung des Kühlakkus) oder Wumms (Explosion des Partyknallers). Angrenzende Waffen erhalten diesen Effekt mit 105% Stärke, und die Bohnen zählen für das Set dieser Sorte.');
+    expect(itemT('jellybeans')).toMatchObject({ name: 'Gummibohnen', blurb: 'Bei jedem Einkauf eine neue Sorte.' });
+  });
+
+  it('generates the shop scaling row', () => {
+    expect(tierScaling('jellybeans')).toEqual([{ label: 'Flavor strength', values: ['70%', '105%', '140%'] }]);
+    setLang('de');
+    expect(tierScaling('jellybeans')).toEqual([{ label: 'Geschmacksstärke', values: ['70%', '105%', '140%'] }]);
+  });
+});

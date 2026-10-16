@@ -4,7 +4,8 @@ import { tailwindFeedsSugar } from '../src/systems/combat';
 import { createRun, mergeItems, moveItem, openShop, upgradeItem } from '../src/state/run';
 import { footprint } from '../src/systems/inventory';
 import { mulberry32 } from '../src/systems/rng';
-import { ITEMS, SOURDOUGH, cellsFor } from '../src/data/items';
+import { ITEMS, cellsFor } from '../src/data/items';
+import { contentTune } from '../src/engine/registry';
 import { RECIPES, RECIPE_TUNING } from '../src/data/recipes';
 import { cart } from './cart';
 import type { Inventory, ItemInstance, ItemTypeId, RunState } from '../src/types';
@@ -86,7 +87,7 @@ describe('Sourdough Starter', () => {
     s.inventory.placed.push({ uid: 'wall', type: 'battery', x: 1, y: 2, rot: 0 });
     openShop(s, rng); openShop(s, rng);
     expect(d.tier ?? 1).toBe(1);
-    expect(d.rise).toBe(SOURDOUGH.every);
+    expect(d.rise).toBe(contentTune('sourdough', 1).every);
     expect(s.shop!.riseWait).toBe(true);
     openShop(s, rng);
     expect(d.tier ?? 1).toBe(1);

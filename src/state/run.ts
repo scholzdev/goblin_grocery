@@ -1,5 +1,5 @@
 import { t } from '../i18n';
-import { ITEMS, ITEM_IDS, PLAYER, SOURDOUGH, STARTER_WEAPONS, TIER } from '../data/items';
+import { ITEMS, ITEM_IDS, PLAYER, STARTER_WEAPONS, TIER } from '../data/items';
 import { DEPARTMENTS } from '../data/departments';
 import { MODIFIERS, type DoorId } from '../data/modifiers';
 import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS } from '../data/waves';
@@ -10,6 +10,8 @@ import { zonesOf } from '../data/zones';
 import { currentRerollCost, repairCost, rollDoors, rollOffers, rollZones, sellPrice } from '../systems/shop';
 import { setCfg } from '../data/sets';
 import { computeBuild } from '../systems/synergies';
+import { contentTune } from '../engine/registry';
+import { FLAVORS } from '../engine/define';
 
 const fail = (reason: string): OpResult => ({ ok: false, reason });
 const OK: OpResult = { ok: true };
@@ -18,14 +20,13 @@ export function newUid(state: RunState): string {
   return `i${state.nextUid++}`;
 }
 
-const FLAVORS: ElementTag[] = ['heat', 'frost', 'blast'];
 /** Jelly Beans start with a flavor drawn from the run seed (no rng at the creation sites); reshuffled by rollFlavors on every shop open. */
 const newFlavor = (state: RunState, type: ItemTypeId): { flavor?: ElementTag } =>
-  type === 'jellybeans' ? { flavor: FLAVORS[Math.floor(mulberry32(state.seed ^ Math.imul(state.nextUid, 0x9e3779b1) ^ state.wave)() * 3)] } : {};
+  type === 'jellybeans' ? { flavor: FLAVORS[Math.floor(mulberry32(state.seed ^ Math.imul(state.nextUid, 0x9e3779b1) ^ state.wave)() * FLAVORS.length)] } : {};
 
 /** Every shop visit re-rolls the flavor of all owned Jelly Beans (cart and shelf). */
 export function rollFlavors(state: RunState, rng: Rng): void {
-  for (const i of [...state.inventory.placed, ...state.inventory.shelf]) if (i?.type === 'jellybeans') i.flavor = FLAVORS[Math.floor(rng() * 3)];
+  for (const i of [...state.inventory.placed, ...state.inventory.shelf]) if (i?.type === 'jellybeans') i.flavor = FLAVORS[Math.floor(rng() * FLAVORS.length)];
   recomputeBuild(state);
 }
 
@@ -260,16 +261,17 @@ export function repair(state: RunState): OpResult {
 }
 
 /**
- * Sourdough Starter: one aisle more cooked; every SOURDOUGH.every aisles it rises a star (and a cell).
+ * Sourdough Starter: one aisle more cooked; every `every` aisles (content tune) it rises a star (and a cell).
  * In the cart the grown shape must fit at its anchor and rotation, otherwise it stays pending and retries next shop. Returns true if any is pending.
  */
 export function riseSourdough(state: RunState): boolean {
   let wait = false;
+  const every = contentTune('sourdough', 1).every;
   for (const i of [...state.inventory.placed, ...state.inventory.shelf]) {
     if (i?.type !== 'sourdough' || (i.tier ?? 1) >= TIER.max) continue;
-    if ((i.rise = (i.rise ?? 0) + 1) < SOURDOUGH.every) continue;
+    if ((i.rise = (i.rise ?? 0) + 1) < every) continue;
     const nt = (i.tier ?? 1) + 1;
-    if (state.inventory.placed.includes(i) && !canPlace(state.inventory, i.type, i.x, i.y, i.rot, i.uid, nt).ok) { i.rise = SOURDOUGH.every; wait = true; continue; }
+    if (state.inventory.placed.includes(i) && !canPlace(state.inventory, i.type, i.x, i.y, i.rot, i.uid, nt).ok) { i.rise = every; wait = true; continue; }
     i.tier = nt; i.rise = 0;
   }
   return wait;

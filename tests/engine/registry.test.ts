@@ -106,6 +106,14 @@ describe('validateContent', () => {
     expect(errors({ items: { 'items/fuel.ts': item({ extraBuild: [{ phase: 'post-combo', weapon() {} }] }) } })).toBe('');
   });
 
+  it('checks tierBoost (a positive scalar tune entry, known exclusions)', () => {
+    const star = (over: Record<string, unknown>) => item({ tune: { tiers: 1 }, rows: undefined, text: { en: { name: 'S', blurb: 'x', rules: 'x' }, de: { name: 'S', blurb: 'x', rules: 'x' } }, buff: undefined, build: undefined, legendary: true, ...over });
+    expect(errors({ items: { 'items/fuel.ts': star({ tierBoost: { key: 'tiers', excludes: ['weapon', 'legendary'] } }) } })).toBe('');
+    expect(errors({ items: { 'items/fuel.ts': star({ tierBoost: { key: 'nope', excludes: [] } }) } })).toMatch(/tierBoost\.key "nope" must be a positive scalar tune entry/);
+    expect(errors({ items: { 'items/fuel.ts': star({ tune: { tiers: [1, 1, 2] }, tierBoost: { key: 'tiers', excludes: [] } }) } })).toMatch(/tierBoost\.key "tiers"/);
+    expect(errors({ items: { 'items/fuel.ts': star({ tierBoost: { key: 'tiers', excludes: ['passive'] } }) } })).toMatch(/tierBoost\.excludes may only list/);
+  });
+
   it('checks the item core fields', () => {
     expect(errors({ items: { 'items/fuel.ts': item({ price: 0 }) } })).toMatch(/price must be a positive number/);
     expect(errors({ items: { 'items/fuel.ts': item({ kind: 'weapon' }) } })).toMatch(/a weapon needs a weapon definition/);

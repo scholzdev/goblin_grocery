@@ -96,6 +96,11 @@ export function validateContent(files: Partial<ContentFiles>, opts: ValidateOpti
       }
     }
     checkBuild(path, c.build, 'item');
+    if (c.tierBoost) {
+      const v = c.tune?.[c.tierBoost.key];
+      if (typeof v !== 'number' || !(v > 0)) err(path, `tierBoost.key "${c.tierBoost.key}" must be a positive scalar tune entry`);
+      if (c.tierBoost.excludes.some((k) => k !== 'weapon' && k !== 'legendary')) err(path, 'tierBoost.excludes may only list "weapon" and "legendary"');
+    }
     for (const extra of c.extraBuild ?? []) {
       checkBuild(path, extra, 'item');
       if (extra.phase === 'module') err(path, 'extraBuild cannot use the module phase (one module hook per item: put it in `build`)');

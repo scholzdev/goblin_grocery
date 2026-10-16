@@ -1,11 +1,11 @@
-import { BUFFS, BUNDLE, EXPIRED_MILK, ITEMS, JELLY, SOURDOUGH, PLAYER, PROJECTILE_PATTERNS, TINFOIL, TIER } from '../data/items';
+import { BUFFS, BUNDLE, EXPIRED_MILK, ITEMS, PLAYER, PROJECTILE_PATTERNS, TINFOIL, TIER } from '../data/items';
 import { RECIPES, RECIPE_TUNING } from '../data/recipes';
-import { SETS, flavorOf, setCfg, setLevels } from '../data/sets';
+import { SETS, setCfg, setLevels } from '../data/sets';
 import type { ActiveRecipe, BuffId, Build, Inventory, ItemInstance, ItemTypeId, Perk, RecipeId, WeaponStats } from '../types';
 import { adjacentPairs, neighbors } from './inventory';
 import { fmtNum, lang, t } from '../i18n';
 import { itemT, recipeT } from '../i18n/data';
-import { runCombo, runModule, runPhase, runPlayerHooks, type BuildEnv, type WeaponEnv } from '../engine/build';
+import { runCombo, runModule, runPhase, runPlayerHooks, tierBoostOf, type BuildEnv, type WeaponEnv } from '../engine/build';
 import { contentItem, contentTune } from '../engine/registry';
 import { tierRows } from '../engine/text';
 
@@ -14,11 +14,10 @@ const tierOf = (i: ItemInstance) => i.tier ?? 1;
 
 export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
   const placed = inv.placed;
+  const boost = tierBoostOf(placed);
+  /** Effective tier: items touching a tier booster (Gold Star: content `tierBoost`) count higher (no chaining, never on weapons/legendaries). */
+  const eff = (i: ItemInstance) => tierOf(i) + boost(i);
   /** Highest tier among placed copies of a type (0 if none). */
-  const gold = new Set(placed.filter((p) => p.type === 'goldstar').map((p) => p.uid));
-  const touchesGold = (i: ItemInstance) => gold.size > 0 && neighbors(placed, i.uid).some((n) => gold.has(n.uid));
-  /** Effective tier: goldstar-adjacent modules/passives count one higher (no chaining, never on weapons/legendaries). */
-  const eff = (i: ItemInstance) => tierOf(i) + (ITEMS[i.type].kind !== 'weapon' && !ITEMS[i.type].legendary && touchesGold(i) ? 1 : 0);
   const top = (t: ItemTypeId) => Math.max(0, ...placed.filter((p) => p.type === t).map(eff));
   const gm = (t: ItemTypeId) => TIER.mult(top(t));
   const has = (t: ItemTypeId) => top(t) > 0;
@@ -57,19 +56,7 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
       s.buffs.push(id);
     }
     runPhase('flavor', s, we);
-    // Jelly Beans: each touching bag adds its flavor's effect at reduced strength (never weaker than what the real module gave).
-    for (const n of near) {
-      if (n.type !== 'jellybeans') continue;
-      const m = TIER.mult(eff(n)) * JELLY.strength, f = flavorOf(n);
-      const fuel1 = contentTune('fuel', 1), ice1 = contentTune('ice', 1), popper1 = contentTune('popper', 1); // the full-strength modules at ★1: Jelly Beans scales them by `m`
-      if (f === 'heat' && (s.burn?.dps ?? 0) < fuel1.dps * m) s.burn = { dps: fuel1.dps * m, duration: fuel1.duration, tick: fuel1.tick };
-      else if (f === 'frost') s.slow = { pct: Math.max(s.slow?.pct ?? 0, Math.min(ice1.cap, ice1.pct * m)), duration: ice1.duration };
-      else if (f === 'blast' && (s.popper?.damage ?? 0) < popper1.damage * m) s.popper = { damage: popper1.damage * m, radius: popper1.radius };
-    }
     runPhase('global-mod', s, we);
-    // Sourdough Starter: +6% damage per effective star, per touching starter.
-    for (const n of near) if (n.type === 'sourdough') s.damage *= 1 + SOURDOUGH.perStar * eff(n);
-    if (def.electrical && has('powerstrip')) s.cooldown /= nearTypes.has('powerstrip') ? BUFFS.powerstripAdjacent : BUFFS.powerstripAll;
     runPhase('set', s, we);
     // Set bonuses (cart-wide, distinct types). Frost is applied after recipes, see below.
     const fam = def.family, el = def.element;
@@ -88,7 +75,7 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
       if (b.pattern === 'zap' || b.pattern === 'mortar') s.aoe *= bl.radiusMult;
     }
     if (sets.electric && def.electrical && b.pattern !== 'zap') { s.chainChance = SETS.electric.chance[sets.electric - 1]; s.chainJumps = SETS.electric.jumps[sets.electric - 1]; }
-    s.bundle = nearTypes.size + (nearTypes.has('goldstar') ? 1 : 0);
+    s.bundle += nearTypes.size; // content hooks (Gold Star's +1, `set` phase) added theirs already
     s.damage *= 1 + BUNDLE.perItem * s.bundle;
     const tapeArc = s.arcDeg - b.arcDeg;
     for (const r of matching) {
@@ -177,9 +164,10 @@ const star = (t: number) => (t > 1 ? ` ★${t}` : '');
 export function describeBuffs(s: WeaponStats, inv?: Inventory): string[] {
   const out: string[] = [];
   const tiers = new Map<BuffId, number>();
+  const boost = inv ? tierBoostOf(inv.placed) : () => 0;
   for (const n of inv ? neighbors(inv.placed, s.uid) : []) {
     const id = ITEMS[n.type].buff;
-    if (id) tiers.set(id, Math.max(tiers.get(id) ?? 0, tierOf(n) + (ITEMS[n.type].legendary ? 0 : neighbors(inv!.placed, n.uid).some((g) => g.type === 'goldstar') ? 1 : 0)));
+    if (id) tiers.set(id, Math.max(tiers.get(id) ?? 0, tierOf(n) + boost(n)));
   }
   for (const id of s.buffs) {
     const tr = tiers.get(id) ?? 1, n = itemT(Object.values(ITEMS).find((d) => d.buff === id)!.id).name + star(tr);
@@ -222,8 +210,6 @@ export function tierScaling(type: ItemTypeId): ScaleRow[] {
     coupon: () => [row(t('rowCoin'), (tr) => `${Math.round(Math.min(0.9, BUFFS.couponChance * m(tr)) * 100)}%`)],
     bubblewrap: () => [row(t('rowArmor'), (tr) => `${tr}`)],
     tinfoilhat: () => [row(t('rowReflect'), (tr) => `${fmt(TINFOIL.reflectMult * m(tr))}×`)],
-    sourdough: () => [row(t('rowDamage'), (tr) => pctUp(SOURDOUGH.perStar * tr))],
-    jellybeans: () => [row(t('rowStrength'), (tr) => `${Math.round(JELLY.strength * m(tr) * 100)}%`)],
     expiredmilk: () => [row(t('rowPoison'), (tr) => `${fmt(EXPIRED_MILK.dps * m(tr))}/s`)],
     boot: () => [row(t('rowDashDist'), (tr) => pctUp(BUFFS.bootDistance * m(tr))), row(t('rowDashDmg'), (tr) => `+${fmt(BUFFS.bootDamage * m(tr))}`)],
   };
