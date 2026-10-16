@@ -179,13 +179,13 @@ describe('starter sims', () => {
   });
   it('have the stated enemies', () => {
     const count = (id: string, enemy: string) => simDummies(sim(id)).filter((d) => d.id === enemy).length;
-    expect(count('kitchen-heat', 'milk')).toBe(6);
+    expect(count('kitchen-heat', 'milk')).toBe(12);
     expect(count('electric-l3', 'cereal')).toBe(8);
     expect(count('frost-cleaning', 'cereal')).toBe(6);
-    expect(count('blast', 'milk')).toBe(8);
+    expect(count('blast', 'milk')).toBe(12);
     expect(count('dash-tools', 'cereal')).toBe(6);
     expect(count('dash-tools', 'spitter')).toBe(2);
-    expect(simDummies(sim('snacks-defense')).every((d) => !d.immortal)).toBe(true);
+    for (const id of ['snacks-defense', 'blast', 'kitchen-heat']) expect(simDummies(sim(id)).every((d) => !d.immortal)).toBe(true);
     expect(simDummies(sim('elites')).map((d) => d.affix).sort()).toEqual(['pickpocket', 'splitter', 'swift', 'tough']);
     expect(sim('snacks-defense').god).toBe(false);
     expect(simDummies(sim('wave3'))).toEqual([]);
