@@ -16,6 +16,7 @@ import { BOSS_WAVE, ECONOMY, OVERTIME, SHIFTS, SHOP_LEVELS, WAVES, waveDef, boss
 import { BOSS, THEME_SUMMONS, CODEX_ENEMIES, ELITE, ELITE_EXCLUDED, ENEMIES } from '../src/data/enemies';
 import { DATA_DE } from '../src/i18n/data-de';
 import { BUFFS, ITEMS, PLAYER, STARTER_WEAPONS, TIER } from '../src/data/items';
+import { contentTune } from '../src/engine/registry';
 import { UNLOCKS } from '../src/data/unlocks';
 import { createLabRun, labAddItem, labDoor, cartUpgradeCost, shelfUpgradeCost, upgradeCart, upgradeShelf, chooseDoor, finishWave, leaveShop, startNextWave, buyOffer, mergeTargetFor, createRun, damagePlayer, mergeItems, moveItem, openShop, previewMerge, previewMove, repair, reroll, sellItem, upgradeCost, upgradeItem, upgradeShop } from '../src/state/run';
 import { OBSTACLES, hazardRects } from '../src/data/obstacles';
@@ -39,7 +40,7 @@ const shopRun = (): RunState => {
 };
 const w0 = (i: Inventory) => computeBuild(i).weapons[0];
 /** Battery attack-rate factor for normal / electric weapons at ★1. */
-const batE = 1 + (BUFFS.battery.rateMult - 1) * BUFFS.battery.electricMult;
+const batE = 1 + contentTune('battery', 1).electric;
 
 describe('footprints', () => {
   it('1x3 pan rot1 is 3x1', () => {
@@ -1100,7 +1101,7 @@ describe('universal utilities and 2 combos per weapon', () => {
     expect(cw('pan', ['fan']).range).toBeCloseTo(ITEMS.pan.weapon!.range * 1.3);
     expect(cw('vacuum', ['fan']).range).toBeCloseTo(150 * 1.3 * 1.15);
     expect(cw('pan', ['fan']).projectileSpeed).toBe(0);
-    expect(cw('pan', ['battery']).cooldown).toBeCloseTo(1.15 / BUFFS.battery.rateMult);
+    expect(cw('pan', ['battery']).cooldown).toBeCloseTo(1.15 / (1 + contentTune('battery', 1).rate));
     expect(cw('toaster', ['battery']).cooldown).toBeCloseTo(ITEMS.toaster.weapon!.cooldown / batE);
   });
   it('a pan with bell + fuel has both combos; toaster fan+fuel+hotsauce has toastMode and fiveAlarm', () => {

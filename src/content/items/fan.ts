@@ -1,0 +1,24 @@
+import { defineItem, PROJECTILE_PATTERNS } from '../../engine/define';
+
+export default defineItem({
+  id: 'fan', kind: 'module', sets: ['cleaning'], shape: '1x2', price: 9, buff: 'fan',
+  unlock: 'starting',
+  tune: { range: [0.3, 0.45, 0.6], speed: [0.3, 0.45, 0.6] }, // bonus range/reach and projectile speed per ★ (the legacy 1.3 base x TIER.mult)
+  text: {
+    en: { name: 'Desk Fan', blurb: 'Whoosh. More range for whatever it touches.', rules: 'Any adjacent weapon gains {range|+pct} range or reach and {speed|+pct} projectile speed.' },
+    de: { name: 'Tischventilator', blurb: 'Wuusch. Mehr Reichweite für alles, was er berührt.', rules: 'Jede angrenzende Waffe erhält {range|+pct} Reichweite und {speed|+pct} Projektiltempo.' },
+  },
+  rows: [
+    { label: { en: 'Range / reach', de: 'Distanz / Reichweite' }, key: 'range', fmt: '+pct' },
+    { label: { en: 'Projectile speed', de: 'Projektiltempo' }, key: 'speed', fmt: '+pct' },
+  ],
+  build: {
+    phase: 'module', order: 10,
+    weapon(w, c) {
+      if (c.matching.includes('mistMachine')) return false; // Mist Machine replaces the fan's range bonus
+      const t = c.tune();
+      if (PROJECTILE_PATTERNS.has(w.pattern)) w.projectileSpeed *= 1 + t.speed;
+      w.range *= 1 + t.range;
+    },
+  },
+});

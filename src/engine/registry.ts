@@ -96,6 +96,10 @@ export function validateContent(files: Partial<ContentFiles>, opts: ValidateOpti
       }
     }
     checkBuild(path, c.build, 'item');
+    for (const extra of c.extraBuild ?? []) {
+      checkBuild(path, extra, 'item');
+      if (extra.phase === 'module') err(path, 'extraBuild cannot use the module phase (one module hook per item: put it in `build`)');
+    }
     if (c.build?.phase === 'module') {
       if (!c.buff) err(path, 'a module-phase item needs `buff` (its BUFF_ORDER entry)');
       if (!c.build.weapon) err(path, 'a module-phase item needs a weapon hook');

@@ -1,4 +1,4 @@
-import { BUFFS, BUNDLE, ECHO, EXPIRED_MILK, ITEMS, JELLY, MULTIPACK, SOURDOUGH, POPPER, PLAYER, PROJECTILE_PATTERNS, TINFOIL, TIER } from '../data/items';
+import { BUFFS, BUNDLE, EXPIRED_MILK, ITEMS, JELLY, SOURDOUGH, PLAYER, PROJECTILE_PATTERNS, TINFOIL, TIER } from '../data/items';
 import { RECIPES, RECIPE_TUNING } from '../data/recipes';
 import { SETS, flavorOf, setCfg, setLevels } from '../data/sets';
 import type { ActiveRecipe, BuffId, Build, Inventory, ItemInstance, ItemTypeId, Perk, RecipeId, WeaponStats } from '../types';
@@ -11,7 +11,6 @@ import { tierRows } from '../engine/text';
 
 export const BUFF_ORDER: BuffId[] = ['fan', 'fuel', 'battery', 'ice', 'hotsauce', 'pricegun', 'tape', 'popper', 'echo', 'multipack'];
 const tierOf = (i: ItemInstance) => i.tier ?? 1;
-const bonus = (base: number, m: number) => 1 + (base - 1) * m;
 
 export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
   const placed = inv.placed;
@@ -43,7 +42,6 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
     const near = neighbors(placed, w.uid);
     const nearTypes = new Set(near.map((n) => n.type));
     const matching = Object.values(RECIPES).filter((r) => r.weapon === w.type && r.supports.every((t) => nearTypes.has(t)));
-    const mist = matching.some((r) => r.id === 'mistMachine'); // Mist Machine replaces the Desk Fan's range bonus
     // highest tier per buff among touching modules
     const buffTier = new Map<BuffId, number>();
     for (const n of near) {
@@ -52,35 +50,10 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
     }
     const we: WeaponEnv = { env, near, uid: w.uid, matching: matching.map((r) => r.id) };
     runPhase('base', s, we);
-    let multi = 0;
     for (const id of BUFF_ORDER) {
       const mt = buffTier.get(id);
       if (!mt) continue;
-      const m = TIER.mult(mt);
-      const hooked = runModule(id, s, we, mt); // content hook if there is one; undefined = legacy branch
-      if (hooked === false) continue; // the hook skipped it (like the legacy `continue`s): not recorded
-      if (hooked) { /* applied by content */ } else if (id === 'fan') {
-        if (mist) continue;
-        if (PROJECTILE_PATTERNS.has(b.pattern)) s.projectileSpeed *= bonus(BUFFS.fan.speedMult, m);
-        s.range *= bonus(BUFFS.fan.rangeMult, m);
-      } else if (id === 'fuel') s.burn = { dps: BUFFS.fuel.dps * m, duration: BUFFS.fuel.duration, tick: BUFFS.fuel.tick };
-      else if (id === 'battery') s.cooldown /= bonus(BUFFS.battery.rateMult, def.electrical ? BUFFS.battery.electricMult * m : m);
-      else if (id === 'ice') s.slow = { pct: Math.min(0.6, BUFFS.ice.pct * m), duration: BUFFS.ice.duration };
-      else if (id === 'pricegun') s.critChance = BUFFS.pricegun.critChance * m;
-      else if (id === 'popper') s.popper = { damage: POPPER.damage * m, radius: POPPER.radius };
-      else if (id === 'echo') {
-        if (b.pattern === 'aura' || b.pattern === 'puddle') continue;
-        s.echo = Math.min(1, ECHO.fraction * m);
-      } else if (id === 'multipack') {
-        if (!PROJECTILE_PATTERNS.has(b.pattern) && !['sweep', 'cone', 'mortar'].includes(b.pattern)) s.damage *= 1 + 0.2 * m; // non-repeatable patterns: +20% damage instead
-        else { multi = mt; continue; } // count bonus is applied AFTER recipes (Toast Mode sets count) - see below
-      } else { // tape
-        const r = bonus(BUFFS.tape.radiusMult, m);
-        if (PROJECTILE_PATTERNS.has(b.pattern)) s.pierce += BUFFS.tape.pierce + (mt >= 3 ? 1 : 0);
-        else if (b.pattern === 'sweep' || b.pattern === 'cone') s.arcDeg += BUFFS.tape.arcDeg * m;
-        else if (b.pattern === 'zap' || b.pattern === 'mortar') s.aoe *= r;
-        else s.range *= r; // pulse, aura, puddle, laser
-      }
+      if (runModule(id, s, we, mt) === false) continue; // the hook skipped it (e.g. Double Bag on an aura): the buff is not recorded
       s.buffs.push(id);
     }
     runPhase('flavor', s, we);
@@ -88,9 +61,10 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
     for (const n of near) {
       if (n.type !== 'jellybeans') continue;
       const m = TIER.mult(eff(n)) * JELLY.strength, f = flavorOf(n);
-      if (f === 'heat' && (s.burn?.dps ?? 0) < BUFFS.fuel.dps * m) s.burn = { dps: BUFFS.fuel.dps * m, duration: BUFFS.fuel.duration, tick: BUFFS.fuel.tick };
-      else if (f === 'frost') s.slow = { pct: Math.max(s.slow?.pct ?? 0, Math.min(0.6, BUFFS.ice.pct * m)), duration: BUFFS.ice.duration };
-      else if (f === 'blast' && (s.popper?.damage ?? 0) < POPPER.damage * m) s.popper = { damage: POPPER.damage * m, radius: POPPER.radius };
+      const fuel1 = contentTune('fuel', 1), ice1 = contentTune('ice', 1), popper1 = contentTune('popper', 1); // the full-strength modules at ★1: Jelly Beans scales them by `m`
+      if (f === 'heat' && (s.burn?.dps ?? 0) < fuel1.dps * m) s.burn = { dps: fuel1.dps * m, duration: fuel1.duration, tick: fuel1.tick };
+      else if (f === 'frost') s.slow = { pct: Math.max(s.slow?.pct ?? 0, Math.min(ice1.cap, ice1.pct * m)), duration: ice1.duration };
+      else if (f === 'blast' && (s.popper?.damage ?? 0) < popper1.damage * m) s.popper = { damage: popper1.damage * m, radius: popper1.radius };
     }
     runPhase('global-mod', s, we);
     // Sourdough Starter: +6% damage per effective star, per touching starter.
@@ -105,9 +79,9 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
       if (sets.cleaning >= 2 && b.pattern === 'puddle') s.duration += setCfg('cleaning', sets.cleaning).puddleExtra;
     }
     if (sets.tools) s.cooldown /= setCfg('tools', sets.tools).cooldownDiv;
-    const ht = setCfg('heat', sets.heat);
+    const ht = setCfg('heat', sets.heat), fuel1 = contentTune('fuel', 1);
     if (sets.heat && s.burn) s.burn = { ...s.burn, duration: s.burn.duration + ht.burnExtra, dps: s.burn.dps * (sets.heat >= 2 ? ht.burnMult : 1) };
-    if (sets.heat >= 2 && el === 'heat' && !s.burn) s.ignite = { chance: ht.igniteChance, burn: { dps: BUFFS.fuel.dps * ht.igniteDpsMult, duration: BUFFS.fuel.duration + ht.igniteExtra, tick: BUFFS.fuel.tick } };
+    if (sets.heat >= 2 && el === 'heat' && !s.burn) s.ignite = { chance: ht.igniteChance, burn: { dps: fuel1.dps * ht.igniteDpsMult, duration: fuel1.duration + ht.igniteExtra, tick: fuel1.tick } };
     if (sets.blast) {
       const bl = setCfg('blast', sets.blast);
       if (s.popper) s.popper = { ...s.popper, radius: s.popper.radius * bl.radiusMult };
@@ -126,10 +100,6 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
     }
     runPhase('post-combo', s, we);
     if (sets.frost && s.slow) { const f = setCfg('frost', sets.frost); s.slow = { ...s.slow, pct: Math.min(f.slowCap, s.slow.pct + f.slowBonus) }; } // after recipes: coldStorage/brainFreeze set s.slow
-    if (multi) {
-      s.count += PROJECTILE_PATTERNS.has(b.pattern) ? MULTIPACK.extra + (multi >= 3 ? 1 : 0) : 1;
-      s.buffs.push('multipack');
-    }
     if (has('fortune')) s.critChance += BUFFS.fortuneCrit * gm('fortune'); // cart-wide, on top of the Price Gun
     runPhase('final', s, we);
     s.damage *= perk.damageMult ?? 1;
@@ -213,17 +183,17 @@ export function describeBuffs(s: WeaponStats, inv?: Inventory): string[] {
     if (id) tiers.set(id, Math.max(tiers.get(id) ?? 0, tierOf(n) + (ITEMS[n.type].legendary ? 0 : neighbors(inv!.placed, n.uid).some((g) => g.type === 'goldstar') ? 1 : 0)));
   }
   for (const id of s.buffs) {
-    const tr = tiers.get(id) ?? 1, m = TIER.mult(tr), n = itemT(Object.values(ITEMS).find((d) => d.buff === id)!.id).name + star(tr);
-    if (id === 'fan') out.push(PROJECTILE_PATTERNS.has(s.pattern) ? t('bfFanSpeed', { v: pc(bonus(BUFFS.fan.speedMult, m) - 1), n }) : t('bfFanReach', { v: pc(bonus(BUFFS.fan.rangeMult, m) - 1), n }));
-    else if (id === 'fuel') out.push(t('bfFuel', { v: fmtNum(BUFFS.fuel.dps * m), d: fmtNum(BUFFS.fuel.duration), n }));
-    else if (id === 'battery') out.push(t('bfBattery', { v: pc(bonus(BUFFS.battery.rateMult, ITEMS[s.type].electrical ? BUFFS.battery.electricMult * m : m) - 1), n }));
-    else if (id === 'ice') out.push(t('bfIce', { v: pc(Math.min(0.6, BUFFS.ice.pct * m)), d: fmtNum(BUFFS.ice.duration), n }));
+    const tr = tiers.get(id) ?? 1, n = itemT(Object.values(ITEMS).find((d) => d.buff === id)!.id).name + star(tr);
+    if (id === 'fan') { const f = contentTune('fan', tr); out.push(PROJECTILE_PATTERNS.has(s.pattern) ? t('bfFanSpeed', { v: pc(f.speed), n }) : t('bfFanReach', { v: pc(f.range), n })); }
+    else if (id === 'fuel') { const f = contentTune('fuel', tr); out.push(t('bfFuel', { v: fmtNum(f.dps), d: fmtNum(f.duration), n })); }
+    else if (id === 'battery') { const bt = contentTune('battery', tr); out.push(t('bfBattery', { v: pc(ITEMS[s.type].electrical ? bt.electric : bt.rate), n })); }
+    else if (id === 'ice') { const i = contentTune('ice', tr); out.push(t('bfIce', { v: pc(Math.min(i.cap, i.pct)), d: fmtNum(i.duration), n })); }
     else if (id === 'hotsauce') out.push(t('bfHot', { v: pc(contentTune('hotsauce', tr).damage), n }));
-    else if (id === 'pricegun') out.push(t('bfCrit', { v: pc(BUFFS.pricegun.critChance * m), n }));
-    else if (id === 'popper') out.push(t('bfPopper', { d: fmtNum(POPPER.damage * m), r: POPPER.radius, n }));
-    else if (id === 'echo') out.push(t('bfEcho', { v: pc(Math.min(1, ECHO.fraction * m)), n }));
-    else if (id === 'multipack') out.push(['sweep', 'cone', 'mortar'].includes(s.pattern) ? t('bfMultiRepeat', { n }) : PROJECTILE_PATTERNS.has(s.pattern) ? t('bfMultiShots', { v: MULTIPACK.extra + (tr >= 3 ? 1 : 0), n }) : t('bfMultiDmg', { v: pc(0.2 * m), n }));
-    else out.push(t('bfTape', { n }));
+    else if (id === 'pricegun') out.push(t('bfCrit', { v: pc(contentTune('pricegun', tr).crit), n }));
+    else if (id === 'popper') { const p = contentTune('popper', tr); out.push(t('bfPopper', { d: fmtNum(p.damage), r: p.radius, n })); }
+    else if (id === 'echo') out.push(t('bfEcho', { v: pc(Math.min(1, contentTune('doublebag', tr).fraction)), n }));
+    else if (id === 'multipack') { const mp = contentTune('multipack', tr); out.push(['sweep', 'cone', 'mortar'].includes(s.pattern) ? t('bfMultiRepeat', { n }) : PROJECTILE_PATTERNS.has(s.pattern) ? t('bfMultiShots', { v: Math.min(mp.extra, mp.maxExtra), n }) : t('bfMultiDmg', { v: pc(mp.damage), n })); }
+    else if (id === 'tape') out.push(t('bfTape', { n }));
   }
   if (s.bundle > 0) out.push(t(s.bundle > 1 ? 'bfBundleMany' : 'bfBundleOne', { k: s.bundle, v: pc(BUNDLE.perItem * s.bundle) }));
   for (const r of s.recipes) out.push(t('bfCombo', { name: recipeT(r).name }));
@@ -245,15 +215,6 @@ export function tierScaling(type: ItemTypeId): ScaleRow[] {
   if (content && !w) return tierRows(content, lang());
   if (w) return [row(t('rowDamage'), (tr) => fmt(w.damage * TIER.weaponDamage(tr))), row(t('rowCooldown'), (tr) => `${fmt(w.cooldown * TIER.weaponCooldown(tr))} s`)];
   const rows: Partial<Record<ItemTypeId, () => ScaleRow[]>> = {
-    fan: () => [row(t('rowRangeReach'), (tr) => pctUp((BUFFS.fan.rangeMult - 1) * m(tr))), row(t('rowProjSpeed'), (tr) => pctUp((BUFFS.fan.speedMult - 1) * m(tr)))],
-    fuel: () => [row(t('rowBurn'), (tr) => `${fmt(BUFFS.fuel.dps * m(tr))}/s`)],
-    battery: () => [row(t('rowAtkSpeed'), (tr) => pctUp((BUFFS.battery.rateMult - 1) * m(tr))), row(t('rowElectric'), (tr) => pctUp((BUFFS.battery.rateMult - 1) * BUFFS.battery.electricMult * m(tr)))],
-    ice: () => [row(t('rowSlow'), (tr) => `${Math.round(Math.min(0.6, BUFFS.ice.pct * m(tr)) * 100)}%`)],
-    pricegun: () => [row(t('rowCrit'), (tr) => `${Math.round(BUFFS.pricegun.critChance * m(tr) * 100)}%`)],
-    popper: () => [row(t('rowBlast'), (tr) => fmt(POPPER.damage * m(tr)))],
-    doublebag: () => [row(t('rowDouble'), (tr) => `${Math.round(Math.min(1, ECHO.fraction * m(tr)) * 100)}%`)],
-    multipack: () => [row(t('rowExtra'), (tr) => `+${MULTIPACK.extra + (tr >= 3 ? 1 : 0)}`), row(t('rowMelee'), (tr) => pctUp(0.2 * m(tr)))],
-    tape: () => [row(t('rowPierce'), (tr) => `+${BUFFS.tape.pierce + (tr >= 3 ? 1 : 0)}`), row(t('rowArc'), (tr) => `+${Math.round(BUFFS.tape.arcDeg * m(tr))}°`), row(t('rowRadius'), (tr) => pctUp((BUFFS.tape.radiusMult - 1) * m(tr)))],
     lunchbox: () => [row(t('rowMaxHp'), (tr) => `+${Math.round(BUFFS.lunchboxHp * m(tr))}`)],
     magnet: () => [row(t('rowPickup'), (tr) => `+${Math.round(BUFFS.magnetPickup * m(tr))}`)],
     bell: () => [row(t('rowDashCd'), (tr) => `−${fmt(BUFFS.bellShove * m(tr))} s`)],

@@ -1,5 +1,5 @@
 import type { Cell, ItemDef, ItemTypeId, Perk, StarterId, StarterWeapon, WeaponBase } from '../types';
-import { resolveShape } from '../engine/define';
+import { PROJECTILE_PATTERNS, resolveShape } from '../engine/define';
 import { itemDefOf } from '../engine/legacy';
 import { contentItem } from '../engine/registry';
 
@@ -41,30 +41,10 @@ const LEGACY_ITEMS: Partial<Record<ItemTypeId, ItemDef>> = {
     rules: 'Constantly pulls nearby enemies toward the cart. Every {1}, enemies in range take {0} damage. +60 coin pickup radius.',
     weapon: weapon({ pattern: 'pulse', damage: 2, cooldown: 0.65, range: 150, pull: 70 }),
   },
-  fan: {
-    id: 'fan', family: 'cleaning', name: 'Desk Fan', kind: 'module', cells: rect(1, 2), price: 9, electrical: false, buff: 'fan',
-    blurb: 'Whoosh. More range for whatever it touches.',
-    rules: 'Any adjacent weapon gains {0} range or reach and {1} projectile speed.',
-  },
-  fuel: {
-    id: 'fuel', family: 'tools', element: 'heat', name: 'Fuel Can', kind: 'module', cells: rect(1, 2), price: 11, electrical: false, buff: 'fuel',
-    blurb: 'Questionable. Sets every hit on fire.',
-    rules: 'Any adjacent weapon sets enemies on fire: {0} burn damage for 2 s (refreshes, never stacks).',
-  },
-  battery: {
-    id: 'battery', family: 'tools', name: 'Battery', kind: 'module', cells: rect(1, 1), price: 8, electrical: true, buff: 'battery',
-    blurb: 'Zap! Faster attacks, electric gadgets most of all.',
-    rules: 'Any adjacent weapon gets {0} attack speed; Electric weapons {1}.',
-  },
   magnet: {
     id: 'magnet', family: 'tools', name: 'Magnet', kind: 'passive', cells: rect(1, 1), price: 7, electrical: false,
     blurb: 'Coins come to you.',
     rules: '{0} coin pickup radius (does not stack). Combo: Nailstorm with Nail Gun + Battery.',
-  },
-  ice: {
-    id: 'ice', family: 'kitchen', element: 'frost', name: 'Ice Pack', kind: 'module', cells: rect(1, 2), price: 8, electrical: false, buff: 'ice',
-    blurb: 'Chilly hits slow groceries down.',
-    rules: 'Adjacent weapon hits slow enemies by {0} for 1 s. Repeated hits refresh.',
   },
   lunchbox: {
     id: 'lunchbox', family: 'snacks', name: 'Lunchbox', kind: 'passive', cells: rect(2, 1), price: 9, electrical: false,
@@ -124,16 +104,6 @@ const LEGACY_ITEMS: Partial<Record<ItemTypeId, ItemDef>> = {
     blurb: 'Leaves slippery soap puddles behind you.',
     rules: 'Every {1} drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip: 25% slow and {0} damage every 0.5 s.',
     weapon: weapon({ pattern: 'puddle', damage: 3, cooldown: 1.6, range: 60, tick: 0.5, duration: 3 }),
-  },
-  pricegun: {
-    id: 'pricegun', family: 'checkout', name: 'Price Gun', kind: 'module', cells: [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }], price: 12, electrical: false, buff: 'pricegun',
-    blurb: 'Marks groceries 50% OFF. Critical hits!',
-    rules: 'Adjacent weapons gain a {0} chance to crit for double damage (not burn). Combo: Clearance Sale with Fizz Cannon + Coupon Book.',
-  },
-  tape: {
-    id: 'tape', family: 'tools', name: 'Duct Tape', kind: 'module', cells: rect(1, 1), price: 9, electrical: false, buff: 'tape',
-    blurb: 'Fixes everything. Makes it bigger, too.',
-    rules: 'Any adjacent weapon: projectiles pierce {0}, sweeps and cones {1} arc, areas {2} radius, beams {2} length.',
   },
   coupon: {
     id: 'coupon', family: 'checkout', name: 'Coupon Book', kind: 'passive', cells: rect(1, 1), price: 8, electrical: false,
@@ -224,21 +194,6 @@ const LEGACY_ITEMS: Partial<Record<ItemTypeId, ItemDef>> = {
     rules: 'Every {1} sprays a 70° cone (170 reach) for {0} damage to every enemy inside (each once per spray).',
     weapon: weapon({ pattern: 'cone', damage: 3, cooldown: 0.55, range: 170, arcDeg: 70 }),
   },
-  popper: {
-    id: 'popper', family: 'snacks', element: 'blast', name: 'Party Popper', kind: 'module', cells: rect(1, 1), price: 10, electrical: false, buff: 'popper',
-    blurb: 'Every kill is a celebration.',
-    rules: 'Enemies killed by adjacent weapons explode in confetti: {0} damage within 70. Popper explosions never chain.',
-  },
-  doublebag: {
-    id: 'doublebag', family: 'checkout', element: 'blast', name: 'Double Bag', kind: 'module', cells: rect(2, 1), price: 12, electrical: false, buff: 'echo',
-    blurb: 'Twice the bag, twice the whack.',
-    rules: 'Direct hits from adjacent weapons strike a second time 0.12 s later for {0} damage.',
-  },
-  multipack: {
-    id: 'multipack', family: 'snacks', element: 'blast', name: 'Multipack', kind: 'module', cells: rect(1, 1), price: 13, electrical: false, buff: 'multipack',
-    blurb: 'Buy one, fire two.',
-    rules: 'Any adjacent weapon: projectiles {0}, sweeps/cones/mortars attack one extra time, other weapons {1} damage.',
-  },
 };
 
 /** Order of `ITEMS` / `ITEM_IDS` (shop rolls and UI lists depend on it): fixed here so moving an item to content never reorders anything. */
@@ -307,12 +262,6 @@ export const STARTER_LOOKS: Record<StarterId, { head?: string; torso?: string }>
 };
 
 export const BUFFS = {
-  fan: { speedMult: 1.3, rangeMult: 1.3 },
-  fuel: { dps: 2.5, duration: 2, tick: 0.5 },
-  battery: { rateMult: 1.12, electricMult: 1.5 }, // electric weapons get 1.5x the bonus
-  ice: { pct: 0.25, duration: 1 },
-  pricegun: { critChance: 0.15 },
-  tape: { pierce: 1, arcDeg: 30, radiusMult: 1.2 },
   magnetPickup: 60,
   vacuumPickup: 60,
   lunchboxHp: 15,
@@ -369,12 +318,6 @@ export const TIER = {
 };
 
 export const CRIT = { mult: 2 };
-/** Party Popper explosion (scales with module tier via TIER.mult on damage). */
-export const POPPER = { damage: 6, radius: 70 };
-/** Double Bag second strike. */
-export const ECHO = { fraction: 0.5, delay: 0.12 };
-/** Multipack: extra projectile, or one extra repeat for non-projectile attacks. */
-export const MULTIPACK = { extra: 1, repeatDelay: 0.18 };
 export const PUDDLE = { slow: { pct: 0.25, duration: 0.5 } };
 
-export const PROJECTILE_PATTERNS = new Set(['toast', 'burst', 'ricochet']);
+export { PROJECTILE_PATTERNS };

@@ -101,6 +101,9 @@ describe('validateContent', () => {
     expect(errors({ items: { 'items/fuel.ts': item({ build: { phase: 'module', player() {} } }) } })).toMatch(/module-phase item needs a weapon hook/);
     expect(errors({ items: { 'items/fuel.ts': item({ build: { phase: 'module' } }) } })).toMatch(/needs a weapon and\/or player hook/);
     expect(errors({ items: { 'items/fuel.ts': item({ build: { phase: 'global-mod', player() {} } }) } })).toMatch(/only a player hook must use phase "final"/);
+    expect(errors({ items: { 'items/fuel.ts': item({ extraBuild: [{ phase: 'module', weapon() {} }] }) } })).toMatch(/extraBuild cannot use the module phase/);
+    expect(errors({ items: { 'items/fuel.ts': item({ extraBuild: [{ phase: 'combo', weapon() {} }] }) } })).toMatch(/build\.phase "combo" is not valid for item content/);
+    expect(errors({ items: { 'items/fuel.ts': item({ extraBuild: [{ phase: 'post-combo', weapon() {} }] }) } })).toBe('');
   });
 
   it('checks the item core fields', () => {

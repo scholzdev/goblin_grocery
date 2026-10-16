@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import type { BurnEffect, WeaponStats } from '../types';
 import { RECIPE_TUNING } from '../data/recipes';
 import { newHitTracker, shieldBlocks, tryHit, isSpent, pickRicochetTarget, type HitTracker } from '../systems/combat';
-import { ITEMS, MULTIPACK, PUDDLE, TIER } from '../data/items';
+import { ITEMS, PUDDLE, TIER } from '../data/items';
+import { contentTune } from '../engine/registry';
 import { SETS, setCfg } from '../data/sets';
 import { store } from '../state/store';
 import { SHIELD } from '../data/enemies';
@@ -12,6 +13,9 @@ import { play } from '../audio/sfx';
 import { DEPTH } from './fx';
 import type { ArenaScene } from './ArenaScene';
 import type { Enemy } from './enemies';
+
+/** Multipack: gap between the repeats of a sweep/cone/mortar (s). Flat across tiers, so the ★1 tune is the value. Phase 4 moves this into the item's hook. */
+const MULTIPACK_REPEAT_DELAY = contentTune('multipack', 1).repeatDelay;
 
 export interface WeaponRt {
   stats: WeaponStats;
@@ -289,7 +293,7 @@ export class Arsenal {
   /** Multipack on sweeps/cones/mortars: the attack repeats (count - 1) more times. */
   private repeat(w: WeaponRt, attack: () => void): void {
     attack();
-    for (let i = 1; i < w.stats.count; i++) this.scene.time.delayedCall(MULTIPACK.repeatDelay * 1000 * i, () => { if (this.scene.combatActive()) attack(); });
+    for (let i = 1; i < w.stats.count; i++) this.scene.time.delayedCall(MULTIPACK_REPEAT_DELAY * 1000 * i, () => { if (this.scene.combatActive()) attack(); });
   }
 
   /** Spray Bottle: every enemy inside the cone is hit once per spray. */

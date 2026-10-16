@@ -177,6 +177,21 @@ Phase 1 is done: the engine is in `src/engine/` and Hot Sauce is the pilot (`src
 - **Gold Star's** tier lift (`eff`) can't be expressed as a hook. Keep it legacy or give it a `set`-phase hook.
 - **Not done yet:** the bare-number text lint (§6).
 
+### Phase 2, batch 1 learnings (fan, fuel, battery, ice, pricegun, tape, popper, doublebag, multipack)
+
+All nine moved; the module loop in `computeBuild` has no legacy branches left (it only dispatches to `runModule`). Goldens untouched.
+
+- **Two hooks for one item:** `ItemContent.extraBuild?: BuildSpec[]` (never `module`) carries a second phase. Multipack uses `build` (module: damage) + `extraBuild` (post-combo: count and buff record).
+- **Post-combo/non-module `c.tier` is the best copy in the whole cart, not the best copy touching the weapon.** Per-weapon effects that depend on the touching tier (Multipack count) must use `c.touching(w)` and `resolveTune(TUNE, tier)` (declare the tune as a `const TUNE = {...} as const` to reuse it). `module` is fine: it already gets the touching tier.
+- **A hook that records its own buff** (`w.buffs.push(id)`) is only needed outside `module`; the module loop pushes it unless the hook returns `false`.
+- **Not linear in tier, handled with a clamp or a flat key, never `c.tier`:** tape pierce `[1,1,2]` + `maxPierce: 2`; multipack extra shots `[1,1,2]` + `maxExtra: 2`; ice slow `cap: 0.6`; doublebag `Math.min(1, fraction)`. Everything else was linear and matches `TIER.mult(4)` exactly (checked per item in the tests at effective ★4).
+- **Float rounding can change shop text:** `0.15 * 1.5` is `0.22499999999999998` (the shop shows 22%), a literal `0.225` shows 23%. Pricegun's ★2 is written `0.15 * 1.5` on purpose. Check `Math.round(x * 100)` ties when converting a base x `TIER.mult` into literals; the text golden catches it.
+- **Content cannot import `data/items`:** `PROJECTILE_PATTERNS` now lives in `engine/define.ts` (data/items re-exports it). Other pattern lists (Multipack's `sweep/cone/mortar`) are local to the content file.
+- **Runtime/other readers of old constants point at the ★1 content tune:** Jelly Beans and the Heat set's ignite read `contentTune('fuel'|'ice'|'popper', 1)` (full strength, scaled by their own factor); `ArenaScene` `ECHO_DELAY` and `weapons.ts` `MULTIPACK_REPEAT_DELAY` are module-level consts from `contentTune(..., 1)`. Phase 4 moves them into the hooks. `CRIT.mult` stays (it is the global crit multiplier, not Price Gun's).
+- **Tests that read old constants must move too:** `tests/rules.test.ts` (battery) and `tests/crit-items.test.ts` (pricegun) now read `contentTune`. Expect the same for passives: `crit-items` (fortune, sample), `dash-items` (bumper, sparewheel, tipjar, flag), `rules.test.ts` (lunchbox, boot, snackbag, powerstrip).
+- **Batch 2 (passives):** they are not in the module loop: their effect is player-level (`build.player`, phase `final`, always runs last, in `order`) or, for Fortune, a weapon hook in `post-combo` that must add to the crit Price Gun assigned (legacy order: after frost, before `final`). Passives have no touching concept (`c.touches` is true only for touching modules; use `c.owned`). The per-tier math is `gm(id) = TIER.mult(top(id))`, so `c.tier`/`c.tune()` at the cart-wide best tier is exactly right (Gold Star counts). Several of them round (`Math.round(BUFFS.x * gm)`, lunchbox, magnet): keep the `Math.round` in the hook, not the tune. `maxHp` is accumulated unrounded and rounded after Expired Milk, so Lunchbox/Snack Bag must add, never round the total. Check `Math.min` caps (tipjar 1, coupon 0.9) against Gold Star.
+- **Batch 3:** Power Strip touches both ways (`nearTypes.has` for adjacent vs cart-wide) and multiplies *after* Battery's cooldown; Jelly Beans must `max()` against what `module` already set and now reads `contentTune` of fuel/ice/popper (already repointed); Sourdough and Jelly Beans loop `c.touching(w)` per instance; Gold Star's `eff` still lives in `computeBuild` (not a hook).
+
 ## 8. Risks
 
 - **Order changes silently alter numbers.** Mitigation: the named phases mirror §D exactly, and the golden snapshots catch any drift.

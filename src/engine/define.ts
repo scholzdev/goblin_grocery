@@ -57,6 +57,9 @@ export const cells = (...rows: string[]): Cell[] => rows.flatMap((r, y) => [...r
  * Weapon hooks (`weapon`) run once per weapon at the phase's position. `module` is special: it runs inside the BUFF_ORDER loop,
  * per touching buff, with the highest effective tier of that buff. Player hooks (`player`) always run at the very end.
  */
+/** Weapon patterns that fire projectiles (Desk Fan speed, Duct Tape pierce, Multipack extra shots). Re-exported by data/items. */
+export const PROJECTILE_PATTERNS: ReadonlySet<string> = new Set(['toast', 'burst', 'ricochet']);
+
 export type BuildPhase = 'base' | 'module' | 'flavor' | 'global-mod' | 'set' | 'combo' | 'post-combo' | 'final';
 export const BUILD_PHASES: readonly BuildPhase[] = ['base', 'module', 'flavor', 'global-mod', 'set', 'combo', 'post-combo', 'final'];
 
@@ -150,6 +153,8 @@ export interface ItemContent<T extends Tune = Tune> extends RuntimeHooks {
   /** Shop scaling rows. Default: one row per array-valued tune key, labelled with the key. */
   rows?: readonly RowSpec<T>[];
   build?: BuildSpec<T>;
+  /** More hooks for other phases when one item needs two (Multipack: `module` damage + `post-combo` count). Never `module`. */
+  extraBuild?: readonly BuildSpec<T>[];
   shopBias?: readonly DepartmentId[];
   enhancedBy?: EnhancedBy;
   starterGuarantee?: readonly StarterWeapon[];

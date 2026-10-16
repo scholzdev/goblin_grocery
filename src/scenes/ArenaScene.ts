@@ -5,7 +5,8 @@ import { flow } from '../flow';
 import { waveDef, eliteChance, bossTuning, ECONOMY, SHIFTS, WAVE_RAMP } from '../data/waves';
 import { SHOW_HP_BAR, EGG_BLAST, MELON_SLICES, ELITE, GIFTCARD, GUM, THEME_SUMMONS, ELITE_EXCLUDED, AFFIX, MINI_BOSS, bossFor, isBossId, type BossMove } from '../data/enemies';
 import { GumPuddles } from './gum';
-import { BUFFS, CRIT, ECHO, ITEMS, PLAYER, STARTER_LOOKS, TINFOIL } from '../data/items';
+import { BUFFS, CRIT, ITEMS, PLAYER, STARTER_LOOKS, TINFOIL } from '../data/items';
+import { contentTune } from '../engine/registry';
 import { SETS, setCfg } from '../data/sets';
 import { RECIPE_TUNING } from '../data/recipes';
 import { addCoins, damagePlayer, takeStockroomItem } from '../state/run';
@@ -44,6 +45,9 @@ import { padMove, takePadShove } from '../input/gamepad';
 import { ARENA, ENTRIES, SIDE_UNITS, DECO_SPOTS, edgeSolids } from '../data/arena';
 import { labDummies, type LabDummy } from '../lab';
 export { ARENA };
+
+/** Double Bag: delay of the second strike (s). Flat across tiers, so the ★1 tune is the value. Phase 4 moves this into the item's hook. */
+const ECHO_DELAY = contentTune('doublebag', 1).delay;
 
 interface Player {
   x: number; y: number; radius: number; facing: 1 | -1;
@@ -644,7 +648,7 @@ export class ArenaScene extends Phaser.Scene {
     }
     // Double Bag: one delayed second strike per direct hit (echoes never echo).
     if (stats && stats.echo > 0 && !o.isDot && !o.echo && !o.fromPopper && !o.chained) {
-      this.time.delayedCall(ECHO.delay * 1000, () => {
+      this.time.delayedCall(ECHO_DELAY * 1000, () => {
         if (!e.alive || !this.combatActive()) return;
         this.fx.popImage('fx_echo', e.x + Phaser.Math.Between(-12, 12), e.y - 40, 0.6);
         this.damageEnemy(e, baseDmg * stats.echo, stats, { echo: true, quiet: o.quiet });

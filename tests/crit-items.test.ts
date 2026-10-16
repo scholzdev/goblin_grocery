@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { computeBuild } from '../src/systems/synergies';
 import { BUFFS } from '../src/data/items';
+import { contentTune } from '../src/engine/registry';
 import type { Inventory, ItemTypeId } from '../src/types';
 
 const inv = (items: [ItemTypeId, number, number, number?][]): Inventory => ({
@@ -13,7 +14,7 @@ describe('Fortune Cookie / Free Sample', () => {
     const far = computeBuild(inv([['toaster', 0, 0], ['fortune', 3, 3]]));
     expect(far.weapons[0].critChance).toBeCloseTo(BUFFS.fortuneCrit);
     const both = computeBuild(inv([['toaster', 0, 0], ['pricegun', 0, 1], ['fortune', 3, 3]]));
-    expect(both.weapons[0].critChance).toBeCloseTo(BUFFS.pricegun.critChance + BUFFS.fortuneCrit);
+    expect(both.weapons[0].critChance).toBeCloseTo(contentTune('pricegun', 1).crit + BUFFS.fortuneCrit);
     expect(computeBuild(inv([['toaster', 0, 0], ['fortune', 3, 3, 3]])).weapons[0].critChance).toBeCloseTo(BUFFS.fortuneCrit * 2);
   });
 
