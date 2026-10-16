@@ -1,9 +1,12 @@
 import { applyBurn, applyPoison, applySlow, newStatus } from '../systems/combat';
 import { combatRng, type Rng } from '../systems/rng';
 import { CRIT, PLAYER } from '../data/items';
+import { t, type UIKey } from '../i18n';
 import type { Build, BurnEffect, SlowEffect, WeaponStats } from '../types';
 import { FX_METHODS, type AisleView, type CombatEnemy, type CombatShot, type FxApi, type PlayerView, type PoolSpec, type RuntimeCtx, type ShotSpec } from './ctx';
 import { EMPTY_HOOKS, type HitEvent, type HitOpts, type HookTable } from './hooks';
+import { applyHitStatuses, scheduleEcho } from './onHitStatuses';
+import { applyKillEffects } from './onKillEffects';
 
 // `RuntimeCtx` for tests (docs/item-hooks-refactor.md §5/§6): a deterministic clock and rng, an in-memory enemy list, and a log of
 // every effect a hook asked for. No Phaser, no timers: delayed callbacks and tweens run when the test calls `advance(s)`.
@@ -246,6 +249,8 @@ export class FakeCtx implements RuntimeCtx {
   dropCoin(pos: { x: number; y: number }, label: string): void { this.log({ kind: 'dropCoin', x: pos.x, y: pos.y, label }); }
   addCoins(n: number, label: string): void { this.log({ kind: 'addCoins', n, label }); this.run.money += n; }
 
+  /** The real strings (current language), so a test sees the label the player would. */
+  t(key: UIKey, vars?: Record<string, string | number>): string { return t(key, vars); }
   sound(name: string, opts?: { rate?: number; volume?: number }): void { this.log({ kind: 'sound', name, opts }); }
   /** Recorded; the end values are applied to the target when the clock reaches `ms`. */
   tween(target: object, props: Record<string, number>, ms: number): void {
@@ -262,24 +267,31 @@ export class FakeCtx implements RuntimeCtx {
   private log(c: { kind: CallKind } & Record<string, unknown>): void { this.calls.push({ at: this.time, ...c } as Call); }
   private later(seconds: number, fn: () => void): void { this.queue.push({ due: this.time + seconds, seq: this.seq++, fn }); }
 
-  /** The hook-visible part of `ArenaScene.damageEnemy` (see the pipeline comment there): modifyDamage, crit roll, onCrit, hp, onHit, kill. */
+  /**
+   * The combat-rng part of `ArenaScene.damageEnemy` (see the pipeline comment there): modifyDamage, crit roll, onCrit, hp, onHit, the
+   * stats-driven statuses (burn, ignite, slow, Frost L2), echo, and on a lethal hit onKill + the popper blast. Not simulated: Five-Alarm /
+   * mark multipliers, armor, knockback, the Electric chain, the Kitchen / Blast-set kill rolls.
+   */
   private runHit(e: CombatEnemy, dmg: number, stats: WeaponStats | null, o: HitOpts): void {
     if (!e.alive) return;
     const H = this.hooks, now = this.time;
     const key = o.poison ? 'poison' : o.isDot ? 'burn' : stats?.uid ?? o.label ?? 'shove';
-    const hit: HitEvent | null = H.hit ? { enemy: e, base: dmg, dmg, stats, opts: o, source: key, now, direct: !o.isDot && !o.echo && !o.fromPopper && !o.chained, crit: false, armored: false, killed: false } : null;
-    if (hit) { H.emit('modifyDamage', hit); dmg = hit.dmg; }
+    const hit: HitEvent = { enemy: e, base: dmg, dmg, stats, opts: o, source: key, now, direct: !o.isDot && !o.echo && !o.fromPopper && !o.chained, crit: false, armored: false, killed: false };
+    H.emit('modifyDamage', hit); dmg = hit.dmg;
     if (!o.isDot && stats && stats.critChance > 0 && this.rand() < stats.critChance) {
       dmg *= CRIT.mult;
-      if (hit) { hit.crit = true; hit.dmg = dmg; H.emit('onCrit', hit); dmg = hit.dmg; }
+      hit.crit = true; hit.dmg = dmg; H.emit('onCrit', hit); dmg = hit.dmg;
     }
-    if (hit) hit.dmg = dmg;
+    hit.dmg = dmg;
     e.hp -= dmg;
-    if (hit) { hit.killed = e.hp <= 0; H.emit('onHit', hit); }
+    hit.killed = e.hp <= 0; H.emit('onHit', hit);
+    applyHitStatuses(hit, this);
+    scheduleEcho(hit, this);
     if (e.hp <= 0) {
       e.alive = false;
       e.state = 'dying';
-      if (H.onKill.length) H.emit('onKill', { enemy: e, hit });
+      H.emit('onKill', { enemy: e, hit });
+      applyKillEffects(hit, this);
     }
   }
 }

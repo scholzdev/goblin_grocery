@@ -1,4 +1,6 @@
 import { ITEMS } from '../../src/data/items';
+import { FakeCtx, type FakeOptions } from '../../src/engine/fakeCtx';
+import { buildHooks } from '../../src/engine/hooks';
 import { computeBuild } from '../../src/systems/synergies';
 import type { ItemTypeId, WeaponStats } from '../../src/types';
 import type { Perk } from '../../src/types';
@@ -30,3 +32,13 @@ export const full = (specs: Spec[], perk: Perk = {}) => computeBuild(build(specs
 export const far = (type: ItemTypeId, tier?: number): Spec => at(type, tier, { near: [], apart: [0] });
 /** Same, at a fixed corner (6,4) so a Gold Star can be placed against it without touching the weapon. */
 export const corner = (type: ItemTypeId, tier?: number): Spec => at(type, tier, { near: [], apart: [0], at: [6, 4] });
+
+// Runtime tests: a FakeCtx wired to the compiled hooks of a real cart.
+
+/** The cart's real build and the FakeCtx running its hooks (`fake.hit(enemy, dmg, stats)` is "the weapon hit"). `stats` = the first weapon's. */
+export function arena(specs: Spec[], opts: FakeOptions = {}, perk: Perk = {}, cols = 8, rows = 6) {
+  const inv = build(specs, cols, rows), b = computeBuild(inv, perk);
+  const fake = new FakeCtx({ build: b, ...opts });
+  fake.attach(buildHooks(inv, b.recipes, b.sets, fake));
+  return { fake, b, inv, stats: b.weapons[0] };
+}

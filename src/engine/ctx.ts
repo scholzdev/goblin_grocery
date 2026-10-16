@@ -1,5 +1,6 @@
 import type { BurnEffect, Build, SlowEffect, WeaponStats } from '../types';
 import type { StatusFx } from '../systems/combat';
+import type { UIKey } from '../i18n';
 import type { HitOpts } from './hooks';
 
 // The narrow runtime API runtime hooks get (docs/item-hooks-refactor.md §5). Hooks never touch the scene: everything they may
@@ -142,6 +143,8 @@ export interface RuntimeCtx {
   addCoins(n: number, label: string): void;
 
   // ---- presentation (no-ops with `FakeCtx`, but recorded)
+  /** A UI string in the current language: coin labels (`coinCoupon`, ...). Content files carry no i18n imports, so they ask the ctx. */
+  t(key: UIKey, vars?: Record<string, string | number>): string;
   readonly fx: FxApi;
   sound(name: string, opts?: { rate?: number; volume?: number }): void;
   tween(target: object, props: Record<string, number>, ms: number): void;

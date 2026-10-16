@@ -3,6 +3,7 @@ import { applyBurn, applySlow, applyPoison } from '../systems/combat';
 import { addCoins } from '../state/run';
 import { store } from '../state/store';
 import { play } from '../audio/sfx';
+import { t, type UIKey } from '../i18n';
 import type { CombatEnemy, CombatShot, PoolSpec, PlayerView, RuntimeCtx, ShotSpec } from '../engine/ctx';
 import type { HitOpts } from '../engine/hooks';
 import type { ArenaScene } from './ArenaScene';
@@ -71,6 +72,7 @@ export class PhaserCtx implements RuntimeCtx {
   addCoins(n: number, label: string): void { addCoins(store.state, n, label); }
 
   get fx() { return this.sc.fx; }
+  t(key: UIKey, vars?: Record<string, string | number>): string { return t(key, vars); }
   sound(name: string, opts?: { rate?: number; volume?: number }): void { play(name as AudioName, opts); }
   tween(target: object, props: Record<string, number>, ms: number): void { this.sc.tweens.add({ targets: target, ...props, duration: ms }); }
   delay(seconds: number, fn: () => void): void { this.sc.time.delayedCall(seconds * 1000, fn); }

@@ -6,11 +6,10 @@ import { waveDef, eliteChance, bossTuning, ECONOMY, SHIFTS, WAVE_RAMP } from '..
 import { SHOW_HP_BAR, EGG_BLAST, MELON_SLICES, ELITE, GIFTCARD, GUM, THEME_SUMMONS, ELITE_EXCLUDED, AFFIX, MINI_BOSS, bossFor, isBossId, type BossMove } from '../data/enemies';
 import { GumPuddles } from './gum';
 import { BUFFS, CRIT, ITEMS, PLAYER, STARTER_LOOKS, TINFOIL } from '../data/items';
-import { contentTune } from '../engine/registry';
 import { SETS, setCfg } from '../data/sets';
 import { RECIPE_TUNING } from '../data/recipes';
 import { addCoins, damagePlayer, takeStockroomItem } from '../state/run';
-import { applyBurn, applySlow, armorDamage, newHitTracker, pickRicochetTarget, tryHit, type HitTracker } from '../systems/combat';
+import { armorDamage, newHitTracker, pickRicochetTarget, tryHit, type HitTracker } from '../systems/combat';
 import type { EnemyId, ShopOffer, WaveDef, WeaponStats } from '../types';
 import { play, setWheel } from '../audio/sfx';
 import { musicFor, playMusic } from '../audio/music';
@@ -19,6 +18,8 @@ import { hud, showBanner } from '../ui/hud';
 import { Fx, DEPTH } from './fx';
 import { combatRng, type Rng } from '../systems/rng';
 import { EMPTY_HOOKS, buildHooks, type HitEvent, type HitOpts, type HookTable } from '../engine/hooks';
+import { applyHitStatuses, scheduleEcho } from '../engine/onHitStatuses';
+import { applyKillEffects } from '../engine/onKillEffects';
 import { PhaserCtx } from './phaserCtx';
 import { createEnemy, drawTelegraph, updateEnemy, type Enemy } from './enemies';
 import { Arsenal } from './weapons';
@@ -48,9 +49,6 @@ import { padMove, takePadShove } from '../input/gamepad';
 import { ARENA, ENTRIES, SIDE_UNITS, DECO_SPOTS, edgeSolids } from '../data/arena';
 import { labDummies, type LabDummy } from '../lab';
 export { ARENA };
-
-/** Double Bag: delay of the second strike (s). Flat across tiers, so the ★1 tune is the value. Phase 4 moves this into the item's hook. */
-const ECHO_DELAY = contentTune('doublebag', 1).delay;
 
 interface Player {
   x: number; y: number; radius: number; facing: 1 | -1;
@@ -107,8 +105,6 @@ export class ArenaScene extends Phaser.Scene {
   bossPush = { v: 0, t: 0 };
   private miniDue = false;
   /** Free Sample heal budget: HP healed by crits in the current second. */
-  private critHealSec = -1;
-  private critHealed = 0;
   private coinStreak = 0;
   private coinStreakT = 0;
   gum!: GumPuddles;
@@ -132,8 +128,6 @@ export class ArenaScene extends Phaser.Scene {
     this.enraged = false;
     this.ending = '';
     this.boss = null;
-    this.critHealSec = -1;
-    this.critHealed = 0;
     this.mini = null;
     this.bossPush.t = 0;
     this.miniDue = false;
@@ -619,14 +613,16 @@ export class ArenaScene extends Phaser.Scene {
     // DAMAGE PIPELINE, in this order (runtime hooks slot into it, docs/item-hooks-refactor.md §4c):
     //   1. modifyDamage hooks   pre-crit, pre-armor: multiply hit.dmg. Five-Alarm and the mark move here.
     //   2. legacy x Five-Alarm (burning toast)      3. legacy x mark (Price Check / Sale Flag)
-    //   4. crit roll (combat rng): dmg x CRIT.mult, then onCrit hooks, then legacy clearance coin + Free Sample heal
+    //   4. crit roll (combat rng): dmg x CRIT.mult, then onCrit hooks (Free Sample), then legacy clearance coin
     //   5. armor (direct hits only)                 6. hp -= dmg, damageByWeapon
-    //   7. onHit hooks, then legacy statuses: burn, ignite, slow, frost stun, knockback, flash/number fx, echo, electric chain
-    //   8. kill: killEnemy (loot) -> onKill hooks -> legacy: Bag It, kitchen heal, blast pop, Party Popper
+    //   7. onHit hooks, then applyHitStatuses (engine/onHitStatuses: burn, ignite, slow, frost freeze), knockback, flash/number fx,
+    //      scheduleEcho (Double Bag), legacy electric chain
+    //   8. kill: killEnemy (coins; onKill hooks fire inside it, after the bread drop) -> legacy: Bag It, kitchen heal, blast pop ->
+    //      applyKillEffects (engine/onKillEffects: Party Popper)
     // A hook runs before the legacy lines of its slot; moving legacy lines into hooks top to bottom keeps today's order.
-    // The payload exists only while a hit hook is registered; with none, nothing here allocates.
-    const hit: HitEvent | null = H.hit ? { enemy: e, base: dmg, dmg, stats, opts: o, source: key, now, direct: !o.isDot && !o.echo && !o.fromPopper && !o.chained, crit: false, armored: false, killed: false } : null;
-    if (hit) { H.emit('modifyDamage', hit); dmg = hit.dmg; }
+    // The payload is one small object per hit; the engine modules (statuses, echo, kill effects) read it, the emits are guarded by `H.hit`.
+    const hit: HitEvent = { enemy: e, base: dmg, dmg, stats, opts: o, source: key, now, direct: !o.isDot && !o.echo && !o.fromPopper && !o.chained, crit: false, armored: false, killed: false };
+    if (H.hit) { H.emit('modifyDamage', hit); dmg = hit.dmg; }
     // Five-Alarm Toast: toast scorches enemies that are already burning.
     if (stats?.recipes.includes('fiveAlarm') && stats.pattern === 'toast' && e.status.burnUntil > now) dmg *= RECIPE_TUNING.fiveAlarm.vsBurning;
     // Price Check mark: +30% from every source while marked.
@@ -637,15 +633,9 @@ export class ArenaScene extends Phaser.Scene {
       dmg *= CRIT.mult;
       this.fx.popImage('fx_crit', e.x + Phaser.Math.Between(-10, 10), e.y - e.sprite.displayHeight - 6, 0.8);
       play('crit');
-      if (hit) { hit.crit = true; hit.dmg = dmg; H.emit('onCrit', hit); dmg = hit.dmg; }
+      hit.crit = true; hit.dmg = dmg;
+      if (H.hit) { H.emit('onCrit', hit); dmg = hit.dmg; }
       if (stats!.critCoin && !e.critCoinDropped) { e.critCoinDropped = true; this.dropCoin(e.x, e.y, t('coinClearance')); }
-      // Free Sample: crits heal, capped per (whole) second so fast area weapons can't out-heal everything.
-      if (s.build.critHeal > 0 && !this.player.dead) {
-        const sec = Math.floor(now);
-        if (sec !== this.critHealSec) { this.critHealSec = sec; this.critHealed = 0; }
-        const h = Math.min(s.build.critHeal, BUFFS.sampleHealCap - this.critHealed, s.build.maxHp - s.hp);
-        if (h > 0) { s.hp += h; this.critHealed += h; this.fx.spark(this.player.x, this.player.y - 46, 2, 0x8fcb57); store.changed(); }
-      }
     }
     // Armor (Canned Beans): direct hits only; burn, puddles, auras and pulses (isDot/quiet) pass through.
     let armored = false;
@@ -654,16 +644,13 @@ export class ArenaScene extends Phaser.Scene {
       armored = soaked < dmg * 0.5;
       dmg = soaked;
     }
-    if (hit) { hit.dmg = dmg; hit.armored = armored; }
+    hit.dmg = dmg; hit.armored = armored;
     e.hp -= dmg;
     if (!o.isDot) e.lastHitT = now;
     s.stats.damageByWeapon[key] = (s.stats.damageByWeapon[key] ?? 0) + dmg;
-    if (hit) { hit.killed = e.hp <= 0; H.emit('onHit', hit); }
-    if (stats?.burn) applyBurn(e.status, this.aisleEvent.burn(stats.burn), now);
-    if (!o.isDot && stats?.ignite && !stats.burn && this.rng() < stats.ignite.chance) { applyBurn(e.status, this.aisleEvent.burn(stats.ignite.burn), now); this.igniteFx(e); } // Heat L2
-    if (stats?.slow) applySlow(e.status, stats.slow, now);
-    // Frost L2: direct hits on well-slowed enemies sometimes freeze them briefly (not aura/puddle ticks, see SETS).
-    if (!o.isDot && stats && stats.pattern !== 'aura' && stats.pattern !== 'puddle' && sets.frost >= 2 && e.status.slowUntil > now && e.status.slowPct >= SETS.frost.stunMinSlow && this.rng() < setCfg('frost', sets.frost).stunChance) { this.stunEnemy(e, setCfg('frost', sets.frost).stun); this.freezeFx(e); }
+    hit.killed = e.hp <= 0;
+    if (H.hit) H.emit('onHit', hit);
+    applyHitStatuses(hit, this.ctx); // burn, Heat L2 ignite, slow, Frost L2 freeze (stats-driven, shared by every source)
     if (o.kb) {
       const k = o.kb * (1 - e.def.knockbackResist) * (this.hazards.onIce(e.x, e.y) ? DEPT_TUNING.ice.knockbackMult : 1) * (stats && sets.cleaning >= 2 && ITEMS[stats.type].family === 'cleaning' ? setCfg('cleaning', sets.cleaning).knockbackMult : 1);
       e.kx += (o.kbX ?? 0) * k * 3; e.ky += (o.kbY ?? 0) * k * 3;
@@ -686,14 +673,7 @@ export class ArenaScene extends Phaser.Scene {
       e.lastHitNumberAt = now;
       this.fx.number(e.x, e.y - e.sprite.displayHeight * 0.9, dmg, crit ? '#F45F52' : o.poison ? '#8FCB57' : o.isDot ? '#F5BD45' : '#FFF2D5', crit ? 28 : o.isDot ? 16 : 22);
     }
-    // Double Bag: one delayed second strike per direct hit (echoes never echo).
-    if (stats && stats.echo > 0 && !o.isDot && !o.echo && !o.fromPopper && !o.chained) {
-      this.time.delayedCall(ECHO_DELAY * 1000, () => {
-        if (!e.alive || !this.combatActive()) return;
-        this.fx.popImage('fx_echo', e.x + Phaser.Math.Between(-12, 12), e.y - 40, 0.6);
-        this.damageEnemy(e, baseDmg * stats.echo, stats, { echo: true, quiet: o.quiet });
-      });
-    }
+    scheduleEcho(hit, this.ctx); // Double Bag (stats.echo): one delayed second strike per direct hit
     // Electric set: direct hits may arc to nearby enemies (not aura/puddle ticks; chained hits never chain or echo again).
     if (stats && stats.chainChance > 0 && !o.isDot && stats.pattern !== 'aura' && stats.pattern !== 'puddle' && !o.chained && this.rng() < stats.chainChance) {
       const seen = new Set([e.id]);
@@ -721,8 +701,7 @@ export class ArenaScene extends Phaser.Scene {
         store.changed();
       }
       if (stats && sets.blast >= 2 && !o.fromPopper && this.rng() < setCfg('blast', sets.blast).killChance) this.popperBlast(e.x, e.y, { damage: setCfg('blast', sets.blast).damage, radius: setCfg('blast', sets.blast).radius }, true);
-      // Party Popper: kills explode; popper kills never pop again.
-      if (stats?.popper && !o.fromPopper) this.popperBlast(e.x, e.y, stats.popper);
+      applyKillEffects(hit, this.ctx); // Party Popper (stats.popper): kills explode; popper kills never pop again
     }
   }
 
@@ -749,19 +728,6 @@ export class ArenaScene extends Phaser.Scene {
     for (const [w, c] of [[3, 0xf5e26b], [1, 0xffffff]] as const) g.lineStyle(w, c, 1).strokePoints(path as Phaser.Types.Math.Vector2Like[] as Phaser.Math.Vector2[]);
     this.tweens.add({ targets: g, alpha: 0, duration: 140, onComplete: () => g.destroy() });
     play('zap', { rate: 1.4, volume: 0.5 });
-  }
-
-  /** Frost L2: marks the enemy frozen (ice block drawn by updateEnemy). */
-  private freezeFx(e: Enemy): void {
-    if (!e.alive || e.def.behavior === 'boss') return;
-    e.frozenT = setCfg('frost', store.state.build.sets.frost).stun;
-    play('frost', { rate: 1.3, volume: 0.5 });
-  }
-
-  /** Heat L2: ignite roll succeeded. */
-  private igniteFx(e: Enemy): void {
-    for (let i = 0; i < 3; i++) this.fx.flame(e.x + Phaser.Math.Between(-14, 14), e.y - 20 - i * 10);
-    this.fx.ring('fx_pulse', e.x, e.y, 60, 200, 0xff7a3d);
   }
 
   popperBlast(x: number, y: number, pop: { damage: number; radius: number }, setPop = false): void {
@@ -827,7 +793,8 @@ export class ArenaScene extends Phaser.Scene {
       this.breadDropped += B.heal;
       this.dropCoin(e.x, e.y, '', true);
     }
-    if (s.build.coinChance > 0 && this.rng() < s.build.coinChance) this.dropCoin(e.x, e.y, t('coinCoupon'));
+    // onKill hooks (Coupon Book ...): after the regular coins and bread, before the Pickpocket loot, so a hook that rolls keeps its rng draw position.
+    if (this.hooks.onKill.length) this.hooks.emit('onKill', { enemy: e, hit });
     // Pickpocket Elites cough up everything they absorbed.
     for (let i = 0; i < e.loot; i++) this.dropCoin(e.x, e.y, t('coinStolen'));
     // Splitter Elites leave two small non-elite copies.
@@ -850,7 +817,6 @@ export class ArenaScene extends Phaser.Scene {
     }
     if (e === this.boss) this.bossDefeated();
     else if (e === this.mini) this.miniDefeated();
-    if (this.hooks.onKill.length) this.hooks.emit('onKill', { enemy: e, hit });
   }
 
   /** Nearest loose floor coin within `r` (Pickpocket Elites home in on it). */

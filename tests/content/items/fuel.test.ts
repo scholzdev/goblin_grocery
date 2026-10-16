@@ -6,7 +6,7 @@ import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { computeBuild, describeBuffs, tierScaling } from '../../../src/systems/synergies';
 import { cart } from '../../cart';
-import { around, at, gilded, stats } from '../helpers';
+import { arena, around, at, gilded, stats } from '../helpers';
 
 afterEach(() => setLang('en'));
 
@@ -101,3 +101,20 @@ describe('Fuel Can: content', () => {
   });
 });
 
+
+// Phase 4: Fuel Can has no runtime hook. It sets `WeaponStats.burn` (so do Jelly Beans, the Heat set and Grease Fire), and applying the
+// burn on hit is the engine's job (src/engine/onHitStatuses.ts, tested in tests/engine/onHitStatuses.test.ts). No item-id branch exists.
+describe('Fuel Can: runtime', () => {
+  it('has no runtime hooks of its own', () => {
+    expect(fuel.hooks).toBeUndefined();
+  });
+
+  it('its burn lands on a hit through the engine: dps / duration / tick of the tier, refreshing', () => {
+    for (const [tier, dps] of [[1, 2.5], [2, 3.75], [3, 5]] as const) {
+      const { fake, stats: w } = arena([at('nailgun'), at('fuel', tier)]);
+      const e = fake.spawnEnemy({ hp: 100 });
+      fake.hit(e, 3, w);
+      expect(e.status).toMatchObject({ burnDps: dps, burnUntil: 2, burnTick: 0.5 });
+    }
+  });
+});

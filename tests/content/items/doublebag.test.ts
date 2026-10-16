@@ -6,7 +6,7 @@ import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { computeBuild, describeBuffs, tierScaling } from '../../../src/systems/synergies';
 import { cart } from '../../cart';
-import { around, at, stats } from '../helpers';
+import { arena, around, at, stats } from '../helpers';
 import type { Spec } from '../../golden/carts';
 
 afterEach(() => setLang('en'));
@@ -97,5 +97,23 @@ describe('Double Bag: content', () => {
     };
     expect(line(1)).toBe('Hits repeat for 50% damage (Double Bag)');
     expect(line(3)).toBe('Hits repeat for 100% damage (Double Bag ★3)');
+  });
+});
+
+// Phase 4: Double Bag has no runtime hook. It sets `WeaponStats.echo`; the second strike is the engine's job (src/engine/onHitStatuses.ts
+// `scheduleEcho`, tested in tests/engine/onHitStatuses.test.ts). The 0.12 s delay is this file's flat tune, read by the engine.
+describe('Double Bag: runtime', () => {
+  it('has no runtime hooks of its own', () => {
+    expect(doublebag.hooks).toBeUndefined();
+  });
+
+  it('its second strike lands through the engine after the tune\'s delay, for the tier\'s share', () => {
+    for (const [tier, share] of [[1, 0.5], [2, 0.75], [3, 1]] as const) {
+      const { fake, stats: w } = arena([at('nailgun'), at('doublebag', tier)]);
+      const e = fake.spawnEnemy({ hp: 100 });
+      fake.hit(e, 10, w);
+      fake.advance(contentTune('doublebag', 1).delay);
+      expect(e.hp).toBe(100 - 10 - 10 * share);
+    }
   });
 });

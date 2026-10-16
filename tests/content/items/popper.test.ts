@@ -6,7 +6,7 @@ import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { computeBuild, describeBuffs, tierScaling } from '../../../src/systems/synergies';
 import { cart } from '../../cart';
-import { around, at, gilded, stats } from '../helpers';
+import { arena, around, at, gilded, stats } from '../helpers';
 
 afterEach(() => setLang('en'));
 
@@ -93,5 +93,21 @@ describe('Party Popper: content', () => {
     };
     expect(line(1)).toBe('Kills explode: 6 dmg, 70 radius (Party Popper)');
     expect(line(3)).toBe('Kills explode: 12 dmg, 70 radius (Party Popper ★3)');
+  });
+});
+
+// Phase 4: Party Popper has no runtime hook. It sets `WeaponStats.popper` (so do Jelly Beans (blast) and the Blast set's radius); the blast
+// on a kill is the engine's job (src/engine/onKillEffects.ts, tested in tests/engine/onKillEffects.test.ts).
+describe('Party Popper: runtime', () => {
+  it('has no runtime hooks of its own', () => {
+    expect(popper.hooks).toBeUndefined();
+  });
+
+  it('its blast fires on a kill through the engine, for the tier\'s damage', () => {
+    for (const [tier, damage] of [[1, 6], [2, 9], [3, 12]] as const) {
+      const { fake, stats: w } = arena([at('nailgun'), at('popper', tier)]);
+      fake.hit(fake.spawnEnemy({ hp: 1, x: 5, y: 5 }), 3, w);
+      expect(fake.callsOf('popperBlast')).toMatchObject([{ x: 5, y: 5, damage }]);
+    }
   });
 });

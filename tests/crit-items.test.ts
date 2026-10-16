@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { computeBuild } from '../src/systems/synergies';
-import { BUFFS } from '../src/data/items';
 import { contentTune } from '../src/engine/registry';
 import type { Inventory, ItemTypeId } from '../src/types';
 
@@ -26,7 +25,7 @@ describe('Fortune Cookie / Free Sample', () => {
 
   it('free sample sets the heal per crit and scales with tier', () => {
     expect(computeBuild(inv([['toaster', 0, 0]])).critHeal).toBe(0);
-    expect(computeBuild(inv([['toaster', 0, 0], ['sample', 3, 3]])).critHeal).toBe(BUFFS.sampleHeal);
-    expect(computeBuild(inv([['toaster', 0, 0], ['sample', 3, 3, 3]])).critHeal).toBe(BUFFS.sampleHeal * 2);
+    expect(computeBuild(inv([['toaster', 0, 0], ['sample', 3, 3]])).critHeal).toBe(contentTune('sample', 1).heal);
+    expect(computeBuild(inv([['toaster', 0, 0], ['sample', 3, 3, 3]])).critHeal).toBe(contentTune('sample', 1).heal * 2);
   });
 });

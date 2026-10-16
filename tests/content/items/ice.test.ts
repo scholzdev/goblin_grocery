@@ -7,7 +7,7 @@ import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { computeBuild, describeBuffs, tierScaling } from '../../../src/systems/synergies';
 import { cart } from '../../cart';
-import { around, at, stats } from '../helpers';
+import { arena, around, at, stats } from '../helpers';
 import { build, type Spec } from '../../golden/carts';
 
 afterEach(() => setLang('en'));
@@ -107,5 +107,22 @@ describe('Ice Pack: content', () => {
     expect(line(3)).toBe('Slow 50% for 1s (Ice Pack ★3)');
     const inv = build([at('pan'), at('ice', 3), { type: 'goldstar', near: [1] }]);
     expect(describeBuffs(computeBuild(inv).weapons[0], inv)[0]).toBe('Slow 60% for 1s (Ice Pack ★4)'); // Gold Star: capped
+  });
+});
+
+// Phase 4: Ice Pack has no runtime hook. It sets `WeaponStats.slow` (so do Jelly Beans, Cold Storage, Brain Freeze and the Frost set);
+// applying the slow on hit is the engine's job (src/engine/onHitStatuses.ts, tested in tests/engine/onHitStatuses.test.ts).
+describe('Ice Pack: runtime', () => {
+  it('has no runtime hooks of its own', () => {
+    expect(ice.hooks).toBeUndefined();
+  });
+
+  it('its slow lands on a hit through the engine: the tier\'s pct for 1 s, refreshing', () => {
+    for (const [tier, pct] of [[1, 0.25], [2, 0.375], [3, 0.5]] as const) {
+      const { fake, stats: w } = arena([at('nailgun'), at('ice', tier)]);
+      const e = fake.spawnEnemy({ hp: 100 });
+      fake.hit(e, 3, w);
+      expect(e.status).toMatchObject({ slowPct: pct, slowUntil: 1 });
+    }
   });
 });

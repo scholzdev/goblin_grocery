@@ -90,20 +90,10 @@ const LEGACY_ITEMS: Partial<Record<ItemTypeId, ItemDef>> = {
     rules: 'Every {1} drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip: 25% slow and {0} damage every 0.5 s.',
     weapon: weapon({ pattern: 'puddle', damage: 3, cooldown: 1.6, range: 60, tick: 0.5, duration: 3 }),
   },
-  coupon: {
-    id: 'coupon', family: 'checkout', name: 'Coupon Book', kind: 'passive', cells: rect(1, 1), price: 8, electrical: false,
-    blurb: 'Extra savings on every kill.',
-    rules: 'Kills have a {0} chance to drop +1 coin (does not stack). Combo: Clearance Sale with Fizz Cannon + Price Gun.',
-  },
   bubblewrap: {
     id: 'bubblewrap', family: 'checkout', name: 'Bubble Wrap', kind: 'passive', cells: rect(3, 1), price: 10, electrical: false,
     blurb: 'Pop-proof padding for your cart.',
     rules: 'Take {0} less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack).',
-  },
-  sample: {
-    id: 'sample', family: 'kitchen', name: 'Free Sample', kind: 'passive', cells: rect(1, 1), price: 10, electrical: false,
-    blurb: 'Just a taste. Every crit is a snack.',
-    rules: 'Every crit heals {0} HP, at most 2 HP per second (does not stack). Needs a crit source like the Price Gun or Fortune Cookie.',
   },
   expiredmilk: {
     id: 'expiredmilk', family: 'snacks', name: 'Expired Milk', kind: 'passive', cells: rect(1, 2), price: 7, electrical: false,
@@ -214,11 +204,8 @@ export const BUFFS = {
   wheelWindow: 1.0,   // seconds (x tier mult)
   tipChance: 0.4,     // per enemy hit by the dash (x tier mult, max 1)
   flagMark: 2,        // seconds (x tier mult)
-  couponChance: 0.3,
   bubbleArmor: 1,
   bubbleInvuln: 0.25,
-  sampleHeal: 1,     // HP per crit
-  sampleHealCap: 2,  // HP per second at most
 };
 
 /** Expired Milk curse: toxic aura around the cart (dps scales with tier), and a multiplicative max HP penalty. */
