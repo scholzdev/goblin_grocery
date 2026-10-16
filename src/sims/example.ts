@@ -17,6 +17,7 @@ export default defineSim({
   waves: false, //        false: dummy sandbox, `enemies` below are the dummies. true: a real aisle run (see wave3 / boss). Default false
   start: 'arena', //      'arena' = straight into the fight, 'shop' = open in the cart editor first. Default 'arena'
   god: true, //           no damage taken. Default true
+  // hp: 5, //            HP at the start, capped at the build's max HP (use with god: false). Default: full HP
   money: 500, //          Default 999
   seed: 7, //             fixed seed: same shop offers, rolls and spawn spots every start. Default 1
   cartSize: [6, 4], //    [cols, rows]. Default [7, 5]

@@ -41,6 +41,8 @@ describe('validateSim', () => {
     expect(validateSim(base({ cart: [{ id: 'toaster', tier: 4 as 3 }] })).join()).toMatch(/tier 4/);
     expect(validateSim(base({ cart: [{ id: 'goldstar', tier: 2 }] })).join()).toMatch(/legendary/);
     expect(validateSim(base({ aisle: 16 })).join()).toMatch(/aisle 16/);
+    for (const hp of [0, -3, 2.5]) expect(validateSim(base({ hp })).join()).toMatch(/hp/);
+    expect(validateSim(base({ hp: 1 }))).toEqual([]);
     expect(validateSim(base({ doorMod: 'zzz' as never })).join()).toMatch(/doorMod/);
     expect(validateSim(base({ event: 'zzz' as never })).join()).toMatch(/event/);
     expect(validateSim(base({ department: 'boss' as never })).join()).toMatch(/department/);
@@ -136,6 +138,15 @@ describe('createSimRun', () => {
     expect(s.inventory.placed.find((i) => i.type === 'jellybeans')!.flavor).toBe('frost');
     expect(createSimRun(base({ god: false })).labGod).toBe(false);
   });
+  it('starts at `hp`, capped at the build max HP, and keeps it through the shop and the aisle start', () => {
+    const full = createSimRun(base());
+    expect(full.hp).toBe(full.build.maxHp);
+    const low = createSimRun(base({ hp: 3 }));
+    expect(low.hp).toBe(3);
+    expect(createSimRun(base({ hp: 99999 })).hp).toBe(low.build.maxHp);
+    expect(createSimRun(base({ hp: 3, start: 'shop' })).hp).toBe(3);
+    expect(createSimRun(base({ hp: 3, waves: true })).hp).toBe(3);
+  });
   it('keeps Jelly Beans flavors after the shop opened', () => {
     const s = createSimRun(base({ start: 'shop', seed: 3, cart: [{ id: 'jellybeans', flavor: 'blast' }, { id: 'toaster' }] }));
     expect(s.inventory.placed.find((i) => i.type === 'jellybeans')!.flavor).toBe('blast');
@@ -188,6 +199,7 @@ describe('starter sims', () => {
     for (const id of ['snacks-defense', 'blast', 'kitchen-heat']) expect(simDummies(sim(id)).every((d) => !d.immortal)).toBe(true);
     expect(simDummies(sim('elites')).map((d) => d.affix).sort()).toEqual(['pickpocket', 'splitter', 'swift', 'tough']);
     expect(sim('snacks-defense').god).toBe(false);
+    expect(sim('kitchen-heat')).toMatchObject({ god: false, hp: 5 });
     expect(simDummies(sim('wave3'))).toEqual([]);
     expect(sim('wave3')).toMatchObject({ waves: true, aisle: 3, department: 'main' });
     expect(sim('boss')).toMatchObject({ waves: true, aisle: 8 });

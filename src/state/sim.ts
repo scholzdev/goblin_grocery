@@ -49,5 +49,6 @@ export function createSimRun(sim: SimDef, rng: Rng = mulberry32(sim.seed ?? SIM_
     if (waves) { leaveShop(s, rng); chooseDoor(s, s.doors![0]); startNextWave(s); } // shop -> door -> aisle, as a lab run does
     else { s.phase = 'combat'; s.shop = null; s.coinLog = []; }
   }
+  if (sim.hp !== undefined) s.hp = Math.min(sim.hp, s.build.maxHp); // last, so nothing above (recomputeBuild, openShop, the wave start) resets it
   return s;
 }

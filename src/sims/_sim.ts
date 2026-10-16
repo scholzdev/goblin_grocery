@@ -75,6 +75,8 @@ export interface SimDef {
   start?: 'arena' | 'shop';
   /** No damage taken. Default true. */
   god?: boolean;
+  /** Player HP when the sim starts, capped at the build's max HP. Default: full HP. */
+  hp?: number;
   /** Default 999. */
   money?: number;
   /** Run seed; fixed means the same shops, rolls and spawns every time. Default 1. */
@@ -158,6 +160,7 @@ export function validateSim(sim: SimDef, fileId?: string): string[] {
   if (sim.shift !== undefined && (!isInt(sim.shift) || sim.shift < 0 || sim.shift >= SHIFTS.length)) bad(`shift ${sim.shift} must be 0..${SHIFTS.length - 1}`);
   if (sim.start !== undefined && sim.start !== 'arena' && sim.start !== 'shop') bad(`start "${sim.start}" must be 'arena' or 'shop'`);
   if (sim.seed !== undefined && !isInt(sim.seed)) bad(`seed ${sim.seed} must be a whole number`);
+  if (sim.hp !== undefined && (!isInt(sim.hp) || sim.hp < 1)) bad(`hp ${sim.hp} must be a whole number >= 1`);
   if (sim.money !== undefined && (!isInt(sim.money) || sim.money < 0)) bad(`money ${sim.money} must be a whole number >= 0`);
   if (sim.shopLevel !== undefined && (!isInt(sim.shopLevel) || sim.shopLevel < 1 || sim.shopLevel > SHOP_LEVELS.length)) bad(`shopLevel ${sim.shopLevel} must be 1..${SHOP_LEVELS.length}`);
   const cs = sim.cartSize ?? SIM_DEFAULTS.cartSize;

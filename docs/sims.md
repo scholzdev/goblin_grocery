@@ -37,6 +37,7 @@ Only `id` and `cart` are required. `src/sims/example.ts` uses every field with c
 | `waves` | `false` | `false`: dummy sandbox, no waves, `enemies` are the dummies. `true`: a real aisle run starting at `aisle` (waves, director, boss at 8). |
 | `start` | `'arena'` | `'arena'` starts the fight, `'shop'` opens the cart editor first. |
 | `god` | `true` | No damage taken. |
+| `hp` | full HP | HP when the sim starts: a positive whole number, capped at the build's max HP. F9 applies it again. Use with `god: false`. |
 | `money` | `999` | Coins. |
 | `seed` | `1` | Run seed (shop offers, rolls, spawn spots). |
 | `cartSize` | `[7, 5]` | `[cols, rows]`. |
