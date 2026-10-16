@@ -1,7 +1,8 @@
 import { expect, test } from 'vitest';
 import { computeBuild } from '../src/systems/synergies';
 import { cart } from './cart';
-import { RECIPES, RECIPE_TUNING } from '../src/data/recipes';
+import { RECIPES } from '../src/data/recipes';
+import { contentComboTune } from '../src/engine/registry';
 import { ITEMS, PLAYER } from '../src/data/items';
 import type { ItemTypeId, RecipeId, WeaponStats } from '../src/types';
 
@@ -27,33 +28,33 @@ export function comboDps(w: WeaponStats, shoveCd: number): { single: number; cro
     case 'laser': single = per * r; crowd = per * 3 * r; break;
   }
   if (w.recipes.includes('expressCheckout')) {
-    const every = Math.max(RECIPE_TUNING.expressCheckout.icd, shoveCd);
+    const every = Math.max(contentComboTune('expressCheckout').icd, shoveCd);
     single += per / every; crowd += (per * 3) / every;
   }
   // Behaviour-only combos: rough approximations so they are not scored as zero gain.
   const has = (id: RecipeId) => w.recipes.includes(id);
   if (has('potSlam')) { const every = shoveCd; single += per / every; crowd += (per * 4) / every; } // one pot blast per dash
   if (has('fiveAlarm')) { // +60% on the ~70% of hits that land on burning enemies
-    const k = (RECIPE_TUNING.fiveAlarm.vsBurning - 1) * 0.7;
+    const k = (contentComboTune('fiveAlarm').vsBurning - 1) * 0.7;
     single += (single - burnS) * k; crowd += (crowd - burnC) * k;
   }
-  if (has('sizzlingSkillet')) { single += RECIPE_TUNING.sizzlingSkillet.dps; crowd += RECIPE_TUNING.sizzlingSkillet.dps * 3; }
-  if (has('reheat')) { single += RECIPE_TUNING.reheat.dps; crowd += RECIPE_TUNING.reheat.dps * 3; }
-  if (has('staticCling')) { single += per * RECIPE_TUNING.staticCling.damageMult * r; crowd += per * RECIPE_TUNING.staticCling.damageMult * 3 * r; }
-  if (has('confettiCannon')) { single += RECIPE_TUNING.confettiCannon.damageMult * per * w.count * r; crowd += RECIPE_TUNING.confettiCannon.damageMult * per * 2 * w.bounces * w.count * r; }
-  if (has('shrapnel')) { const x = RECIPE_TUNING.shrapnel.count * RECIPE_TUNING.shrapnel.damageMult * w.damage * 0.5 * r; single += x; crowd += x; }
+  if (has('sizzlingSkillet')) { single += contentComboTune('sizzlingSkillet').dps; crowd += contentComboTune('sizzlingSkillet').dps * 3; }
+  if (has('reheat')) { single += contentComboTune('reheat').dps; crowd += contentComboTune('reheat').dps * 3; }
+  if (has('staticCling')) { single += per * contentComboTune('staticCling').damageMult * r; crowd += per * contentComboTune('staticCling').damageMult * 3 * r; }
+  if (has('confettiCannon')) { single += contentComboTune('confettiCannon').damageMult * per * w.count * r; crowd += contentComboTune('confettiCannon').damageMult * per * 2 * w.bounces * w.count * r; }
+  if (has('shrapnel')) { const x = contentComboTune('shrapnel').count * contentComboTune('shrapnel').damageMult * w.damage * 0.5 * r; single += x; crowd += x; }
   if (has('frostbiteNails')) crowd *= 1.15; // crowd-control value
   if (has('smoothieShield')) crowd *= 1.2;  // defensive value
   if (has('blackIce')) crowd *= 1.2;        // crowd-control value
-  if (has('sourMist')) { single += RECIPE_TUNING.sourMist.dps; crowd += RECIPE_TUNING.sourMist.dps * 3; }
-  if (has('bagIt')) { const x = (RECIPE_TUNING.bagIt.dmgPerCharge * 3) / shoveCd; single += x; crowd += x * 3; } // ~3 charges per dash
-  if (has('sparksFly')) { const k = RECIPE_TUNING.sparksFly; crowd += per * (k.chainMult - 0.6) * k.chain * r + per * k.chain * k.stunChance * 0.3 * r; } // chain at 50% not 60% + stun value
-  if (has('rayGun')) { const x = per * w.count * r * RECIPE_TUNING.rayGun.splashMult * 3; crowd += x; } // splash on ~3 neighbours (no pierce)
+  if (has('sourMist')) { single += contentComboTune('sourMist').dps; crowd += contentComboTune('sourMist').dps * 3; }
+  if (has('bagIt')) { const x = (contentComboTune('bagIt').dmgPerCharge * 3) / shoveCd; single += x; crowd += x * 3; } // ~3 charges per dash
+  if (has('sparksFly')) { const k = contentComboTune('sparksFly'); crowd += per * (k.chainMult - 0.6) * k.chain * r + per * k.chain * k.stunChance * 0.3 * r; } // chain at 50% not 60% + stun value
+  if (has('rayGun')) { const x = per * w.count * r * contentComboTune('rayGun').splashMult * 3; crowd += x; } // splash on ~3 neighbours (no pierce)
   if (w.type === 'leafblower') { const x = 8 * w.tier; single += x * 0.3 * r; crowd += x * 3 * 0.5 * r; } // slam: ~half of the blown pack hits a wall or prop
   if (has('tailwind')) crowd *= 1.1;        // mobility value
   if (has('smashBank')) crowd *= 1.1;       // economy value
-  if (has('powerSurge')) { const k = 1 + RECIPE_TUNING.powerSurge.damageMult; single *= k; crowd *= k; }
-  if (has('priceCheck')) { single = single * RECIPE_TUNING.priceCheck.damageMult + 0.3 * 20; crowd = crowd * RECIPE_TUNING.priceCheck.damageMult + 0.3 * 20; }
+  if (has('powerSurge')) { const k = 1 + contentComboTune('powerSurge').damageMult; single *= k; crowd *= k; }
+  if (has('priceCheck')) { single = single * contentComboTune('priceCheck').damageMult + 0.3 * 20; crowd = crowd * contentComboTune('priceCheck').damageMult + 0.3 * 20; }
   return { single, crowd };
 }
 

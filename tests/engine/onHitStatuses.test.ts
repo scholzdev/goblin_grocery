@@ -356,9 +356,9 @@ describe('ArenaScene.damageEnemy keeps its pipeline', () => {
   const at_ = (needle: string): number => { const i = body.indexOf(needle); expect(i, needle).toBeGreaterThan(-1); return i; };
   it('runs the steps in order', () => {
     const order = [
-      "H.emit('modifyDamage'", 'RECIPE_TUNING.fiveAlarm', 'RECIPE_TUNING.priceCheck', 'this.rng() < stats.critChance', "H.emit('onCrit'", 'armorDamage(',
+      "H.emit('modifyDamage'", 'markedDamage(dmg, e.markedUntil, now)', 'this.rng() < stats.critChance', "H.emit('onCrit'", 'armorDamage(',
       'e.hp -= dmg', "H.emit('onHit'", 'applyHitStatuses(hit', "H.emit('afterHit'", 'if (o.kb) {', 'e.kx += ', "this.fx.spark(e.x, e.y - 30, 3, armored", 'this.fx.number(', 'scheduleEcho(hit',
-      'this.killEnemy(e, true, hit)', "recipes.includes('bagIt')", "H.emit('afterKill'", 'applyKillEffects(hit',
+      'this.killEnemy(e, true, hit)', "H.emit('afterKill'", 'applyKillEffects(hit',
     ].map(at_);
     expect(order).toEqual([...order].sort((a, b) => a - b));
   });

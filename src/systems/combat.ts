@@ -95,5 +95,5 @@ export function healTargets<T extends Healable>(healer: T, all: T[], radius = HO
   return out;
 }
 
-/** Tailwind gating: a blast only feeds Sugar Rush when Sugar Rush is active and the internal cooldown has passed. */
-export const tailwindFeedsSugar = (sugarActive: boolean, now: number, lastFeed: number, icd: number): boolean => sugarActive && now - lastFeed >= icd;
+// Tailwind's Sugar Rush gate moved to engine/stacks.ts with the combos (phase 6); kept here for the old imports.
+export { tailwindFeedsSugar } from '../engine/stacks';

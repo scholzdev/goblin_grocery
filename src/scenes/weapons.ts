@@ -1,13 +1,11 @@
 import Phaser from 'phaser';
 import type { BurnEffect, WeaponStats } from '../types';
-import { RECIPE_TUNING } from '../data/recipes';
 import { newHitTracker, shieldBlocks, tryHit, isSpent, pickRicochetTarget, type HitTracker } from '../systems/combat';
 import { ITEMS, PUDDLE, TIER } from '../data/items';
-import { contentSetTune, contentTune } from '../engine/registry';
+import { contentComboTune, contentSetTune, contentTune } from '../engine/registry';
 import { store } from '../state/store';
 import { SHIELD } from '../data/enemies';
-import { applyBurn, applyPoison } from '../systems/combat';
-import { t } from '../i18n';
+import { applyBurn } from '../systems/combat';
 import { play } from '../audio/sfx';
 import { DEPTH } from './fx';
 import type { ArenaScene } from './ArenaScene';
@@ -15,19 +13,18 @@ import type { Enemy } from './enemies';
 
 /** Multipack: gap between the repeats of a sweep/cone/mortar (s). Flat across tiers, so the ★1 tune is the value. Phase 4 moves this into the item's hook. */
 const MULTIPACK_REPEAT_DELAY = contentTune('multipack', 1).repeatDelay;
+/** Nailstorm's steering: the shot-update loop below still drives it (no hook per shot per frame). Phase 7 moves it with the pattern. */
+const HOMING = contentComboTune('nailstorm');
 
 export interface WeaponRt {
   stats: WeaponStats;
   cd: number;
   burstLeft: number;
   burstT: number;
-  /** Ray Gun: shots fired so far (every 3rd is overcharged). */
-  rayShots?: number;
-  expressIcd: number;
   blades: Phaser.GameObjects.Image | null;
 }
 
-interface Puddle { img: Phaser.GameObjects.Image; x: number; y: number; r: number; until: number; nextTick: number; stats: WeaponStats; burnOnly?: boolean; burn?: BurnEffect; frozen?: Set<number>; /** Enemies that already had a tick here (only tracked while a puddleEnter hook is registered). */ seen?: Set<number> }
+interface Puddle { img: Phaser.GameObjects.Image; x: number; y: number; r: number; until: number; nextTick: number; stats: WeaponStats; burnOnly?: boolean; burn?: BurnEffect; /** Enemies that already had a tick here (only tracked while a puddleEnter hook is registered: Black Ice freezes on `first`). */ seen?: Set<number> }
 interface Pot { img: Phaser.GameObjects.Image; shadow: Phaser.GameObjects.Image; sx: number; sy: number; tx: number; ty: number; t: number; dur: number; stats: WeaponStats }
 
 export interface Shot {
@@ -43,7 +40,7 @@ export interface Shot {
   spin: number;
   maxLife: number;
   ricochet: boolean;
-  /** Ray Gun: splash on impact (radius, fraction of the hit damage). */
+  /** A hook's splash on impact (Ray Gun sets it, its `pattern:shotHit` hook applies it). */
   splash: { r: number; m: number } | null;
 }
 
@@ -55,7 +52,6 @@ export class Arsenal {
   shots: Shot[] = [];
   enemyShots: Shot[] = [];
   puddles: Puddle[] = [];
-  private chickenSweeps = 0;
   pots: Pot[] = [];
   private time = 0;
 
@@ -70,9 +66,14 @@ export class Arsenal {
     return { img, shadow, active: false, x: 0, y: 0, vx: 0, vy: 0, life: 0, damage: 0, tracker: newHitTracker(1), stats: null, homing: false, spin: 0, maxLife: 1, ricochet: false, splash: null };
   }
 
+  /** The runtime of the weapon with this uid (what `ctx.sweep` / `explode` / `beam` act on). */
+  weaponOf(uid: string): WeaponRt | undefined {
+    return this.weapons.find((w) => w.stats.uid === uid);
+  }
+
   setBuild(weapons: WeaponStats[]): void {
     this.weapons = weapons.map((stats, i) => ({
-      stats, cd: 0.4 + i * 0.17, burstLeft: 0, burstT: 0, expressIcd: 0,
+      stats, cd: 0.4 + i * 0.17, burstLeft: 0, burstT: 0,
       // Blender: persistent spinning blade ring sized to its radius.
       blades: stats.pattern === 'aura'
         ? this.scene.add.image(0, 0, 'fx_blades').setDisplaySize(stats.range * 2.1, stats.range * 2.1 * 0.62).setAlpha(0.85).setDepth(DEPTH.decal + 1)
@@ -94,7 +95,6 @@ export class Arsenal {
         if (w.stats.recipes.includes('brainFreeze')) w.blades.setTint(0xcff3ff);
       }
       if (firing && w.stats.pattern === 'pulse') this.suction(w, dt);
-      w.expressIcd -= dt;
       if (w.burstLeft > 0) {
         w.burstT -= dt;
         if (w.burstT <= 0) {
@@ -170,12 +170,11 @@ export class Arsenal {
     const o = this.origin();
     const st = w.stats;
     const a = Math.atan2(target.y - o.y, target.x - o.x) + (this.scene.rng() - 0.5) * 0.08;
-    if (st.recipes.includes('rayGun')) { // energy bolt: never pierces, splashes on impact; every 3rd shot is the big red one
-      const rg = RECIPE_TUNING.rayGun, big = (w.rayShots = (w.rayShots ?? 0) + 1) % rg.every === 0;
-      const s = this.spawn(big ? 'proj_raybolt_red' : 'proj_raybolt', o.x, o.y, a, st.projectileSpeed, st.range / st.projectileSpeed, st.damage, st, 1);
-      if (s) s.splash = big ? { r: rg.bigR, m: rg.bigMult } : { r: rg.splashR, m: rg.splashMult };
-      if (w.burstLeft === st.count) play('zap', { volume: 0.5, rate: big ? 0.7 : 1.4 });
-      return;
+    const H = this.scene.hooks;
+    if (H['pattern:fire'].length) { // Ray Gun fires its energy bolt instead of the nail
+      const ev = { stats: st, x: o.x, y: o.y, angle: a, first: w.burstLeft === st.count, handled: false };
+      H.emit('pattern:fire', ev);
+      if (ev.handled) return;
     }
     this.spawn('proj_nail', o.x, o.y, a, st.projectileSpeed, st.range / st.projectileSpeed, st.damage, st, 1 + st.pierce);
     if (w.burstLeft === st.count) play('nail_burst');
@@ -193,13 +192,8 @@ export class Arsenal {
   }
 
   /** Self-Checkout Laser: a beam that hits every enemy along the line once. */
-  private laser(w: WeaponRt, target: Enemy, echo = false): void {
+  laser(w: WeaponRt, target: Enemy, echo = false): void {
     const sc = this.scene;
-    // Power Surge: every beam fires again shortly after (re-aimed at the same target if it's still standing).
-    if (!echo && w.stats.recipes.includes('powerSurge')) sc.time.delayedCall(RECIPE_TUNING.powerSurge.delay * 1000, () => {
-      const t = target.alive ? target : sc.nearestEnemy(w.stats.range);
-      if (t && sc.combatActive()) this.laser(w, t, true);
-    });
     const st = w.stats;
     const o = this.origin();
     const inBeam = (e: Enemy, cx: number, cy: number): boolean => {
@@ -221,13 +215,14 @@ export class Arsenal {
       .setDisplaySize(st.range, 34);
     sc.tweens.add({ targets: beam, displayHeight: 4, alpha: 0, duration: 260, ease: 'Cubic.In', onComplete: () => beam.destroy() });
     const tracker = newHitTracker(Infinity);
-    // `before`: the enemies in the line, not damaged yet (Price Check marks them so the beam itself hits harder).
-    const H = sc.hooks, bev = H['pattern:beam'].length > 0 ? { stats: st, stage: 'before' as 'before' | 'after', target, angle: a, echo, targets: live.filter((e) => inBeam(e, cx, cy)), hits: [] as Enemy[] } : null;
+    // `before`: the enemies in the line, not damaged yet (Price Check marks them so the beam itself hits harder; Power Surge schedules its
+    // aftershock and sets the damage of its echo).
+    const H = sc.hooks, bev = H['pattern:beam'].length > 0 ? { stats: st, stage: 'before' as 'before' | 'after', target, angle: a, echo, targets: live.filter((e) => inBeam(e, cx, cy)), damageMult: 1, hits: [] as Enemy[] } : null;
     if (bev) H.emit('pattern:beam', bev);
+    const mult = bev ? bev.damageMult : 1;
     for (const e of live) {
       if (!inBeam(e, cx, cy) || !tryHit(tracker, e.id)) continue;
-      if (st.recipes.includes('priceCheck')) e.markedUntil = sc.time.now / 1000 + RECIPE_TUNING.priceCheck.duration;
-      sc.damageEnemy(e, st.damage * (echo ? RECIPE_TUNING.powerSurge.damageMult : 1), st, { kb: echo ? 20 : 70, kbX: cx, kbY: cy });
+      sc.damageEnemy(e, st.damage * mult, st, { kb: echo ? 20 : 70, kbX: cx, kbY: cy });
       bev?.hits.push(e);
     }
     if (bev) { bev.stage = 'after'; H.emit('pattern:beam', bev); }
@@ -248,13 +243,7 @@ export class Arsenal {
       sc.damageEnemy(e, st.damage, st, { kb: 20, kbX: (e.x - p.x) / (d || 1), kbY: (e.y - p.y) / (d || 1), quiet: true });
     }
     if (hit) play('blender');
-    if (sc.hooks['pattern:aura'].length) sc.hooks.emit('pattern:aura', { stats: st, x: p.x, y: p.y, range: st.range, hit });
-    // Smoothie Shield: enemy projectiles inside the blade ring get shredded.
-    if (st.recipes.includes('smoothieShield')) for (const shot of this.enemyShots) {
-      if (!shot.active || (shot.x - p.x) ** 2 + (shot.y - p.y) ** 2 > st.range * st.range) continue;
-      sc.fx.spark(shot.x, shot.y - 20, 4, 0xcff3ff);
-      this.kill(shot);
-    }
+    if (sc.hooks['pattern:aura'].length) sc.hooks.emit('pattern:aura', { stats: st, x: p.x, y: p.y, range: st.range, hit }); // Smoothie Shield shreds enemy shots here
   }
 
   /** Microwave: strike one random target in range, splash around it, then chain. */
@@ -265,28 +254,22 @@ export class Arsenal {
     const pool = sc.enemies.filter((e) => e.alive && e.state !== 'spawn' && (e.x - p.x) ** 2 + (e.y - p.y) ** 2 < st.range * st.range);
     if (!pool.length) return;
     const tracker = newHitTracker(Infinity);
-    const sparks = st.recipes.includes('sparksFly') ? RECIPE_TUNING.sparksFly.chain : 0;
     // Sniper role: the toughest grocery in range (Elites first, then most HP); the splash handles the small fry.
     let target: Enemy | null = pool.reduce((b, e) => (e.elite !== b.elite ? (e.elite ? e : b) : e.hp > b.hp ? e : b));
-    // Reheat: the first zap target's spot keeps burning.
-    if (st.recipes.includes('reheat')) this.firePool(target.x, target.y, st.aoe, RECIPE_TUNING.reheat.poolTime, st, RECIPE_TUNING.reheat);
     const H = sc.hooks, hooked = H['pattern:zap'].length > 0;
     for (let link = 0; target && link <= st.chain; link++) {
       const t: Enemy = target;
       this.bolt(t.x, t.y, link > 0);
-      // Sparks Fly links come last (after TV Dinner's): 50% damage and a chance to stun.
-      const spark = link > 0 && link > st.chain - sparks;
-      const chainMult = link > 0 ? (spark ? RECIPE_TUNING.sparksFly.chainMult : RECIPE_TUNING.tvDinner.chainMult) : 1;
-      const zap = hooked ? { stats: st, stage: 'before' as 'before' | 'after', link, target: t, damageMult: chainMult, hits: [] as Enemy[] } : null;
+      // `before`: the hooks set the damage of a chain link (TV Dinner, then Sparks Fly on its links) and Reheat lights the first target's spot.
+      const zap = hooked ? { stats: st, stage: 'before' as 'before' | 'after' | 'hit', link, target: t, damageMult: 1, hits: [] as Enemy[], enemy: undefined as Enemy | undefined } : null;
       if (zap) H.emit('pattern:zap', zap);
-      const mult = zap ? zap.damageMult : chainMult;
+      const mult = zap ? zap.damageMult : 1;
       for (const e of sc.enemies) {
         if (!e.alive || e.state === 'spawn') continue;
         if ((e.x - t.x) ** 2 + (e.y - t.y) ** 2 > (st.aoe + e.def.radius) ** 2) continue;
         if (!tryHit(tracker, e.id)) continue;
         sc.damageEnemy(e, st.damage * mult, st, { kb: 80, kbX: Math.sign(e.x - t.x), kbY: 0 });
-        zap?.hits.push(e);
-        if (sparks && link > 0 && e.alive && sc.rng() < RECIPE_TUNING.sparksFly.stunChance) sc.stunEnemy(e, RECIPE_TUNING.sparksFly.stun);
+        if (zap) { zap.hits.push(e); zap.stage = 'hit'; zap.enemy = e; H.emit('pattern:zap', zap); zap.stage = 'before'; zap.enemy = undefined; } // Sparks Fly's stun roll
       }
       if (zap) { zap.stage = 'after'; H.emit('pattern:zap', zap); }
       target = pickRicochetTarget(t, sc.enemies.filter((e) => e.alive && e.state !== 'spawn'), tracker.hits, 220);
@@ -294,7 +277,7 @@ export class Arsenal {
     play('zap');
   }
 
-  private bolt(x: number, y: number, small: boolean): void {
+  bolt(x: number, y: number, small: boolean): void {
     const sc = this.scene;
     const b = sc.add.image(x, y - 10, 'fx_zap').setOrigin(0.5, 1).setDepth(DEPTH.fx).setScale(small ? 0.6 : 1);
     sc.tweens.add({ targets: b, alpha: 0, duration: 220, onComplete: () => b.destroy() });
@@ -331,11 +314,9 @@ export class Arsenal {
       if (!tryHit(tracker, e.id)) continue;
       sc.damageEnemy(e, st.damage, st, { kb: ITEMS[st.type].weapon!.knockback ?? 40, kbX: dx / (d || 1), kbY: dy / (d || 1), quiet: true, blow: blower ? 8 * TIER.weaponDamage(st.tier) : undefined });
       hits?.push(e);
-      if (st.recipes.includes('sourMist')) applyPoison(e.status, RECIPE_TUNING.sourMist.dps, RECIPE_TUNING.sourMist.duration, sc.time.now / 1000);
     }
-    if (hits) sc.hooks.emit('pattern:cone', { stats: st, x: p.x, y: p.y, angle: a, hits });
+    if (hits) sc.hooks.emit('pattern:cone', { stats: st, x: p.x, y: p.y, angle: a, hits }); // Sour Mist poisons the hits, Tailwind pushes the cart
     play('spray');
-    if (st.recipes.includes('tailwind')) sc.cartCombos.onBlast(); // Tailwind: each blast pushes the cart (and may feed Sugar Rush)
   }
 
   /** Pressure Cooker: lob a pot at the densest cluster in range; it explodes on landing. */
@@ -374,7 +355,7 @@ export class Arsenal {
     }
   }
 
-  private explode(x: number, y: number, st: WeaponStats): void {
+  explode(x: number, y: number, st: WeaponStats): void {
     const sc = this.scene;
     const tracker = newHitTracker(Infinity);
     sc.fx.ring('fx_boom', x, y, st.aoe * 2.4, 380);
@@ -390,19 +371,10 @@ export class Arsenal {
       sc.damageEnemy(e, st.damage, st, { kb: 220, kbX: dx / (d || 1), kbY: dy / (d || 1) });
       hits?.push(e);
     }
-    if (hits) sc.hooks.emit('pattern:explode', { stats: st, x, y, hits });
-    if (st.firePool) this.firePool(x, y, st.aoe, RECIPE_TUNING.pressurePoint.poolTime, st, RECIPE_TUNING.pressurePoint);
-    // Shrapnel: pot fragments fly out in a ring.
-    if (st.recipes.includes('shrapnel')) {
-      const T = RECIPE_TUNING.shrapnel;
-      for (let i = 0; i < T.count; i++) {
-        const a = (i / T.count) * Math.PI * 2 + sc.rng() * 0.3;
-        this.spawn('proj_nail', x, y, a, T.speed, T.range / T.speed, st.damage * T.damageMult, st, 2);
-      }
-    }
+    if (hits) sc.hooks.emit('pattern:explode', { stats: st, x, y, hits }); // Pressure Point's fire pool, Shrapnel's fragments
   }
 
-  /** Burning floor patch (Pressure Point, Reheat, Sizzling Skillet): no direct damage. Burns for the recipe's tuning, at least as hard and as long as the weapon's own Fuel burn. */
+  /** Burning floor patch (Pressure Point, Reheat, Sizzling Skillet, spawned through `ctx.spawnPool`): no direct damage. Burns for the recipe's tuning, at least as hard and as long as the weapon's own Fuel burn. */
   firePool(x: number, y: number, r: number, time: number, st: WeaponStats, tune: { dps: number; duration: number; tick: number }): void {
     if (!st.burn) return;
     if (this.puddles.length >= 14) this.removePuddle(this.puddles[0]);
@@ -442,12 +414,6 @@ export class Arsenal {
           seen.add(e.id);
           sc.hooks.emit('pattern:puddleEnter', { stats: pd.stats, enemy: e, puddle: pd, first });
         }
-        // Black Ice: the first step into each puddle freezes the grocery solid.
-        if (pd.stats.recipes.includes('blackIce') && !(pd.frozen ??= new Set()).has(e.id)) {
-          pd.frozen.add(e.id);
-          sc.stunEnemy(e, RECIPE_TUNING.blackIce.freeze);
-          sc.fx.frostBurst(e.x, e.y - 20, 4);
-        }
         applySlowFx(e, now, store.state.build.sets.frost);
         sc.damageEnemy(e, pd.stats.damage, pd.stats, { quiet: true });
       }
@@ -464,12 +430,10 @@ export class Arsenal {
     const sc = this.scene;
     const p = sc.player;
     const st = w.stats;
-    // Chicken Dinner: every Nth sweep is a big serving.
-    const T = RECIPE_TUNING.chickenDinner;
-    const big = st.recipes.includes('chickenDinner') && ++this.chickenSweeps % T.every === 0;
-    let range = big ? st.range * T.rangeMult : st.range, dmg = big ? st.damage * T.damageMult : st.damage;
-    // `before`: hooks may change range/dmg (Chicken Dinner's big serving); `after`: the arc is resolved.
-    const swing = sc.hooks['pattern:sweep'].length ? { stats: st, stage: 'before' as 'before' | 'after', x: p.x, y: p.y, angle, bonus, range, dmg, hits: [] as Enemy[] } : null;
+    let range = st.range, dmg = st.damage;
+    // `before`: hooks may change range/dmg (Chicken Dinner's big serving); `hit`: after each enemy's damage (Smash the Bank's coin roll);
+    // `after`: the arc is resolved (Sizzling Skillet scorches the floor).
+    const swing = sc.hooks['pattern:sweep'].length ? { stats: st, stage: 'before' as 'before' | 'after' | 'hit', x: p.x, y: p.y, angle, bonus, range, dmg, hits: [] as Enemy[], enemy: undefined as Enemy | undefined } : null;
     if (swing) { sc.hooks.emit('pattern:sweep', swing); range = swing.range; dmg = swing.dmg; }
     const tracker = newHitTracker(Infinity);
     const half = Phaser.Math.DegToRad(st.arcDeg / 2);
@@ -486,19 +450,9 @@ export class Arsenal {
       if (diff > half && d > e.def.radius + p.radius) continue;
       if (!tryHit(tracker, e.id)) continue;
       sc.damageEnemy(e, dmg, st, { kb: 150, kbX: dx / (d || 1), kbY: dy / (d || 1) });
-      swing?.hits.push(e);
-      // Smash the Bank: pan hits may knock a coin loose.
-      if (st.recipes.includes('smashBank') && sc.rng() < RECIPE_TUNING.smashBank.chance) sc.dropCoin(e.x, e.y, t('coinSmash'));
+      if (swing) { swing.hits.push(e); swing.stage = 'hit'; swing.enemy = e; sc.hooks.emit('pattern:sweep', swing); swing.stage = 'before'; swing.enemy = undefined; }
     }
     if (swing) { swing.stage = 'after'; sc.hooks.emit('pattern:sweep', swing); }
-    // Sizzling Skillet: the arc scorches the floor.
-    if (st.recipes.includes('sizzlingSkillet')) {
-      const T = RECIPE_TUNING.sizzlingSkillet;
-      for (let i = 0; i < T.pools; i++) {
-        const a = angle + (i / (T.pools - 1) - 0.5) * Phaser.Math.DegToRad(st.arcDeg) * 0.8;
-        this.firePool(p.x + Math.cos(a) * st.range * 0.7, p.y + Math.sin(a) * st.range * 0.7 * 0.62, 34, T.poolTime, st, T);
-      }
-    }
     play('pan_clang', { rate: bonus ? 1.25 : 1 });
   }
 
@@ -534,35 +488,9 @@ export class Arsenal {
       sc.damageEnemy(e, st.damage, st, {});
       if (st.frostRing) sc.fx.frostBurst(e.x, e.y - 20, 3);
     }
+    // Static Cling throws lightning at a few of the groceries inside the pulse.
     if (sc.hooks['pattern:pulse'].length) sc.hooks.emit('pattern:pulse', { stats: st, x: p.x, y: p.y, inside: sc.enemies.filter((e) => e.alive && e.state !== 'spawn' && (e.x - p.x) ** 2 + (e.y - p.y) ** 2 <= (st.range + e.def.radius) ** 2) });
-    // Static Cling: lightning jumps to a few groceries inside the pulse.
-    if (st.recipes.includes('staticCling')) {
-      const T = RECIPE_TUNING.staticCling;
-      const inside = sc.enemies.filter((e) => e.alive && e.state !== 'spawn' && (e.x - p.x) ** 2 + (e.y - p.y) ** 2 <= (st.range + e.def.radius) ** 2);
-      for (const e of inside.sort(() => sc.rng() - 0.5).slice(0, T.targets)) {
-        this.bolt(e.x, e.y, true);
-        sc.damageEnemy(e, st.damage * T.damageMult, st, {});
-      }
-      if (inside.length) play('zap', { rate: 1.3, volume: 0.6 });
-    }
     play('vacuum_pulse', { volume: 0.7 });
-  }
-
-  /** Express Checkout: bonus pan sweeps after a shove that connected. */
-  expressCheckout(angle: number): boolean {
-    let fired = false;
-    for (const w of this.weapons) {
-      if (!w.stats.expressSweep || w.expressIcd > 0) continue;
-      w.expressIcd = RECIPE_TUNING.expressCheckout.icd;
-      this.sweep(w, angle, true);
-      fired = true;
-    }
-    return fired;
-  }
-
-  /** Pot Slam: the dash landing sets off a full pot blast. */
-  dashBlast(x: number, y: number): void {
-    for (const w of this.weapons) if (w.stats.dashBlast) this.explode(x, y, w.stats);
   }
 
   private updateShots(dt: number): void {
@@ -573,11 +501,11 @@ export class Arsenal {
       if (s.life <= 0) { this.kill(s); continue; }
       const st = s.stats!;
       if (s.homing) {
-        const t = sc.nearestEnemyFrom(s.x, s.y, RECIPE_TUNING.nailstorm.homingRange, s.tracker.hits);
+        const t = sc.nearestEnemyFrom(s.x, s.y, HOMING.homingRange, s.tracker.hits);
         if (t) {
           const cur = Math.atan2(s.vy, s.vx);
           const want = Math.atan2(t.y - s.y, t.x - s.x);
-          const turn = Phaser.Math.Clamp(Phaser.Math.Angle.Wrap(want - cur), -RECIPE_TUNING.nailstorm.homingTurn * dt, RECIPE_TUNING.nailstorm.homingTurn * dt);
+          const turn = Phaser.Math.Clamp(Phaser.Math.Angle.Wrap(want - cur), -HOMING.homingTurn * dt, HOMING.homingTurn * dt);
           const sp = Math.hypot(s.vx, s.vy);
           s.vx = Math.cos(cur + turn) * sp; s.vy = Math.sin(cur + turn) * sp;
           s.img.setRotation(cur + turn);
@@ -611,27 +539,12 @@ export class Arsenal {
         if (!tryHit(s.tracker, e.id)) continue;
         const sp = Math.hypot(s.vx, s.vy) || 1;
         sc.damageEnemy(e, s.damage, st, { kb: 60, kbX: s.vx / sp, kbY: s.vy / sp });
-        if (sc.hooks['pattern:shotHit'].length) sc.hooks.emit('pattern:shotHit', { stats: st, shot: s, enemy: e });
-        if (s.splash) { // Ray Gun: green ring burst, splash on everyone else nearby
-          const { r, m } = s.splash;
-          sc.fx.ring('fx_pulse', s.x, s.y, r * 2, 300, m > RECIPE_TUNING.rayGun.splashMult ? 0xf45f52 : 0x5fd35a);
-          for (const o of sc.enemies) {
-            if (o === e || !o.alive || o.state === 'spawn' || (o.x - s.x) ** 2 + (o.y - s.y) ** 2 > (r + o.def.radius) ** 2) continue;
-            sc.damageEnemy(o, s.damage * m, st, { quiet: true, chained: true });
-          }
-        }
-        // Frostbite Nails: every 3rd nail on the same grocery freezes it.
-        if (st.recipes.includes('frostbiteNails') && st.pattern === 'burst' && e.alive) {
-          e.nailHits = (e.nailHits ?? 0) + 1;
-          if (e.nailHits % RECIPE_TUNING.frostbiteNails.every === 0) { sc.stunEnemy(e, RECIPE_TUNING.frostbiteNails.freeze); sc.fx.frostBurst(e.x, e.y - 20, 6); }
-        }
+        if (sc.hooks['pattern:shotHit'].length) sc.hooks.emit('pattern:shotHit', { stats: st, shot: s, enemy: e }); // Ray Gun splash, Frostbite Nails' freeze
         if (st.homing) s.homing = true;
         if (isSpent(s.tracker)) { this.kill(s); break; }
         if (s.ricochet) {
           const next = pickRicochetTarget(s, sc.enemies.filter((x) => x.alive && x.state !== 'spawn'), s.tracker.hits, 230);
-          if (sc.hooks['pattern:bounce'].length) sc.hooks.emit('pattern:bounce', { stats: st, shot: s, x: s.x, y: s.y, next });
-          // Confetti Cannon: every bounce goes off like a party popper.
-          if (st.recipes.includes('confettiCannon')) sc.popperBlast(s.x, s.y, { damage: s.damage * RECIPE_TUNING.confettiCannon.damageMult, radius: RECIPE_TUNING.confettiCannon.radius * (store.state.build.sets.blast ? contentSetTune('blast', 1).radiusMult : 1) });
+          if (sc.hooks['pattern:bounce'].length) sc.hooks.emit('pattern:bounce', { stats: st, shot: s, x: s.x, y: s.y, next }); // Confetti Cannon's blast
           if (next) {
             const a = Math.atan2(next.y - s.y, next.x - s.x);
             s.vx = Math.cos(a) * sp; s.vy = Math.sin(a) * sp;

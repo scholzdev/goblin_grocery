@@ -123,13 +123,13 @@ export interface WeaponStats {
   aoe: number;
   tier: number;
   critChance: number;      // 0..1, crits deal CRIT.mult damage (direct hits only)
-  critCoin: boolean;       // clearanceSale: crits drop a coin (once per enemy)
+  critCoin: boolean;       // clearanceSale flag. Not read at runtime (the combo's onCrit hook owns the coin); kept for the golden build snapshots, delete in phase 8
   bundle: number;          // distinct item types touching this weapon (Bundle Deal damage bonus)
   /** Party Popper: kills by this weapon explode (never chains from popper kills). */
   popper: { damage: number; radius: number } | null;
   /** Double Bag: each direct hit strikes again after the `delay` tune (src/content/items/doublebag.ts) for this fraction of the damage (0 = none). */
   echo: number;
-  /** Pressure Point: mortar blasts leave a burning pool. */
+  /** Pressure Point flag (mortar blasts leave a burning pool). Not read at runtime (the combo's pattern:explode hook spawns the pool); kept for the golden build snapshots, delete in phase 8. */
   firePool: boolean;
   pierce: number;          // extra enemies a projectile may pass through (0 = hits one)
   homing: boolean;         // curve toward nearby target after first hit
@@ -141,8 +141,8 @@ export interface WeaponStats {
   chainJumps: number;
   slow: SlowEffect | null;
   frostRing: boolean;
-  expressSweep: boolean;   // pan: extra sweep on successful dash
-  dashBlast: boolean;      // pressure cooker: the dash landing sets off a pot blast
+  expressSweep: boolean;   // Express Checkout flag. Not read at runtime (the combo's onDashEnd hook sweeps); kept for the golden snapshots, delete in phase 8
+  dashBlast: boolean;      // Pot Slam flag. Not read at runtime (the combo's onDashEnd hook blasts); kept for the golden snapshots, delete in phase 8
   buffs: BuffId[];         // distinct buffs applied (each at most once)
   /** Active combos on this weapon (a weapon can have several possible combos; all matching ones are active). */
   recipes: RecipeId[];

@@ -62,7 +62,7 @@ const source = (name: string): string => sources[`../../src/scenes/${name}.ts`];
 
 describe('Math.random in gameplay code', () => {
   // Every remaining Math.random in the arena files must be visible-only (particles, sound pitch, sprite wobble): the line has to say so.
-  const files = ['ArenaScene', 'weapons', 'enemies', 'hazards', 'events', 'cartCombos'];
+  const files = ['ArenaScene', 'weapons', 'enemies', 'hazards', 'events', 'playerOverlay'];
   const cosmetic = /\bfx\.|\bplay\(|animT|rotation:/;
   it.each(files)('%s only uses Math.random for cosmetics', (file) => {
     const bad = source(file).split('\n').map((l, i) => [i + 1, l] as const).filter(([, l]) => l.includes('Math.random') && !cosmetic.test(l));
@@ -70,6 +70,6 @@ describe('Math.random in gameplay code', () => {
   });
   it('no scene file reads flow.rng for a roll that belongs to combat (statuses, crits, AI)', () => {
     // flow.rng stays for shop-adjacent rolls: spawn plan, kill coins, event picks, crates. weapons.ts and enemies.ts roll combat only.
-    for (const f of ['weapons', 'enemies', 'hazards', 'cartCombos']) expect(source(f)).not.toMatch(/flow\.rng/);
+    for (const f of ['weapons', 'enemies', 'hazards', 'playerOverlay']) expect(source(f)).not.toMatch(/flow\.rng/);
   });
 });

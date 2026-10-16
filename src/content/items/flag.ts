@@ -3,7 +3,7 @@ import { defineItem } from '../../engine/define';
 export default defineItem({
   id: 'flag', kind: 'passive', sets: ['checkout'], shape: '1x1', price: 10,
   // Mark time per ★ (the legacy 2 s x TIER.mult). `bonus` only feeds the text: the damage bonus itself is the shared mark rule in
-  // damageEnemy (`RECIPE_TUNING.priceCheck.damageMult`, 1 + bonus), because Price Check marks enemies too.
+  // damageEnemy (`engine/marks.ts`, Price Check's `damageMult`, 1 + bonus), because Price Check marks enemies too.
   tune: { duration: [2, 3, 4], bonus: 0.2 },
   text: {
     en: { name: 'Sale Flag', blurb: 'Plant it in their back. Everything is 20% off.', rules: 'Groceries hit by the Space dash are marked for {duration|s}: they take {bonus|+pct} damage from everything (does not stack).' },

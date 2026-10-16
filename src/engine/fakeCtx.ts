@@ -5,6 +5,7 @@ import { t, type UIKey } from '../i18n';
 import type { Build, BurnEffect, SlowEffect, WeaponStats } from '../types';
 import { FX_METHODS, type AisleView, type CombatEnemy, type CombatShot, type FxApi, type PlayerView, type PoolSpec, type RuntimeCtx, type ShotSpec } from './ctx';
 import { EMPTY_HOOKS, type HitEvent, type HitOpts, type HookTable } from './hooks';
+import { markedDamage } from './marks';
 import { applyHitStatuses, scheduleEcho } from './onHitStatuses';
 import { applyKillEffects } from './onKillEffects';
 
@@ -16,8 +17,8 @@ import { applyKillEffects } from './onKillEffects';
 //   fake.hooks.emit('onDashHit', { ... })   any other emit point, with a payload the test builds
 // then assert on `fake.calls` / `fake.callsOf('stun')` and on the in-memory enemies/player.
 //
-// What the fake does NOT simulate is everything the scene still does outside hooks (legacy branches: Five-Alarm, the mark multiplier, armor,
-// burn/slow/knockback application, Bag It ...). When an item moves into a hook, its effect shows up here as a recorded call.
+// What the fake does NOT simulate is everything the scene still does outside hooks (armor, knockback, the pattern code that fires the hooks'
+// events: a test emits `pattern:*` / `onDash*` events itself). When an item moves into a hook, its effect shows up here as a recorded call.
 
 /** One effect a hook asked for, stamped with the fake clock (`at`, seconds). */
 export type Call = { at: number } & (
@@ -41,6 +42,11 @@ export type Call = { at: number } & (
   | { kind: 'sound'; name: string; opts?: { rate?: number; volume?: number } }
   | { kind: 'tween'; props: Record<string, number>; ms: number }
   | { kind: 'delay'; seconds: number }
+  | { kind: 'sweep'; weapon: string; angle: number; bonus: boolean }
+  | { kind: 'explode'; weapon: string; x: number; y: number }
+  | { kind: 'beam'; weapon: string; target: number; echo: boolean }
+  | { kind: 'boltFx'; x: number; y: number; small: boolean }
+  | { kind: 'line'; id: string; text: string | null; order: number }
 );
 export type CallKind = Call['kind'];
 
@@ -57,7 +63,7 @@ export interface FakeOptions {
   onIce?: (x: number, y: number) => boolean;
 }
 
-const defaultPlayer = (): PlayerView => ({ x: 0, y: 0, radius: 20, facing: 1, vx: 0, vy: 0, invulnT: 0, protectT: 0, hurtT: 0, reflectT: 0, shoveT: 0, shoveCd: 0, chainT: 0, shoveDX: 1, shoveDY: 0, dead: false });
+const defaultPlayer = (): PlayerView => ({ x: 0, y: 0, radius: 20, facing: 1, vx: 0, vy: 0, invulnT: 0, protectT: 0, hurtT: 0, reflectT: 0, shoveT: 0, shoveCd: 0, chainT: 0, shoveDX: 1, shoveDY: 0, dead: false, speedMods: {} });
 
 export class FakeCtx implements RuntimeCtx {
   /** Scene clock in seconds. */
@@ -69,6 +75,8 @@ export class FakeCtx implements RuntimeCtx {
   readonly hostileShots: CombatShot[] = [];
   /** Projectiles the hooks spawned. */
   readonly playerShots: CombatShot[] = [];
+  /** The status lines (`setLine`) as the scene would show them: id -> text/order, null once removed. */
+  readonly lines = new Map<string, { text: string; order: number } | null>();
   readonly player: PlayerView;
   build: Build;
   run: { hp: number; maxHp: number; money: number; aisle: number; boss: boolean };
@@ -121,7 +129,7 @@ export class FakeCtx implements RuntimeCtx {
 
   /** Add an enemy projectile in flight. */
   spawnHostileShot(p: Partial<CombatShot> = {}): CombatShot {
-    const s: CombatShot = { active: true, x: 0, y: 0, vx: 0, vy: 0, life: 2, damage: 8, stats: null, ...p };
+    const s: CombatShot = { active: true, x: 0, y: 0, vx: 0, vy: 0, life: 2, damage: 8, stats: null, splash: null, ...p };
     this.hostileShots.push(s);
     return s;
   }
@@ -241,7 +249,7 @@ export class FakeCtx implements RuntimeCtx {
 
   spawnShot(spec: ShotSpec): CombatShot | null {
     this.log({ kind: 'spawnShot', spec });
-    const s: CombatShot = { active: true, x: spec.x, y: spec.y, vx: Math.cos(spec.angle) * spec.speed, vy: Math.sin(spec.angle) * spec.speed, life: spec.life, damage: spec.damage, stats: spec.stats };
+    const s: CombatShot = { active: true, x: spec.x, y: spec.y, vx: Math.cos(spec.angle) * spec.speed, vy: Math.sin(spec.angle) * spec.speed, life: spec.life, damage: spec.damage, stats: spec.stats, splash: null };
     this.playerShots.push(s);
     return s;
   }
@@ -251,6 +259,9 @@ export class FakeCtx implements RuntimeCtx {
     this.log({ kind: 'popperBlast', x: pos.x, y: pos.y, damage: pop.damage, radius: pop.radius, setPop });
     for (const e of this.inRadius(pos, pop.radius)) this.damage(e, pop.damage, null, { fromPopper: true, label: 'Party Popper' });
   }
+  sweep(weaponUid: string, angle: number, bonus = false): void { this.log({ kind: 'sweep', weapon: weaponUid, angle, bonus }); }
+  explode(weaponUid: string, x: number, y: number): void { this.log({ kind: 'explode', weapon: weaponUid, x, y }); }
+  beam(weaponUid: string, target: CombatEnemy, echo = false): void { this.log({ kind: 'beam', weapon: weaponUid, target: target.id, echo }); }
   enemyShots(): readonly CombatShot[] { return this.hostileShots.filter((s) => s.active); }
   killShot(shot: CombatShot): void { this.log({ kind: 'killShot', shot }); shot.active = false; }
   reflectShot(shot: CombatShot, mult: number): void { this.log({ kind: 'reflectShot', shot, mult }); shot.active = false; }
@@ -261,6 +272,8 @@ export class FakeCtx implements RuntimeCtx {
   /** The real strings (current language), so a test sees the label the player would. */
   t(key: UIKey, vars?: Record<string, string | number>): string { return t(key, vars); }
   arcFx(points: readonly { x: number; y: number }[]): void { this.log({ kind: 'fx', method: 'arc', args: [points] }); }
+  boltFx(x: number, y: number, small: boolean): void { this.log({ kind: 'boltFx', x, y, small }); }
+  setLine(id: string, text: string | null, order = 0): void { this.log({ kind: 'line', id, text, order }); this.lines.set(id, text === null ? null : { text, order }); }
   sound(name: string, opts?: { rate?: number; volume?: number }): void { this.log({ kind: 'sound', name, opts }); }
   /** Recorded; the end values are applied to the target when the clock reaches `ms`. */
   tween(target: object, props: Record<string, number>, ms: number): void {
@@ -280,7 +293,7 @@ export class FakeCtx implements RuntimeCtx {
   /**
    * The combat-rng part of `ArenaScene.damageEnemy` (see the pipeline comment there): modifyDamage, crit roll, onCrit, hp, onHit, the
    * stats-driven statuses (burn, ignite, slow), afterHit (the Frost freeze, Cleaning, Electric chain), echo, and on a lethal hit onKill +
-   * afterKill (Kitchen heal, Blast pop) + the popper blast. Not simulated: Five-Alarm / mark multipliers, armor, knockback itself, Bag It.
+   * afterKill (Kitchen heal, Blast pop) + the popper blast, and the engine's mark multiplier. Not simulated: armor, knockback itself.
    */
   private runHit(e: CombatEnemy, dmg: number, stats: WeaponStats | null, o: HitOpts): void {
     if (!e.alive) return;
@@ -288,6 +301,7 @@ export class FakeCtx implements RuntimeCtx {
     const key = o.poison ? 'poison' : o.isDot ? 'burn' : stats?.uid ?? o.label ?? 'shove';
     const hit: HitEvent = { enemy: e, base: dmg, dmg, stats, opts: o, source: key, now, direct: !o.isDot && !o.echo && !o.fromPopper && !o.chained, crit: false, armored: false, killed: false, kbMult: 1 };
     H.emit('modifyDamage', hit); dmg = hit.dmg;
+    dmg = markedDamage(dmg, e.markedUntil, now); // the shared mark rule (engine/marks), after the modifyDamage hooks like the scene
     if (!o.isDot && stats && stats.critChance > 0 && this.rand() < stats.critChance) {
       dmg *= CRIT.mult;
       hit.crit = true; hit.dmg = dmg; H.emit('onCrit', hit); dmg = hit.dmg;

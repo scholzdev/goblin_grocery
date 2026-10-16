@@ -7,7 +7,8 @@ import { ITEMS } from '../../src/data/items';
 import { footprint } from '../../src/systems/inventory';
 import { BOSS_WAVE } from '../../src/data/waves';
 import { mulberry32 } from '../../src/systems/rng';
-import type { ItemTypeId, SetId } from '../../src/types';
+import { RECIPES, RECIPE_ORDER } from '../../src/data/recipes';
+import type { ItemTypeId, RecipeId, SetId } from '../../src/types';
 
 const sim = (id: string): SimDef => simRegistry.get(id)!;
 const base = (over: Partial<SimDef> = {}): SimDef => defineSim({ id: 'tmp', cart: [{ id: 'toaster' }], ...over });
@@ -203,6 +204,44 @@ describe('starter sims', () => {
     expect(simDummies(sim('wave3'))).toEqual([]);
     expect(sim('wave3')).toMatchObject({ waves: true, aisle: 3, department: 'main' });
     expect(sim('boss')).toMatchObject({ waves: true, aisle: 8 });
+  });
+});
+
+// One sim per combo (src/sims/combo-<id>.ts, the id in kebab-case). Each places exactly the combo's parts, with explicit `at`, so its recipe
+// is active; the build is computed through the same path as the game (createSimRun -> computeBuild).
+describe('combo sims', () => {
+  const kebab = (id: string): string => id.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
+  const COMBO_SIMS = Object.fromEntries(RECIPE_ORDER.map((id) => [id, `combo-${kebab(id)}`])) as Record<RecipeId, string>;
+  /** Combos a sim activates when it is not just its own (Tailwind's sim has the energy drink for Sugar Rush; Sour Mist's parts are also Mist Machine's). */
+  const ACTIVE: Partial<Record<RecipeId, RecipeId[]>> = { tailwind: ['sugarRush', 'tailwind'], sourMist: ['mistMachine', 'sourMist'] };
+
+  it('there is one sim for every combo', () => {
+    expect(RECIPE_ORDER).toHaveLength(31);
+    for (const [id, simId] of Object.entries(COMBO_SIMS)) expect(simRegistry.get(simId), `${id} -> ${simId}`).toBeDefined();
+    expect(simRegistry.ids.filter((i) => i.startsWith('combo-'))).toHaveLength(31);
+  });
+  it('each sim activates its combo, and exactly the combos listed in ACTIVE besides it', () => {
+    for (const [id, simId] of Object.entries(COMBO_SIMS) as [RecipeId, string][]) {
+      const active = createSimRun(sim(simId)).build.recipes.map((r) => r.id).sort();
+      expect(active, simId).toEqual([...(ACTIVE[id] ?? [id])].sort());
+    }
+  });
+  it('each combo sim lists exactly the combo\'s parts (plus the energy drink for Tailwind), in the arena sandbox with notes', () => {
+    for (const [id, simId] of Object.entries(COMBO_SIMS) as [RecipeId, string][]) {
+      const s = sim(simId), parts = RECIPES[id].weapon ? [RECIPES[id].weapon, ...RECIPES[id].supports] : [...RECIPES[id].supports];
+      expect(s.cart.map((c) => c.id).sort(), simId).toEqual([...parts, ...(id === 'tailwind' ? ['energy'] : [])].sort());
+      expect(s.cart.every((c) => c.at), `${simId}: explicit at`).toBe(true);
+      expect(s.notes, simId).toBeTruthy();
+      expect(simDummies(s).length, simId).toBeGreaterThan(0);
+    }
+  });
+  it('kill-driven combos (Bag It, Clearance Sale) have mortal dummies, and the crit combo has crit chance', () => {
+    for (const simId of ['combo-bag-it', 'combo-clearance-sale']) expect(simDummies(sim(simId)).every((d) => !d.immortal), simId).toBe(true);
+    expect(createSimRun(sim('combo-clearance-sale')).build.weapons[0].critChance).toBeGreaterThan(0);
+  });
+  it('Smoothie Shield has shooters to block, and Ray Gun replaces Nailstorm', () => {
+    expect(simDummies(sim('combo-smoothie-shield')).some((d) => d.id === 'spitter')).toBe(true);
+    expect(createSimRun(sim('combo-ray-gun')).build.recipes.map((r) => r.id)).toEqual(['rayGun']);
   });
 });
 

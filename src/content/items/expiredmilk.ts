@@ -11,7 +11,7 @@ export default defineItem({
   },
   rows: [{ label: { en: 'Poison', de: 'Gift' }, key: 'dps', fmt: 'ps' }],
   build: {
-    // `Build.stinkDps` still tells the scene to draw the cloud (cartCombos); the poison itself is the onTick hook below.
+    // `Build.stinkDps` still tells the scene to draw the cloud (scenes/playerOverlay.ts); the poison itself is the onTick hook below.
     // order 100: after every hook that adds max HP (Lunchbox, Snack Bag): the curse multiplies the total. computeBuild rounds it after.
     phase: 'final', order: 100,
     player(b, c) { const t = c.tune(); b.stinkDps = t.dps; b.maxHp *= 1 - t.hpCut; },

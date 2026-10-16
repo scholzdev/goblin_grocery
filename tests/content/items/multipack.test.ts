@@ -1,8 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { ITEMS, TIER } from '../../../src/data/items';
-import { RECIPE_TUNING } from '../../../src/data/recipes';
 import multipack from '../../../src/content/items/multipack';
-import { contentItem, contentTune } from '../../../src/engine/registry';
+import { contentComboTune, contentItem, contentTune } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { computeBuild, describeBuffs, tierScaling } from '../../../src/systems/synergies';
@@ -34,7 +33,7 @@ describe('Multipack: projectiles (module skips, post-combo adds shots)', () => {
   it('applies after the combos: Toast Mode sets the count, the pack adds on top', () => {
     const w = stats([at('toaster'), at('fan'), at('fuel'), at('multipack')]);
     expect(w.recipes).toContain('toastMode');
-    expect(w.count).toBe(RECIPE_TUNING.toastMode.count + 1);
+    expect(w.count).toBe(contentComboTune('toastMode').count + 1);
   });
 
   it('uses the best copy touching the weapon, not the best copy in the cart', () => {

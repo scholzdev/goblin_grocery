@@ -1,7 +1,7 @@
 import { BUFFS, BUNDLE, ITEMS, PLAYER, PROJECTILE_PATTERNS, TIER } from '../data/items';
-import { RECIPES, RECIPE_TUNING } from '../data/recipes';
+import { RECIPES } from '../data/recipes';
 import { setLevels } from '../data/sets';
-import type { ActiveRecipe, BuffId, Build, Inventory, ItemInstance, ItemTypeId, Perk, RecipeId, WeaponStats } from '../types';
+import type { ActiveRecipe, BuffId, Build, Inventory, ItemInstance, ItemTypeId, Perk, WeaponStats } from '../types';
 import { adjacentPairs, neighbors } from './inventory';
 import { fmtNum, lang, t } from '../i18n';
 import { itemT, recipeT } from '../i18n/data';
@@ -46,7 +46,7 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
       const id = ITEMS[n.type].buff;
       if (id) buffTier.set(id, Math.max(buffTier.get(id) ?? 0, eff(n)));
     }
-    const we: WeaponEnv = { env, near, uid: w.uid, matching: matching.map((r) => r.id) };
+    const we: WeaponEnv = { env, near, uid: w.uid, matching: matching.map((r) => r.id), tapeArc: 0 };
     runPhase('base', s, we);
     for (const id of BUFF_ORDER) {
       const mt = buffTier.get(id);
@@ -59,11 +59,11 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
     runPhase('set', s, we); // the sets (kitchen 10, cleaning 20, tools 30, heat 40, blast 50, electric 60) and Gold Star's bundle (100)
     s.bundle += nearTypes.size; // content hooks (Gold Star's +1, `set` phase) added theirs already
     s.damage *= 1 + BUNDLE.perItem * s.bundle;
-    const tapeArc = s.arcDeg - b.arcDeg;
+    we.tapeArc = s.arcDeg - b.arcDeg; // arc gained from utilities (tape): a combo that sets the arc keeps it on top
     for (const r of matching) {
       if (matching.some((o) => o.replaces?.includes(r.id))) continue; // e.g. Ray Gun replaces Nailstorm
       const sup = near.filter((n) => r.supports.includes(n.type));
-      if (!runCombo(r.id, s, we)) applyRecipe(s, r.id, tapeArc);
+      runCombo(r.id, s, we); // the combo's `combo`-phase build hook, if it has stat effects (RECIPE_ORDER)
       s.recipes.push(r.id);
       recipes.push({ id: r.id, weaponUid: w.uid, supportUids: sup.map((n) => n.uid).sort() });
     }
@@ -113,29 +113,6 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
   // Expired Milk's curse (a high-order player hook) multiplied the finished total; max HP is rounded once, here.
   build.maxHp = Math.round(build.maxHp);
   return build;
-}
-
-/** `tapeArc`: arc already gained from utilities (tape), kept on top of recipe arcs. Behaviour-only combos have no stat effect. */
-function applyRecipe(s: WeaponStats, id: RecipeId, tapeArc: number): void {
-  if (id === 'toastMode') {
-    const t = RECIPE_TUNING.toastMode;
-    s.count = t.count; s.damage *= t.damageMult; s.spreadDeg = t.spreadDeg;
-  } else if (id === 'nailstorm') { s.pierce += RECIPE_TUNING.nailstorm.extraPierce; s.homing = true; }
-  else if (id === 'coldStorage') {
-    const c = RECIPE_TUNING.coldStorage;
-    s.frostRing = true; s.slow = { pct: c.pct, duration: c.duration }; s.damage *= c.damageMult; s.range *= c.radiusMult;
-  }
-  else if (id === 'expressCheckout') s.expressSweep = true;
-  else if (id === 'potSlam') s.dashBlast = true;
-  else if (id === 'brainFreeze') { s.range *= RECIPE_TUNING.brainFreeze.radiusMult; s.slow = { pct: RECIPE_TUNING.brainFreeze.pct, duration: RECIPE_TUNING.brainFreeze.duration }; }
-  else if (id === 'tvDinner') { s.chain += RECIPE_TUNING.tvDinner.chain; s.cooldown *= RECIPE_TUNING.tvDinner.cooldownMult; }
-  else if (id === 'sparksFly') s.chain += RECIPE_TUNING.sparksFly.chain;
-  else if (id === 'clearanceSale') { s.bounces += RECIPE_TUNING.clearanceSale.extraBounces; s.critCoin = true; }
-  else if (id === 'pressurePoint') s.firePool = true;
-  else if (id === 'mistMachine') { s.arcDeg += RECIPE_TUNING.mistMachine.arcDeg - ITEMS[s.type].weapon!.arcDeg; s.range *= RECIPE_TUNING.mistMachine.rangeMult; }
-  else if (id === 'greaseFire') { s.range *= RECIPE_TUNING.greaseFireBoost.radiusMult; if (s.burn) s.burn = { ...s.burn, dps: s.burn.dps * RECIPE_TUNING.greaseFireBoost.burnMult }; }
-  else if (id === 'frostbiteNails') { s.pierce += RECIPE_TUNING.frostbiteNails.extraPierce; }
-  else if (id === 'pressureWasher') { const w = RECIPE_TUNING.pressureWasher; s.arcDeg = w.arcDeg + tapeArc; s.range *= w.rangeMult; s.damage *= w.damageMult; }
 }
 
 const pc = (m: number) => Math.round(m * 100);

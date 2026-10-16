@@ -27,6 +27,8 @@ export interface WeaponEnv {
   uid: string;
   /** Combos whose parts all touch the weapon (before `replaces` filtering). */
   matching: readonly RecipeId[];
+  /** Arc already gained from utilities (tape) before the combos ran. */
+  tapeArc: number;
 }
 
 interface Owner { id: string; tune?: Tune; item: boolean }
@@ -46,6 +48,7 @@ function makeCtx(env: BuildEnv, owner: Owner, tier: number, w?: WeaponEnv, activ
     def: (id) => ITEMS[id],
     matching: w?.matching ?? [],
     active,
+    tapeArc: w?.tapeArc ?? 0,
     cart: env.inv,
     perk: env.perk,
   };

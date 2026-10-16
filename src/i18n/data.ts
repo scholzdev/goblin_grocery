@@ -1,7 +1,6 @@
 import { lang } from './lang';
 import { DATA_DE } from './data-de';
 import { ITEMS, PLAYER } from '../data/items';
-import { RECIPES } from '../data/recipes';
 import { ENEMIES } from '../data/enemies';
 import { DEPARTMENTS } from '../data/departments';
 import { ZONES, type ZoneId } from '../data/zones';
@@ -29,9 +28,8 @@ export const itemRules = (id: ItemTypeId, tier = 1): string => {
 };
 export const recipeT = (id: RecipeId) => {
   const c = contentCombo(id);
-  if (c) return recipeTextOf(c, lang());
-  const { name, short, summary, detail } = de() ? DATA_DE.recipes[id] : RECIPES[id];
-  return { name, short, summary, detail };
+  if (!c) throw new Error(`combo "${id}" has no content file`);
+  return recipeTextOf(c, lang());
 };
 export const enemyT = (id: EnemyId) => {
   const { name, blurb } = de() ? DATA_DE.enemies[id] : ENEMIES[id];

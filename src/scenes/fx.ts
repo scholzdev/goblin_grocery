@@ -117,6 +117,14 @@ export class Fx {
     this.scene.tweens.add({ targets: img, alpha: 0, y: y - 20, delay: 360, duration: 260, onComplete: () => img.destroy() });
   }
 
+  /** Bag It: a garbage bag at (x, y) that swells and shrinks for `seconds`, then goes (the blast after it is the combo hook's). */
+  garbageBag(x: number, y: number, seconds: number): void {
+    const g = this.scene.add.graphics().setPosition(x, y).setDepth(DEPTH.fx - 3);
+    g.fillStyle(0x30203f, 1).fillEllipse(0, -12, 34, 30).fillStyle(0x3f6b3a, 1).fillEllipse(0, -12, 28, 24).fillStyle(0x30203f, 1).fillTriangle(-6, -26, 6, -26, 0, -20);
+    this.scene.tweens.add({ targets: g, scale: 1.25, duration: seconds * 500, ease: 'Sine.InOut', yoyo: true });
+    this.scene.time.delayedCall(seconds * 1000, () => g.destroy());
+  }
+
   shake(intensity = 0.004, duration = 120): void {
     if (!settings.shake || settings.reducedMotion) return;
     this.scene.cameras.main.shake(duration, intensity);

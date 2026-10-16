@@ -223,5 +223,8 @@ export const contentSets = (): readonly SetContent[] => registry.sets;
 /** A content set's tune resolved at `level` (0 reads like level 1: the base values). The one reader outside build/hooks: run.ts (interest), weapons.ts (puddles). */
 export const contentSetTune = (id: SetId, level: number): Record<string, number> => resolveTune(registry.set(id)?.tune, level);
 
+/** A content combo's tune (scalars: a combo has no tier). The one reader outside build/hooks: the pattern code that still drives a combo's shot or visual (weapons.ts). */
+export const contentComboTune = (id: RecipeId): Record<string, number> => resolveTune(registry.combo(id)?.tune, 1);
+
 /** A content item's tune resolved at `tier`. */
 export const contentTune = (id: ItemTypeId, tier: number): Record<string, number> => resolveTune(registry.item(id)?.tune, tier);

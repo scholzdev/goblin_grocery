@@ -1,8 +1,8 @@
 import { tierBoostOf } from './build';
-import { contentCombos, contentItems, contentSets } from './registry';
+import { contentComboTune, contentCombos, contentItems, contentSets, contentSetTune, contentTune } from './registry';
 import { neighbors } from '../systems/inventory';
 import { ITEMS } from '../data/items';
-import type { ActiveRecipe, Inventory, ItemDef, ItemTypeId, SetId, WeaponStats } from '../types';
+import type { ActiveRecipe, Inventory, ItemDef, ItemTypeId, RecipeId, SetId, WeaponStats } from '../types';
 import { HOOK_NAMES, resolveTune, type ComboContent, type ItemContent, type Resolved, type RuntimeHooks, type SetContent, type Tune } from './define';
 import type { CombatEnemy, CombatShot, RuntimeCtx } from './ctx';
 
@@ -85,18 +85,32 @@ export interface PlayerHitEvent { dmg: number; invuln: number }
 export interface CoinPickupEvent { label: string; streak: number }
 
 export interface PatternBase { stats: WeaponStats }
-/** `before`: range/dmg are still editable (Chicken Dinner). `after`: the arc is resolved, `hits` are the enemies it damaged. */
-export interface SweepEvent extends PatternBase { stage: 'before' | 'after'; x: number; y: number; angle: number; bonus: boolean; range: number; dmg: number; hits: CombatEnemy[] }
+/**
+ * `before`: range/dmg are still editable (Chicken Dinner). `hit`: `enemy` was just damaged (once per enemy, in the arc loop: Smash the Bank
+ * rolls here so its rng draw stays between the enemies' own draws). `after`: the arc is resolved, `hits` are the enemies it damaged.
+ */
+export interface SweepEvent extends PatternBase { stage: 'before' | 'hit' | 'after'; x: number; y: number; angle: number; bonus: boolean; range: number; dmg: number; hits: CombatEnemy[]; enemy?: CombatEnemy }
 /** A pot blast (or dash blast) at (x, y), after its damage. */
 export interface ExplodeEvent extends PatternBase { x: number; y: number; hits: CombatEnemy[] }
-/** One link of a Microwave zap. `before`: `damageMult` is editable (TV Dinner / Sparks Fly chain). `after`: `hits` were damaged. */
-export interface ZapEvent extends PatternBase { stage: 'before' | 'after'; link: number; target: CombatEnemy; damageMult: number; hits: CombatEnemy[] }
+/**
+ * One link of a Microwave zap (link 0 = the first target). `before`: `damageMult` is editable (starts at 1; TV Dinner / Sparks Fly set the chain
+ * links). `hit`: `enemy` was just damaged (Sparks Fly rolls its stun here, between the enemies' own draws). `after`: `hits` were damaged.
+ */
+export interface ZapEvent extends PatternBase { stage: 'before' | 'hit' | 'after'; link: number; target: CombatEnemy; damageMult: number; hits: CombatEnemy[]; enemy?: CombatEnemy }
 /** A ricochet cap hit an enemy; `next` is the target it bounces to (null: it ends here). */
 export interface BounceEvent extends PatternBase { shot: CombatShot; x: number; y: number; next: CombatEnemy | null }
 /** A projectile just damaged `enemy` (before splash, Frostbite and the pierce check). */
 export interface ShotHitEvent extends PatternBase { shot: CombatShot; enemy: CombatEnemy }
-/** The Self-Checkout beam. `before`: `targets` are the enemies in the line (not damaged yet: marks go here). `after`: `hits` were damaged. */
-export interface BeamEvent extends PatternBase { stage: 'before' | 'after'; target: CombatEnemy; angle: number; echo: boolean; targets: CombatEnemy[]; hits: CombatEnemy[] }
+/**
+ * The Self-Checkout beam. `before`: `targets` are the enemies in the line (not damaged yet: marks go here) and `damageMult` (starts at 1) is
+ * editable (Power Surge's aftershock). `echo`: this is a re-fired beam. `after`: `hits` were damaged.
+ */
+export interface BeamEvent extends PatternBase { stage: 'before' | 'after'; target: CombatEnemy; angle: number; echo: boolean; targets: CombatEnemy[]; damageMult: number; hits: CombatEnemy[] }
+/**
+ * A nail is about to be fired (Nail Gun burst; `first`: the first nail of the burst). A handler that fires something else in its place
+ * (Ray Gun's energy bolt) spawns it and sets `handled`; the default nail is then skipped. `angle` already includes the spread (one rng draw).
+ */
+export interface FireEvent extends PatternBase { x: number; y: number; angle: number; first: boolean; handled: boolean }
 /** A Vacuum damage pulse, after its damage; `inside` = enemies within its radius. */
 export interface PulseEvent extends PatternBase { x: number; y: number; inside: CombatEnemy[] }
 /** A Spray Bottle / Leaf Blower cone, after its damage. */
@@ -130,6 +144,7 @@ export interface HookEvents {
   'pattern:bounce': BounceEvent;
   'pattern:shotHit': ShotHitEvent;
   'pattern:beam': BeamEvent;
+  'pattern:fire': FireEvent;
   'pattern:pulse': PulseEvent;
   'pattern:cone': ConeEvent;
   'pattern:puddleEnter': PuddleEnterEvent;
@@ -151,6 +166,16 @@ export interface HookCtx<T extends Tune = Tune> {
   owned(id: ItemTypeId): number;
   /** The legacy item definition (family, element, base weapon pattern). Sets use it to tell which weapons they apply to. */
   def(id: ItemTypeId): ItemDef;
+  /**
+   * Another content owner's tune: an item at tier `level`, a combo (scalars), or a set at level `level` (default 1). Empty for an id that is
+   * not content. Confetti Cannon reads the Blast set's radius, Tailwind the Sugar Rush stack numbers.
+   */
+  tuneOf(id: string, level?: number): Readonly<Record<string, number>>;
+  /**
+   * The scratch state of another owner active in this cart (undefined when it is not): Tailwind adds to Sugar Rush's stacks. Fresh per
+   * aisle like `state`; the owner creates its own fields lazily, so a reader must tolerate an empty object.
+   */
+  stateOf(id: string): Record<string, any> | undefined; // eslint-disable-line @typescript-eslint/no-explicit-any
   /** Scratch state, fresh for every aisle (counters, timers). Shared by all hooks of the same owner. */
   state: Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
@@ -184,15 +209,25 @@ export interface HookSource {
   weapons: ReadonlySet<string> | null;
 }
 
+/** `HookCtx.tuneOf`: items by tier, combos (scalars) and sets by level, whichever owns the id. */
+function otherTune(id: string, level = 1): Readonly<Record<string, number>> {
+  return contentItems().some((c) => c.id === id) ? contentTune(id as ItemTypeId, level)
+    : contentCombos().some((c) => c.id === id) ? contentComboTune(id as RecipeId)
+      : contentSetTune(id as SetId, level);
+}
+
 /** Flattens `sources` into per-hook handler arrays. `owned(id)`: highest effective tier of an item in the cart. */
 export function compileHooks(sources: readonly HookSource[], ctx: RuntimeCtx, owned: (id: ItemTypeId) => number = () => 0): HookTable {
   const lists = {} as Record<HookName, Handler[]>;
   for (const n of HOOK_NAMES) lists[n] = [];
   let seq = 0;
   const staged: { name: HookName; h: Handler; seq: number }[] = [];
+  const states = new Map<string, Record<string, any>>(); // eslint-disable-line @typescript-eslint/no-explicit-any
+  for (const s of sources) states.set(s.id, {});
+  const stateOf = (id: string) => states.get(id);
   for (const s of sources) {
     const tune = Object.freeze(resolveTune(s.tune, s.tier));
-    const c: HookCtx = { id: s.id, kind: s.kind, tier: s.tier, tune: () => tune, touches: (uid) => !s.weapons || s.weapons.has(uid), owned, def: (id) => ITEMS[id], state: {} };
+    const c: HookCtx = { id: s.id, kind: s.kind, tier: s.tier, tune: () => tune, touches: (uid) => !s.weapons || s.weapons.has(uid), owned, def: (id) => ITEMS[id], tuneOf: otherTune, stateOf, state: states.get(s.id)! };
     const order = s.hooks.order ?? 0;
     for (const name of HOOK_NAMES) {
       const fn = s.hooks[name];

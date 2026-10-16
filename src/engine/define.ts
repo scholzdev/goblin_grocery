@@ -104,6 +104,8 @@ export interface BuildCtx<T extends Tune = Tune> {
   readonly matching: readonly RecipeId[];
   /** Combos active in the finished build. Only filled for player hooks. */
   readonly active: readonly ActiveRecipe[];
+  /** Arc (degrees) the weapon gained from utilities (Duct Tape) before the combos ran: a combo that sets the arc keeps it on top (Pressure Washer). 0 in player hooks. */
+  readonly tapeArc: number;
   readonly cart: Inventory;
   readonly perk: Perk;
 }
@@ -126,7 +128,7 @@ export interface BuildSpec<T extends Tune = Tune> {
 /** Every combat hook, in the order a table lists them (the typed payloads are in engine/hooks.ts, the API in engine/ctx.ts). */
 export const HOOK_NAMES: readonly HookName[] = [
   'onAisleStart', 'onTick', 'modifyDamage', 'onHit', 'afterHit', 'onCrit', 'onKill', 'afterKill', 'onDashStart', 'onDashHit', 'onDashEnd', 'onEnemyShotTouch', 'onPlayerHit', 'onCoinPickup',
-  'pattern:sweep', 'pattern:explode', 'pattern:zap', 'pattern:bounce', 'pattern:shotHit', 'pattern:beam', 'pattern:pulse', 'pattern:cone', 'pattern:puddleEnter', 'pattern:aura',
+  'pattern:sweep', 'pattern:explode', 'pattern:zap', 'pattern:bounce', 'pattern:shotHit', 'pattern:beam', 'pattern:fire', 'pattern:pulse', 'pattern:cone', 'pattern:puddleEnter', 'pattern:aura',
 ];
 
 type Handler = (event: never, ctx: never) => void;
@@ -215,7 +217,7 @@ export interface ComboContent<T extends Tune = Tune> {
   /** Scalars only (a combo has no tier). */
   tune?: T;
   text: Localized<ComboText>;
-  /** Combos run in the `combo` phase, inside the per-recipe loop, in RECIPES order. */
+  /** Combos run in the `combo` phase, inside the per-recipe loop, in RECIPE_ORDER (`data/recipes.ts`). A combo with no stat effect has no `build`. */
   build?: BuildSpec<T>;
   /** Combat hooks, active while the combo is: see RuntimeHooks. */
   hooks?: RuntimeHooks<T>;

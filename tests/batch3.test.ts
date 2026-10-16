@@ -5,8 +5,8 @@ import { createRun, mergeItems, moveItem, openShop, upgradeItem } from '../src/s
 import { footprint } from '../src/systems/inventory';
 import { mulberry32 } from '../src/systems/rng';
 import { ITEMS, cellsFor } from '../src/data/items';
-import { contentTune } from '../src/engine/registry';
-import { RECIPES, RECIPE_TUNING } from '../src/data/recipes';
+import { contentComboTune, contentTune } from '../src/engine/registry';
+import { RECIPES } from '../src/data/recipes';
 import { cart } from './cart';
 import type { Inventory, ItemInstance, ItemTypeId, RunState } from '../src/types';
 
@@ -40,10 +40,10 @@ describe('Tailwind', () => {
     expect(RECIPES.tailwind.weapon).toBe('leafblower');
   });
   it('tuning matches the spec', () => {
-    expect(RECIPE_TUNING.tailwind).toEqual({ boost: 0.3, boostTime: 0.4, sugarIcd: 1.5 });
+    expect(contentComboTune('tailwind')).toEqual({ boost: 0.3, boostTime: 0.4, sugarIcd: 1.5 });
   });
   it('never adds Sugar Rush stacks without Sugar Rush; with it, only past the 1.5 s cooldown', () => {
-    const icd = RECIPE_TUNING.tailwind.sugarIcd;
+    const icd = contentComboTune('tailwind').sugarIcd;
     for (const now of [0, 1, 10, 1000]) expect(tailwindFeedsSugar(false, now, -Infinity, icd)).toBe(false);
     expect(tailwindFeedsSugar(true, 0, -Infinity, icd)).toBe(true);
     expect(tailwindFeedsSugar(true, 1.4, 0, icd)).toBe(false);

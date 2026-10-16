@@ -1,8 +1,8 @@
 import type { ItemDef, RecipeDef } from '../types';
-import { resolveShape, resolveTune, type ComboContent, type ItemContent, type Lang } from './define';
+import { resolveShape, type ComboContent, type ItemContent, type Lang } from './define';
 import { legacyRules, renderAll } from './text';
 
-// Conversions from content files to the legacy table entries (ItemDef, RecipeDef, RECIPE_TUNING, DATA_DE rows), so code
+// Conversions from content files to the legacy table entries (ItemDef, RecipeDef, DATA_DE rows), so code
 // outside the engine keeps reading ITEMS / RECIPES / DATA_DE until phase 8 deletes them.
 
 /** The legacy `ItemDef`. `rules` is in the legacy `{0}`/`{1}` form (indices into the scaling rows), see `legacyRules`. */
@@ -37,6 +37,3 @@ export function recipeDefOf(c: ComboContent): RecipeDef {
 
 /** A combo's rendered text in one language (`recipeT` and `DATA_DE.recipes`). */
 export const recipeTextOf = (c: ComboContent, lang: Lang): { name: string; short: string; summary: string; detail: string } => renderAll(c.text[lang], c.tune, lang);
-
-/** The combo's `RECIPE_TUNING[id]` entry: its tune, resolved. */
-export const recipeTuningOf = (c: ComboContent): Record<string, number> => ({ ...resolveTune(c.tune, 1) });

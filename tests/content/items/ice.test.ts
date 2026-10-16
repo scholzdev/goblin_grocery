@@ -1,8 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { ITEMS, TIER } from '../../../src/data/items';
-import { RECIPE_TUNING } from '../../../src/data/recipes';
 import ice from '../../../src/content/items/ice';
-import { contentItem, contentTune } from '../../../src/engine/registry';
+import { contentComboTune, contentItem, contentTune } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { computeBuild, describeBuffs, tierScaling } from '../../../src/systems/synergies';
@@ -56,7 +55,7 @@ describe('Ice Pack: build', () => {
   it('is overridden by Cold Storage on a Vacuum', () => {
     const w = stats([at('vacuum'), at('ice')]);
     expect(w.recipes).toEqual(['coldStorage']);
-    expect(w.slow).toEqual({ pct: RECIPE_TUNING.coldStorage.pct, duration: RECIPE_TUNING.coldStorage.duration });
+    expect(w.slow).toEqual({ pct: contentComboTune('coldStorage').pct, duration: contentComboTune('coldStorage').duration });
   });
 
   it('is what Jelly Beans (frost) scales: 70% of the ★1 slow', () => {

@@ -84,6 +84,21 @@ Enemy entry: `{ id, count?, affix?, still?, immortal?, mini?, at?, spread? }`.
 2. That is the whole registration: `import.meta.glob` collects every `src/sims/*.ts` that does not start with `_`. Reload and run `?sim=my-sim`. It also shows up in the Test Lab select.
 3. `npx vitest run tests/sims` validates every sim (ids exist, tier 1..3, positions fit and do not overlap, affix allowed for that enemy, no enemies with `waves: true`).
 
+## Combo sims
+
+One sim per combo, `src/sims/combo-<id>.ts` with the combo id in kebab-case (`?sim=combo-bag-it`, `combo-five-alarm`, `combo-pot-slam`, ...). Each cart is exactly the combo's parts with an explicit `at`, so the recipe is active the moment it starts; the notes say what to look at. Shared choices: 7x5 cart, a cluster of 10 milk (immortal, so you can watch the effect for as long as you like), god mode on. Exceptions:
+
+| Sim | Difference |
+| --- | --- |
+| `combo-bag-it`, `combo-clearance-sale` | 12 mortal milk (`immortal: false`): the effect needs kills (Bag It's charges) or crits (the Clearance coin). |
+| `combo-smoothie-shield` | 3 walking spitters plus 4 milk: the shield eats their shots. |
+| `combo-express-checkout`, `combo-pot-slam`, `combo-sugar-rush`, `combo-bag-it` | Dash with Space into the cluster (Sugar Rush has no weapon: the stacks and the SUGAR text are the test). |
+| `combo-tailwind` | Adds an Energy Drink so Sugar Rush is active too (Tailwind feeds it). Walk while the leaf blower fires. |
+| `combo-sour-mist` | The spray + fan is also Mist Machine, so both are active. |
+| `combo-ray-gun` | Ray Gun replaces Nailstorm on the same nail gun, so only Ray Gun is active. |
+
+`tests/sims/sims.test.ts` checks that every combo sim activates its combo through `createSimRun` and `computeBuild` (and exactly the extra combos listed above), so an item change that breaks an adjacency shows up as a failing test, not a silent sim.
+
 ## Where the code lives
 
 - `src/sims/_sim.ts`: the types, `defineSim`, defaults, `layoutCart` (auto-placement) and `validateSim`.

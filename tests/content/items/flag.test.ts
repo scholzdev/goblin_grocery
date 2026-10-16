@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { ITEMS, TIER } from '../../../src/data/items';
-import { RECIPE_TUNING } from '../../../src/data/recipes';
 import flag from '../../../src/content/items/flag';
-import { contentItem, contentTune } from '../../../src/engine/registry';
+import { contentComboTune, contentCombo, contentItem, contentTune } from '../../../src/engine/registry';
+import { MARK_MULT } from '../../../src/engine/marks';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { combatRng } from '../../../src/systems/rng';
@@ -80,24 +80,26 @@ describe('Sale Flag: runtime', () => {
   });
 });
 
-// Ordering guards for the damage pipeline (docs/item-hooks-refactor.md §4c): the mark multiplier stays engine behavior, after Five-Alarm.
+// Ordering guards for the damage pipeline (docs/item-hooks-refactor.md §4c): the mark multiplier is engine behavior (engine/marks.ts),
+// after the modifyDamage hooks (Five-Alarm) and before the crit roll.
 describe('Sale Flag: the mark multiplier stays in the pipeline', () => {
   const arenaSource = sceneSource('ArenaScene.ts');
   const body = arenaSource.slice(arenaSource.indexOf('damageEnemy(e: Enemy'), arenaSource.indexOf('/** Kitchen L2 heal'));
 
   it('has no modifyDamage hook: a mark has two writers (the dash and Price Check\'s beam), so x1.2 would be lost for Price Check carts', () => {
     expect(flag.hooks?.modifyDamage).toBeUndefined();
-    expect(sceneSource('weapons.ts')).toMatch(/priceCheck'\)\) e\.markedUntil = /); // the beam marks too
+    expect(contentCombo('priceCheck')!.hooks!['pattern:beam']).toBeTypeOf('function'); // the beam marks too
   });
 
-  it('applies Five-Alarm first, then the mark, then the crit roll (the multiplication order of today)', () => {
+  it('applies the modifyDamage hooks (Five-Alarm) first, then the mark, then the crit roll (the multiplication order of today)', () => {
     const at_ = (n: string) => { const i = body.indexOf(n); expect(i, n).toBeGreaterThan(-1); return i; };
-    const order = ['RECIPE_TUNING.fiveAlarm.vsBurning', 'e.markedUntil ?? 0) > now', 'RECIPE_TUNING.priceCheck.damageMult', 'this.rng() < stats.critChance'].map(at_);
+    const order = ["H.emit('modifyDamage'", 'markedDamage(dmg, e.markedUntil, now)', 'this.rng() < stats.critChance'].map(at_);
     expect(order).toEqual([...order].sort((a, b) => a - b));
   });
 
   it('shows the same bonus the pipeline applies: 1 + bonus = the shared mark multiplier', () => {
-    expect(1 + contentTune('flag', 1).bonus).toBe(RECIPE_TUNING.priceCheck.damageMult);
+    expect(1 + contentTune('flag', 1).bonus).toBe(contentComboTune('priceCheck').damageMult);
+    expect(MARK_MULT).toBe(contentComboTune('priceCheck').damageMult);
   });
 });
 

@@ -163,7 +163,7 @@ Two implementations: `PhaserCtx` (wraps ArenaScene, Arsenal, fx) and `FakeCtx` (
 | 3 | `ctx` + combat hook emit points **(done)** | `PhaserCtx`, `FakeCtx`, seeded `rng`, emit hooks from ArenaScene/weapons with old branches still present | botrun clean |
 | 4 | Migrate runtime items **(done. Batch 1: fuel, ice, popper, doublebag, coupon, sample. Batch 2: boot, bumper, sparewheel, tipjar, flag, bubblewrap, expiredmilk, tinfoilhat; the vacuum pickup stays a `computeBuild` literal until phase 7; multipack's repeat is phase 7)** | per-item FakeCtx tests, botrun |
 | 5 | Sets **(done)** | 9 set files in `src/content/sets/`; set branches gone from `computeBuild`, `damageEnemy`, `onHitStatuses`; new `afterHit` / `afterKill` hooks; interest and puddle slow still read the set tune | golden + botrun |
-| 6 | Combos | 31 combo files incl. cart combos (`cartCombos.ts` dissolves) | combo-balance test, Lab check |
+| 6 | Combos **(done)** | 31 combo files in `src/content/combos/` incl. the cart combos; `cartCombos.ts` is gone (runtime in combo hooks, the status lines in `scenes/playerOverlay.ts`); `RECIPE_TUNING`, `applyRecipe` and the legacy recipe tables are gone; 31 combo sims `?sim=combo-<id>` | golden + combo-balance + botrun + sims |
 | 7 | Patterns | 11 pattern files; weapons define `pattern` + params | botrun |
 | 8 | Delete old | remove BUFFS/RECIPE_TUNING tables, applyRecipe, branches; `data/*` re-exports gone | everything green |
 
@@ -423,6 +423,90 @@ Runtime hook orders: kitchen heal `afterKill` 10, blast pop `afterKill` 20 (kitc
 - Price Check owns the mark multiplier and Pot Slam goes through `onDashEnd` (see the batch 2 notes above); Pot Slam needs `dashBlast` from `ctx` or a `pattern:explode` source. Express Checkout is the remaining legacy dash line.
 - A combo that needs a set level reads `c.sets` in its build hook. The Frost clamp at post-combo 1000 means a combo that changes the slow must stay below it.
 - Unused after phase 5 (delete at phase 8): the ui `row*` keys listed above, `Build.shoveStun` (the only set-written field with no reader but the goldens; `regen` is read by the scene and `priceMult` by `systems/shop.ts`, so they stay), and the legacy-shaped `SetId` string unions in `types.ts` once `SET_ORDER` drives the type.
+
+### Phase 6 learnings (combos)
+
+31 combo files `src/content/combos/<id>.ts` (`defineCombo`), each with its recipe (`requires`, weapon first; `cart: true` for Sugar Rush), scalar tune, EN/DE text (name, short, summary, detail; the `rows` of the old table went with them), the `combo`-phase build hook where the combo changes stats, and the runtime hooks. `data/recipes.ts` keeps only `RECIPE_ORDER` (the legacy iteration order, it fixes the registration order), `RECIPES` (the legacy `RecipeDef` converted from the content, for the code that still reads that shape), `recipeParts`, `recipeIcon`. `RECIPE_TUNING`, `recipeTuningOf`, `applyRecipe`, the DE `recipes` table and `RECIPES`-in-i18n are gone (`DATA_DE.recipes` is built from the content, `recipeT` throws for a combo without a file). `src/scenes/cartCombos.ts` is deleted: its three jobs are now (a) combo hooks (Bag It, Sugar Rush, Tailwind, Express Checkout), (b) the engine pieces `engine/stacks.ts` and `engine/marks.ts`, (c) `scenes/playerOverlay.ts` (the status lines and the Expired Milk cloud, nothing combo-specific).
+
+**Where each combo lives now** (`b` = build phase `combo` in RECIPE_ORDER; hook orders only where not 0).
+
+| Combo | Build (`combo` phase) | Runtime hook |
+|---|---|---|
+| toastMode | b: count 3, damage x0.75, spread 22 | none (cosmetic `recipes.includes` reads in weapons.ts) |
+| nailstorm | b: pierce +1, homing | none; the homing turn and range are read from the combo tune in weapons.ts (phase 7) |
+| coldStorage, brainFreeze | b: frost ring / range, **slow** (`overrides: ['slow']`) | none |
+| expressCheckout | b: flag `expressSweep` (golden contract) | `onDashEnd` order 10: per-pan 1 s ICD in `c.state.last`, `ctx.sweep(uid, angle, true)` |
+| tvDinner | b: chain +1, cooldown x0.92 | `pattern:zap` before: link > 0 -> `damageMult` 0.6 |
+| clearanceSale | b: bounces +2, flag `critCoin` | `onCrit`: one coin per enemy (`critCoinDropped`) |
+| greaseFire | b: range x1.4, burn dps x2 | none |
+| pressurePoint | b: flag `firePool` | `pattern:explode` -> `ctx.spawnPool` |
+| mistMachine | b: arc / range (`suppresses: ['fan']`) | none |
+| fiveAlarm | none | `modifyDamage` order 10: toast vs burning x1.8 |
+| sizzlingSkillet | none | `pattern:sweep` after: 3 pools |
+| chickenDinner | none | `pattern:sweep` before: every 4th sweep, range x1.4 / dmg x2.5 (`c.state.sweeps`) |
+| frostbiteNails | b: pierce +1 | `pattern:shotHit`: every 3rd hit per enemy stuns 0.7 s |
+| staticCling | none | `pattern:pulse`: shuffle `[...inside]` with `ctx.rng`, 3 zaps |
+| reheat | none | `pattern:zap` before, link 0: pool at the target |
+| smoothieShield | none | `pattern:aura`: `killShot` inside the range |
+| confettiCannon | none | `pattern:bounce` -> `ctx.popperBlast` (Blast set radius via `c.tuneOf('blast')`) |
+| blackIce | none | `pattern:puddleEnter` first: stun 0.8 s |
+| shrapnel | none | `pattern:explode`: 6 nails (one rng jitter each) |
+| pressureWasher | b: arc = 25 + `c.tapeArc`, range x2, damage x2.5 | none |
+| powerSurge | none | `pattern:beam` before: first beam `ctx.delay(0.25)` -> `ctx.beam(uid, target, true)`; the echo sets `damageMult` 0.25 |
+| potSlam | b: flag `dashBlast` | `onDashEnd` order 0: `ctx.explode(uid, x, y)` per weapon |
+| priceCheck | none | `pattern:beam` before: `ctx.mark` each target; the x1.2 itself is `engine/marks.ts` |
+| sugarRush (cart) | none | `onDashStart` pushes a stack, `onTick` keeps the `speedMods` entry and the "SUGAR ###" line in step |
+| smashBank | none | `pattern:sweep` 'hit' stage: one rng roll per damaged enemy, `dropCoin` |
+| bagIt | none | `onKill` charge + `setLine`; `onDashStart` drops the bag (`fx.garbageBag`, `ctx.delay(fuse)`) |
+| sourMist | none | `pattern:cone` -> `ctx.poison` on `ev.hits` |
+| sparksFly | b: chain +2 | `pattern:zap` order 10: before = last 2 links x0.5 (overrides TV Dinner's 0.6), 'hit' = stun roll |
+| rayGun | none (`replaces: ['nailstorm']`) | `pattern:fire` (bolt, `handled`) + `pattern:shotHit` (ring + splash) |
+| tailwind | none | `pattern:cone`: `speedMods.tailwind`, `windUntil`, feeds Sugar Rush via `c.stateOf` |
+
+**Engine additions.**
+
+- New events/stages: `pattern:fire` (`FireEvent`, a handler that fires something instead of the default nail sets `handled`); `SweepEvent` and `ZapEvent` get a `'hit'` stage with `enemy` (fired right after each enemy's damage, so Smash the Bank's and Sparks Fly's rolls interleave with the enemies' own draws as before); `ZapEvent.damageMult` / `BeamEvent.damageMult` (editable in `before`; start at 1).
+- `HookCtx.tuneOf(id, level?)` (an item by tier, a combo, or a set by level) and `HookCtx.stateOf(id)` (another owner's scratch state, undefined if it is not in the cart; states are pre-created per owner so the order of registration does not matter). Used by Tailwind (Sugar Rush stacks and tune) and Confetti (Blast radius).
+- `BuildCtx.tapeArc`: the arc Duct Tape added before the combos (`WeaponEnv.tapeArc`, set by `synergies.ts` right before the combo loop), so Pressure Washer keeps the legacy `25 + tape` and Mist Machine's arc cannot leak in.
+- RuntimeCtx: `sweep(uid, angle, bonus?)`, `explode(uid, x, y)`, `beam(uid, target, echo?)` (re-enter the pattern code for one weapon: `Arsenal.weaponOf(uid)`), `boltFx(x, y, small)`, `setLine(id, text|null, order?)`; `FxApi.garbageBag`; `CombatShot.splash` (Ray Gun); `PlayerView.speedMods` (`id -> (now) => multiplier`; the speed formula multiplies them in key order, then `playerSlow()` and gum). All in `PhaserCtx` and `FakeCtx` (new call kinds sweep, explode, beam, boltFx, line, plus `fake.lines`).
+- `engine/stacks.ts` (pure: `liveStacks`, `countStacks`, `pushStack`, `tailwindFeedsSugar`; `systems/combat.ts` re-exports `tailwindFeedsSugar` for the old tests) and `engine/marks.ts` (`MARK_MULT` = Price Check's tune, `markedDamage`, called by `damageEnemy` and `FakeCtx.runHit` right after the `modifyDamage` hooks; Sale Flag marks too). `registry.contentComboTune(id)` for the pattern code that still needs a combo's numbers.
+
+**Order decisions (all golden / draw-order verified).**
+
+- Damage pipeline: `modifyDamage` (Five-Alarm, order 10) -> mark rule -> crit roll -> `onCrit` (Free Sample, then the Clearance Sale coin) -> armor / hp -> `onHit` ... The comment on `damageEnemy` is renumbered 1..6, and a source-order test pins it (`tests/content/combos/order.test.ts`).
+- Slow: Cold Storage / Brain Freeze set the slow in the `combo` phase, Frost L1 adds +0.1 in `post-combo` order 1000 (0.5 -> 0.6, 0.4 -> 0.5), pinned in the test.
+- Multipack's count is `post-combo`, after Toast Mode's `count = 3`.
+- Dash end: Pot Slam (order 0) before Express Checkout (order 10), as the two legacy lines. Express Checkout is the only combo with its own ICD state; the timestamp is per pan.
+- Sparks Fly vs TV Dinner: both set `damageMult` in `pattern:zap` before; Sparks Fly is order 10 so its 0.5 on the last two links wins, TV Dinner's 0.6 stays on the earlier chain links.
+- The Static Cling shuffle keeps `[...inside].sort(() => rng() - 0.5)` over a copy: the exact comparison count (and so the rng draws) is the legacy one. Shrapnel draws one jitter number per fragment, in fragment order.
+- Ray Gun's bolt is every `every`th shot **per weapon uid** (`c.state.shots`), the legacy per-weapon counter.
+
+**Semantics kept on purpose (deviations from "clean").**
+
+- The three flags `expressSweep`, `dashBlast`, `firePool` and `critCoin` stay on `WeaponStats` and are set by the combo `build` hooks, because the `Build` golden snapshots contain them. Nothing reads them at runtime any more (comments in `types.ts`). Delete them in phase 8 together with the golden regeneration.
+- `weapons.ts` still has cosmetic `recipes.includes('toastMode' | 'nailstorm' | 'greaseFire' | 'brainFreeze')` reads (sprite tint, flame sparks, rotation speed, the toast sound rate). They touch no rule; phase 7 moves them into the patterns.
+- Nailstorm's homing is still done in the projectile update of `weapons.ts` (reads `s.homing` and `contentComboTune('nailstorm')`): it is part of the shot's motion, which belongs to the phase 7 pattern.
+- The Blast-set radius for Confetti is now read at set level L1 (`c.tuneOf('blast')`), exactly as before; the L3 multiplier is still ignored (documented in the phase 5 notes).
+- Text quirks preserved byte for byte (golden `text.json`): the Sparks Fly DE detail says "TV-Dinner" while the DE combo name is "Fertiggericht"; the ordinal suffixes in the Chicken Dinner ("4th"), Frostbite Nails ("3rd") and Ray Gun ("3rd") text are literal, not computed from `every`; Express Checkout keeps the literal "1.0 s" (the `s` formatter would print "1 s"). Fix them together when the text is reworked.
+- `WeaponStats` fields that no code reads any more after phases 4..6 (besides the flags above) are listed for phase 8 below.
+
+**Tests.** `tests/content/combos/<id>.test.ts` for all 31 (recipe detection: triggers with exactly the parts touching, not without any one part, not on another weapon, not when a part does not touch the weapon, replaced / overridden combos; the registered content and the converted `RecipeDef`; EN/DE names; the build hook against the legacy formula; the runtime hook through FakeCtx with exact `combatRng` draw counts: Smash the Bank, Sparks Fly, Static Cling, Shrapnel, Clearance Sale; no extra draws where there are none), `helpers.ts` (`describeCombo`, `applyCombo`, `partsOf`, ...), and `order.test.ts` (mark / Five-Alarm / crit, slow vs Frost, Multipack, Pot Slam before Express Checkout, RECIPE_ORDER iteration). `tests/sims/sims.test.ts` checks that each of the 31 combo sims actually activates its combo (through `createSimRun` -> `computeBuild`).
+
+**Sims.** `src/sims/combo-<id>.ts` (kebab-case of the combo id: `combo-bag-it`, `combo-five-alarm`, ...), one per combo, listed in `docs/sims.md`. Cart parts have explicit `at`, found by a search over the grid with the real build code; Bag It and Clearance Sale have mortal dummies (`immortal: false`), Smoothie Shield has spitters. Two sims activate a second combo by the nature of the parts: Sour Mist's spray + fan is also Mist Machine, and Tailwind's sim has an Energy Drink so Sugar Rush (cart combo) is active too.
+
+**Notes for phase 7 (patterns).**
+
+- The pattern code now only emits events; every combo branch is out of `Arsenal` (`rayShots`, `expressIcd`, `chickenSweeps`, `dashBlast`, the puddle `frozen`, the laser's power-surge scheduling and marking). What stays is the cosmetic `recipes.includes` reads and nailstorm homing (above). Moving them: give the pattern a param (`tint`, `spark`, `turn`) that the combo's build hook sets, or a `pattern:*` event.
+- `Arsenal.weaponOf(uid)` + public `laser` / `explode` / `bolt` back the `ctx.sweep` / `explode` / `beam` forwarders; a pattern file should expose "run this weapon once at (x, y, angle)" as its own entry point instead of a public method on `Arsenal`.
+- `pattern:fire` is only emitted by the Nail Gun burst. Toast, ricochet and the other projectile patterns have no equivalent, because no combo needs one; add it the same way (`handled` flag) when a combo wants to replace a shot.
+- The 'hit' stage costs one emit per enemy hit; it is guarded by the empty-handler-list check like the others. Keep it that way when a pattern is rewritten.
+
+**Notes for phase 8 (delete old).**
+
+- `WeaponStats.critCoin`, `expressSweep`, `dashBlast`, `firePool` (set, never read; the golden `Build` JSON has them) and `homing` once the pattern reads a param instead; `Build.shoveStun` (phase 5). Regenerate the goldens only with the owner's approval and review the diff by field.
+- The ui `row*` keys of the sets (phase 5 note) and any remaining `recipeT`-shaped fields on `RecipeDef` (`short`, `summary`, `detail` are rendered in English into `RECIPES` for the legacy readers).
+- The `RecipeId` union in `types.ts` can be derived from `RECIPE_ORDER`; `RECIPES` goes when its last readers (`synergies.ts` matching, `recipeParts`, `recipeIcon`) read the content directly.
+- `systems/combat.ts` still re-exports `tailwindFeedsSugar`; drop it when the old tests import it from `engine/stacks`.
 
 ## 8. Risks
 

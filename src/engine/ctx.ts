@@ -34,6 +34,8 @@ export interface CombatShot {
   life: number;
   damage: number;
   stats: WeaponStats | null;
+  /** A hook may hang a splash on a player shot (Ray Gun: radius and fraction of the hit damage); the hook's own `pattern:shotHit` reads it back. */
+  splash: { r: number; m: number } | null;
 }
 
 /** The goblin (`ArenaScene.player`). Live object: writes go straight to the game. */
@@ -50,6 +52,11 @@ export interface PlayerView {
   /** Dash direction (unit vector). */
   shoveDX: number; shoveDY: number;
   dead: boolean;
+  /**
+   * Walking-speed multipliers hooks register by owner id (Sugar Rush, Tailwind); the scene multiplies the live value of each into the
+   * goblin's speed every frame. A function of the scene clock, so a stack that expires between two ticks stops counting at once.
+   */
+  speedMods: Record<string, (now: number) => number>;
 }
 
 /** The `Fx` methods effect code calls today (scenes/fx.ts). No-ops in `FakeCtx` (recorded). */
@@ -66,8 +73,10 @@ export interface FxApi {
   ring(key: string, x: number, y: number, size: number, duration?: number, tint?: number, inward?: boolean): void;
   popImage(key: string, x: number, y: number, scale?: number, depth?: number): void;
   shake(intensity?: number, duration?: number): void;
+  /** Bag It: the garbage bag drawn at (x, y) for `seconds` (it swells and shrinks, then disappears). The blast itself is the hook's. */
+  garbageBag(x: number, y: number, seconds: number): void;
 }
-export const FX_METHODS = ['spark', 'crumbsAt', 'puff', 'flame', 'confetti', 'frostBurst', 'suck', 'number', 'label', 'ring', 'popImage', 'shake'] as const;
+export const FX_METHODS = ['spark', 'crumbsAt', 'puff', 'flame', 'confetti', 'frostBurst', 'suck', 'number', 'label', 'ring', 'popImage', 'shake', 'garbageBag'] as const;
 
 /** A player projectile for `spawnShot` (Arsenal.spawn's arguments). */
 export interface ShotSpec { key: string; x: number; y: number; angle: number; speed: number; life: number; damage: number; stats: WeaponStats; maxHits: number }
@@ -136,6 +145,12 @@ export interface RuntimeCtx {
   spawnPool(spec: PoolSpec): void;
   /** Party Popper blast: damages everything within `pop.radius`, never re-triggers poppers. `setPop`: the pink Blast-set look. */
   popperBlast(pos: { x: number; y: number }, pop: { damage: number; radius: number }, setPop?: boolean): void;
+  /** A pan sweep of the weapon `weaponUid` at `angle` (`bonus`: the lighter extra sweep, Express Checkout). Fires `pattern:sweep` like any sweep. */
+  sweep(weaponUid: string, angle: number, bonus?: boolean): void;
+  /** A full Pressure Cooker explosion of the weapon `weaponUid` at (x, y) (Pot Slam). Fires `pattern:explode` like a lobbed pot. */
+  explode(weaponUid: string, x: number, y: number): void;
+  /** Fire the Self-Checkout beam of `weaponUid` at `target` right now (Power Surge's aftershock is `echo`). Fires `pattern:beam`. */
+  beam(weaponUid: string, target: CombatEnemy, echo?: boolean): void;
   /** Enemy projectiles in flight. */
   enemyShots(): readonly CombatShot[];
   killShot(shot: CombatShot): void;
@@ -153,6 +168,13 @@ export interface RuntimeCtx {
   readonly fx: FxApi;
   /** The jagged bolt through `points` (the Electric chain), with its zap sound. */
   arcFx(points: readonly { x: number; y: number }[]): void;
+  /** A zap bolt drawn on (x, y) (Microwave links; `small`: the lighter one Static Cling throws). Fx only. */
+  boltFx(x: number, y: number, small: boolean): void;
+  /**
+   * One line of the status text above the goblin ("SUGAR ###", "BAG x3"). Lines are shown top to bottom by `order`, then in the order they
+   * first appeared; `null` removes the line. Drawn only while the goblin is fighting.
+   */
+  setLine(id: string, text: string | null, order?: number): void;
   sound(name: string, opts?: { rate?: number; volume?: number }): void;
   tween(target: object, props: Record<string, number>, ms: number): void;
   delay(seconds: number, fn: () => void): void;

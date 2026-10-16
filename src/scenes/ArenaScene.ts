@@ -6,7 +6,6 @@ import { waveDef, eliteChance, bossTuning, ECONOMY, SHIFTS, WAVE_RAMP } from '..
 import { SHOW_HP_BAR, EGG_BLAST, MELON_SLICES, ELITE, GIFTCARD, GUM, THEME_SUMMONS, ELITE_EXCLUDED, AFFIX, MINI_BOSS, bossFor, isBossId, type BossMove } from '../data/enemies';
 import { GumPuddles } from './gum';
 import { CRIT, PLAYER, STARTER_LOOKS } from '../data/items';
-import { RECIPE_TUNING } from '../data/recipes';
 import { addCoins, damagePlayer, takeStockroomItem } from '../state/run';
 import { armorDamage, newHitTracker, tryHit, type HitTracker } from '../systems/combat';
 import type { EnemyId, ShopOffer, WaveDef, WeaponStats } from '../types';
@@ -20,11 +19,12 @@ import { clampPoint, spreadPoint, type Pt } from '../systems/spread';
 import { EMPTY_HOOKS, buildHooks, type HitEvent, type HitOpts, type HookTable } from '../engine/hooks';
 import { applyHitStatuses, scheduleEcho } from '../engine/onHitStatuses';
 import { applyKillEffects } from '../engine/onKillEffects';
+import { markedDamage } from '../engine/marks';
 import { contentSetTune } from '../engine/registry';
 import { PhaserCtx } from './phaserCtx';
 import { createEnemy, drawTelegraph, updateEnemy, type Enemy } from './enemies';
 import { Arsenal } from './weapons';
-import { CartCombos } from './cartCombos';
+import { PlayerOverlay } from './playerOverlay';
 import { Hazards } from './hazards';
 import { AisleEvents } from './events';
 import { rollEvent } from '../systems/events';
@@ -59,6 +59,8 @@ interface Player {
   reflectT: number;
   shoveT: number; shoveCd: number; chainT: number; springHit: boolean; shoveDX: number; shoveDY: number; shoveTracker: HitTracker; shoveHit: boolean;
   dead: boolean;
+  /** Walking-speed multipliers registered by hooks (Sugar Rush, Tailwind), see `PlayerView.speedMods`. */
+  speedMods: Record<string, (now: number) => number>;
 }
 
 interface Coin { bread: boolean; img: Phaser.GameObjects.Image; active: boolean; x: number; y: number; z: number; vx: number; vy: number; vz: number; label: string; pull: boolean }
@@ -70,7 +72,7 @@ export class ArenaScene extends Phaser.Scene {
   enemies: Enemy[] = [];
   fx!: Fx;
   arsenal!: Arsenal;
-  cartCombos!: CartCombos;
+  overlay!: PlayerOverlay;
   enraged = false;
   dept!: DepartmentDef;
   hazards!: Hazards;
@@ -154,7 +156,7 @@ export class ArenaScene extends Phaser.Scene {
     this.bars = this.add.graphics().setDepth(DEPTH.bars);
     this.fx = new Fx(this);
     this.arsenal = new Arsenal(this);
-    this.cartCombos = new CartCombos(this);
+    this.overlay = new PlayerOverlay(this);
     this.buildPlayer();
     this.arsenal.setBuild(s.build.weapons);
     this.ctx = new PhaserCtx(this);
@@ -257,11 +259,10 @@ export class ArenaScene extends Phaser.Scene {
     }
   }
 
-  /** Dash landing: the onDashEnd hooks (Slam Bumper shockwave), then the Pot Slam blast. */
+  /** Dash landing: the onDashEnd hooks (Slam Bumper shockwave, then the combos: Pot Slam blast, then Express Checkout's bonus sweep). */
   private dashLanding(): void {
     const p = this.player;
-    if (this.hooks.onDashEnd.length) this.hooks.emit('onDashEnd', { x: p.x, y: p.y, dx: p.shoveDX, dy: p.shoveDY, hit: p.shoveHit }); // Slam Bumper
-    this.arsenal.dashBlast(p.x, p.y);
+    if (this.hooks.onDashEnd.length) this.hooks.emit('onDashEnd', { x: p.x, y: p.y, dx: p.shoveDX, dy: p.shoveDY, hit: p.shoveHit });
   }
 
   /** Walking goblin + cart vs props: slide out along the shallowest side. Dashing (shove) skips this and vaults over. */
@@ -315,7 +316,7 @@ export class ArenaScene extends Phaser.Scene {
     const s = store.state;
     this.player = {
       x: 640, y: 500, radius: PLAYER.radius, facing: 1, vx: 0, vy: 0, invulnT: 0, protectT: 0, hurtT: 0,
-      reflectT: 0, shoveT: 0, shoveCd: 0, chainT: 0, springHit: false, shoveDX: 1, shoveDY: 0, shoveTracker: newHitTracker(Infinity), shoveHit: false, dead: false,
+      reflectT: 0, shoveT: 0, shoveCd: 0, chainT: 0, springHit: false, shoveDX: 1, shoveDY: 0, shoveTracker: newHitTracker(Infinity), shoveHit: false, dead: false, speedMods: {},
     };
     this.shadow = this.add.image(0, 0, 'shadow').setDepth(DEPTH.decal).setDisplaySize(150, 40);
     const wheels = [
@@ -601,22 +602,19 @@ export class ArenaScene extends Phaser.Scene {
     const H = this.hooks;
     const key = o.poison ? 'poison' : o.isDot ? 'burn' : stats?.uid ?? o.label ?? 'shove';
     // DAMAGE PIPELINE, in this order (runtime hooks slot into it, docs/item-hooks-refactor.md §4c):
-    //   1. modifyDamage hooks   pre-crit, pre-armor: multiply hit.dmg. Five-Alarm and the mark move here.
-    //   2. legacy x Five-Alarm (burning toast)      3. legacy x mark (Price Check / Sale Flag)
-    //   4. crit roll (combat rng): dmg x CRIT.mult, then onCrit hooks (Free Sample), then legacy clearance coin
-    //   5. armor (direct hits only)                 6. hp -= dmg, damageByWeapon
-    //   7. onHit hooks, then applyHitStatuses (engine/onHitStatuses: burn, ignite, slow), afterHit hooks (the sets: Frost freeze, Cleaning
+    //   1. modifyDamage hooks   pre-crit, pre-armor: multiply hit.dmg (Five-Alarm Toast, order 10)
+    //   2. the mark rule (engine/marks): x Price Check's damageMult while marked, for every source (Sale Flag marks too)
+    //   3. crit roll (combat rng): dmg x CRIT.mult, then onCrit hooks (Free Sample, then the Clearance Sale coin)
+    //   4. armor (direct hits only), hp -= dmg, damageByWeapon
+    //   5. onHit hooks, then applyHitStatuses (engine/onHitStatuses: burn, ignite, slow), afterHit hooks (the sets: Frost freeze, Cleaning
     //      knockback mult, Electric chain), knockback, flash/number fx, scheduleEcho (Double Bag)
-    //   8. kill: killEnemy (coins; onKill hooks fire inside it, after the bread drop) -> legacy Bag It -> afterKill hooks (the sets: Kitchen
-    //      heal, Blast pop) -> applyKillEffects (engine/onKillEffects: Party Popper)
-    // A hook runs before the legacy lines of its slot; moving legacy lines into hooks top to bottom keeps today's order.
+    //   6. kill: killEnemy (coins; onKill hooks fire inside it, after the bread drop: Coupon, Bag It's charge) -> afterKill hooks (the sets:
+    //      Kitchen heal, Blast pop) -> applyKillEffects (engine/onKillEffects: Party Popper)
+    // A hook runs before the engine lines of its slot.
     // The payload is one small object per hit; the engine modules (statuses, echo, kill effects) read it, the emits are guarded by `H.hit`.
     const hit: HitEvent = { enemy: e, base: dmg, dmg, stats, opts: o, source: key, now, direct: !o.isDot && !o.echo && !o.fromPopper && !o.chained, crit: false, armored: false, killed: false, kbMult: 1 };
     if (H.hit) { H.emit('modifyDamage', hit); dmg = hit.dmg; }
-    // Five-Alarm Toast: toast scorches enemies that are already burning.
-    if (stats?.recipes.includes('fiveAlarm') && stats.pattern === 'toast' && e.status.burnUntil > now) dmg *= RECIPE_TUNING.fiveAlarm.vsBurning;
-    // Price Check mark: +30% from every source while marked.
-    if ((e.markedUntil ?? 0) > now) dmg *= RECIPE_TUNING.priceCheck.damageMult;
+    dmg = markedDamage(dmg, e.markedUntil, now); // Price Check / Sale Flag mark: after Five-Alarm (a modifyDamage hook), before the crit roll
     // Crits resolve here and only here (never on burn ticks).
     const crit = !o.isDot && !!stats && stats.critChance > 0 && this.rng() < stats.critChance;
     if (crit) {
@@ -625,7 +623,6 @@ export class ArenaScene extends Phaser.Scene {
       play('crit');
       hit.crit = true; hit.dmg = dmg;
       if (H.hit) { H.emit('onCrit', hit); dmg = hit.dmg; }
-      if (stats!.critCoin && !e.critCoinDropped) { e.critCoinDropped = true; this.dropCoin(e.x, e.y, t('coinClearance')); }
     }
     // Armor (Canned Beans): direct hits only; burn, puddles, auras and pulses (isDot/quiet) pass through.
     let armored = false;
@@ -666,7 +663,6 @@ export class ArenaScene extends Phaser.Scene {
     if (e.dummy?.immortal && e.hp <= 0) e.hp = e.maxHp; // lab sandbox: unkillable dummies refill
     if (e.hp <= 0) {
       this.killEnemy(e, true, hit);
-      if (stats?.recipes.includes('bagIt')) this.cartCombos.bagKill(); // Bag It: vacuum kills charge the garbage bomb
       if (H.afterKill.length) H.emit('afterKill', { enemy: e, hit }); // the sets: Kitchen L2 heal, then Blast L2 pop (in that order: both roll)
       applyKillEffects(hit, this.ctx); // Party Popper (stats.popper): kills explode; popper kills never pop again
     }
@@ -946,7 +942,7 @@ export class ArenaScene extends Phaser.Scene {
       this.contactDamage();
     }
     this.arsenal.update(this.ending ? dt : dt, combat && !this.player.dead);
-    this.cartCombos.update(dt, now, combat && !this.player.dead);
+    this.overlay.update(dt, now, combat && !this.player.dead);
     this.updateCoins(dt);
     this.hazards.update(dt, combat);
     this.aisleEvent.update(dt, combat);
@@ -1013,7 +1009,6 @@ export class ArenaScene extends Phaser.Scene {
       p.springHit = false;
       p.shoveTracker = newHitTracker(Infinity);
       p.shoveHit = false;
-      this.cartCombos.onShove();
       play('shove');
       this.fx.puff(p.x - p.shoveDX * 40, p.y, 3);
     }
@@ -1046,12 +1041,11 @@ export class ArenaScene extends Phaser.Scene {
         this.vaulting = false;
       }
       if (p.shoveT <= 0) this.dashLanding();
-      if (p.shoveT <= 0 && p.shoveHit && this.arsenal.expressCheckout(Math.atan2(p.shoveDY, p.shoveDX))) {
-        play('ding');
-        this.fx.popImage('fx_receipt_burst', p.x + p.shoveDX * 50, p.y - 50, 0.9);
-      }
     } else {
-      const speed = PLAYER.speed * s.build.moveSpeedMult * this.cartCombos.sugarMult(this.time.now / 1000) * this.cartCombos.windMult(this.time.now / 1000) * this.aisleEvent.playerSlow() * this.gum.slow();
+      let speed = PLAYER.speed * s.build.moveSpeedMult;
+      for (const k in p.speedMods) speed *= p.speedMods[k](this.time.now / 1000); // Sugar Rush, Tailwind: registered by their hooks
+      speed *= this.aisleEvent.playerSlow();
+      speed *= this.gum.slow();
       const slip = this.aisleEvent.slipAccel(p.x, p.y);
       if (slip > 0) { // ice: velocity eases toward the input instead of snapping
         const k = Math.min(1, slip * dt);

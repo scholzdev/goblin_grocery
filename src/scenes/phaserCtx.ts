@@ -67,6 +67,9 @@ export class PhaserCtx implements RuntimeCtx {
   spawnShot(spec: ShotSpec): CombatShot | null { return this.sc.arsenal.spawn(spec.key, spec.x, spec.y, spec.angle, spec.speed, spec.life, spec.damage, spec.stats, spec.maxHits); }
   spawnPool(spec: PoolSpec): void { this.sc.arsenal.firePool(spec.x, spec.y, spec.r, spec.time, spec.stats, spec.tune); }
   popperBlast(pos: { x: number; y: number }, pop: { damage: number; radius: number }, setPop = false): void { this.sc.popperBlast(pos.x, pos.y, pop, setPop); }
+  sweep(weaponUid: string, angle: number, bonus = false): void { const w = this.sc.arsenal.weaponOf(weaponUid); if (w) this.sc.arsenal.sweep(w, angle, bonus); }
+  explode(weaponUid: string, x: number, y: number): void { const w = this.sc.arsenal.weaponOf(weaponUid); if (w) this.sc.arsenal.explode(x, y, w.stats); }
+  beam(weaponUid: string, target: CombatEnemy, echo = false): void { const w = this.sc.arsenal.weaponOf(weaponUid); if (w) this.sc.arsenal.laser(w, target as Enemy, echo); }
   enemyShots(): readonly CombatShot[] { return this.sc.arsenal.enemyShots; }
   killShot(shot: CombatShot): void { this.sc.arsenal.kill(shot as Shot); }
   reflectShot(shot: CombatShot, mult: number): void { this.sc.arsenal.reflect(shot as Shot, mult); }
@@ -76,6 +79,8 @@ export class PhaserCtx implements RuntimeCtx {
 
   get fx() { return this.sc.fx; }
   arcFx(points: readonly { x: number; y: number }[]): void { this.sc.arcFx(points); }
+  boltFx(x: number, y: number, small: boolean): void { this.sc.arsenal.bolt(x, y, small); }
+  setLine(id: string, text: string | null, order = 0): void { this.sc.overlay.setLine(id, text, order); }
   t(key: UIKey, vars?: Record<string, string | number>): string { return t(key, vars); }
   sound(name: string, opts?: { rate?: number; volume?: number }): void { play(name as AudioName, opts); }
   tween(target: object, props: Record<string, number>, ms: number): void { this.sc.tweens.add({ targets: target, ...props, duration: ms }); }

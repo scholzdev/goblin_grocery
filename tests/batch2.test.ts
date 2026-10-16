@@ -3,8 +3,7 @@ import { computeBuild } from '../src/systems/synergies';
 import { createRun, labAddItem, openShop } from '../src/state/run';
 import { mulberry32 } from '../src/systems/rng';
 import { TIER } from '../src/data/items';
-import { contentTune } from '../src/engine/registry';
-import { RECIPE_TUNING } from '../src/data/recipes';
+import { contentComboTune, contentTune } from '../src/engine/registry';
 import { cart } from './cart';
 import type { Inventory, ItemInstance, ItemTypeId, ElementTag } from '../src/types';
 
@@ -31,7 +30,7 @@ describe('batch 2 weapon combos', () => {
     const storm = computeBuild(cart('nailgun', ['battery', 'magnet'])).weapons[0];
     expect(storm.recipes).toContain('nailstorm');
     expect(storm.homing).toBe(true);
-    expect(storm.pierce).toBe(RECIPE_TUNING.nailstorm.extraPierce);
+    expect(storm.pierce).toBe(contentComboTune('nailstorm').extraPierce);
   });
 
   it('Sparks Fly adds 2 chain jumps, 3 together with TV Dinner', () => {
