@@ -74,7 +74,7 @@ export class Hazards {
     if (active) {
       this.timer -= dt;
       if (this.timer <= 0) {
-        this.timer = cfg.interval * (0.85 + Math.random() * 0.3);
+        this.timer = cfg.interval * (0.85 + this.scene.rng() * 0.3);
         const h = this.timed[this.next++ % this.timed.length];
         if (h.phase === 'idle') { h.phase = 'tell'; h.t = cfg.tell; }
       }

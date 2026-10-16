@@ -17,6 +17,9 @@ import { musicFor, playMusic } from '../audio/music';
 import { settings } from '../state/settings';
 import { hud, showBanner } from '../ui/hud';
 import { Fx, DEPTH } from './fx';
+import { combatRng, type Rng } from '../systems/rng';
+import { EMPTY_HOOKS, buildHooks, type HitEvent, type HitOpts, type HookTable } from '../engine/hooks';
+import { PhaserCtx } from './phaserCtx';
 import { createEnemy, drawTelegraph, updateEnemy, type Enemy } from './enemies';
 import { Arsenal } from './weapons';
 import { CartCombos } from './cartCombos';
@@ -76,9 +79,15 @@ export class ArenaScene extends Phaser.Scene {
   private vaulting = false;
   aisleEvent!: AisleEvents;
   private plan!: ReturnType<typeof waveSpawnPlan>;
+  /** Seeded combat rng (run seed + aisle index, see systems/rng.ts), separate from `flow.rng`: every gameplay roll in the arena draws from it. */
+  rng!: Rng;
+  /** What runtime hooks get to touch (docs/item-hooks-refactor.md §5). */
+  ctx!: PhaserCtx;
+  /** The runtime content hooks of this aisle's cart, compiled in `create` (empty = every emit is free). */
+  hooks: HookTable = EMPTY_HOOKS;
   private breadDropped = 0;
 
-  private wave!: WaveDef;
+  wave!: WaveDef;
   private waveTime = 0;
   private groups: SpawnGroup[] = [];
   private coins: Coin[] = [];
@@ -114,6 +123,7 @@ export class ArenaScene extends Phaser.Scene {
 
   create(): void {
     const s = store.state;
+    this.rng = combatRng(s.seed, s.wave);
     this.enemies = [];
     this.groups = [];
     this.coins = [];
@@ -152,6 +162,8 @@ export class ArenaScene extends Phaser.Scene {
     this.cartCombos = new CartCombos(this);
     this.buildPlayer();
     this.arsenal.setBuild(s.build.weapons);
+    this.ctx = new PhaserCtx(this);
+    this.rebuildHooks();
     for (let i = 0; i < 140; i++) {
       this.coins.push({ bread: false, img: this.add.image(0, 0, 'coin').setVisible(false).setScale(0.8), active: false, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, label: '', pull: false });
     }
@@ -166,6 +178,7 @@ export class ArenaScene extends Phaser.Scene {
       else showBanner(this.wave.boss ? t('finalAisle') : deptT(this.dept.id).name, this.wave.boss ? t('bossAwaits', { name: enemyT(bossFor(s.theme)).name }) : this.dept.hazard === 'none' ? t('surviveCheckout') : deptT(this.dept.id).blurb);
       if (s.modifier === 'stockroom' && !this.wave.boss) this.openStockroom();
     }
+    if (s.phase === 'combat' && this.hooks.onAisleStart.length) this.hooks.emit('onAisleStart', { aisle: s.wave, boss: this.wave.boss, department: this.dept.id, modifier: s.modifier });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => hideStockroom());
     if (import.meta.env.DEV) this.devHooks();
   }
@@ -252,6 +265,7 @@ export class ArenaScene extends Phaser.Scene {
   /** Dash landing: Slam Bumper shockwave and Pot Slam blast. */
   private dashLanding(): void {
     const p = this.player, b = store.state.build;
+    if (this.hooks.onDashEnd.length) this.hooks.emit('onDashEnd', { x: p.x, y: p.y, dx: p.shoveDX, dy: p.shoveDY, hit: p.shoveHit });
     if (b.dashSlam > 0) {
       play('boom', { volume: 0.5 });
       this.fx.ring('fx_boom', p.x, p.y, BUFFS.bumperRadius * 2, 300, 0xf5bd45);
@@ -575,6 +589,17 @@ export class ArenaScene extends Phaser.Scene {
     return best;
   }
 
+  /** Compile the runtime content hooks of the current cart. Called in `create`; call again if the placed cart or recipes change mid-aisle. */
+  rebuildHooks(): void {
+    const s = store.state;
+    this.hooks = buildHooks(s.inventory, s.build.recipes, s.build.sets, this.ctx);
+  }
+
+  /** Integer in [min, max] from the combat rng (the seeded stand-in for Phaser.Math.Between). */
+  rngBetween(min: number, max: number): number {
+    return min + Math.floor(this.rng() * (max - min + 1));
+  }
+
   clampToArena(o: { x: number; y: number }, r: number): boolean {
     const x = Phaser.Math.Clamp(o.x, ARENA.left + r * 0.5, ARENA.right - r * 0.5);
     const y = Phaser.Math.Clamp(o.y, ARENA.top, ARENA.bottom);
@@ -583,22 +608,36 @@ export class ArenaScene extends Phaser.Scene {
     return hit;
   }
 
-  damageEnemy(e: Enemy, dmg: number, stats: WeaponStats | null, o: { kb?: number; kbX?: number; kbY?: number; isDot?: boolean; label?: string; quiet?: boolean; echo?: boolean; fromPopper?: boolean; chained?: boolean; poison?: boolean; blow?: number }): void {
+  damageEnemy(e: Enemy, dmg: number, stats: WeaponStats | null, o: HitOpts): void {
     if (!e.alive) return;
     const baseDmg = dmg;
     const now = this.time.now / 1000;
     const s = store.state;
     const sets = s.build.sets;
+    const H = this.hooks;
+    const key = o.poison ? 'poison' : o.isDot ? 'burn' : stats?.uid ?? o.label ?? 'shove';
+    // DAMAGE PIPELINE, in this order (runtime hooks slot into it, docs/item-hooks-refactor.md §4c):
+    //   1. modifyDamage hooks   pre-crit, pre-armor: multiply hit.dmg. Five-Alarm and the mark move here.
+    //   2. legacy x Five-Alarm (burning toast)      3. legacy x mark (Price Check / Sale Flag)
+    //   4. crit roll (combat rng): dmg x CRIT.mult, then onCrit hooks, then legacy clearance coin + Free Sample heal
+    //   5. armor (direct hits only)                 6. hp -= dmg, damageByWeapon
+    //   7. onHit hooks, then legacy statuses: burn, ignite, slow, frost stun, knockback, flash/number fx, echo, electric chain
+    //   8. kill: killEnemy (loot) -> onKill hooks -> legacy: Bag It, kitchen heal, blast pop, Party Popper
+    // A hook runs before the legacy lines of its slot; moving legacy lines into hooks top to bottom keeps today's order.
+    // The payload exists only while a hit hook is registered; with none, nothing here allocates.
+    const hit: HitEvent | null = H.hit ? { enemy: e, base: dmg, dmg, stats, opts: o, source: key, now, direct: !o.isDot && !o.echo && !o.fromPopper && !o.chained, crit: false, armored: false, killed: false } : null;
+    if (hit) { H.emit('modifyDamage', hit); dmg = hit.dmg; }
     // Five-Alarm Toast: toast scorches enemies that are already burning.
     if (stats?.recipes.includes('fiveAlarm') && stats.pattern === 'toast' && e.status.burnUntil > now) dmg *= RECIPE_TUNING.fiveAlarm.vsBurning;
     // Price Check mark: +30% from every source while marked.
     if ((e.markedUntil ?? 0) > now) dmg *= RECIPE_TUNING.priceCheck.damageMult;
     // Crits resolve here and only here (never on burn ticks).
-    const crit = !o.isDot && !!stats && stats.critChance > 0 && Math.random() < stats.critChance;
+    const crit = !o.isDot && !!stats && stats.critChance > 0 && this.rng() < stats.critChance;
     if (crit) {
       dmg *= CRIT.mult;
       this.fx.popImage('fx_crit', e.x + Phaser.Math.Between(-10, 10), e.y - e.sprite.displayHeight - 6, 0.8);
       play('crit');
+      if (hit) { hit.crit = true; hit.dmg = dmg; H.emit('onCrit', hit); dmg = hit.dmg; }
       if (stats!.critCoin && !e.critCoinDropped) { e.critCoinDropped = true; this.dropCoin(e.x, e.y, t('coinClearance')); }
       // Free Sample: crits heal, capped per (whole) second so fast area weapons can't out-heal everything.
       if (s.build.critHeal > 0 && !this.player.dead) {
@@ -615,15 +654,16 @@ export class ArenaScene extends Phaser.Scene {
       armored = soaked < dmg * 0.5;
       dmg = soaked;
     }
+    if (hit) { hit.dmg = dmg; hit.armored = armored; }
     e.hp -= dmg;
     if (!o.isDot) e.lastHitT = now;
-    const key = o.poison ? 'poison' : o.isDot ? 'burn' : stats?.uid ?? o.label ?? 'shove';
     s.stats.damageByWeapon[key] = (s.stats.damageByWeapon[key] ?? 0) + dmg;
+    if (hit) { hit.killed = e.hp <= 0; H.emit('onHit', hit); }
     if (stats?.burn) applyBurn(e.status, this.aisleEvent.burn(stats.burn), now);
-    if (!o.isDot && stats?.ignite && !stats.burn && Math.random() < stats.ignite.chance) { applyBurn(e.status, this.aisleEvent.burn(stats.ignite.burn), now); this.igniteFx(e); } // Heat L2
+    if (!o.isDot && stats?.ignite && !stats.burn && this.rng() < stats.ignite.chance) { applyBurn(e.status, this.aisleEvent.burn(stats.ignite.burn), now); this.igniteFx(e); } // Heat L2
     if (stats?.slow) applySlow(e.status, stats.slow, now);
     // Frost L2: direct hits on well-slowed enemies sometimes freeze them briefly (not aura/puddle ticks, see SETS).
-    if (!o.isDot && stats && stats.pattern !== 'aura' && stats.pattern !== 'puddle' && sets.frost >= 2 && e.status.slowUntil > now && e.status.slowPct >= SETS.frost.stunMinSlow && Math.random() < setCfg('frost', sets.frost).stunChance) { this.stunEnemy(e, setCfg('frost', sets.frost).stun); this.freezeFx(e); }
+    if (!o.isDot && stats && stats.pattern !== 'aura' && stats.pattern !== 'puddle' && sets.frost >= 2 && e.status.slowUntil > now && e.status.slowPct >= SETS.frost.stunMinSlow && this.rng() < setCfg('frost', sets.frost).stunChance) { this.stunEnemy(e, setCfg('frost', sets.frost).stun); this.freezeFx(e); }
     if (o.kb) {
       const k = o.kb * (1 - e.def.knockbackResist) * (this.hazards.onIce(e.x, e.y) ? DEPT_TUNING.ice.knockbackMult : 1) * (stats && sets.cleaning >= 2 && ITEMS[stats.type].family === 'cleaning' ? setCfg('cleaning', sets.cleaning).knockbackMult : 1);
       e.kx += (o.kbX ?? 0) * k * 3; e.ky += (o.kbY ?? 0) * k * 3;
@@ -655,14 +695,14 @@ export class ArenaScene extends Phaser.Scene {
       });
     }
     // Electric set: direct hits may arc to nearby enemies (not aura/puddle ticks; chained hits never chain or echo again).
-    if (stats && stats.chainChance > 0 && !o.isDot && stats.pattern !== 'aura' && stats.pattern !== 'puddle' && !o.chained && Math.random() < stats.chainChance) {
-      const hit = new Set([e.id]);
+    if (stats && stats.chainChance > 0 && !o.isDot && stats.pattern !== 'aura' && stats.pattern !== 'puddle' && !o.chained && this.rng() < stats.chainChance) {
+      const seen = new Set([e.id]);
       let from: Enemy = e;
       const pts = [{ x: e.x, y: e.y - 30 }];
       for (let j = 0; j < stats.chainJumps; j++) {
-        const n = pickRicochetTarget(from, this.enemies.filter((x) => x.alive && x.state !== 'spawn'), hit, SETS.electric.range);
+        const n = pickRicochetTarget(from, this.enemies.filter((x) => x.alive && x.state !== 'spawn'), seen, SETS.electric.range);
         if (!n) break;
-        hit.add(n.id);
+        seen.add(n.id);
         this.fx.spark(n.x, n.y - 30, 4, 0x9be8ff);
         pts.push({ x: n.x, y: n.y - 30 });
         this.damageEnemy(n, baseDmg * SETS.electric.damageMult, stats, { chained: true, quiet: o.quiet });
@@ -672,22 +712,22 @@ export class ArenaScene extends Phaser.Scene {
     }
     if (e.dummy?.immortal && e.hp <= 0) e.hp = e.maxHp; // lab sandbox: unkillable dummies refill
     if (e.hp <= 0) {
-      this.killEnemy(e, true);
+      this.killEnemy(e, true, hit);
       if (stats?.recipes.includes('bagIt')) this.cartCombos.bagKill(); // Bag It: vacuum kills charge the garbage bomb
       // Kitchen L2: kitchen weapon kills sometimes heal. Blast L2: weapon kills sometimes pop (popper blasts never re-trigger).
-      if (stats && sets.kitchen >= 2 && ITEMS[stats.type].family === 'kitchen' && Math.random() < setCfg('kitchen', sets.kitchen).healChance) {
+      if (stats && sets.kitchen >= 2 && ITEMS[stats.type].family === 'kitchen' && this.rng() < setCfg('kitchen', sets.kitchen).healChance) {
         s.hp = Math.min(s.build.maxHp, s.hp + setCfg('kitchen', sets.kitchen).heal);
         this.healHeartFx(e.x, e.y - 30);
         store.changed();
       }
-      if (stats && sets.blast >= 2 && !o.fromPopper && Math.random() < setCfg('blast', sets.blast).killChance) this.popperBlast(e.x, e.y, { damage: setCfg('blast', sets.blast).damage, radius: setCfg('blast', sets.blast).radius }, true);
+      if (stats && sets.blast >= 2 && !o.fromPopper && this.rng() < setCfg('blast', sets.blast).killChance) this.popperBlast(e.x, e.y, { damage: setCfg('blast', sets.blast).damage, radius: setCfg('blast', sets.blast).radius }, true);
       // Party Popper: kills explode; popper kills never pop again.
       if (stats?.popper && !o.fromPopper) this.popperBlast(e.x, e.y, stats.popper);
     }
   }
 
   /** Kitchen L2 heal: a heart flies from the kill to the goblin, then the +N pops. */
-  private healHeartFx(x: number, y: number): void {
+  healHeartFx(x: number, y: number): void {
     const h = this.add.text(x, y, '♥', { fontFamily: 'Arial, sans-serif', fontSize: '26px', color: '#F45F52', stroke: '#30203F', strokeThickness: 4 }).setOrigin(0.5).setDepth(DEPTH.fx);
     const k = { v: 0 };
     this.tweens.add({
@@ -753,7 +793,7 @@ export class ArenaScene extends Phaser.Scene {
     this.killEnemy(e, false);
   }
 
-  killEnemy(e: Enemy, credit: boolean): void {
+  killEnemy(e: Enemy, credit: boolean, hit: HitEvent | null = null): void {
     if (!e.alive) return;
     e.alive = false;
     e.state = 'dying';
@@ -787,13 +827,13 @@ export class ArenaScene extends Phaser.Scene {
       this.breadDropped += B.heal;
       this.dropCoin(e.x, e.y, '', true);
     }
-    if (s.build.coinChance > 0 && Math.random() < s.build.coinChance) this.dropCoin(e.x, e.y, t('coinCoupon'));
+    if (s.build.coinChance > 0 && this.rng() < s.build.coinChance) this.dropCoin(e.x, e.y, t('coinCoupon'));
     // Pickpocket Elites cough up everything they absorbed.
     for (let i = 0; i < e.loot; i++) this.dropCoin(e.x, e.y, t('coinStolen'));
     // Splitter Elites leave two small non-elite copies.
     if (e.affix === 'splitter' && !this.ending) {
       for (let i = 0; i < AFFIX.splitter.count; i++) {
-        const a = (i / AFFIX.splitter.count) * Math.PI * 2 + Math.random();
+        const a = (i / AFFIX.splitter.count) * Math.PI * 2 + this.rng();
         const sp = createEnemy(this, e.def.id, e.x + Math.cos(a) * 14, e.y + Math.sin(a) * 9, this.plan.hpScale, this.plan.speedScale, false, this.plan.dmgScale, AFFIX.splitter.scale);
         sp.kx = Math.cos(a) * 240; sp.ky = Math.sin(a) * 240;
         this.enemies.push(sp);
@@ -801,7 +841,7 @@ export class ArenaScene extends Phaser.Scene {
     }
     if (e.def.id === 'melon') {
       for (let i = 0; i < MELON_SLICES; i++) {
-        const a = (i / MELON_SLICES) * Math.PI * 2 + Math.random();
+        const a = (i / MELON_SLICES) * Math.PI * 2 + this.rng();
         noteEnemy(store.state, 'slice');
         const sl = createEnemy(this, 'slice', e.x + Math.cos(a) * 16, e.y + Math.sin(a) * 10, this.plan.hpScale, this.plan.speedScale, false, this.plan.dmgScale);
         sl.kx = Math.cos(a) * 260; sl.ky = Math.sin(a) * 260;
@@ -810,6 +850,7 @@ export class ArenaScene extends Phaser.Scene {
     }
     if (e === this.boss) this.bossDefeated();
     else if (e === this.mini) this.miniDefeated();
+    if (this.hooks.onKill.length) this.hooks.emit('onKill', { enemy: e, hit });
   }
 
   /** Nearest loose floor coin within `r` (Pickpocket Elites home in on it). */
@@ -839,9 +880,9 @@ export class ArenaScene extends Phaser.Scene {
     if (!c) { if (!bread) addCoins(store.state, 1, label); return; } // pool exhausted: credit directly, never lose money
     c.bread = bread;
     c.img.setTexture(bread ? 'bread_crumb' : 'coin');
-    const a = Math.random() * Math.PI * 2;
-    const sp = 40 + Math.random() * 70;
-    Object.assign(c, { active: true, x, y, z: 10, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp * 0.6, vz: 180 + Math.random() * 80, label, pull: false });
+    const a = this.rng() * Math.PI * 2;
+    const sp = 40 + this.rng() * 70;
+    Object.assign(c, { active: true, x, y, z: 10, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp * 0.6, vz: 180 + this.rng() * 80, label, pull: false });
     c.img.setVisible(true).setAlpha(1);
   }
 
@@ -884,6 +925,7 @@ export class ArenaScene extends Phaser.Scene {
         this.coinStreak = Math.min(this.coinStreak + 1, 10);
         this.coinStreakT = 0.6;
         play('coin', { rate: 1 + this.coinStreak * 0.04 });
+        if (this.hooks.onCoinPickup.length) this.hooks.emit('onCoinPickup', { label: c.label, streak: this.coinStreak });
         store.changed();
         continue;
       }
@@ -895,8 +937,11 @@ export class ArenaScene extends Phaser.Scene {
     const p = this.player;
     if (store.state.phase !== 'combat' || this.ending || p.dead) return true;
     if (p.invulnT > 0 || p.protectT > 0 || store.state.labGod) return true;
+    // Bubble Wrap armor (in damagePlayer) and i-frames are legacy for now; hooks may lower `dmg` and change the i-frames.
+    let invuln = PLAYER.invuln + store.state.build.invulnBonus;
+    if (this.hooks.onPlayerHit.length) { const ev = { dmg, invuln }; this.hooks.emit('onPlayerHit', ev); dmg = ev.dmg; invuln = ev.invuln; }
     const dead = damagePlayer(store.state, dmg);
-    p.invulnT = PLAYER.invuln + store.state.build.invulnBonus;
+    p.invulnT = invuln;
     p.hurtT = 0.45;
     play('hurt');
     this.fx.spark(p.x, p.y - 50, 6, 0xf45f52);
@@ -941,6 +986,7 @@ export class ArenaScene extends Phaser.Scene {
         if ((this.regenFxT -= dt) <= 0) { this.regenFxT = 1.5; this.fx.spark(this.player.x, this.player.y - 70, 1, 0x8fcb57); }
         if (Math.floor(this.waveTime * 2) !== Math.floor((this.waveTime - dt) * 2)) store.changed();
       }
+      if (this.hooks.onTick.length) this.hooks.emit('onTick', dt);
       if (!s.labSandbox) this.updateDirector();
       if (this.wave.boss && !s.labSandbox && !this.enraged && this.waveTime > bossTuning(store.state.shift).enrageAfter + 1.6) {
         this.enraged = true;
@@ -1026,7 +1072,9 @@ export class ArenaScene extends Phaser.Scene {
       const reach = PLAYER.shove.distance * this.shoveMult * s.build.shoveDistMult;
       this.vaulting = this.obstacles.some((o) => segmentHitsRect(p.x, p.y, p.x + p.shoveDX * reach, p.y + p.shoveDY * reach, o, p.radius));
       // Spare Wheel: a dash inside the chain window is free (the running cooldown stays as it was).
+      const chained = p.shoveCd > 0;
       if (p.shoveCd > 0) p.chainT = 0; else { p.shoveCd = s.build.shoveCooldown; p.chainT = s.build.dashChain; }
+      if (this.hooks.onDashStart.length) this.hooks.emit('onDashStart', { x: p.x, y: p.y, dx: p.shoveDX, dy: p.shoveDY, reach, chained });
       p.springHit = false;
       p.shoveTracker = newHitTracker(Infinity);
       p.shoveHit = false;
@@ -1052,8 +1100,9 @@ export class ArenaScene extends Phaser.Scene {
         if (!tryHit(p.shoveTracker, e.id)) continue;
         p.shoveHit = true;
         this.damageEnemy(e, s.build.shoveDamage, null, { kb: PLAYER.shove.knockback, kbX: p.shoveDX, kbY: p.shoveDY, label: 'shove' });
+        if (this.hooks.onDashHit.length) this.hooks.emit('onDashHit', { enemy: e, dx: p.shoveDX, dy: p.shoveDY, dmg: s.build.shoveDamage });
         if (s.build.dashMark > 0) e.markedUntil = this.time.now / 1000 + s.build.dashMark;
-        if (s.build.dashCoinChance > 0 && Math.random() < s.build.dashCoinChance) this.dropCoin(e.x, e.y, t('coinTip'));
+        if (s.build.dashCoinChance > 0 && this.rng() < s.build.dashCoinChance) this.dropCoin(e.x, e.y, t('coinTip'));
         if (s.build.shoveStun > 0) { this.stunEnemy(e, s.build.shoveStun); this.fx.ring('fx_pulse', e.x, e.y, 70, 220, 0xf5bd45); }
       }
       if (wall) p.shoveT = 0;
@@ -1328,8 +1377,8 @@ export class ArenaScene extends Phaser.Scene {
     const s = store.state;
     let x = 0, y = 0;
     for (let i = 0; i < 10; i++) {
-      x = Phaser.Math.Between(ARENA.left + 80, ARENA.right - 80);
-      y = Phaser.Math.Between(ARENA.top + 40, ARENA.bottom - 40);
+      x = this.rngBetween(ARENA.left + 80, ARENA.right - 80);
+      y = this.rngBetween(ARENA.top + 40, ARENA.bottom - 40);
       if (Phaser.Math.Distance.Between(x, y, this.player.x, this.player.y) > 240) break;
     }
     const big = isBossId(d.id) || d.mini !== undefined;

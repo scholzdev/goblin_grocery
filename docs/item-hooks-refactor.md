@@ -120,6 +120,16 @@ The emit point for each one is where the inventory found it (§C):
 
 Handlers are **compiled once per build** into flat arrays per hook, with only the cart's items included. That means no lookup per hit.
 
+**Damage pipeline order (`ArenaScene.damageEnemy`, phase 3).** Hooks slot in before the legacy lines of their step, so moving legacy lines into hooks top to bottom never reorders anything:
+
+1. `modifyDamage` (pre-crit, pre-armor; multiply `hit.dmg`), then legacy ×Five-Alarm (burning toast), then legacy ×mark (Price Check / Sale Flag).
+2. Crit roll (combat rng): ×`CRIT.mult`, `onCrit`, then legacy Clearance coin and Free Sample heal.
+3. Armor (direct hits only), `hp -= dmg`, `damageByWeapon`.
+4. `onHit`, then legacy statuses: burn, ignite, slow, frost stun, knockback, flash and number fx, Double Bag echo, electric chain.
+5. On a lethal hit: `killEnemy` (loot) then `onKill`, then legacy Bag It, kitchen heal, blast pop, Party Popper.
+
+Five-Alarm (×1.5) comes before the mark (×1.2) today, so both must move into `modifyDamage` together (or Five-Alarm first) with `order` 10 and 20; moving only the mark would swap the multiplication order (an ulp, not a gameplay change).
+
 ## 5. `ctx`: the narrow runtime API
 
 Derived from inventory §E. Hooks never touch the scene directly.
@@ -150,7 +160,7 @@ Two implementations: `PhaserCtx` (wraps ArenaScene, Arsenal, fx) and `FakeCtx` (
 | 0 | Safety net | commit current fixes; golden build + text snapshots; registry test skeleton | snapshots committed |
 | 1 | Engine skeleton | `define.ts`, `registry.ts`, `build.ts` phases, `text.ts`; old code still runs | 265 green, golden identical |
 | 2 | Migrate build-only items **(done, 3 batches)** | modules + passives whose effect is build-only (fan, battery, hotsauce, pricegun, tape, magnet, lunchbox, bell, energy, fortune, piggy, snackbag, goldstar, powerstrip, sourdough, jellybeans…) | golden identical per batch |
-| 3 | `ctx` + combat hook emit points | `PhaserCtx`, `FakeCtx`, seeded `rng`, emit hooks from ArenaScene/weapons with old branches still present | botrun clean |
+| 3 | `ctx` + combat hook emit points **(done)** | `PhaserCtx`, `FakeCtx`, seeded `rng`, emit hooks from ArenaScene/weapons with old branches still present | botrun clean |
 | 4 | Migrate runtime items | fuel, ice, popper, doublebag, multipack, boot, bumper, sparewheel, tipjar, flag, coupon, bubblewrap, sample, expiredmilk, tinfoilhat | per-item FakeCtx tests, botrun |
 | 5 | Sets | 9 set files; remove set branches from damageEnemy | golden + botrun |
 | 6 | Combos | 31 combo files incl. cart combos (`cartCombos.ts` dissolves) | combo-balance test, Lab check |
@@ -227,6 +237,72 @@ All four moved; the goldens stayed byte-identical after each step (pair first, t
 - **Text**: Gold Star's "one tier higher" is a word; only `★{maxTier}` (= `3 + tiers`) and `+{bundle}` are placeholders. Blurbs are still literal.
 - **Fixtures**: `tests/engine/build.test.ts` still reuses `powerstrip`/`jellybeans` ids as fake hooks; it still works because the mocked registry replaces `contentItems()`. The `tierBoost` table is built from `contentItems()` too, so under that mock there is no Gold Star lift (nothing in that file uses one).
 - **Next (phase 3/4)**: `rowStrength` in `i18n/ui.ts` is unused now (delete at phase 8, like the batch 2 `row*` keys); `rowDamage` is still used by weapons.
+
+### Phase 3 learnings (ctx, runtime hooks, seeded combat rng)
+
+Phase 3 is done: the runtime hook infrastructure and its emit points are in, **no item is migrated**, and the legacy branches still do all the work. Goldens untouched; with no runtime content hooks registered the game plays as before, apart from the rng stream.
+
+**Files.** New: `engine/hooks.ts` (payload types, `HookCtx`, `compileHooks`, `hookSourcesFor`, `buildHooks`, `EMPTY_HOOKS`), `engine/ctx.ts` (`RuntimeCtx`, `FxApi`, the `Combat*`/`PlayerView` views), `engine/fakeCtx.ts` (`FakeCtx`), `scenes/phaserCtx.ts` (`PhaserCtx`), `tests/engine/{hooks,ctx,rng}.test.ts`. Changed: `engine/define.ts` (`hooks?: RuntimeHooks` on `ItemContent`/`ComboContent`/`SetContent`, `HOOK_NAMES`; `RuntimeHooks` used to be mixed into the content type itself), `engine/registry.ts` (`checkHooks`: unknown hook names, non-functions and a non-finite `order` fail at load), `systems/rng.ts` (`combatSeed`, `combatRng`, `COMBAT_SALT`), `ArenaScene.ts`, `weapons.ts`, `enemies.ts`, `events.ts`, `hazards.ts`.
+
+**Declaring a hook.** `hooks: { order?: number, onHit(hit, ctx, c) {...}, 'pattern:sweep'(ev, ctx, c) {...} }`. `c` is a `HookCtx`: `tier`, `tune()` (resolved once per compile, one frozen object, no allocation per call), `touches(weaponUid)`, `owned(id)`, `state` (scratch, shared by that owner's hooks, fresh per aisle) and `id`/`kind`. `order` positions all of one owner's hooks (default 0; ties by registration: items, then combos, then sets, each in registry order). Item tier = the best effective copy in the cart, Gold Star lift included (same as the build hooks' `c.tier` outside `module`); a combo's tier is 1, a set's is its level. Item `touches` includes the item's own uid (a weapon item's hooks see itself). A combo `touches` only its own weapon (`null` weapon list for cart combos = every weapon).
+
+**Hook list and payloads** (`engine/hooks.ts`; the fields are the final ones):
+
+| Hook | Event |
+|---|---|
+| `onAisleStart` | `{ aisle, boss, department, modifier }` |
+| `onTick` | `dt` (a number: no object per frame) |
+| `modifyDamage`, `onHit`, `onCrit` | `HitEvent { enemy, base, dmg, stats, opts: HitOpts, source, now, direct, crit, armored, killed }`; `dmg` is writable in `modifyDamage` (pre-crit, pre-armor) and `onCrit` (already ×`CRIT.mult`); in `onHit` it is what was dealt; `killed` = this hit took the enemy to 0; `direct` = not a DoT tick, echo, popper blast or chained hit; `HitOpts` is the old `damageEnemy` `opts` verbatim (`fromPopper`, `chained`, `echo`, `isDot`, `quiet`, `poison`, `blow`, `kb*`, `label`) |
+| `onKill` | `{ enemy, hit: HitEvent \| null }` (credited kills only, always from `damageEnemy`) |
+| `onDashStart` / `onDashHit` / `onDashEnd` | `{ x, y, dx, dy, reach, chained }` (`chained`: a free Spare Wheel dash) / `{ enemy, dx, dy, dmg }` / `{ x, y, dx, dy, hit }` |
+| `onEnemyShotTouch` | `{ shot, damage, handled }`: set `handled` to stop the shot hurting |
+| `onPlayerHit` | `{ dmg, invuln }`, both writable (armor, i-frames); runs after the i-frame / guard checks |
+| `onCoinPickup` | `{ label, streak }` |
+| `pattern:sweep` | `{ stats, stage: 'before' \| 'after', x, y, angle, bonus, range, dmg, hits }`; `before` may edit `range`/`dmg` |
+| `pattern:explode` | `{ stats, x, y, hits }` |
+| `pattern:zap` | `{ stats, stage, link, target, damageMult, hits }`; `before` may edit `damageMult` |
+| `pattern:bounce` | `{ stats, shot, x, y, next }` |
+| `pattern:shotHit` | `{ stats, shot, enemy }` |
+| `pattern:beam` | `{ stats, stage, target, angle, echo, targets, hits }`; `before` has the unhurt `targets` (marks go here) |
+| `pattern:pulse` / `pattern:cone` / `pattern:aura` | `{ stats, x, y, inside }` / `{ stats, x, y, angle, hits }` / `{ stats, x, y, range, hit }` |
+| `pattern:puddleEnter` | `{ stats, enemy, puddle, first }` |
+
+The lifecycle hooks of §4b (`onShopEnter`, `onAisleEnd`, `onMerge`) are still only typed.
+
+**Compiled dispatch.** `ArenaScene.create` calls `rebuildHooks()` after `arsenal.setBuild` (the build cannot change inside an aisle: crates go to the shelf; call `rebuildHooks()` if that ever changes). `scene.hooks` is a `HookTable`: one readonly array per hook name plus `emit(name, ev)`, `hit` (true while any of modifyDamage/onHit/onCrit/onKill has a handler) and `size`. **Every emit site guards with `hooks.<name>.length` (or `H.hit`) before building the payload**, so with nothing registered an emit is one property read and a length check: no object, no call. Emit sites that need collections (`hits`, `inside`, the zap/sweep/beam events) allocate them only when someone listens. Keep that pattern for new emit points.
+
+**Where each hook is emitted** (ArenaScene.ts / weapons.ts, current line numbers): `onAisleStart` ArenaScene:181 (combat phase only, after the banner) · `onTick` :989 (inside the combat-phase block, after regen) · `modifyDamage` :629 · `onCrit` :640 · `onHit` :661 · `onKill` :853 (end of `killEnemy`, after loot, Splitter/Melon spawns and the boss/mini-boss callbacks, credited kills only) · `onDashStart` :1077 · `onDashHit` :1103 (right after the shove damage) · `onDashEnd` :268 (`dashLanding`, first line) · `onPlayerHit` :942 (`hurtPlayer`, before `damagePlayer`; Bubble Wrap armor itself still lives in `run.damagePlayer`) · `onCoinPickup` :928 · `onEnemyShotTouch` weapons:666 (before the legacy Tin Foil reflect) · `pattern:sweep` weapons:474 (`before`) / :494 (`after`) · `explode` :394 · `zap` :282 / :292 · `bounce` :633 · `shotHit` :615 · `beam` :227 / :234 · `pulse` :538 · `cone` :337 · `puddleEnter` :444 · `aura` :252.
+
+**FakeCtx** (`engine/fakeCtx.ts`): `new FakeCtx({ seed, aisle, build, hp, maxHp, ... })` with a manual clock (`advance(s)`, `tick(dt)` also emits `onTick`), the arena's rng (`combatRng(seed, aisle)`), an in-memory enemy list (`spawnEnemy`), hostile shots, and a `calls` log (`callsOf('stun')`, ...). `damage` records and then runs the same hook-visible pipeline as the scene (modifyDamage, crit roll, onCrit, hp, onHit, onKill); `hit(enemy, dmg, stats?, opts?)` runs it without recording (use it as "the weapon hit"). `ignite`/`slow`/`poison`/`mark`/`stun` record **and** apply to the in-memory enemy; `popperBlast` damages with `fromPopper`; `hurt` honors i-frames and `onPlayerHit`; `delay`/`tween` run when the clock reaches them. `attach(table)` wires compiled hooks in. Test pattern: `buildHooks(cart, build.recipes, build.sets, fake)`, `fake.attach(table)`, drive, assert. **Not simulated**: everything the scene still does outside hooks (the legacy Five-Alarm / mark multipliers, armor, status application from `stats.burn/slow`, knockback, echo, chain). An item's test only sees its effect once the legacy branch is gone.
+
+**PhaserCtx** (`scenes/phaserCtx.ts`): a field-by-field forwarder to `damageEnemy`, `stunEnemy`, `popperBlast`, `hurtPlayer`, `dropCoin`, `arsenal.spawn/firePool/reflect/kill`, `fx`, `play`, `tweens`, `time`. The only logic is `damageArea` (a loop), `heal` (clamped add) and `ignite` (runs the burn through `aisleEvent.burn`, like the weapon branch). `Arsenal.spawn`/`firePool`/`reflect` and `ArenaScene.healHeartFx`/`wave` went from private to public for it.
+
+**Seeded combat rng.** `combatRng(runSeed, aisle)` (`systems/rng.ts`) = mulberry32 of `(runSeed ^ salt) * golden + (aisle + 1) * c ^ salt`; the scene creates it as the first line of `create()` (`scene.rng`, `scene.rngBetween(min, max)`, `ctx.rng()`). It never touches `flow.rng`, and no `flow.rng` call site changed, so shop rolls, spawn plans, kill coins and bread keep their exact sequences. A daily run now rolls the same combat numbers on every play. The rng is per aisle (recreated each `create`), so restarting an aisle replays it.
+
+- **Changed to `rng()`** (all gameplay-affecting): ArenaScene crit roll, Heat ignite chance, Frost stun chance, Electric chain chance, Kitchen heal, Blast pop, Coupon (`coinChance`), Tip Jar (`dashCoinChance`), `dropCoin` scatter (angle, speed, height), Splitter and Melon spawn angle, lab dummy position (`rngBetween`); weapons.ts nail spread, Sparks Fly stun, Shrapnel angle, Smash the Bank, Static Cling target shuffle; enemies.ts `pickAffix` (now takes the rng), first attack cooldown, Expired Milk blink timer and angle, boss slush / ring attack angles; hazards.ts timed-hazard jitter; events.ts Wet Floor patch positions, Power Surge zap position and side.
+- **Left as `Math.random` / `Phaser.Math.Between`, on purpose** (cosmetic: no outcome depends on them): particles and flames (`fx.*`, `fx.ts`), sound pitch (`play(..., { rate })`), the sweep fx spin direction, sprite wobble (`animT`), the crit / echo / death fx jitter, the jagged shape of the electric arc, the heatwave puffs. `tests/engine/rng.test.ts` fails if a new `Math.random` line in the arena files doesn't look cosmetic (an `fx.`, `play(`, `animT` or `rotation:` on the same line).
+- **Left on `flow.rng`, on purpose**: spawn plan, spawn timing and picks, elite rolls, kill-coin counts and chance, bread drops, mini-boss variant, boss summons, crates, event and modifier rolls, Wet Floor streak layout, stockroom layout. They already use a seeded stream; moving them would shift every later shop roll. Revisit at phase 8 if a fully separate stream is wanted. `flow.ts` seeding itself is unchanged (`Date.now() ^ Math.random()` for non-daily runs).
+
+**Notes for phase 4** (one runtime item = move its legacy lines into `hooks`, delete the legacy branch, keep the rng draw order, add a FakeCtx test):
+
+- Build-literal fields the hooks replace (`computeBuild`'s `Build` literal and `describeBuffs`) go in the same step, or the old field stays and the hook reads `ctx.build`. Prefer deleting the field.
+- **Fuel / Ice** (burn / slow application): `stats.burn` / `stats.slow` are WeaponStats fields set by the *build* hook and applied in `damageEnemy` (lines right after `onHit`). Moving the application means an `onHit` hook: `ctx.ignite(hit.enemy, burn)` / `ctx.slow(hit.enemy, slow)`, reading the burn from `c.tune()` (tick, dps scaled by the weapon's `stats`) instead of `stats.burn`. But Jelly Beans, the Heat set (ignite), Grease Fire, Reheat and the puddles read `stats.burn` too, so move the *application* only after those readers stop needing it, or keep `stats.burn` as the data and make the hook a thin applier (recommended: hook `onHit` applies `hit.stats.burn`; no data move). `ignite`'s `aisleEvent.burn` modifier is inside `ctx.ignite`.
+- **Popper** (`onKill`): `if (hit.stats?.popper && !hit.opts.fromPopper) ctx.popperBlast(enemy, stats.popper)`. Order is already legal: `onKill` runs before the legacy kitchen / blast lines, but legacy ran popper *last*; the draw order is unchanged (popper uses no rng), the visual order is not important. Blast set L2 (phase 5) stays legacy until then.
+- **Double Bag** (`onHit`): `hit.stats.echo > 0 && hit.direct` then `ctx.delay(ECHO_DELAY, () => ctx.combatActive() && enemy.alive && ctx.damage(enemy, hit.base * stats.echo, stats, { echo: true, quiet: hit.opts.quiet }))`. Use `hit.base` (the incoming damage), as the legacy line does with `baseDmg`.
+- **Multipack** repeat is in `weapons.ts` (`MULTIPACK_REPEAT_DELAY`), not in `damageEnemy`: it is a pattern-side repeat, not one of these hooks. Leave it until phase 7 unless it needs `onAisleStart`/`onTick` state.
+- **Boot** (`dashHit` extra damage via `build.shoveDamage`) / **Tip Jar** (coin chance, `ctx.rng()`) / **Sale Flag** (`ctx.mark(enemy, c.tune().duration)`) / **Tools-set stun** / **Express Checkout**: all `onDashHit` (Express Checkout: `onDashEnd` with `ev.hit`, it calls `arsenal.expressCheckout`; add a ctx method or keep the call in the scene). Boot's damage is added to the dash hit itself: `build.shoveDamage` is read when the scene calls `damageEnemy`, so either keep it a build field or give the dash hit a `modifyDamage` (`hit.opts.label === 'shove'`).
+- **Slam Bumper / Pot Slam** (`onDashEnd`): `ev.x/ev.y`; Bumper's shockwave is `ctx.damageArea({x,y}, r, dmg, null, { kb: 200, label: 'Slam Bumper' })` plus `ctx.fx.ring`; Pot Slam is `arsenal.dashBlast` (needs a ctx method, or a `pattern:explode` source).
+- **Spare Wheel** (`onDashStart`): the free-chain window is decided by the scene *before* the emit (`p.chainT`, `ev.chained`); the hook can only observe it today. To move it, let the hook set `player.chainT` / `player.shoveCd` (both on `PlayerView`, writable) and move the `shoveCd`/`chainT` assignment after the emit.
+- **Flag** (Price Check / Sale Flag mark): application is `onDashHit` (`ctx.mark`); the ×1.2 multiplier is the `modifyDamage` slot (see the pipeline order). Price Check is a combo (phase 6): move the multiplier together with Five-Alarm then.
+- **Coupon** (`onKill`): `hit` is credited; `ctx.rng() < c.tune().chance` then `ctx.dropCoin(enemy, label)`. Replaces the `coinChance` Build field. Legacy order: after bread, before Pickpocket loot (the `onKill` emit now comes after the loot; coin order differs, the count does not).
+- **Bubble Wrap** (`onPlayerHit`): `ev.dmg = Math.max(1, ev.dmg - c.tier)` (armor = tier, see §7b phase 1) and i-frames via `ev.invuln`. Delete `run.damagePlayer`'s `armor` read; keep the final hp clamp there.
+- **Free Sample** (`onCrit`): the heal is capped per whole second (`critHealSec` / `critHealed` scene fields): move that counter into `c.state`; `ctx.heal` + `ctx.fx.spark`. Clearance Sale's `critCoin` coin is the same slot.
+- **Expired Milk**: the toxic aura is `cartCombos.update` (reads `build.stinkDps`): `onTick` with `ctx.inRadius(player, r)` and `ctx.poison(e, dps, dur)`; the ×0.9 max HP stays a build hook.
+- **Tin Foil Hat** (`onEnemyShotTouch`): `if (p.reflectT > 0) { ctx.reflectShot(ev.shot, c.tune().mult); ev.handled = true }`; `reflectT` is set by the dash code (`TINFOIL.grace`), so also make the dash code's `reflectT` an `onDashStart` + `onTick` hook, or keep that line legacy.
+- **Vacuum pickup**: `vacuumPickup` is a pickup-radius *build* field (`computeBuild` literal), not a combat hook; it moves with the weapon (phase 7) as a `player` hook.
+- `Blast L2` / `Kitchen L2` / `Heat L2` / `Frost L2` / `Electric` rolls in `damageEnemy` already draw from `rng()`; when they move (phase 5) keep the draw order: crit, ignite, frost stun, electric chain, kitchen heal, blast pop.
+- **Every hook that rolls must call `ctx.rng()`** (never `Math.random`); FakeCtx tests seed it, so assert on exact outcomes with a fixed seed or on `rng` call counts.
+- **Gotchas found while building this**: (1) the same `HitEvent` object travels through `modifyDamage`, `onCrit`, `onHit` and `onKill`; its `dmg` is the *current* damage at each stage. (2) Echo and chained hits re-enter `damageEnemy`, so every hit hook runs again for them (`hit.direct` / `hit.opts.echo` / `hit.opts.chained` tell them apart). (3) `onKill` is not emitted for uncredited kills (end-of-aisle cleanup, escapes, Egg Carton blast). (4) A damaging hook must pass `fromPopper` / `chained` / `echo` in `opts` to avoid re-triggering itself.
 
 ## 8. Risks
 

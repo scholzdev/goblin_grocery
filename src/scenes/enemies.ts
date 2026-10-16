@@ -74,9 +74,9 @@ export interface Enemy {
   dummy?: LabDummy;
 }
 
-export const pickAffix = (id: EnemyId): EliteAffix => {
+export const pickAffix = (id: EnemyId, rng: () => number): EliteAffix => {
   const pool = ELITE_AFFIXES.filter((a) => a !== 'splitter' || !SPLITTER_EXCLUDED.includes(id));
-  return pool[Math.floor(Math.random() * pool.length)];
+  return pool[Math.floor(rng() * pool.length)];
 };
 
 const SCALE: Record<EnemyId, number> = { milk: 0.78, banana: 0.8, soda: 0.72, spitter: 0.78, baguette: 0.8, egg: 0.78, melon: 0.9, slice: 0.5, turkey: 0.8, beans: 0.78, cereal: 0.82, honey: 0.76, giftcard: 0.74, expired: 0.78, gum: 0.76, boss: 0.95, boss_frozen: 1, boss_bakery: 0.95, boss_electronics: 0.95, boss_checkout: 0.95 };
@@ -94,7 +94,7 @@ export function createEnemy(scene: ArenaScene, id: EnemyId, x: number, y: number
     // Mid-shift boss: the themed grocery's look with Manager behavior (every boss check keys on behavior).
     ? { ...base, ...MINI_BOSS.def, ...mini.def, behavior: 'boss' as const, radius: base.radius * MINI_BOSS.scale, contactDamage: Math.round(MINI_BOSS.def.contactDamage * dm), attackDamage: Math.round(MINI_BOSS.def.attackDamage * dm) }
     : elite || dm !== 1 || small ? { ...base, radius: base.radius * (elite ? ELITE.scale : 1), contactDamage: Math.round(base.contactDamage * dm), attackDamage: Math.round(base.attackDamage * dm) } : base;
-  const affix = elite ? pickAffix(id) : undefined;
+  const affix = elite ? pickAffix(id, scene.rng) : undefined;
   // `small` (Splitter copies): scale / HP of the base type; the def copy shrinks the hit radius too.
   const hp = mini ? Math.round(MINI_BOSS.hp * hpScale) : Math.max(1, Math.round(base.hp * hpScale * (elite ? ELITE.hpMult : 1) * (small ? AFFIX.splitter.hpMult : 1)));
   if (small) def.radius = base.radius * small;
@@ -104,9 +104,9 @@ export function createEnemy(scene: ArenaScene, id: EnemyId, x: number, y: number
   const e: Enemy = {
     id: nextId++, def, sprite, shadow, x, y, kx: 0, ky: 0,
     hp, maxHp: hp, elite, affix, lastHitT: -99, loot: 0, trailT: 0, small, speed: def.speed * speedScale * (affix === 'swift' ? AFFIX.swift.speedMult : 1),
-    status: newStatus(), state: 'spawn', stateT: 0.3, atkCd: def.attackCooldown * (0.4 + Math.random() * 0.6),
+    status: newStatus(), state: 'spawn', stateT: 0.3, atkCd: def.attackCooldown * (0.4 + scene.rng() * 0.6),
     dirX: 1, dirY: 0, flashT: 0, animT: Math.random(), facing: 1, alive: true, lastHitNumberAt: 0, lastFlashAt: 0,
-    auxT: id === 'expired' ? EXPIRED.interval * (0.5 + Math.random() * 0.5) : id === 'honey' ? 0.5 : id === 'gum' ? 0.6 : 0, tx: x, ty: y, linkT: 0,
+    auxT: id === 'expired' ? EXPIRED.interval * (0.5 + scene.rng() * 0.5) : id === 'honey' ? 0.5 : id === 'gum' ? 0.6 : 0, tx: x, ty: y, linkT: 0,
   };
   if (mini) { e.mini = true; e.kit = mini.kit; }
   else if (isBossId(id)) e.kit = BOSS_KITS[id];
@@ -330,7 +330,7 @@ function honeyHeal(scene: ArenaScene, e: Enemy): void {
 
 /** Where Expired Milk blinks: ~110 px from the player at a random angle, 60+ px clear of props. */
 function blinkSpot(scene: ArenaScene): { x: number; y: number } {
-  const p = scene.player, a0 = Math.random() * Math.PI * 2;
+  const p = scene.player, a0 = scene.rng() * Math.PI * 2;
   let spot = { x: p.x, y: p.y };
   for (let i = 0; i < 12; i++) {
     const a = a0 + (i * Math.PI) / 6;
@@ -447,11 +447,11 @@ function planSpecial(scene: ArenaScene, e: Enemy): void {
   const p = scene.player, S = BOSS_SPECIAL, half = scene.halfHp(e);
   switch (e.kit?.special) {
     case 'slush': { // one circle on the player, the rest scattered around them
-      const n = S.slush.spots + (half ? 1 : 0), a0 = Math.random() * Math.PI * 2;
+      const n = S.slush.spots + (half ? 1 : 0), a0 = scene.rng() * Math.PI * 2;
       e.spots = Array.from({ length: n }, (_, i) => (i === 0 ? { x: p.x, y: p.y } : { x: clampX(p.x + Math.cos(a0 + (i * Math.PI * 2) / n) * S.slush.scatter), y: clampY(p.y + Math.sin(a0 + (i * Math.PI * 2) / n) * S.slush.scatter * 0.7) }));
       break;
     }
-    case 'ring': e.spots = [{ x: Math.random() * Math.PI * 2, y: 0 }]; break;
+    case 'ring': e.spots = [{ x: scene.rng() * Math.PI * 2, y: 0 }]; break;
     case 'lanes': {
       const n = S.lanes.count + (half ? 2 : 0);
       e.spots = Array.from({ length: n }, (_, i) => ({ x: clampX(p.x + (i - (n - 1) / 2) * S.lanes.gap), y: 0 }));

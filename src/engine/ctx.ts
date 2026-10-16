@@ -1,0 +1,149 @@
+import type { BurnEffect, Build, SlowEffect, WeaponStats } from '../types';
+import type { StatusFx } from '../systems/combat';
+import type { HitOpts } from './hooks';
+
+// The narrow runtime API runtime hooks get (docs/item-hooks-refactor.md §5). Hooks never touch the scene: everything they may
+// do is a method here. Pure types, no Phaser: `PhaserCtx` (src/scenes/phaserCtx.ts) adapts the arena, `FakeCtx`
+// (src/engine/fakeCtx.ts) records every call for tests.
+
+/** The part of an `Enemy` (scenes/enemies.ts) hooks may read or write. The real `Enemy` is assignable to it. */
+export interface CombatEnemy {
+  id: number;
+  x: number; y: number;
+  /** Knockback velocity. */
+  kx: number; ky: number;
+  hp: number; maxHp: number;
+  alive: boolean;
+  /** 'spawn' (still arriving: not targetable), 'walk', 'stun', 'dying', ... */
+  state: string;
+  elite: boolean;
+  status: StatusFx;
+  /** Price Check / Sale Flag mark: takes extra damage until this time (s, scene clock). */
+  markedUntil?: number;
+  critCoinDropped?: boolean;
+  frozenT?: number;
+  nailHits?: number;
+  def: { id: string; radius: number; behavior: string; knockbackResist: number; armor?: number };
+}
+
+/** The part of a `Shot` (scenes/weapons.ts) hooks may read or write. `stats === null`: an enemy projectile. */
+export interface CombatShot {
+  active: boolean;
+  x: number; y: number; vx: number; vy: number;
+  life: number;
+  damage: number;
+  stats: WeaponStats | null;
+}
+
+/** The goblin (`ArenaScene.player`). Live object: writes go straight to the game. */
+export interface PlayerView {
+  x: number; y: number;
+  radius: number;
+  facing: 1 | -1;
+  vx: number; vy: number;
+  invulnT: number; protectT: number; hurtT: number;
+  /** Tin Foil Hat: > 0 while dashing and for a short grace after (enemy shots reflect). */
+  reflectT: number;
+  /** Dash: seconds of dash left / cooldown left / free-chain window left. */
+  shoveT: number; shoveCd: number; chainT: number;
+  /** Dash direction (unit vector). */
+  shoveDX: number; shoveDY: number;
+  dead: boolean;
+}
+
+/** The `Fx` methods effect code calls today (scenes/fx.ts). No-ops in `FakeCtx` (recorded). */
+export interface FxApi {
+  spark(x: number, y: number, count?: number, tint?: number): void;
+  crumbsAt(x: number, y: number, count?: number, tint?: number): void;
+  puff(x: number, y: number, count?: number): void;
+  flame(x: number, y: number): void;
+  confetti(x: number, y: number, count?: number): void;
+  frostBurst(x: number, y: number, count?: number): void;
+  suck(x: number, y: number, radius: number, emit: boolean, tint?: number): void;
+  number(x: number, y: number, value: number, color?: string, size?: number): void;
+  label(x: number, y: number, text: string, color?: string, size?: number): void;
+  ring(key: string, x: number, y: number, size: number, duration?: number, tint?: number, inward?: boolean): void;
+  popImage(key: string, x: number, y: number, scale?: number, depth?: number): void;
+  shake(intensity?: number, duration?: number): void;
+}
+export const FX_METHODS = ['spark', 'crumbsAt', 'puff', 'flame', 'confetti', 'frostBurst', 'suck', 'number', 'label', 'ring', 'popImage', 'shake'] as const;
+
+/** A player projectile for `spawnShot` (Arsenal.spawn's arguments). */
+export interface ShotSpec { key: string; x: number; y: number; angle: number; speed: number; life: number; damage: number; stats: WeaponStats; maxHits: number }
+/** A burning floor patch for `spawnPool` (Arsenal.firePool's arguments): no direct damage, burns for `tune`. */
+export interface PoolSpec { x: number; y: number; r: number; time: number; stats: WeaponStats; tune: { dps: number; duration: number; tick: number } }
+
+/** Read-only view of the aisle's modifiers (event, department). */
+export interface AisleView {
+  /** The department's/event's burn multiplier applied to a burn (heatwave, ...). */
+  burn(b: BurnEffect): BurnEffect;
+  /** Electrical weapons' cooldown rate: department perk x event. */
+  electricRate(): number;
+  /** Is (x, y) on an ice patch? */
+  onIce(x: number, y: number): boolean;
+}
+
+export interface RuntimeCtx {
+  // ---- time and randomness
+  /** Scene clock in seconds (the one `markedUntil`, `burnUntil` ... compare against). */
+  now(): number;
+  /** Seeded combat rng (run seed + aisle index). Never `Math.random`, never `flow.rng`. */
+  rng(): number;
+
+  // ---- run state
+  /** The computed build of the running cart (`store.state.build`). */
+  readonly build: Build;
+  readonly run: { readonly hp: number; readonly maxHp: number; readonly money: number; readonly aisle: number; readonly boss: boolean };
+  readonly aisle: AisleView;
+  /** True while weapons should keep acting (use it in delayed callbacks). */
+  combatActive(): boolean;
+
+  // ---- enemies
+  /** Live, targetable enemies (not 'spawn', not dying). Do not keep the array across frames. */
+  alive(): readonly CombatEnemy[];
+  nearest(pos: { x: number; y: number }, range: number, exclude?: ReadonlySet<number>): CombatEnemy | null;
+  inRadius(pos: { x: number; y: number }, r: number): CombatEnemy[];
+  /** `ArenaScene.damageEnemy`: the full pipeline (crit, armor, statuses, kill). `source` null = no weapon (label it with `opts.label`). */
+  damage(e: CombatEnemy, dmg: number, source: WeaponStats | null, opts?: HitOpts): void;
+  /** Hit every live enemy within `r` of `pos` (+ its radius) once. Returns how many were hit. */
+  damageArea(pos: { x: number; y: number }, r: number, dmg: number, source: WeaponStats | null, opts?: HitOpts): number;
+  stun(e: CombatEnemy, seconds: number): void;
+  /** Burn through the aisle's modifiers (`aisle.burn`), as the weapon branches do. */
+  ignite(e: CombatEnemy, burn: BurnEffect): void;
+  slow(e: CombatEnemy, slow: SlowEffect): void;
+  poison(e: CombatEnemy, dps: number, duration: number): void;
+  /** Price Check / Sale Flag mark: extra damage from every source for `seconds`. */
+  mark(e: CombatEnemy, seconds: number): void;
+
+  // ---- player
+  readonly player: PlayerView;
+  /** Closest point of the goblin's cart hitbox to (x, y). */
+  playerNear(x: number, y: number): { x: number; y: number; d: number };
+  /** `ArenaScene.hurtPlayer`: i-frames, armor, death. */
+  hurt(dmg: number): void;
+  heal(hp: number): void;
+  /** The flying heart + "+N" popup of a heal at (x, y). */
+  healFx(x: number, y: number): void;
+
+  // ---- spawning
+  spawnShot(spec: ShotSpec): CombatShot | null;
+  spawnPool(spec: PoolSpec): void;
+  /** Party Popper blast: damages everything within `pop.radius`, never re-triggers poppers. `setPop`: the pink Blast-set look. */
+  popperBlast(pos: { x: number; y: number }, pop: { damage: number; radius: number }, setPop?: boolean): void;
+  /** Enemy projectiles in flight. */
+  enemyShots(): readonly CombatShot[];
+  killShot(shot: CombatShot): void;
+  /** Tin Foil Hat: turn an enemy shot around as a player shot worth `shot.damage * mult`. */
+  reflectShot(shot: CombatShot, mult: number): void;
+
+  // ---- economy
+  dropCoin(pos: { x: number; y: number }, label: string): void;
+  /** Credit coins directly (no floor coin). */
+  addCoins(n: number, label: string): void;
+
+  // ---- presentation (no-ops with `FakeCtx`, but recorded)
+  readonly fx: FxApi;
+  sound(name: string, opts?: { rate?: number; volume?: number }): void;
+  tween(target: object, props: Record<string, number>, ms: number): void;
+  delay(seconds: number, fn: () => void): void;
+}

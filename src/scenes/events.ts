@@ -141,8 +141,8 @@ export class AisleEvents {
     for (let i = 0; i < F.patches; i++) {
       let x = 0, y = 0;
       for (let k = 0; k < 6; k++) {
-        x = lerp(ARENA.left + 110, ARENA.right - 110, Math.random());
-        y = lerp(ARENA.top + 90, ARENA.bottom - 70, Math.random());
+        x = lerp(ARENA.left + 110, ARENA.right - 110, sc.rng());
+        y = lerp(ARENA.top + 90, ARENA.bottom - 70, sc.rng());
         if (Math.hypot(x - sc.player.x, y - sc.player.y) > 170) break;
       }
       const img = sc.add.image(x, y, 'fx_puddle').setDepth(DEPTH.decal - 0.1).setTint(0xcfefff).setDisplaySize(F.patchR * 2.3, F.patchR * 1.45).setAlpha(0);
@@ -155,9 +155,9 @@ export class AisleEvents {
     const sc = this.scene, P = EVENTS.powerSurge;
     if ((this.zapT -= dt) <= 0) {
       this.zapT = P.sparkEvery;
-      const near = Math.random() < 0.5; // half the zaps land around the cart, half anywhere
-      const x = Phaser.Math.Clamp(near ? sc.player.x + Phaser.Math.Between(-160, 160) : lerp(ARENA.left + 60, ARENA.right - 60, Math.random()), ARENA.left + 40, ARENA.right - 40);
-      const y = Phaser.Math.Clamp(near ? sc.player.y + Phaser.Math.Between(-110, 110) : lerp(ARENA.top + 60, ARENA.bottom - 40, Math.random()), ARENA.top + 40, ARENA.bottom - 20);
+      const near = sc.rng() < 0.5; // half the zaps land around the cart, half anywhere
+      const x = Phaser.Math.Clamp(near ? sc.player.x + sc.rngBetween(-160, 160) : lerp(ARENA.left + 60, ARENA.right - 60, sc.rng()), ARENA.left + 40, ARENA.right - 40);
+      const y = Phaser.Math.Clamp(near ? sc.player.y + sc.rngBetween(-110, 110) : lerp(ARENA.top + 60, ARENA.bottom - 40, sc.rng()), ARENA.top + 40, ARENA.bottom - 20);
       this.zaps.push({ x, y, age: 0 });
     }
     const g = this.zapG;

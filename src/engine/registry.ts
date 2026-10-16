@@ -1,5 +1,5 @@
 import type { ItemTypeId, RecipeId, SetId } from '../types';
-import { BUILD_PHASES, resolveShape, resolveTune, type BuildPhase, type BuildSpec, type ComboContent, type ItemContent, type SetContent, type Tune } from './define';
+import { BUILD_PHASES, HOOK_NAMES, resolveShape, resolveTune, type BuildPhase, type BuildSpec, type ComboContent, type ItemContent, type RuntimeHooks, type SetContent, type Tune } from './define';
 import { isFormatter, legacyRules, placeholders, renderText } from './text';
 
 // Collects every content file (src/content/{items,combos,sets}/<id>.ts, default export) and validates them.
@@ -24,6 +24,7 @@ const ELEMENTS = ['heat', 'frost', 'blast'];
 
 const baseName = (path: string): string => (path.split('/').pop() ?? path).replace(/\.[^.]+$/, '');
 const isTriple = (v: unknown): boolean => Array.isArray(v) && v.length === 3 && v.every((n) => typeof n === 'number' && Number.isFinite(n));
+const LIFECYCLE_HOOKS = ['onShopEnter', 'onAisleEnd', 'onMerge'];
 const phasesFor: Record<'item' | 'combo' | 'set', readonly BuildPhase[]> = { item: BUILD_PHASES.filter((p) => p !== 'combo'), combo: ['combo'], set: ['set', 'post-combo', 'final'] };
 
 /** Every problem found in the given files (empty = valid). Does not throw. */
@@ -65,6 +66,15 @@ export function validateContent(files: Partial<ContentFiles>, opts: ValidateOpti
     if (build.order !== undefined && !Number.isFinite(build.order)) err(path, 'build.order must be a finite number');
   };
 
+  /** `hooks`: only known hook names (a typo would never fire), each a function; `order` finite. */
+  const checkHooks = (path: string, hooks: RuntimeHooks | undefined) => {
+    for (const [k, v] of Object.entries(hooks ?? {})) {
+      if (k === 'order') { if (typeof v !== 'number' || !Number.isFinite(v)) err(path, 'hooks.order must be a finite number'); }
+      else if (!(HOOK_NAMES as readonly string[]).includes(k) && !LIFECYCLE_HOOKS.includes(k)) err(path, `hooks.${k} is not a hook (${HOOK_NAMES.join(', ')})`);
+      else if (typeof v !== 'function') err(path, `hooks.${k} must be a function`);
+    }
+  };
+
   const dup = (map: Map<string, string>, path: string, id: string, kind: string) => {
     const other = map.get(id);
     if (other) err(path, `duplicate ${kind} id "${id}" (also in ${other})`); else map.set(id, path);
@@ -96,6 +106,7 @@ export function validateContent(files: Partial<ContentFiles>, opts: ValidateOpti
       }
     }
     checkBuild(path, c.build, 'item');
+    checkHooks(path, c.hooks);
     if (c.tierBoost) {
       const v = c.tune?.[c.tierBoost.key];
       if (typeof v !== 'number' || !(v > 0)) err(path, `tierBoost.key "${c.tierBoost.key}" must be a positive scalar tune entry`);
@@ -135,6 +146,7 @@ export function validateContent(files: Partial<ContentFiles>, opts: ValidateOpti
     checkTune(path, c.tune, false);
     checkTexts(path, c.text, ['name', 'short', 'summary', 'detail'], c.tune);
     checkBuild(path, c.build, 'combo');
+    checkHooks(path, c.hooks);
     if (c.build?.phase === 'combo' && !c.build.weapon && !c.cart) err(path, 'a weapon combo in the combo phase needs a weapon hook');
   }
 
@@ -156,6 +168,7 @@ export function validateContent(files: Partial<ContentFiles>, opts: ValidateOpti
       }
     }
     checkBuild(path, c.build, 'set');
+    checkHooks(path, c.hooks);
   }
   return errors;
 }

@@ -1,4 +1,5 @@
 import type { Unlock } from '../data/unlocks';
+import type { HookName, RuntimeHookMap } from './hooks';
 import type { ActiveRecipe, Build, Cell, DepartmentId, ElementTag, FamilyTag, Inventory, ItemDef, ItemInstance, ItemTypeId, Perk, RecipeId, SetId, StarterWeapon, WeaponStats } from '../types';
 
 // Content definitions for the item-hooks refactor (docs/item-hooks-refactor.md). Types only plus identity `define*` helpers:
@@ -115,15 +116,24 @@ export interface BuildSpec<T extends Tune = Tune> {
   player?(build: Build, c: BuildCtx<T>): void;
 }
 
-// ---- runtime hooks (typed, not wired until phase 3/4) -----------------------------------------------------------------
+// ---- runtime hooks ----------------------------------------------------------------------------------------------------
+
+/** Every combat hook, in the order a table lists them (the typed payloads are in engine/hooks.ts, the API in engine/ctx.ts). */
+export const HOOK_NAMES: readonly HookName[] = [
+  'onAisleStart', 'onTick', 'modifyDamage', 'onHit', 'onCrit', 'onKill', 'onDashStart', 'onDashHit', 'onDashEnd', 'onEnemyShotTouch', 'onPlayerHit', 'onCoinPickup',
+  'pattern:sweep', 'pattern:explode', 'pattern:zap', 'pattern:bounce', 'pattern:shotHit', 'pattern:beam', 'pattern:pulse', 'pattern:cone', 'pattern:puddleEnter', 'pattern:aura',
+];
 
 type Handler = (event: never, ctx: never) => void;
-/** §4b/§4c. The event and ctx types arrive with the `ctx` work in phase 3; until then nothing calls these. */
-export interface RuntimeHooks {
+/**
+ * `hooks` of a content file: the combat hooks of docs/item-hooks-refactor.md §4c, each `(event, ctx, c)` where `c` carries the
+ * owner's tier and `tune()` (`HookCtx`). `order` positions all of this owner's hooks among the others (default 0, ties: registration
+ * order: items, combos, sets). The run-lifecycle hooks of §4b (pure state, no `ctx`) are typed but not wired yet.
+ */
+export type RuntimeHooks<T extends Tune = Tune> = RuntimeHookMap<T> & {
+  order?: number;
   onShopEnter?: Handler; onAisleEnd?: Handler; onMerge?: Handler;
-  onAisleStart?: Handler; onTick?: Handler; modifyDamage?: Handler; onHit?: Handler; onCrit?: Handler; onKill?: Handler;
-  onDashStart?: Handler; onDashHit?: Handler; onDashEnd?: Handler; onEnemyShotTouch?: Handler; onPlayerHit?: Handler; onCoinPickup?: Handler;
-}
+};
 
 // ---- text and rows ----------------------------------------------------------------------------------------------------
 
@@ -144,7 +154,7 @@ export type EnhancedBy = 'always' | 'anyWeapon' | readonly ItemTypeId[]; // an a
 
 // ---- content ----------------------------------------------------------------------------------------------------------
 
-export interface ItemContent<T extends Tune = Tune> extends RuntimeHooks {
+export interface ItemContent<T extends Tune = Tune> {
   id: ItemTypeId;
   kind: ItemDef['kind'];
   /** `[family, element?]`, as `ItemDef.family` / `ItemDef.element`. The `electrical` flag adds the Electric set. */
@@ -166,6 +176,8 @@ export interface ItemContent<T extends Tune = Tune> extends RuntimeHooks {
   /** Shop scaling rows. Default: one row per array-valued tune key, labelled with the key. */
   rows?: readonly RowSpec<T>[];
   build?: BuildSpec<T>;
+  /** Combat hooks (onHit, onKill, pattern:sweep ...): see RuntimeHooks. */
+  hooks?: RuntimeHooks<T>;
   /** More hooks for other phases when one item needs two (Multipack: `module` damage + `post-combo` count). Never `module`. */
   extraBuild?: readonly BuildSpec<T>[];
   shopBias?: readonly DepartmentId[];
@@ -179,7 +191,7 @@ export interface ItemContent<T extends Tune = Tune> extends RuntimeHooks {
   tierBoost?: { key: keyof T & string; excludes: readonly ('weapon' | 'legendary')[] };
 }
 
-export interface ComboContent<T extends Tune = Tune> extends RuntimeHooks {
+export interface ComboContent<T extends Tune = Tune> {
   id: RecipeId;
   /** Every part, weapon first. For `cart` combos there is no weapon: the first part anchors the rest. */
   requires: readonly ItemTypeId[];
@@ -195,15 +207,19 @@ export interface ComboContent<T extends Tune = Tune> extends RuntimeHooks {
   text: Localized<ComboText>;
   /** Combos run in the `combo` phase, inside the per-recipe loop, in RECIPES order. */
   build?: BuildSpec<T>;
+  /** Combat hooks, active while the combo is: see RuntimeHooks. */
+  hooks?: RuntimeHooks<T>;
 }
 
-export interface SetContent<T extends Tune = Tune> extends RuntimeHooks {
+export interface SetContent<T extends Tune = Tune> {
   id: SetId;
   /** Arrays are L1/L2/L3. */
   tune?: T;
   text: Localized<SetText>;
   /** Phase `set`, `post-combo` or `final`. `tier` = the set level; hooks only run when the level is above 0. */
   build?: BuildSpec<T>;
+  /** Combat hooks, active while the set level is above 0 (`c.tier` = level): see RuntimeHooks. */
+  hooks?: RuntimeHooks<T>;
 }
 
 /** Identity helpers: they only check and infer types. `const T` keeps per-tier arrays as tuples. */
