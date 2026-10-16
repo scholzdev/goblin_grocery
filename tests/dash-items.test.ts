@@ -5,7 +5,8 @@ import { mulberry32 } from '../src/systems/rng';
 import { inLane } from '../src/systems/obstacles';
 import { createRun } from '../src/state/run';
 import { cart } from './cart';
-import { BUFFS, ITEMS, ITEM_IDS, PLAYER, TIER } from '../src/data/items';
+import { ITEMS, ITEM_IDS, PLAYER, TIER } from '../src/data/items';
+import { contentTune } from '../src/engine/registry';
 import { RECIPES } from '../src/data/recipes';
 import { UNLOCKS } from '../src/data/unlocks';
 import { DASH_PROPS, OBSTACLES, OBSTACLE_KINDS } from '../src/data/obstacles';
@@ -25,21 +26,22 @@ describe('dash items', () => {
   it('each starts off and switches on with its item, scaling by tier', () => {
     const base = computeBuild(cart('toaster', []));
     expect([base.dashSlam, base.dashChain, base.dashCoinChance, base.dashMark]).toEqual([0, 0, 0, 0]);
-    expect(build('bumper').dashSlam).toBe(BUFFS.bumperDamage);
-    expect(build('bumper', 3).dashSlam).toBe(BUFFS.bumperDamage * TIER.mult(3));
-    expect(build('sparewheel').dashChain).toBe(BUFFS.wheelWindow);
-    expect(build('sparewheel', 2).dashChain).toBeCloseTo(BUFFS.wheelWindow * 1.5);
-    expect(build('tipjar').dashCoinChance).toBeCloseTo(BUFFS.tipChance);
-    expect(build('tipjar', 3).dashCoinChance).toBeCloseTo(BUFFS.tipChance * 2);
-    expect(build('flag').dashMark).toBe(BUFFS.flagMark);
-    expect(build('flag', 2).dashMark).toBeCloseTo(BUFFS.flagMark * 1.5);
+    const base1 = (id: ItemTypeId, key: string) => contentTune(id, 1)[key]; // the ★1 numbers
+    expect(build('bumper').dashSlam).toBe(base1('bumper', 'slam'));
+    expect(build('bumper', 3).dashSlam).toBe(base1('bumper', 'slam') * TIER.mult(3));
+    expect(build('sparewheel').dashChain).toBe(base1('sparewheel', 'window'));
+    expect(build('sparewheel', 2).dashChain).toBeCloseTo(base1('sparewheel', 'window') * 1.5);
+    expect(build('tipjar').dashCoinChance).toBeCloseTo(base1('tipjar', 'chance'));
+    expect(build('tipjar', 3).dashCoinChance).toBeCloseTo(base1('tipjar', 'chance') * 2);
+    expect(build('flag').dashMark).toBe(base1('flag', 'duration'));
+    expect(build('flag', 2).dashMark).toBeCloseTo(base1('flag', 'duration') * 1.5);
   });
   it('they leave the plain dash alone and do not stack as duplicates', () => {
     const b = build('bumper');
     expect(b.shoveCooldown).toBe(PLAYER.shove.cooldown);
     expect(b.shoveDamage).toBe(PLAYER.shove.damage);
     const two = cart('toaster', ['flag', 'flag']);
-    expect(computeBuild(two).dashMark).toBe(BUFFS.flagMark);
+    expect(computeBuild(two).dashMark).toBe(contentTune('flag', 1).duration);
   });
   it('have scaling rows, unlock entries and German text', () => {
     for (const id of DASH_ITEMS) {

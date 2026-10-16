@@ -120,7 +120,7 @@ export interface RuntimeCtx {
   readonly player: PlayerView;
   /** Closest point of the goblin's cart hitbox to (x, y). */
   playerNear(x: number, y: number): { x: number; y: number; d: number };
-  /** `ArenaScene.hurtPlayer`: i-frames, armor, death. */
+  /** `ArenaScene.hurtPlayer`: i-frames, `onPlayerHit` hooks (Bubble Wrap armor), death. */
   hurt(dmg: number): void;
   heal(hp: number): void;
   /** The flying heart + "+N" popup of a heal at (x, y). */

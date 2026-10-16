@@ -1,4 +1,4 @@
-import { BUFFS, BUNDLE, EXPIRED_MILK, ITEMS, PLAYER, PROJECTILE_PATTERNS, TINFOIL, TIER } from '../data/items';
+import { BUFFS, BUNDLE, ITEMS, PLAYER, PROJECTILE_PATTERNS, TIER } from '../data/items';
 import { RECIPES, RECIPE_TUNING } from '../data/recipes';
 import { SETS, setCfg, setLevels } from '../data/sets';
 import type { ActiveRecipe, BuffId, Build, Inventory, ItemInstance, ItemTypeId, Perk, RecipeId, WeaponStats } from '../types';
@@ -19,7 +19,6 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
   const eff = (i: ItemInstance) => tierOf(i) + boost(i);
   /** Highest tier among placed copies of a type (0 if none). */
   const top = (t: ItemTypeId) => Math.max(0, ...placed.filter((p) => p.type === t).map(eff));
-  const gm = (t: ItemTypeId) => TIER.mult(top(t));
   const has = (t: ItemTypeId) => top(t) > 0;
   const sets = setLevels(placed);
   const weapons: WeaponStats[] = [];
@@ -108,29 +107,31 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
     weapons, recipes, adjacency: adjacentPairs(placed),
     // Unrounded here: player hooks add to it, then the Expired Milk curse and the rounding below finish it.
     maxHp: (PLAYER.maxHp + (sets.snacks ? setCfg('snacks', sets.snacks).maxHp : 0) + (perk.maxHp ?? 0)),
-    reflectMult: has('tinfoilhat') ? TINFOIL.reflectMult * gm('tinfoilhat') : 0,
-    stinkDps: has('expiredmilk') ? EXPIRED_MILK.dps * gm('expiredmilk') : 0,
+    reflectMult: 0,
+    stinkDps: 0,
     regen: sets.snacks >= 2 ? setCfg('snacks', sets.snacks).regen : 0,
     critHeal: 0,
     killCoinMult: 1,
     pickupRadius: PLAYER.pickupRadius + (has('vacuum') ? BUFFS.vacuumPickup : 0) + (perk.pickupRadius ?? 0),
     shoveCooldown: PLAYER.shove.cooldown + (perk.shoveCooldown ?? 0),
-    shoveDistMult: has('boot') ? 1 + BUFFS.bootDistance * gm('boot') : 1,
-    shoveDamage: (PLAYER.shove.damage + (has('boot') ? BUFFS.bootDamage * gm('boot') : 0) + (perk.shoveDamage ?? 0)) * (sets.tools >= 2 ? setCfg('tools', sets.tools).shoveDamageMult : 1),
+    shoveDistMult: 1,
+    shoveDamage: PLAYER.shove.damage + (perk.shoveDamage ?? 0), // Boot adds in its player hook, the Tools set multiplies the total below
     shoveStun: sets.tools >= 2 ? setCfg('tools', sets.tools).shoveStun : 0,
-    dashSlam: has('bumper') ? BUFFS.bumperDamage * gm('bumper') : 0,
-    dashChain: has('sparewheel') ? BUFFS.wheelWindow * gm('sparewheel') : 0,
-    dashCoinChance: has('tipjar') ? Math.min(1, BUFFS.tipChance * gm('tipjar')) : 0,
-    dashMark: has('flag') ? BUFFS.flagMark * gm('flag') : 0,
+    dashSlam: 0,
+    dashChain: 0,
+    dashCoinChance: 0,
+    dashMark: 0,
     moveSpeedMult: perk.moveSpeedMult ?? 1,
     coinChance: 0,
-    armor: has('bubblewrap') ? top('bubblewrap') : 0,
-    invulnBonus: has('bubblewrap') ? BUFFS.bubbleInvuln : 0,
+    armor: 0,
+    invulnBonus: 0,
     sets, priceMult: sets.checkout ? setCfg('checkout', sets.checkout).priceMult : 1,
   };
   runPlayerHooks(build, env);
-  // Expired Milk's curse multiplies the finished total (not a flat -10).
-  build.maxHp = Math.round(build.maxHp * (has('expiredmilk') ? EXPIRED_MILK.hpMult : 1));
+  // The Tools set (L2+) multiplies the finished dash damage (Boot's bonus included, so it comes after the player hooks).
+  if (sets.tools >= 2) build.shoveDamage *= setCfg('tools', sets.tools).shoveDamageMult;
+  // Expired Milk's curse (a high-order player hook) multiplied the finished total; max HP is rounded once, here.
+  build.maxHp = Math.round(build.maxHp);
   return build;
 }
 
@@ -188,7 +189,6 @@ export function describeBuffs(s: WeaponStats, inv?: Inventory): string[] {
 }
 
 const fmt = (x: number) => fmtNum(+x.toFixed(2));
-const pctUp = (x: number) => `+${Math.round(x * 100)}%`;
 type ScaleRow = { label: string; values: string[] };
 
 /** Per-level values (★1/★2/★3) for the inspector, mirroring computeBuild's formulas. Empty for legendaries. */
@@ -196,20 +196,9 @@ export function tierScaling(type: ItemTypeId): ScaleRow[] {
   const def = ITEMS[type];
   if (def.legendary) return [];
   const row = (label: string, f: (t: number) => string): ScaleRow => ({ label, values: [1, 2, 3].map(f) });
-  const m = TIER.mult;
   const w = def.weapon;
   const content = contentItem(type);
   if (content && !w) return tierRows(content, lang());
   if (w) return [row(t('rowDamage'), (tr) => fmt(w.damage * TIER.weaponDamage(tr))), row(t('rowCooldown'), (tr) => `${fmt(w.cooldown * TIER.weaponCooldown(tr))} s`)];
-  const rows: Partial<Record<ItemTypeId, () => ScaleRow[]>> = {
-    bumper: () => [row(t('rowSlam'), (tr) => fmt(BUFFS.bumperDamage * m(tr)))],
-    sparewheel: () => [row(t('rowChain'), (tr) => `${fmt(BUFFS.wheelWindow * m(tr))} s`)],
-    tipjar: () => [row(t('rowTip'), (tr) => `${Math.round(Math.min(1, BUFFS.tipChance * m(tr)) * 100)}%`)],
-    flag: () => [row(t('rowMark'), (tr) => `${fmt(BUFFS.flagMark * m(tr))} s`)],
-    bubblewrap: () => [row(t('rowArmor'), (tr) => `${tr}`)],
-    tinfoilhat: () => [row(t('rowReflect'), (tr) => `${fmt(TINFOIL.reflectMult * m(tr))}×`)],
-    expiredmilk: () => [row(t('rowPoison'), (tr) => `${fmt(EXPIRED_MILK.dps * m(tr))}/s`)],
-    boot: () => [row(t('rowDashDist'), (tr) => pctUp(BUFFS.bootDistance * m(tr))), row(t('rowDashDmg'), (tr) => `+${fmt(BUFFS.bootDamage * m(tr))}`)],
-  };
-  return rows[type]?.() ?? [];
+  return [];
 }

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { EXPIRED_MILK, ITEMS, PLAYER } from '../../../src/data/items';
+import { ITEMS, PLAYER } from '../../../src/data/items';
 import snackbag from '../../../src/content/items/snackbag';
 import { setCfg } from '../../../src/data/sets';
 import { contentItem, contentTune } from '../../../src/engine/registry';
@@ -7,6 +7,9 @@ import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { tierScaling } from '../../../src/systems/synergies';
 import { around, at, far, full } from '../helpers';
+
+/** Expired Milk's curse: max HP x0.9 (a high-order player hook; the total is rounded once afterwards). */
+const HP_MULT = 0.9;
 
 afterEach(() => setLang('en'));
 
@@ -59,8 +62,8 @@ describe('Family-Size Snack Bag: build', () => {
   });
 
   it('is rounded together with the rest after Expired Milk (x0.9)', () => {
-    expect(full([at('toaster'), far('snackbag'), far('expiredmilk')]).maxHp).toBe(Math.round((BASE + 10 + 20) * EXPIRED_MILK.hpMult)); // Snacks L1: 2 types
-    expect(Math.round((BASE + 10 + 20) * EXPIRED_MILK.hpMult)).toBe(63);
+    expect(full([at('toaster'), far('snackbag'), far('expiredmilk')]).maxHp).toBe(Math.round((BASE + 10 + 20) * HP_MULT)); // Snacks L1: 2 types
+    expect(Math.round((BASE + 10 + 20) * HP_MULT)).toBe(63);
     // Snack Bag + Lunchbox ★2 + Expired Milk = 3 snacks types (L2): (40 + 10 + 20 + 23) x 0.9 = 83.7 -> 84
     expect(full([at('toaster'), far('snackbag'), far('lunchbox', 2), far('expiredmilk')]).maxHp).toBe(84);
     expect(full([at('toaster'), far('snackbag'), far('expiredmilk')], { maxHp: -8 }).regen).toBe(0.25); // Expired Milk leaves regen alone

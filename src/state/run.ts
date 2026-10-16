@@ -312,8 +312,7 @@ export function startNextWave(state: RunState): void {
 }
 
 export function damagePlayer(state: RunState, amount: number): boolean {
-  const armor = state.build.armor;
-  state.hp = Math.max(0, state.hp - (armor > 0 ? Math.max(1, amount - armor) : amount));
+  state.hp = Math.max(0, state.hp - amount); // armor (Bubble Wrap) is an onPlayerHit hook: ArenaScene.hurtPlayer lowers `amount` first
   if (state.hp > 0) return false;
   state.phase = 'defeat';
   return true;

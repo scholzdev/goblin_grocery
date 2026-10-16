@@ -24,6 +24,8 @@ const { calls, tunes, fixtures } = vi.hoisted(() => {
       item('piggy', { phase: 'final', weapon: (w: { damage: number }) => { calls.push('final'); w.damage *= 2; } }),
       // player hooks: order decides who runs first
       item('lunchbox', { phase: 'final', order: 1, player: (b: { maxHp: number }) => { calls.push('player:lunchbox'); b.maxHp += 10; } }),
+      // the curse: a high-order player hook that multiplies the total the others built (computeBuild only rounds afterwards)
+      item('expiredmilk', { phase: 'final', order: 100, player: (b: { maxHp: number }) => { calls.push('player:expiredmilk'); b.maxHp *= 0.9; } }),
       item('magnet', { phase: 'final', order: 0, player: (b: { pickupRadius: number }, c: { tier: number }) => { calls.push(`player:magnet:${c.tier}`); b.pickupRadius = 1; } }),
     ],
     sets: [
@@ -112,7 +114,8 @@ describe('computeBuild dispatch', () => {
     expect(calls.filter((c) => c.startsWith('player'))).toEqual([]);
   });
 
-  it('keeps Expired Milk (legacy) multiplying the finished max HP, hooks included', () => {
+  it('rounds the finished max HP once, after a high-order hook (the Expired Milk curse) multiplied the total', () => {
     expect(run('toaster', ['lunchbox', 'expiredmilk']).maxHp).toBe(Math.round((40 + 10 + 10) * 0.9)); // 40 base + Snacks L1 (Lunchbox and Expired Milk) + the fixture hook
+    expect(calls.filter((c) => c.startsWith('player'))).toEqual(['player:lunchbox', 'player:expiredmilk']);
   });
 });

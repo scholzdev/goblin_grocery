@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { computeBuild } from '../src/systems/synergies';
 import { createRun, labAddItem, openShop } from '../src/state/run';
 import { mulberry32 } from '../src/systems/rng';
-import { TINFOIL, TIER } from '../src/data/items';
+import { TIER } from '../src/data/items';
+import { contentTune } from '../src/engine/registry';
 import { RECIPE_TUNING } from '../src/data/recipes';
 import { cart } from './cart';
 import type { Inventory, ItemInstance, ItemTypeId, ElementTag } from '../src/types';
@@ -46,7 +47,7 @@ describe('Tin Foil Hat', () => {
   it('reflect multiplier scales by tier and is 0 without the hat', () => {
     expect(computeBuild(inv([['toaster', 0, 0]])).reflectMult).toBe(0);
     for (const tier of [1, 2, 3]) {
-      expect(computeBuild(inv([['toaster', 0, 0], ['tinfoilhat', 3, 3, { tier }]])).reflectMult).toBeCloseTo(TINFOIL.reflectMult * TIER.mult(tier));
+      expect(computeBuild(inv([['toaster', 0, 0], ['tinfoilhat', 3, 3, { tier }]])).reflectMult).toBeCloseTo(contentTune('tinfoilhat', 1).mult * TIER.mult(tier));
     }
   });
 });

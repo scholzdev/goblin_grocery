@@ -41,31 +41,6 @@ const LEGACY_ITEMS: Partial<Record<ItemTypeId, ItemDef>> = {
     rules: 'Constantly pulls nearby enemies toward the cart. Every {1}, enemies in range take {0} damage. +60 coin pickup radius.',
     weapon: weapon({ pattern: 'pulse', damage: 2, cooldown: 0.65, range: 150, pull: 70 }),
   },
-  boot: {
-    id: 'boot', family: 'tools', name: 'Running Boot', kind: 'passive', cells: rect(1, 1), price: 9, electrical: false,
-    blurb: 'Clearance-rack sprinter. Dash like you stole it.',
-    rules: 'Space dash: {0} distance and {1} damage.',
-  },
-  bumper: {
-    id: 'bumper', family: 'tools', element: 'blast', name: 'Slam Bumper', kind: 'passive', cells: rect(1, 1), price: 11, electrical: false,
-    blurb: 'Land the dash with a bang.',
-    rules: 'The Space dash ends in a shockwave: {0} damage within 90 and knockback (does not stack). Enables Pot Slam next to a Pressure Cooker.',
-  },
-  sparewheel: {
-    id: 'sparewheel', family: 'tools', name: 'Spare Wheel', kind: 'passive', cells: rect(1, 1), price: 10, electrical: false,
-    blurb: 'Two dashes for the price of one.',
-    rules: 'After a dash, one more dash within {0} is free: it skips the cooldown (does not stack).',
-  },
-  tipjar: {
-    id: 'tipjar', family: 'checkout', name: 'Tip Jar', kind: 'passive', cells: rect(1, 1), price: 9, electrical: false,
-    blurb: 'Bump them. They tip.',
-    rules: 'Each grocery the Space dash hits has a {0} chance to drop a coin (does not stack).',
-  },
-  flag: {
-    id: 'flag', family: 'checkout', name: 'Sale Flag', kind: 'passive', cells: rect(1, 1), price: 10, electrical: false,
-    blurb: 'Plant it in their back. Everything is 20% off.',
-    rules: 'Groceries hit by the Space dash are marked for {0}: they take +20% damage from everything (does not stack).',
-  },
   microwave: {
     id: 'microwave', family: 'kitchen', element: 'heat', tags: ['area'], name: 'Microwave', kind: 'weapon', cells: shape('.##', '##.'), price: 20, electrical: true,
     blurb: 'Ding! Nukes a grocery from across the aisle.',
@@ -89,21 +64,6 @@ const LEGACY_ITEMS: Partial<Record<ItemTypeId, ItemDef>> = {
     blurb: 'Leaves slippery soap puddles behind you.',
     rules: 'Every {1} drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip: 25% slow and {0} damage every 0.5 s.',
     weapon: weapon({ pattern: 'puddle', damage: 3, cooldown: 1.6, range: 60, tick: 0.5, duration: 3 }),
-  },
-  bubblewrap: {
-    id: 'bubblewrap', family: 'checkout', name: 'Bubble Wrap', kind: 'passive', cells: rect(3, 1), price: 10, electrical: false,
-    blurb: 'Pop-proof padding for your cart.',
-    rules: 'Take {0} less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack).',
-  },
-  expiredmilk: {
-    id: 'expiredmilk', family: 'snacks', name: 'Expired Milk', kind: 'passive', cells: rect(1, 2), price: 7, electrical: false,
-    blurb: 'Cursed. Smells like a bad decision.',
-    rules: 'Cursed: poisons enemies within 110 of the cart: {0} poison damage (refreshes every 0.5 s, does not stack). Your max HP is reduced by 10%. Combo: Sour Mist with Spray Bottle + Desk Fan.',
-  },
-  tinfoilhat: {
-    id: 'tinfoilhat', family: 'tools', name: 'Tin Foil Hat', kind: 'passive', cells: rect(1, 1), price: 9, electrical: false,
-    blurb: 'Blocks the signal. And the soda.',
-    rules: 'While dashing (and 0.1 s after), enemy shots that touch you are reflected back at the groceries for {0} of their damage instead of hurting you. Combos: Sparks Fly with Microwave + Battery; Ray Gun with Nail Gun + Battery + Magnet.',
   },
   leafblower: {
     id: 'leafblower', family: 'cleaning', tags: ['area'], name: 'Leaf Blower', kind: 'weapon', cells: rect(2, 1), price: 14, electrical: false,
@@ -197,22 +157,7 @@ export const STARTER_LOOKS: Record<StarterId, { head?: string; torso?: string }>
 
 export const BUFFS = {
   vacuumPickup: 60,
-  bootDistance: 0.35,
-  bootDamage: 6,
-  bumperDamage: 8,
-  bumperRadius: 90,
-  wheelWindow: 1.0,   // seconds (x tier mult)
-  tipChance: 0.4,     // per enemy hit by the dash (x tier mult, max 1)
-  flagMark: 2,        // seconds (x tier mult)
-  bubbleArmor: 1,
-  bubbleInvuln: 0.25,
 };
-
-/** Expired Milk curse: toxic aura around the cart (dps scales with tier), and a multiplicative max HP penalty. */
-export const EXPIRED_MILK = { radius: 110, interval: 0.5, dps: 3, duration: 1, hpMult: 0.9 };
-
-/** Tin Foil Hat: dash-reflect grace window after a dash ends (s) and the reflected-damage multiplier (x tier mult). */
-export const TINFOIL = { grace: 0.1, reflectMult: 1.5 };
 
 /** Bundle Deal: each weapon gains +6% damage per distinct item type touching it. */
 export const BUNDLE = { perItem: 0.06 };

@@ -87,7 +87,7 @@ export class FakeCtx implements RuntimeCtx {
   constructor(opts: FakeOptions = {}) {
     this.seed = opts.seed ?? 1;
     this.rand = combatRng(this.seed, opts.aisle ?? 0);
-    this.build = opts.build ?? ({ maxHp: opts.maxHp ?? 100, invulnBonus: 0, weapons: [], recipes: [], sets: {} } as unknown as Build);
+    this.build = opts.build ?? ({ maxHp: opts.maxHp ?? 100, weapons: [], recipes: [], sets: {} } as unknown as Build);
     this.run = { hp: opts.hp ?? opts.maxHp ?? 100, maxHp: opts.maxHp ?? this.build.maxHp ?? 100, money: opts.money ?? 0, aisle: opts.aisle ?? 0, boss: opts.boss ?? false };
     this.player = { ...defaultPlayer(), ...opts.player };
     const burnMult = opts.burnMult ?? 1, onIce = opts.onIce ?? (() => false);
@@ -218,7 +218,7 @@ export class FakeCtx implements RuntimeCtx {
     this.log({ kind: 'hurt', dmg });
     const p = this.player;
     if (p.dead || p.invulnT > 0 || p.protectT > 0) return;
-    let invuln = PLAYER.invuln + (this.build.invulnBonus ?? 0);
+    let invuln = PLAYER.invuln;
     if (this.hooks.onPlayerHit.length) { const ev = { dmg, invuln }; this.hooks.emit('onPlayerHit', ev); dmg = ev.dmg; invuln = ev.invuln; }
     this.run.hp = Math.max(0, this.run.hp - dmg);
     p.invulnT = invuln;

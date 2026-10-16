@@ -15,7 +15,7 @@ import { DOOR_POOL, MODIFIERS, ROOM_DOORS } from '../src/data/modifiers';
 import { BOSS_WAVE, ECONOMY, OVERTIME, SHIFTS, SHOP_LEVELS, WAVES, waveDef, bossTuning, eliteChance, enemyAppears } from '../src/data/waves';
 import { BOSS, THEME_SUMMONS, CODEX_ENEMIES, ELITE, ELITE_EXCLUDED, ENEMIES } from '../src/data/enemies';
 import { DATA_DE } from '../src/i18n/data-de';
-import { BUFFS, ITEMS, PLAYER, STARTER_WEAPONS, TIER } from '../src/data/items';
+import { ITEMS, PLAYER, STARTER_WEAPONS, TIER } from '../src/data/items';
 import { contentTune } from '../src/engine/registry';
 import { UNLOCKS } from '../src/data/unlocks';
 import { createLabRun, labAddItem, labDoor, cartUpgradeCost, shelfUpgradeCost, upgradeCart, upgradeShelf, chooseDoor, finishWave, leaveShop, startNextWave, buyOffer, mergeTargetFor, createRun, damagePlayer, mergeItems, moveItem, openShop, previewMerge, previewMove, repair, reroll, sellItem, upgradeCost, upgradeItem, upgradeShop } from '../src/state/run';
@@ -560,7 +560,7 @@ describe('tiers', () => {
     expect(w0(inv(it_('mop', 0, 0), mk('fuel', 1, 0, 3))).burn!.dps).toBeCloseTo(10);
     expect(w0(inv(it_('toaster', 0, 0), it_('fuel', 2, 0))).burn!.dps).toBe(2.5);
   });
-  it('bubble wrap armor: 1 damage still deals 1', () => {
+  it('bubble wrap armor: the build field is set, but the soak is an onPlayerHit hook (content/items/bubblewrap.test.ts); damagePlayer is plain', () => {
     const s = createRun(1);
     s.inventory.placed.push(it_('bubblewrap', 0, 3));
     s.build = computeBuild(s.inventory);
@@ -568,7 +568,7 @@ describe('tiers', () => {
     damagePlayer(s, 1);
     expect(s.hp).toBe(39);
     damagePlayer(s, 5);
-    expect(s.hp).toBe(35);
+    expect(s.hp).toBe(34);
   });
   it('combat helpers', () => {
     const c = [{ id: 1, x: 10, y: 0 }, { id: 2, x: 5, y: 0 }, { id: 3, x: 50, y: 0 }];
@@ -1437,7 +1437,7 @@ describe('set bonuses', () => {
   });
   it('tools L2 doubles dash damage and stuns; snacks L2 regen stacks with snack bag', () => {
     const t3 = b('nailgun', 'tape', 'boot');
-    expect(t3.shoveDamage).toBe((PLAYER.shove.damage + BUFFS.bootDamage) * 2);
+    expect(t3.shoveDamage).toBe((PLAYER.shove.damage + contentTune('boot', 1).damage) * 2);
     expect(t3.shoveStun).toBe(0.3);
     expect(b('nailgun', 'tape').shoveStun).toBe(0);
     expect(b('lunchbox', 'energy', 'fizz').regen).toBeCloseTo(0.3);

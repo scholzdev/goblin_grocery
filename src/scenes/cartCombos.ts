@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { RECIPE_TUNING } from '../data/recipes';
-import { EXPIRED_MILK } from '../data/items';
-import { applyPoison, tailwindFeedsSugar } from '../systems/combat';
+import { contentTune } from '../engine/registry';
+import { tailwindFeedsSugar } from '../systems/combat';
 import { store } from '../state/store';
 import { play } from '../audio/sfx';
 import { DEPTH } from './fx';
@@ -19,14 +19,13 @@ export function addSugarStack(scene: ArenaScene): void {
   else c.sugar.push(now + T.duration);
 }
 
-/** Cart-combo and curse state/effects that do not belong to a weapon: Sugar Rush, Bag It charges, Expired Milk aura. */
+/** Cart-combo and curse state/effects that do not belong to a weapon: Sugar Rush, Bag It charges, the Expired Milk cloud (drawing only). */
 export class CartCombos {
   /** Expiry times (s) of the live Sugar Rush stacks. */
   sugar: number[] = [];
   private bag = 0;
   private windUntil = 0;
   private windFed = -Infinity;
-  private stinkT = 0;
   private label: Phaser.GameObjects.Text;
   private cloud: Phaser.GameObjects.Graphics;
 
@@ -96,14 +95,9 @@ export class CartCombos {
 
     this.cloud.clear();
     if (!active || dps <= 0) return;
-    const R = EXPIRED_MILK.radius;
+    // Only the cloud is drawn here; the poison itself is Expired Milk's onTick hook (content/items/expiredmilk.ts).
+    const R = contentTune('expiredmilk', 1).radius;
     this.cloud.fillStyle(0x8fcb57, 0.1 + 0.04 * Math.sin(now * 2)).fillEllipse(p.x, p.y, R * 2, R * 1.24);
     if (Math.random() < dt * 4) sc.fx.spark(p.x + Phaser.Math.Between(-R, R) * 0.7, p.y - Phaser.Math.Between(0, 40), 1, 0x8fcb57);
-    if ((this.stinkT -= dt) > 0) return;
-    this.stinkT = EXPIRED_MILK.interval;
-    for (const e of sc.enemies) {
-      if (!e.alive || e.state === 'spawn' || Math.hypot(e.x - p.x, e.y - p.y) > R + e.def.radius) continue;
-      applyPoison(e.status, dps, EXPIRED_MILK.duration, now);
-    }
   }
 }

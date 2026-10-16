@@ -664,8 +664,6 @@ export class Arsenal {
       const sy = s.y < p.y ? Math.min(p.y, s.y + 34) : s.y;
       const hit = sc.playerNear(s.x, sy).d < p.radius;
       if (hit && sc.hooks.onEnemyShotTouch.length) { const ev = { shot: s, damage: s.damage, handled: false }; sc.hooks.emit('onEnemyShotTouch', ev); if (ev.handled) continue; }
-      // Tin Foil Hat: while dashing (plus a short grace) shots bounce back at the groceries instead of hurting.
-      if (hit && store.state.build.reflectMult > 0 && p.reflectT > 0) { this.reflect(s); continue; }
       if (hit && sc.hurtPlayer(s.damage)) {
         sc.fx.puff(s.x, s.y - 20, 3);
         this.kill(s);
@@ -673,7 +671,7 @@ export class Arsenal {
     }
   }
 
-  reflect(s: Shot, mult = store.state.build.reflectMult): void {
+  reflect(s: Shot, mult: number): void {
     const sc = this.scene;
     const base = this.weapons[0]?.stats;
     if (!base) return;

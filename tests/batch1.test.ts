@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { computeBuild, tierScaling } from '../src/systems/synergies';
 import { applyPoison, newStatus, tickPoison } from '../src/systems/combat';
-import { EXPIRED_MILK, PLAYER } from '../src/data/items';
+import { PLAYER } from '../src/data/items';
+import { contentTune } from '../src/engine/registry';
 import { RECIPES, recipeIcon, recipeParts } from '../src/data/recipes';
 import { cart } from './cart';
 import type { Inventory, ItemTypeId } from '../src/types';
@@ -53,7 +54,7 @@ describe('Expired Milk', () => {
   });
   it('aura dps scales with tier and is 0 without the item', () => {
     expect(computeBuild(inv([['toaster', 0, 0]])).stinkDps).toBe(0);
-    expect(computeBuild(inv([['toaster', 0, 0], ['expiredmilk', 3, 2]])).stinkDps).toBe(EXPIRED_MILK.dps);
+    expect(computeBuild(inv([['toaster', 0, 0], ['expiredmilk', 3, 2]])).stinkDps).toBe(contentTune('expiredmilk', 1).dps);
     expect(tierScaling('expiredmilk')[0].values).toEqual(['3/s', '4.5/s', '6/s']);
   });
 });

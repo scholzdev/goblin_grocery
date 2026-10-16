@@ -5,7 +5,7 @@ import { flow } from '../flow';
 import { waveDef, eliteChance, bossTuning, ECONOMY, SHIFTS, WAVE_RAMP } from '../data/waves';
 import { SHOW_HP_BAR, EGG_BLAST, MELON_SLICES, ELITE, GIFTCARD, GUM, THEME_SUMMONS, ELITE_EXCLUDED, AFFIX, MINI_BOSS, bossFor, isBossId, type BossMove } from '../data/enemies';
 import { GumPuddles } from './gum';
-import { BUFFS, CRIT, ITEMS, PLAYER, STARTER_LOOKS, TINFOIL } from '../data/items';
+import { CRIT, ITEMS, PLAYER, STARTER_LOOKS } from '../data/items';
 import { SETS, setCfg } from '../data/sets';
 import { RECIPE_TUNING } from '../data/recipes';
 import { addCoins, damagePlayer, takeStockroomItem } from '../state/run';
@@ -54,7 +54,7 @@ interface Player {
   x: number; y: number; radius: number; facing: 1 | -1;
   vx: number; vy: number;
   invulnT: number; protectT: number; hurtT: number;
-  /** Tin Foil Hat: > 0 while dashing and for TINFOIL.grace s after (enemy shots reflect). */
+  /** Tin Foil Hat: > 0 while dashing and for its grace after (enemy shots reflect). Written by the hat's onDashStart / onTick hooks. */
   reflectT: number;
   shoveT: number; shoveCd: number; chainT: number; springHit: boolean; shoveDX: number; shoveDY: number; shoveTracker: HitTracker; shoveHit: boolean;
   dead: boolean;
@@ -256,19 +256,10 @@ export class ArenaScene extends Phaser.Scene {
     }
   }
 
-  /** Dash landing: Slam Bumper shockwave and Pot Slam blast. */
+  /** Dash landing: the onDashEnd hooks (Slam Bumper shockwave), then the Pot Slam blast. */
   private dashLanding(): void {
-    const p = this.player, b = store.state.build;
-    if (this.hooks.onDashEnd.length) this.hooks.emit('onDashEnd', { x: p.x, y: p.y, dx: p.shoveDX, dy: p.shoveDY, hit: p.shoveHit });
-    if (b.dashSlam > 0) {
-      play('boom', { volume: 0.5 });
-      this.fx.ring('fx_boom', p.x, p.y, BUFFS.bumperRadius * 2, 300, 0xf5bd45);
-      for (const e of this.enemies) {
-        const dx = e.x - p.x, dy = e.y - p.y, d = Math.hypot(dx, dy);
-        if (!e.alive || e.state === 'spawn' || d > BUFFS.bumperRadius + e.def.radius) continue;
-        this.damageEnemy(e, b.dashSlam, null, { kb: 200, kbX: dx / (d || 1), kbY: dy / (d || 1), label: 'Slam Bumper' });
-      }
-    }
+    const p = this.player;
+    if (this.hooks.onDashEnd.length) this.hooks.emit('onDashEnd', { x: p.x, y: p.y, dx: p.shoveDX, dy: p.shoveDY, hit: p.shoveHit }); // Slam Bumper
     this.arsenal.dashBlast(p.x, p.y);
   }
 
@@ -903,8 +894,8 @@ export class ArenaScene extends Phaser.Scene {
     const p = this.player;
     if (store.state.phase !== 'combat' || this.ending || p.dead) return true;
     if (p.invulnT > 0 || p.protectT > 0 || store.state.labGod) return true;
-    // Bubble Wrap armor (in damagePlayer) and i-frames are legacy for now; hooks may lower `dmg` and change the i-frames.
-    let invuln = PLAYER.invuln + store.state.build.invulnBonus;
+    // Hooks may lower `dmg` and change the i-frames (Bubble Wrap: armor and +0.25 s).
+    let invuln = PLAYER.invuln;
     if (this.hooks.onPlayerHit.length) { const ev = { dmg, invuln }; this.hooks.emit('onPlayerHit', ev); dmg = ev.dmg; invuln = ev.invuln; }
     const dead = damagePlayer(store.state, dmg);
     p.invulnT = invuln;
@@ -1037,9 +1028,11 @@ export class ArenaScene extends Phaser.Scene {
       this.shoveMult = this.hazards.onIce(p.x, p.y) ? DEPT_TUNING.ice.shoveMult : 1;
       const reach = PLAYER.shove.distance * this.shoveMult * s.build.shoveDistMult;
       this.vaulting = this.obstacles.some((o) => segmentHitsRect(p.x, p.y, p.x + p.shoveDX * reach, p.y + p.shoveDY * reach, o, p.radius));
-      // Spare Wheel: a dash inside the chain window is free (the running cooldown stays as it was).
+      // A dash inside the chain window is free (the running cooldown stays as it was). Every dash closes the window; Spare Wheel's
+      // onDashStart hook (below) opens a new one after a normal dash.
       const chained = p.shoveCd > 0;
-      if (p.shoveCd > 0) p.chainT = 0; else { p.shoveCd = s.build.shoveCooldown; p.chainT = s.build.dashChain; }
+      p.chainT = 0;
+      if (!chained) p.shoveCd = s.build.shoveCooldown;
       if (this.hooks.onDashStart.length) this.hooks.emit('onDashStart', { x: p.x, y: p.y, dx: p.shoveDX, dy: p.shoveDY, reach, chained });
       p.springHit = false;
       p.shoveTracker = newHitTracker(Infinity);
@@ -1049,7 +1042,6 @@ export class ArenaScene extends Phaser.Scene {
       this.fx.puff(p.x - p.shoveDX * 40, p.y, 3);
     }
 
-    if (p.shoveT > 0) p.reflectT = TINFOIL.grace; else p.reflectT -= dt;
     if (p.shoveT > 0) {
       const step = Math.min(dt, p.shoveT), ox = p.x, oy = p.y;
       p.shoveT -= dt;
@@ -1067,8 +1059,7 @@ export class ArenaScene extends Phaser.Scene {
         p.shoveHit = true;
         this.damageEnemy(e, s.build.shoveDamage, null, { kb: PLAYER.shove.knockback, kbX: p.shoveDX, kbY: p.shoveDY, label: 'shove' });
         if (this.hooks.onDashHit.length) this.hooks.emit('onDashHit', { enemy: e, dx: p.shoveDX, dy: p.shoveDY, dmg: s.build.shoveDamage });
-        if (s.build.dashMark > 0) e.markedUntil = this.time.now / 1000 + s.build.dashMark;
-        if (s.build.dashCoinChance > 0 && this.rng() < s.build.dashCoinChance) this.dropCoin(e.x, e.y, t('coinTip'));
+        // (Sale Flag's mark and Tip Jar's coin roll are onDashHit hooks.)
         if (s.build.shoveStun > 0) { this.stunEnemy(e, s.build.shoveStun); this.fx.ring('fx_pulse', e.x, e.y, 70, 220, 0xf5bd45); }
       }
       if (wall) p.shoveT = 0;

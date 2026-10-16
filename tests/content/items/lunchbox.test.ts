@@ -1,11 +1,14 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { EXPIRED_MILK, ITEMS, PLAYER, TIER } from '../../../src/data/items';
+import { ITEMS, PLAYER, TIER } from '../../../src/data/items';
 import lunchbox from '../../../src/content/items/lunchbox';
 import { contentItem, contentTune } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { tierScaling } from '../../../src/systems/synergies';
 import { around, at, corner, far, full, gilded } from '../helpers';
+
+/** Expired Milk's curse: max HP x0.9 (a high-order player hook; the total is rounded once afterwards). */
+const HP_MULT = 0.9;
 
 afterEach(() => setLang('en'));
 
@@ -45,13 +48,13 @@ describe('Lunchbox: build', () => {
     // Snacks L1 (lunchbox + energy): +10.
     expect(full([at('toaster'), far('lunchbox'), far('energy')]).maxHp).toBe(BASE + 10 + 15);
     // Lunchbox ★2 + Snack Bag + Expired Milk = 3 snacks types (L2: +10): (40 + 10 + 23 + 20) x 0.9 = 83.7 -> 84.
-    expect(full([at('toaster'), far('lunchbox', 2), far('snackbag'), far('expiredmilk')]).maxHp).toBe(Math.round((BASE + 10 + 23 + 20) * EXPIRED_MILK.hpMult));
-    expect(Math.round((BASE + 10 + 23 + 20) * EXPIRED_MILK.hpMult)).toBe(84);
+    expect(full([at('toaster'), far('lunchbox', 2), far('snackbag'), far('expiredmilk')]).maxHp).toBe(Math.round((BASE + 10 + 23 + 20) * HP_MULT));
+    expect(Math.round((BASE + 10 + 23 + 20) * HP_MULT)).toBe(84);
     // Lunchbox ★1 + Expired Milk (L1: +10): (40 + 10 + 15) x 0.9 = 58.5 -> 59 (a ".5" the legacy rounding turns up).
-    expect(full([at('toaster'), far('lunchbox'), far('expiredmilk')]).maxHp).toBe(Math.round((BASE + 10 + 15) * EXPIRED_MILK.hpMult));
+    expect(full([at('toaster'), far('lunchbox'), far('expiredmilk')]).maxHp).toBe(Math.round((BASE + 10 + 15) * HP_MULT));
     expect(Number.isInteger(full([at('toaster'), far('lunchbox', 2), far('expiredmilk')], { maxHp: 5 }).maxHp)).toBe(true);
     // Snacks L3 (lunchbox, snack bag, energy, expired milk): +20 from the set.
-    expect(full([at('toaster'), far('lunchbox', 3), far('snackbag'), far('energy'), far('expiredmilk')]).maxHp).toBe(Math.round((BASE + 20 + 30 + 20) * EXPIRED_MILK.hpMult));
+    expect(full([at('toaster'), far('lunchbox', 3), far('snackbag'), far('energy'), far('expiredmilk')]).maxHp).toBe(Math.round((BASE + 20 + 30 + 20) * HP_MULT));
   });
 });
 
