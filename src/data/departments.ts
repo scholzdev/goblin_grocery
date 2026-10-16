@@ -15,7 +15,7 @@ export const DEPARTMENTS: Record<DepartmentId, DepartmentDef> = {
   },
   frozen: {
     ...base, id: 'frozen', name: 'Frozen Foods', short: 'FROZEN', danger: 1, hazard: 'ice',
-    blurb: 'Ice patches: longer shoves, enemies slip', enemiesText: 'Turkeys, Expired Milk, Sour Milk & Soda',
+    blurb: 'Ice patches: longer dashes, enemies slip', enemiesText: 'Turkeys, Expired Milk, Sour Milk & Soda',
     rewardText: 'Cold deals in the shop',
     mix: { turkey: 2.5, expired: 2.5, milk: 2, soda: 2 }, shopBias: ['ice', 'blender', 'vacuum'],
     theme: { floor: 'floor_frozen', walls: ['freezer_a', 'freezer_c', 'freezer_b', 'freezer_c'], sides: ['side_freezer'], props: ['prop_icecream', 'prop_wetfloor', 'prop_cans'], icon: 'dept_frozen' },

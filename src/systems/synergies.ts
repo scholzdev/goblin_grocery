@@ -38,6 +38,8 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
     };
     const near = neighbors(placed, w.uid);
     const nearTypes = new Set(near.map((n) => n.type));
+    const matching = Object.values(RECIPES).filter((r) => r.weapon === w.type && r.supports.every((t) => nearTypes.has(t)));
+    const mist = matching.some((r) => r.id === 'mistMachine'); // Mist Machine replaces the Desk Fan's range bonus
     // highest tier per buff among touching modules
     const buffTier = new Map<BuffId, number>();
     for (const n of near) {
@@ -50,6 +52,7 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
       if (!mt) continue;
       const m = TIER.mult(mt);
       if (id === 'fan') {
+        if (mist) continue;
         if (PROJECTILE_PATTERNS.has(b.pattern)) s.projectileSpeed *= bonus(BUFFS.fan.speedMult, m);
         s.range *= bonus(BUFFS.fan.rangeMult, m);
       } else if (id === 'fuel') s.burn = { dps: BUFFS.fuel.dps * m, duration: BUFFS.fuel.duration, tick: BUFFS.fuel.tick };
@@ -104,7 +107,6 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
     s.bundle = nearTypes.size + (nearTypes.has('goldstar') ? 1 : 0);
     s.damage *= 1 + BUNDLE.perItem * s.bundle;
     const tapeArc = s.arcDeg - b.arcDeg;
-    const matching = Object.values(RECIPES).filter((r) => r.weapon === w.type && r.supports.every((t) => nearTypes.has(t)));
     for (const r of matching) {
       if (matching.some((o) => o.replaces?.includes(r.id))) continue; // e.g. Ray Gun replaces Nailstorm
       const sup = near.filter((n) => r.supports.includes(n.type));

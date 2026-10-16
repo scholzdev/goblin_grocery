@@ -55,7 +55,7 @@ export const ITEMS: Record<ItemTypeId, ItemDef> = {
   magnet: {
     id: 'magnet', family: 'tools', name: 'Magnet', kind: 'passive', cells: rect(1, 1), price: 7, electrical: false,
     blurb: 'Coins come to you.',
-    rules: '{0} coin pickup radius (does not stack). Enables Nailstorm next to a Nail Gun.',
+    rules: '{0} coin pickup radius (does not stack). Combo: Nailstorm with Nail Gun + Battery.',
   },
   ice: {
     id: 'ice', family: 'kitchen', element: 'frost', name: 'Ice Pack', kind: 'module', cells: rect(1, 2), price: 8, electrical: false, buff: 'ice',
@@ -70,12 +70,12 @@ export const ITEMS: Record<ItemTypeId, ItemDef> = {
   lunchbox: {
     id: 'lunchbox', family: 'snacks', name: 'Lunchbox', kind: 'passive', cells: rect(2, 1), price: 9, electrical: false,
     blurb: 'A packed lunch. +15 max HP.',
-    rules: '{0} maximum HP while equipped (does not stack, does not heal). Enables TV Dinner.',
+    rules: '{0} maximum HP while equipped (does not stack, does not heal). Combo: TV Dinner with Microwave + Battery.',
   },
   bell: {
     id: 'bell', family: 'checkout', name: 'Shopping Bell', kind: 'passive', cells: rect(1, 1), price: 7, electrical: false,
-    blurb: 'Ding! Shove more often.',
-    rules: 'Shove cooldown {0} (does not stack). Enables Express Checkout next to a Frying Pan.',
+    blurb: 'Ding! Dash more often.',
+    rules: 'Dash cooldown {0} (does not stack). Enables Express Checkout next to a Frying Pan.',
   },
   boot: {
     id: 'boot', family: 'tools', name: 'Running Boot', kind: 'passive', cells: rect(1, 1), price: 9, electrical: false,
@@ -129,7 +129,7 @@ export const ITEMS: Record<ItemTypeId, ItemDef> = {
   pricegun: {
     id: 'pricegun', family: 'checkout', name: 'Price Gun', kind: 'module', cells: [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }], price: 12, electrical: false, buff: 'pricegun',
     blurb: 'Marks groceries 50% OFF. Critical hits!',
-    rules: 'Adjacent weapons gain a {0} chance to crit for double damage (not burn). Enables Clearance Sale.',
+    rules: 'Adjacent weapons gain a {0} chance to crit for double damage (not burn). Combo: Clearance Sale with Fizz Cannon + Coupon Book.',
   },
   tape: {
     id: 'tape', family: 'tools', name: 'Duct Tape', kind: 'module', cells: rect(1, 1), price: 9, electrical: false, buff: 'tape',
@@ -139,7 +139,7 @@ export const ITEMS: Record<ItemTypeId, ItemDef> = {
   coupon: {
     id: 'coupon', family: 'checkout', name: 'Coupon Book', kind: 'passive', cells: rect(1, 1), price: 8, electrical: false,
     blurb: 'Extra savings on every kill.',
-    rules: 'Kills have a {0} chance to drop +1 coin (does not stack). Enables Clearance Sale.',
+    rules: 'Kills have a {0} chance to drop +1 coin (does not stack). Combo: Clearance Sale with Fizz Cannon + Price Gun.',
   },
   bubblewrap: {
     id: 'bubblewrap', family: 'checkout', name: 'Bubble Wrap', kind: 'passive', cells: rect(3, 1), price: 10, electrical: false,
@@ -169,12 +169,12 @@ export const ITEMS: Record<ItemTypeId, ItemDef> = {
   expiredmilk: {
     id: 'expiredmilk', family: 'snacks', name: 'Expired Milk', kind: 'passive', cells: rect(1, 2), price: 7, electrical: false,
     blurb: 'Cursed. Smells like a bad decision.',
-    rules: 'Cursed: poisons enemies within 110 of the cart for {0} damage/s (refreshes every 0.5 s, does not stack). Your max HP is reduced by 10%. Enables Sour Mist.',
+    rules: 'Cursed: poisons enemies within 110 of the cart: {0} poison damage (refreshes every 0.5 s, does not stack). Your max HP is reduced by 10%. Combo: Sour Mist with Spray Bottle + Desk Fan.',
   },
   tinfoilhat: {
     id: 'tinfoilhat', family: 'tools', name: 'Tin Foil Hat', kind: 'passive', cells: rect(1, 1), price: 9, electrical: false,
     blurb: 'Blocks the signal. And the soda.',
-    rules: 'While dashing (and 0.1 s after), enemy shots that touch you are reflected back at the groceries for {0} of their damage instead of hurting you. Enables Sparks Fly and Ray Gun.',
+    rules: 'While dashing (and 0.1 s after), enemy shots that touch you are reflected back at the groceries for {0} of their damage instead of hurting you. Combos: Sparks Fly with Microwave + Battery; Ray Gun with Nail Gun + Battery + Magnet.',
   },
   jellybeans: {
     id: 'jellybeans', family: 'snacks', name: 'Jelly Beans', kind: 'module', cells: rect(1, 1), price: 10, electrical: false,
@@ -184,7 +184,7 @@ export const ITEMS: Record<ItemTypeId, ItemDef> = {
   leafblower: {
     id: 'leafblower', family: 'cleaning', tags: ['area'], name: 'Leaf Blower', kind: 'weapon', cells: rect(2, 1), price: 14, electrical: false,
     blurb: 'Huff and puff. Slams groceries into things.',
-    rules: 'Every {1} blasts a 50° cone (220 reach) for {0} damage and a heavy shove. Blown groceries that hit a wall or prop take 8 slam damage (scales with level).',
+    rules: 'Every {1} blasts a 50° cone (220 reach) for {0} damage and a heavy push. Blown groceries that hit a wall or prop take 8 slam damage (scales with level).',
     weapon: weapon({ pattern: 'cone', damage: 3, cooldown: 0.9, range: 220, arcDeg: 50, knockback: 300 }),
   },
   sourdough: {

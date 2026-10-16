@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { WeaponStats } from '../types';
+import type { BurnEffect, WeaponStats } from '../types';
 import { RECIPE_TUNING } from '../data/recipes';
 import { newHitTracker, shieldBlocks, tryHit, isSpent, pickRicochetTarget, type HitTracker } from '../systems/combat';
 import { ITEMS, MULTIPACK, PUDDLE, TIER } from '../data/items';
@@ -24,7 +24,7 @@ export interface WeaponRt {
   blades: Phaser.GameObjects.Image | null;
 }
 
-interface Puddle { img: Phaser.GameObjects.Image; x: number; y: number; r: number; until: number; nextTick: number; stats: WeaponStats; burnOnly?: boolean; frozen?: Set<number> }
+interface Puddle { img: Phaser.GameObjects.Image; x: number; y: number; r: number; until: number; nextTick: number; stats: WeaponStats; burnOnly?: boolean; burn?: BurnEffect; frozen?: Set<number> }
 interface Pot { img: Phaser.GameObjects.Image; shadow: Phaser.GameObjects.Image; sx: number; sy: number; tx: number; ty: number; t: number; dur: number; stats: WeaponStats }
 
 export interface Shot {
@@ -260,7 +260,7 @@ export class Arsenal {
     // Sniper role: the toughest grocery in range (Elites first, then most HP); the splash handles the small fry.
     let target: Enemy | null = pool.reduce((b, e) => (e.elite !== b.elite ? (e.elite ? e : b) : e.hp > b.hp ? e : b));
     // Reheat: the first zap target's spot keeps burning.
-    if (st.recipes.includes('reheat')) this.firePool(target.x, target.y, st.aoe, RECIPE_TUNING.reheat.poolTime, st);
+    if (st.recipes.includes('reheat')) this.firePool(target.x, target.y, st.aoe, RECIPE_TUNING.reheat.poolTime, st, RECIPE_TUNING.reheat);
     for (let link = 0; target && link <= st.chain; link++) {
       const t: Enemy = target;
       this.bolt(t.x, t.y, link > 0);
@@ -270,7 +270,7 @@ export class Arsenal {
         if (!tryHit(tracker, e.id)) continue;
         // Sparks Fly links come last (after TV Dinner's): 50% damage and a chance to stun.
         const spark = link > 0 && link > st.chain - sparks;
-        sc.damageEnemy(e, link > 0 ? st.damage * (spark ? RECIPE_TUNING.sparksFly.chainMult : 0.6) : st.damage, st, { kb: 80, kbX: Math.sign(e.x - t.x), kbY: 0 });
+        sc.damageEnemy(e, link > 0 ? st.damage * (spark ? RECIPE_TUNING.sparksFly.chainMult : RECIPE_TUNING.tvDinner.chainMult) : st.damage, st, { kb: 80, kbX: Math.sign(e.x - t.x), kbY: 0 });
         if (sparks && link > 0 && e.alive && Math.random() < RECIPE_TUNING.sparksFly.stunChance) sc.stunEnemy(e, RECIPE_TUNING.sparksFly.stun);
       }
       target = pickRicochetTarget(t, sc.enemies.filter((e) => e.alive && e.state !== 'spawn'), tracker.hits, 220);
@@ -369,7 +369,7 @@ export class Arsenal {
       if (d > st.aoe + e.def.radius || !tryHit(tracker, e.id)) continue;
       sc.damageEnemy(e, st.damage, st, { kb: 220, kbX: dx / (d || 1), kbY: dy / (d || 1) });
     }
-    if (st.firePool) this.firePool(x, y, st.aoe, RECIPE_TUNING.pressurePoint.poolTime, st);
+    if (st.firePool) this.firePool(x, y, st.aoe, RECIPE_TUNING.pressurePoint.poolTime, st, RECIPE_TUNING.pressurePoint);
     // Shrapnel: pot fragments fly out in a ring.
     if (st.recipes.includes('shrapnel')) {
       const T = RECIPE_TUNING.shrapnel;
@@ -380,12 +380,12 @@ export class Arsenal {
     }
   }
 
-  /** Burning floor patch (Pressure Point, Reheat, Sizzling Skillet): applies the weapon's burn, no direct damage. */
-  private firePool(x: number, y: number, r: number, time: number, st: WeaponStats): void {
+  /** Burning floor patch (Pressure Point, Reheat, Sizzling Skillet): no direct damage. Burns for the recipe's tuning, at least as hard and as long as the weapon's own Fuel burn. */
+  private firePool(x: number, y: number, r: number, time: number, st: WeaponStats, tune: { dps: number; duration: number; tick: number }): void {
     if (!st.burn) return;
     if (this.puddles.length >= 14) this.removePuddle(this.puddles[0]);
     const img = this.scene.add.image(x, y, 'fx_puddle_fire').setDepth(DEPTH.decal).setDisplaySize(r * 1.8, r * 1.1).setAlpha(0.9);
-    this.puddles.push({ img, x, y, r: r * 0.9, until: this.time + time, nextTick: this.time, stats: st, burnOnly: true });
+    this.puddles.push({ img, x, y, r: r * 0.9, until: this.time + time, nextTick: this.time, stats: st, burnOnly: true, burn: { dps: Math.max(tune.dps, st.burn.dps), duration: Math.max(tune.duration, st.burn.duration), tick: tune.tick } });
   }
 
   private dropPuddle(w: WeaponRt): void {
@@ -414,7 +414,7 @@ export class Arsenal {
         // Floor ellipse test (puddles are drawn flattened).
         const dx = (e.x - pd.x) / pd.r, dy = (e.y - pd.y) / (pd.r * 0.62);
         if (dx * dx + dy * dy > 1) continue;
-        if (pd.burnOnly) { if (pd.stats.burn) applyBurn(e.status, sc.aisleEvent.burn(pd.stats.burn), now); continue; }
+        if (pd.burnOnly) { if (pd.burn) applyBurn(e.status, sc.aisleEvent.burn(pd.burn), now); continue; }
         // Black Ice: the first step into each puddle freezes the grocery solid.
         if (pd.stats.recipes.includes('blackIce') && !(pd.frozen ??= new Set()).has(e.id)) {
           pd.frozen.add(e.id);
@@ -464,7 +464,7 @@ export class Arsenal {
       const T = RECIPE_TUNING.sizzlingSkillet;
       for (let i = 0; i < T.pools; i++) {
         const a = angle + (i / (T.pools - 1) - 0.5) * Phaser.Math.DegToRad(st.arcDeg) * 0.8;
-        this.firePool(p.x + Math.cos(a) * st.range * 0.7, p.y + Math.sin(a) * st.range * 0.7 * 0.62, 34, T.poolTime, st);
+        this.firePool(p.x + Math.cos(a) * st.range * 0.7, p.y + Math.sin(a) * st.range * 0.7 * 0.62, 34, T.poolTime, st, T);
       }
     }
     play('pan_clang', { rate: bonus ? 1.25 : 1 });

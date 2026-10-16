@@ -1023,11 +1023,12 @@ describe('aoe / multi-hit modules', () => {
     expect(sp.burn!.dps).toBe(2.5); // universal fuel
     expect(sp.recipes).toEqual([]);
   });
-  it('mist machine arc 120, range 238; tape +30', () => {
+  it('mist machine arc 120, range 238 (replaces the fan bonus); tape +30', () => {
     const m = w0(inv(it_('spray', 0, 0), it_('fan', 1, 0)));
     expect(m.recipes).toContain('mistMachine');
     expect(m.arcDeg).toBe(120);
-    expect(m.range).toBeCloseTo(170 * 1.3 * 1.4 * 1.15);
+    expect(m.range).toBeCloseTo(170 * 1.4 * 1.15);
+    expect(m.buffs).not.toContain('fan');
     expect(w0(inv(it_('spray', 0, 0), it_('fan', 1, 0), it_('tape', 0, 2))).arcDeg).toBe(150);
   });
   it('200 rolls over every item type: no duplicates', () => {

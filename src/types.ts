@@ -139,10 +139,10 @@ export interface WeaponStats {
   chainJumps: number;
   slow: SlowEffect | null;
   frostRing: boolean;
-  expressSweep: boolean;   // pan: extra sweep on successful shove
+  expressSweep: boolean;   // pan: extra sweep on successful dash
   dashBlast: boolean;      // pressure cooker: the dash landing sets off a pot blast
   buffs: BuffId[];         // distinct buffs applied (each at most once)
-  /** Active combos on this weapon (each weapon has exactly 2 possible combos; both can be active). */
+  /** Active combos on this weapon (a weapon can have several possible combos; all matching ones are active). */
   recipes: RecipeId[];
 }
 

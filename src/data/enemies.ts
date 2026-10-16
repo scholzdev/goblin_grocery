@@ -12,7 +12,7 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
     tell: 0.6, attackCooldown: 2.6, attackRange: 260, lungeSpeed: 430, lungeTime: 0.38,
   },
   soda: {
-    ...base, id: 'soda', name: 'Soda Six-Pack', blurb: "Six cans, one grudge. Slow and fizzy-tough; barely flinches at shoves.", behavior: 'tank', hp: 48, speed: 46, contactDamage: 6, coins: 2, radius: 25,
+    ...base, id: 'soda', name: 'Soda Six-Pack', blurb: "Six cans, one grudge. Slow and fizzy-tough; barely flinches at dashes.", behavior: 'tank', hp: 48, speed: 46, contactDamage: 6, coins: 2, radius: 25,
     knockbackResist: 0.8,
   },
   spitter: {
@@ -40,7 +40,7 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
     armor: 3, knockbackResist: 0.4,
   },
   cereal: {
-    ...base, id: 'cereal', name: 'Cereal Box', blurb: "Holds a cardboard front up: the first 6 shots bounce off, then it goes soggy. Sweeps, blasts, burn and shoves ignore it.", behavior: 'chase', hp: 45, speed: 58, contactDamage: 5, coins: 3, radius: 23,
+    ...base, id: 'cereal', name: 'Cereal Box', blurb: "Holds a cardboard front up: the first 6 shots bounce off, then it goes soggy. Sweeps, blasts, burn and dashes ignore it.", behavior: 'chase', hp: 45, speed: 58, contactDamage: 5, coins: 3, radius: 23,
     shield: true, knockbackResist: 0.3,
   },
   honey: {

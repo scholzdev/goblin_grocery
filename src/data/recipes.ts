@@ -17,9 +17,9 @@ export const RECIPES: Record<RecipeId, RecipeDef> = {
     detail: 'Suction reaches 20% farther, and its damage ticks deal 2.5× damage and slow enemies 50% for 1.5 s. Replaces the Ice Pack slow (never added together).',
   },
   expressCheckout: {
-    id: 'expressCheckout', short: 'Shove → bonus pan sweep', name: 'Express Checkout', weapon: 'pan', supports: ['bell'],
-    summary: 'Frying Pan touching a Shopping Bell: shove triggers a bonus sweep.',
-    detail: 'A shove that hits an enemy triggers one extra pan sweep (1.0 s internal cooldown). Bell shove cooldown reduction still applies.',
+    id: 'expressCheckout', short: 'Dash → bonus pan sweep', name: 'Express Checkout', weapon: 'pan', supports: ['bell'],
+    summary: 'Frying Pan touching a Shopping Bell: dash triggers a bonus sweep.',
+    detail: 'A dash that hits an enemy triggers one extra pan sweep (1.0 s internal cooldown). Bell dash cooldown reduction still applies.',
   },
   brainFreeze: {
     id: 'brainFreeze', short: 'Wider, freezing blades', name: 'Brain Freeze', weapon: 'blender', supports: ['ice'],
@@ -39,12 +39,12 @@ export const RECIPES: Record<RecipeId, RecipeDef> = {
   greaseFire: {
     id: 'greaseFire', short: 'Huge burning slicks', name: 'Grease Fire', weapon: 'mop', supports: ['fuel'],
     summary: 'Mop touching a Fuel Can: huge burning grease slicks.',
-    detail: 'Puddles become grease fires: 40% bigger, and their burn is doubled (6 damage/s, no stacking).',
+    detail: 'Puddles become grease fires: 40% bigger, and their burn is doubled (Fuel Can burn ×2, no stacking).',
   },
   pressurePoint: {
     id: 'pressurePoint', short: 'Blasts leave fire pools', name: 'Pressure Point', weapon: 'cooker', supports: ['fuel'],
     summary: 'Pressure Cooker touching a Fuel Can: blasts leave burning pools.',
-    detail: 'Each explosion leaves a fire pool for 2.5 s: enemies inside burn (3 damage/s, no stacking).',
+    detail: 'Each explosion leaves a fire pool for 2.5 s: enemies inside burn (at least 3 damage/s, no stacking).',
   },
   mistMachine: {
     id: 'mistMachine', short: 'Huge 120° spray cone', name: 'Mist Machine', weapon: 'spray', supports: ['fan'],
@@ -59,7 +59,7 @@ export const RECIPES: Record<RecipeId, RecipeDef> = {
   sizzlingSkillet: {
     id: 'sizzlingSkillet', short: 'Sweeps leave fire', name: 'Sizzling Skillet', weapon: 'pan', supports: ['fuel'],
     summary: 'Frying Pan touching a Fuel Can: every sweep scorches the floor.',
-    detail: 'Each sweep leaves a burning arc on the floor for 2 s. Enemies walking through it catch fire.',
+    detail: 'Each sweep leaves a burning arc on the floor for 2 s. Enemies walking through it catch fire (at least 4 damage/s, no stacking).',
   },
   chickenDinner: {
     id: 'chickenDinner', short: 'Every 4th sweep is huge', name: 'Chicken Dinner', weapon: 'pan', supports: ['lunchbox'],
@@ -79,7 +79,7 @@ export const RECIPES: Record<RecipeId, RecipeDef> = {
   reheat: {
     id: 'reheat', short: 'Zaps leave fire', name: 'Reheat', weapon: 'microwave', supports: ['fuel'],
     summary: 'Microwave touching a Fuel Can: overcooked!',
-    detail: 'Every zap leaves a burning pool at its target for 2.5 s.',
+    detail: 'Every zap leaves a burning pool at its target for 2.5 s: enemies inside burn (at least 3 damage/s, no stacking).',
   },
   smoothieShield: {
     id: 'smoothieShield', short: 'Blades eat bullets', name: 'Smoothie Shield', weapon: 'blender', supports: ['bubblewrap'],
@@ -164,9 +164,8 @@ export const RECIPE_TUNING = {
   coldStorage: { pct: 0.5, duration: 1.5, damageMult: 2.5, radiusMult: 1.2 },
   expressCheckout: { icd: 1.0 },
   brainFreeze: { radiusMult: 1.25, pct: 0.4, duration: 0.6 },
-  tvDinner: { chain: 1, cooldownMult: 0.92 },
+  tvDinner: { chain: 1, cooldownMult: 0.92, chainMult: 0.6 },
   clearanceSale: { extraBounces: 2 },
-  greaseFire: { dps: 3, duration: 2, tick: 0.5 },
   pressurePoint: { dps: 3, duration: 2, tick: 0.5, poolTime: 2.5 },
   mistMachine: { arcDeg: 120, rangeMult: 1.4 },
   greaseFireBoost: { radiusMult: 1.4, burnMult: 2 },
