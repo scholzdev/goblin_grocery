@@ -1426,7 +1426,7 @@ describe('set bonuses', () => {
     expect(bw('pan', 'toaster').damage).toBeCloseTo(9 * 1.1 * 1.06); // kitchen L1 x bundle (1 neighbour)
     expect(bw('mop', 'fan').range).toBeCloseTo(ITEMS.mop.weapon!.range * 1.3 * 1.15);
     expect(bw('toaster', 'tape', 'magnet').cooldown).toBeCloseTo(ITEMS.toaster.weapon!.cooldown / 1.08);
-    expect(b('lunchbox', 'energy').maxHp).toBe(PLAYER.maxHp + Math.round(BUFFS.lunchboxHp) + 10);
+    expect(b('lunchbox', 'energy').maxHp).toBe(PLAYER.maxHp + Math.round(contentTune('lunchbox', 1).hp) + 10);
   });
   it('heat L1 burn duration, frost L1 slow +0.1 capped at 0.6, blast L1 popper radius', () => {
     expect(w0(inv(it_('pan', 0, 0), it_('fuel', 1, 0))).burn).toEqual({ dps: 2.5, duration: 3, tick: 0.5 });
@@ -1441,7 +1441,7 @@ describe('set bonuses', () => {
     expect(t3.shoveStun).toBe(0.3);
     expect(b('nailgun', 'tape').shoveStun).toBe(0);
     expect(b('lunchbox', 'energy', 'fizz').regen).toBeCloseTo(0.3);
-    expect(b('lunchbox', 'energy', 'snackbag').regen).toBeCloseTo(BUFFS.snackRegen + 0.3);
+    expect(b('lunchbox', 'energy', 'snackbag').regen).toBeCloseTo(contentTune('snackbag', 1).regenHp / contentTune('snackbag', 1).interval + 0.3);
   });
   it('heat L2: burn dps x1.4 and heat weapons without fuel ignite', () => {
     const w = bw('toaster', 'pan', 'microwave');

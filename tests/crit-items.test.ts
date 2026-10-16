@@ -12,10 +12,10 @@ const inv = (items: [ItemTypeId, number, number, number?][]): Inventory => ({
 describe('Fortune Cookie / Free Sample', () => {
   it('fortune cookie gives every weapon crit, anywhere in the cart, and adds to the price gun', () => {
     const far = computeBuild(inv([['toaster', 0, 0], ['fortune', 3, 3]]));
-    expect(far.weapons[0].critChance).toBeCloseTo(BUFFS.fortuneCrit);
+    expect(far.weapons[0].critChance).toBeCloseTo(contentTune('fortune', 1).crit);
     const both = computeBuild(inv([['toaster', 0, 0], ['pricegun', 0, 1], ['fortune', 3, 3]]));
-    expect(both.weapons[0].critChance).toBeCloseTo(contentTune('pricegun', 1).crit + BUFFS.fortuneCrit);
-    expect(computeBuild(inv([['toaster', 0, 0], ['fortune', 3, 3, 3]])).weapons[0].critChance).toBeCloseTo(BUFFS.fortuneCrit * 2);
+    expect(both.weapons[0].critChance).toBeCloseTo(contentTune('pricegun', 1).crit + contentTune('fortune', 1).crit);
+    expect(computeBuild(inv([['toaster', 0, 0], ['fortune', 3, 3, 3]])).weapons[0].critChance).toBeCloseTo(contentTune('fortune', 1).crit * 2);
   });
 
   it('piggy bank: +15% kill coins, +30% at tier 3', () => {

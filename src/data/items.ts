@@ -41,21 +41,6 @@ const LEGACY_ITEMS: Partial<Record<ItemTypeId, ItemDef>> = {
     rules: 'Constantly pulls nearby enemies toward the cart. Every {1}, enemies in range take {0} damage. +60 coin pickup radius.',
     weapon: weapon({ pattern: 'pulse', damage: 2, cooldown: 0.65, range: 150, pull: 70 }),
   },
-  magnet: {
-    id: 'magnet', family: 'tools', name: 'Magnet', kind: 'passive', cells: rect(1, 1), price: 7, electrical: false,
-    blurb: 'Coins come to you.',
-    rules: '{0} coin pickup radius (does not stack). Combo: Nailstorm with Nail Gun + Battery.',
-  },
-  lunchbox: {
-    id: 'lunchbox', family: 'snacks', name: 'Lunchbox', kind: 'passive', cells: rect(2, 1), price: 9, electrical: false,
-    blurb: 'A packed lunch. +15 max HP.',
-    rules: '{0} maximum HP while equipped (does not stack, does not heal). Combo: TV Dinner with Microwave + Battery.',
-  },
-  bell: {
-    id: 'bell', family: 'checkout', name: 'Shopping Bell', kind: 'passive', cells: rect(1, 1), price: 7, electrical: false,
-    blurb: 'Ding! Dash more often.',
-    rules: 'Dash cooldown {0} (does not stack). Enables Express Checkout next to a Frying Pan.',
-  },
   boot: {
     id: 'boot', family: 'tools', name: 'Running Boot', kind: 'passive', cells: rect(1, 1), price: 9, electrical: false,
     blurb: 'Clearance-rack sprinter. Dash like you stole it.',
@@ -115,25 +100,10 @@ const LEGACY_ITEMS: Partial<Record<ItemTypeId, ItemDef>> = {
     blurb: 'Pop-proof padding for your cart.',
     rules: 'Take {0} less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack).',
   },
-  energy: {
-    id: 'energy', family: 'snacks', name: 'Energy Drink', kind: 'passive', cells: rect(1, 1), price: 8, electrical: false,
-    blurb: 'Zoom zoom. Faster cart.',
-    rules: '{0} movement speed (does not stack).',
-  },
-  fortune: {
-    id: 'fortune', family: 'snacks', name: 'Fortune Cookie', kind: 'passive', cells: rect(1, 1), price: 8, electrical: false,
-    blurb: 'Your lucky numbers: 2, 2, 2.',
-    rules: 'Every weapon gains {0} chance to crit for double damage (adds to the Price Gun, does not stack).',
-  },
   sample: {
     id: 'sample', family: 'kitchen', name: 'Free Sample', kind: 'passive', cells: rect(1, 1), price: 10, electrical: false,
     blurb: 'Just a taste. Every crit is a snack.',
     rules: 'Every crit heals {0} HP, at most 2 HP per second (does not stack). Needs a crit source like the Price Gun or Fortune Cookie.',
-  },
-  piggy: {
-    id: 'piggy', family: 'checkout', name: 'Piggy Bank', kind: 'passive', cells: rect(1, 1), price: 10, electrical: false,
-    blurb: 'Oink. Every grocery chips in.',
-    rules: 'Groceries drop {0} coins (does not stack).',
   },
   expiredmilk: {
     id: 'expiredmilk', family: 'snacks', name: 'Expired Milk', kind: 'passive', cells: rect(1, 2), price: 7, electrical: false,
@@ -176,11 +146,6 @@ const LEGACY_ITEMS: Partial<Record<ItemTypeId, ItemDef>> = {
     blurb: 'Unexpected item in the bagging area. ZAP.',
     rules: 'Every 1.6 s fires a barcode beam (620 long) that hits every enemy in the line once for 20 damage. Electrical.',
     weapon: weapon({ pattern: 'laser', damage: 20, cooldown: 1.6, range: 620 }),
-  },
-  snackbag: {
-    id: 'snackbag', family: 'snacks', name: 'Family-Size Snack Bag', kind: 'passive', cells: rect(2, 2), price: 30, electrical: false, legendary: true,
-    blurb: 'Bottomless. Probably.',
-    rules: '+20 max HP and regenerate 1 HP every 4 s during combat (does not stack).',
   },
   cooker: {
     id: 'cooker', family: 'kitchen', element: 'heat', tags: ['area'], name: 'Pressure Cooker', kind: 'weapon', cells: shape('##.', '.##'), price: 18, electrical: false,
@@ -262,10 +227,7 @@ export const STARTER_LOOKS: Record<StarterId, { head?: string; torso?: string }>
 };
 
 export const BUFFS = {
-  magnetPickup: 60,
   vacuumPickup: 60,
-  lunchboxHp: 15,
-  bellShove: 0.5,
   bootDistance: 0.35,
   bootDamage: 6,
   bumperDamage: 8,
@@ -273,18 +235,13 @@ export const BUFFS = {
   wheelWindow: 1.0,   // seconds (x tier mult)
   tipChance: 0.4,     // per enemy hit by the dash (x tier mult, max 1)
   flagMark: 2,        // seconds (x tier mult)
-  energySpeed: 0.12,
   couponChance: 0.3,
   bubbleArmor: 1,
   bubbleInvuln: 0.25,
   powerstripAll: 1.2,
   powerstripAdjacent: 1.4,
-  snackHp: 20,
-  snackRegen: 0.25, // HP per second
-  fortuneCrit: 0.05, // crit chance for every weapon
   sampleHeal: 1,     // HP per crit
   sampleHealCap: 2,  // HP per second at most
-  piggyCoins: 0.15,  // extra kill coins (x tier mult)
 };
 
 /** Expired Milk curse: toxic aura around the cart (dps scales with tier), and a multiplicative max HP penalty. */

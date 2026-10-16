@@ -100,7 +100,6 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
     }
     runPhase('post-combo', s, we);
     if (sets.frost && s.slow) { const f = setCfg('frost', sets.frost); s.slow = { ...s.slow, pct: Math.min(f.slowCap, s.slow.pct + f.slowBonus) }; } // after recipes: coldStorage/brainFreeze set s.slow
-    if (has('fortune')) s.critChance += BUFFS.fortuneCrit * gm('fortune'); // cart-wide, on top of the Price Gun
     runPhase('final', s, we);
     s.damage *= perk.damageMult ?? 1;
     weapons.push(s);
@@ -121,14 +120,14 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
   const build: Build = {
     weapons, recipes, adjacency: adjacentPairs(placed),
     // Unrounded here: player hooks add to it, then the Expired Milk curse and the rounding below finish it.
-    maxHp: (PLAYER.maxHp + (sets.snacks ? setCfg('snacks', sets.snacks).maxHp : 0) + (has('lunchbox') ? Math.round(BUFFS.lunchboxHp * gm('lunchbox')) : 0) + (has('snackbag') ? BUFFS.snackHp : 0) + (perk.maxHp ?? 0)),
+    maxHp: (PLAYER.maxHp + (sets.snacks ? setCfg('snacks', sets.snacks).maxHp : 0) + (perk.maxHp ?? 0)),
     reflectMult: has('tinfoilhat') ? TINFOIL.reflectMult * gm('tinfoilhat') : 0,
     stinkDps: has('expiredmilk') ? EXPIRED_MILK.dps * gm('expiredmilk') : 0,
-    regen: (has('snackbag') ? BUFFS.snackRegen : 0) + (sets.snacks >= 2 ? setCfg('snacks', sets.snacks).regen : 0),
+    regen: sets.snacks >= 2 ? setCfg('snacks', sets.snacks).regen : 0,
     critHeal: has('sample') ? BUFFS.sampleHeal * gm('sample') : 0,
-    killCoinMult: has('piggy') ? 1 + BUFFS.piggyCoins * gm('piggy') : 1,
-    pickupRadius: PLAYER.pickupRadius + (has('magnet') ? Math.round(BUFFS.magnetPickup * gm('magnet')) : 0) + (has('vacuum') ? BUFFS.vacuumPickup : 0) + (perk.pickupRadius ?? 0),
-    shoveCooldown: PLAYER.shove.cooldown - (has('bell') ? BUFFS.bellShove * gm('bell') : 0) + (perk.shoveCooldown ?? 0),
+    killCoinMult: 1,
+    pickupRadius: PLAYER.pickupRadius + (has('vacuum') ? BUFFS.vacuumPickup : 0) + (perk.pickupRadius ?? 0),
+    shoveCooldown: PLAYER.shove.cooldown + (perk.shoveCooldown ?? 0),
     shoveDistMult: has('boot') ? 1 + BUFFS.bootDistance * gm('boot') : 1,
     shoveDamage: (PLAYER.shove.damage + (has('boot') ? BUFFS.bootDamage * gm('boot') : 0) + (perk.shoveDamage ?? 0)) * (sets.tools >= 2 ? setCfg('tools', sets.tools).shoveDamageMult : 1),
     shoveStun: sets.tools >= 2 ? setCfg('tools', sets.tools).shoveStun : 0,
@@ -136,7 +135,7 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
     dashChain: has('sparewheel') ? BUFFS.wheelWindow * gm('sparewheel') : 0,
     dashCoinChance: has('tipjar') ? Math.min(1, BUFFS.tipChance * gm('tipjar')) : 0,
     dashMark: has('flag') ? BUFFS.flagMark * gm('flag') : 0,
-    moveSpeedMult: (has('energy') ? 1 + BUFFS.energySpeed * gm('energy') : 1) * (perk.moveSpeedMult ?? 1),
+    moveSpeedMult: perk.moveSpeedMult ?? 1,
     coinChance: has('coupon') ? Math.min(0.9, BUFFS.couponChance * gm('coupon')) : 0,
     armor: has('bubblewrap') ? top('bubblewrap') : 0,
     invulnBonus: has('bubblewrap') ? BUFFS.bubbleInvuln : 0,
@@ -215,16 +214,10 @@ export function tierScaling(type: ItemTypeId): ScaleRow[] {
   if (content && !w) return tierRows(content, lang());
   if (w) return [row(t('rowDamage'), (tr) => fmt(w.damage * TIER.weaponDamage(tr))), row(t('rowCooldown'), (tr) => `${fmt(w.cooldown * TIER.weaponCooldown(tr))} s`)];
   const rows: Partial<Record<ItemTypeId, () => ScaleRow[]>> = {
-    lunchbox: () => [row(t('rowMaxHp'), (tr) => `+${Math.round(BUFFS.lunchboxHp * m(tr))}`)],
-    magnet: () => [row(t('rowPickup'), (tr) => `+${Math.round(BUFFS.magnetPickup * m(tr))}`)],
-    bell: () => [row(t('rowDashCd'), (tr) => `−${fmt(BUFFS.bellShove * m(tr))} s`)],
     bumper: () => [row(t('rowSlam'), (tr) => fmt(BUFFS.bumperDamage * m(tr)))],
     sparewheel: () => [row(t('rowChain'), (tr) => `${fmt(BUFFS.wheelWindow * m(tr))} s`)],
     tipjar: () => [row(t('rowTip'), (tr) => `${Math.round(Math.min(1, BUFFS.tipChance * m(tr)) * 100)}%`)],
     flag: () => [row(t('rowMark'), (tr) => `${fmt(BUFFS.flagMark * m(tr))} s`)],
-    energy: () => [row(t('rowMove'), (tr) => pctUp(BUFFS.energySpeed * m(tr)))],
-    fortune: () => [row(t('rowCrit'), (tr) => `+${fmtNum(+(BUFFS.fortuneCrit * m(tr) * 100).toFixed(1))}%`)],
-    piggy: () => [row(t('rowKillCoins'), (tr) => `+${fmtNum(+(BUFFS.piggyCoins * m(tr) * 100).toFixed(1))}%`)],
     sample: () => [row(t('rowCritHeal'), (tr) => `+${fmtNum(+(BUFFS.sampleHeal * m(tr)).toFixed(1))}`)],
     coupon: () => [row(t('rowCoin'), (tr) => `${Math.round(Math.min(0.9, BUFFS.couponChance * m(tr)) * 100)}%`)],
     bubblewrap: () => [row(t('rowArmor'), (tr) => `${tr}`)],

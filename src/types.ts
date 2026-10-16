@@ -125,7 +125,7 @@ export interface WeaponStats {
   bundle: number;          // distinct item types touching this weapon (Bundle Deal damage bonus)
   /** Party Popper: kills by this weapon explode (never chains from popper kills). */
   popper: { damage: number; radius: number } | null;
-  /** Double Bag: each direct hit strikes again after ECHO.delay for this fraction of the damage (0 = none). */
+  /** Double Bag: each direct hit strikes again after the `delay` tune (src/content/items/doublebag.ts) for this fraction of the damage (0 = none). */
   echo: number;
   /** Pressure Point: mortar blasts leave a burning pool. */
   firePool: boolean;

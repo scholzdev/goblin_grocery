@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 
 // Dispatch points of computeBuild: every phase must call content hooks at its position. The registry is replaced by fixture content
-// (ids of real legacy items, so they can sit in a cart); the lookups (`contentItem`, ...) stay real, so ITEMS and RECIPES remain the legacy tables.
+// (ids of real items, so they can sit in a cart; where an id is real content too, the fixture replaces its build hooks); the lookups (`contentItem`, ...) stay real,
+// so ITEMS and RECIPES remain the real tables.
 const { calls, fixtures } = vi.hoisted(() => {
   const calls: string[] = [];
   const text = (name: string) => ({ en: { name, blurb: 'x', rules: 'x' }, de: { name, blurb: 'x', rules: 'x' } });
@@ -80,7 +81,7 @@ describe('computeBuild dispatch', () => {
     expect(calls).toContain('combo');
     expect(w.count).toBe(99); // the legacy Toast Mode would have set 3
     expect(w.recipes).toEqual(['toastMode']);
-    expect(w.critChance).toBeCloseTo(0.5 + 0.05); // the fixture hook plus the legacy Fortune Cookie branch, which still runs
+    expect(w.critChance).toBeCloseTo(0.5); // the fixture hook only (the real Fortune Cookie hook is replaced by the fixture)
     expect(calls.some((c) => c.startsWith('set'))).toBe(false); // no set above level 0
   });
 
@@ -98,12 +99,12 @@ describe('computeBuild dispatch', () => {
     const b = run('toaster', ['lunchbox', 'magnet']);
     expect(calls.filter((c) => c.startsWith('player'))).toEqual(['player:magnet:1', 'player:lunchbox']);
     expect(b.pickupRadius).toBe(1);
-    expect(b.maxHp).toBe(40 + 15 + 10); // 15 = legacy Lunchbox (not migrated here), 10 = the fixture hook
+    expect(b.maxHp).toBe(40 + 10); // 10 = the fixture hook (the real Lunchbox hook is replaced by the fixture)
     expect(run('toaster', []).maxHp).toBe(40);
     expect(calls.filter((c) => c.startsWith('player'))).toEqual([]);
   });
 
   it('keeps Expired Milk (legacy) multiplying the finished max HP, hooks included', () => {
-    expect(run('toaster', ['lunchbox', 'expiredmilk']).maxHp).toBe(Math.round((40 + 10 + 15 + 10) * 0.9)) // + Snacks L1 (Lunchbox and Expired Milk);
+    expect(run('toaster', ['lunchbox', 'expiredmilk']).maxHp).toBe(Math.round((40 + 10 + 10) * 0.9)); // 40 base + Snacks L1 (Lunchbox and Expired Milk) + the fixture hook
   });
 });

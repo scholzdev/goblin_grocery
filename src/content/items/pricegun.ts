@@ -12,7 +12,7 @@ export default defineItem({
   rows: [{ label: { en: 'Crit chance', de: 'Kritchance' }, key: 'crit', fmt: 'pct' }],
   build: {
     phase: 'module', order: 60,
-    // Assigns (not adds): Fortune (legacy for now) adds its cart-wide crit on top later, in post-combo.
+    // Assigns (not adds): Fortune Cookie (content/items/fortune.ts) adds its cart-wide crit on top later, in post-combo.
     weapon(w, c) { w.critChance = c.tune().crit; },
   },
 });
