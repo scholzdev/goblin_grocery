@@ -193,7 +193,7 @@ export function combosHtml(build: Build, preview?: Build | null, relevant: ItemT
 
 const pc = (x: number): string => fmtNum(Math.round(x * 100));
 /** Bonus text for one set level, numbers straight from SETS (level 3 from SET_L3). */
-function setBonus(id: SetId, lv: 1 | 2 | 3): string {
+export function setBonus(id: SetId, lv: 1 | 2 | 3): string {
   const k = `set_${id}${lv}` as const, i = lv - 1;
   const v = ((): Record<string, string | number | undefined> => {
     switch (id) {
