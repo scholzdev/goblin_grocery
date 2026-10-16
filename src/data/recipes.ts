@@ -1,6 +1,10 @@
 import type { ItemTypeId, RecipeDef, RecipeId } from '../types';
+import { recipeDefOf, recipeTuningOf } from '../engine/legacy';
+import { assertRegistry, contentCombo } from '../engine/registry';
+import { ITEM_IDS } from './items';
 
-export const RECIPES: Record<RecipeId, RecipeDef> = {
+/** Combos still defined here. A combo moves to src/content/combos/<id>.ts by deleting its entry (and its other legacy branches). */
+const LEGACY_RECIPES: Partial<Record<RecipeId, RecipeDef>> = {
   toastMode: {
     id: 'toastMode', short: '3 flaming toasts per shot', name: 'Toast Mode', weapon: 'toaster', supports: ['fan', 'fuel'],
     summary: 'Toaster touching a Desk Fan AND a Fuel Can: flaming three-toast spread.',
@@ -158,7 +162,7 @@ export const RECIPES: Record<RecipeId, RecipeDef> = {
   },
 };
 
-export const RECIPE_TUNING = {
+const LEGACY_TUNING = {
   toastMode: { count: 3, damageMult: 0.75, spreadDeg: 22 },
   nailstorm: { extraPierce: 1, homingTurn: 7 /* rad/s */, homingRange: 200 },
   coldStorage: { pct: 0.5, duration: 1.5, damageMult: 2.5, radiusMult: 1.2 },
@@ -191,6 +195,31 @@ export const RECIPE_TUNING = {
   rayGun: { splashR: 60, splashMult: 0.6, every: 3, bigR: 120, bigMult: 1.2 },
   potSlam: {},
 };
+
+/** Order of `RECIPES` (computeBuild applies matching combos in this order): fixed here so moving a combo to content never reorders anything. */
+const RECIPE_ORDER: RecipeId[] = [
+  'toastMode', 'nailstorm', 'coldStorage', 'expressCheckout', 'brainFreeze', 'tvDinner', 'clearanceSale', 'greaseFire', 'pressurePoint', 'mistMachine',
+  'fiveAlarm', 'sizzlingSkillet', 'chickenDinner', 'frostbiteNails', 'staticCling', 'reheat', 'smoothieShield', 'confettiCannon', 'blackIce', 'shrapnel',
+  'pressureWasher', 'powerSurge', 'potSlam', 'priceCheck', 'sugarRush', 'smashBank', 'bagIt', 'sourMist', 'sparksFly', 'rayGun', 'tailwind',
+];
+
+/** Every combo: the content file when there is one (converted to the legacy `RecipeDef`), otherwise the legacy entry above. */
+export const RECIPES: Record<RecipeId, RecipeDef> = Object.fromEntries(RECIPE_ORDER.map((id) => {
+  const c = contentCombo(id), def = c ? recipeDefOf(c) : LEGACY_RECIPES[id];
+  if (!def) throw new Error(`combo "${id}" has neither a content file nor a legacy entry`);
+  if (c && LEGACY_RECIPES[id]) throw new Error(`combo "${id}" is defined twice: delete its legacy entry in data/recipes.ts`);
+  return [id, def];
+})) as Record<RecipeId, RecipeDef>;
+for (const id of Object.keys(LEGACY_RECIPES)) if (!RECIPE_ORDER.includes(id as RecipeId)) throw new Error(`combo "${id}" is missing from RECIPE_ORDER`);
+
+/** Tuning per combo: a content combo's `tune` replaces its legacy entry of the same name (keep the type of the legacy entry when moving one). */
+export const RECIPE_TUNING = {
+  ...LEGACY_TUNING,
+  ...Object.fromEntries(RECIPE_ORDER.flatMap((id) => { const c = contentCombo(id); return c ? [[id, recipeTuningOf(c)]] : []; })),
+} as typeof LEGACY_TUNING;
+
+// Content that points at ids outside content (a combo's `requires`, `replaces`) must resolve against the legacy tables too.
+assertRegistry({ knownItemIds: ITEM_IDS, knownComboIds: RECIPE_ORDER });
 
 /** Every item type a combo needs (weapon first, if any). Cart combos have no weapon. */
 export const recipeParts = (r: RecipeDef): ItemTypeId[] => [...(r.weapon ? [r.weapon] : []), ...r.supports];

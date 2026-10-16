@@ -1,4 +1,7 @@
 import type { Cell, ItemDef, ItemTypeId, Perk, StarterId, StarterWeapon, WeaponBase } from '../types';
+import { resolveShape } from '../engine/define';
+import { itemDefOf } from '../engine/legacy';
+import { contentItem } from '../engine/registry';
 
 const rect = (w: number, h: number): Cell[] => {
   const cells: Cell[] = [];
@@ -12,7 +15,8 @@ const weapon = (w: Partial<WeaponBase> & Pick<WeaponBase, 'pattern' | 'damage' |
   projectileSpeed: 0, count: 1, burstInterval: 0, arcDeg: 0, pull: 0, tick: 0, duration: 0, bounces: 0, chain: 0, aoe: 0, ...w,
 });
 
-export const ITEMS: Record<ItemTypeId, ItemDef> = {
+/** Items still defined here. An item moves to src/content/items/<id>.ts by deleting its entry (and its other legacy branches). */
+const LEGACY_ITEMS: Partial<Record<ItemTypeId, ItemDef>> = {
   toaster: {
     id: 'toaster', family: 'kitchen', element: 'heat', tags: ['ranged'], name: 'Toaster', kind: 'weapon', cells: rect(2, 1), price: 12, electrical: true,
     blurb: 'Lobs hot toast at the nearest grocery.',
@@ -61,11 +65,6 @@ export const ITEMS: Record<ItemTypeId, ItemDef> = {
     id: 'ice', family: 'kitchen', element: 'frost', name: 'Ice Pack', kind: 'module', cells: rect(1, 2), price: 8, electrical: false, buff: 'ice',
     blurb: 'Chilly hits slow groceries down.',
     rules: 'Adjacent weapon hits slow enemies by {0} for 1 s. Repeated hits refresh.',
-  },
-  hotsauce: {
-    id: 'hotsauce', family: 'kitchen', element: 'heat', name: 'Hot Sauce', kind: 'module', cells: rect(1, 1), price: 7, electrical: false, buff: 'hotsauce',
-    blurb: 'Extra spicy damage.',
-    rules: 'Adjacent weapons gain {0} hit damage.',
   },
   lunchbox: {
     id: 'lunchbox', family: 'snacks', name: 'Lunchbox', kind: 'passive', cells: rect(2, 1), price: 9, electrical: false,
@@ -242,9 +241,29 @@ export const ITEMS: Record<ItemTypeId, ItemDef> = {
   },
 };
 
+/** Order of `ITEMS` / `ITEM_IDS` (shop rolls and UI lists depend on it): fixed here so moving an item to content never reorders anything. */
+const ITEM_ORDER: ItemTypeId[] = [
+  'toaster', 'pan', 'nailgun', 'vacuum', 'fan', 'fuel', 'battery', 'magnet', 'ice', 'hotsauce', 'lunchbox', 'bell', 'boot', 'bumper', 'sparewheel', 'tipjar', 'flag',
+  'microwave', 'blender', 'fizz', 'mop', 'pricegun', 'tape', 'coupon', 'bubblewrap', 'energy', 'fortune', 'sample', 'piggy', 'expiredmilk', 'tinfoilhat', 'jellybeans',
+  'leafblower', 'sourdough', 'powerstrip', 'goldstar', 'laser', 'snackbag', 'cooker', 'spray', 'popper', 'doublebag', 'multipack',
+];
+
+/** Every item: the content file when there is one (converted to the legacy `ItemDef`), otherwise the legacy entry above. */
+export const ITEMS: Record<ItemTypeId, ItemDef> = Object.fromEntries(ITEM_ORDER.map((id) => {
+  const c = contentItem(id), def = c ? itemDefOf(c) : LEGACY_ITEMS[id];
+  if (!def) throw new Error(`item "${id}" has neither a content file nor a legacy entry`);
+  if (c && LEGACY_ITEMS[id]) throw new Error(`item "${id}" is defined twice: delete its legacy entry in data/items.ts`);
+  return [id, def];
+})) as Record<ItemTypeId, ItemDef>;
+for (const id of Object.keys(LEGACY_ITEMS)) if (!ITEM_ORDER.includes(id as ItemTypeId)) throw new Error(`item "${id}" is missing from ITEM_ORDER`);
+
 /** Sourdough Starter grows with its tier: 1 cell, 2 cells, then an L of 3. Everything else keeps its def footprint. */
 const SOURDOUGH_CELLS: Cell[][] = [rect(1, 1), rect(2, 1), [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }]];
-export const cellsFor = (type: ItemTypeId, tier = 1): Cell[] => (type === 'sourdough' ? SOURDOUGH_CELLS[Math.min(Math.max(tier, 1), 3) - 1] : ITEMS[type].cells);
+export const cellsFor = (type: ItemTypeId, tier = 1): Cell[] => {
+  const shape = contentItem(type)?.shape;
+  if (typeof shape === 'function') return resolveShape(shape(Math.min(Math.max(tier, 1), 3)));
+  return type === 'sourdough' ? SOURDOUGH_CELLS[Math.min(Math.max(tier, 1), 3) - 1] : ITEMS[type].cells;
+};
 /** Footprint of an item instance (pre-rotation): the one place cells are read from. */
 export const cellsOf = (i: { type: ItemTypeId; tier?: number }): Cell[] => cellsFor(i.type, i.tier ?? 1);
 
@@ -292,7 +311,6 @@ export const BUFFS = {
   fuel: { dps: 2.5, duration: 2, tick: 0.5 },
   battery: { rateMult: 1.12, electricMult: 1.5 }, // electric weapons get 1.5x the bonus
   ice: { pct: 0.25, duration: 1 },
-  hotsauce: { damageMult: 1.25 },
   pricegun: { critChance: 0.15 },
   tape: { pierce: 1, arcDeg: 30, radiusMult: 1.2 },
   magnetPickup: 60,

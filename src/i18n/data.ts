@@ -8,6 +8,9 @@ import { ZONES, type ZoneId } from '../data/zones';
 import { SHIFTS } from '../data/waves';
 import { CART_SKINS, GOBLIN_SKINS, UNLOCKS } from '../data/unlocks';
 import { tierScaling } from '../systems/synergies';
+import { recipeTextOf } from '../engine/legacy';
+import { contentCombo, contentItem } from '../engine/registry';
+import { renderText } from '../engine/text';
 import type { CartSkin, GoblinSkin } from '../data/unlocks';
 import type { DepartmentId, EnemyId, ItemTypeId, RecipeId, StarterId } from '../types';
 
@@ -19,10 +22,14 @@ export const itemT = (id: ItemTypeId) => {
 };
 /** Item rules text with the per-level numbers ({0}, {1}, …: the tierScaling rows) filled in for `tier`. */
 export const itemRules = (id: ItemTypeId, tier = 1): string => {
+  const c = contentItem(id);
+  if (c) return renderText(c.text[lang()].rules, c.tune, tier, lang()); // content items render straight from their tune
   const rows = tierScaling(id);
   return itemT(id).rules.replace(/\{(\d)\}/g, (_, i) => rows[+i]?.values[tier - 1] ?? '');
 };
 export const recipeT = (id: RecipeId) => {
+  const c = contentCombo(id);
+  if (c) return recipeTextOf(c, lang());
   const { name, short, summary, detail } = de() ? DATA_DE.recipes[id] : RECIPES[id];
   return { name, short, summary, detail };
 };

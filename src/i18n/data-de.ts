@@ -1,12 +1,15 @@
 import type { DepartmentId, EnemyId, ItemTypeId, RecipeId, StarterId } from '../types';
 import type { CartSkin, GoblinSkin } from '../data/unlocks';
+import { itemTextOf, recipeTextOf } from '../engine/legacy';
+import { contentCombos, contentItems } from '../engine/registry';
 import type { ZoneId } from '../data/zones';
 
 // German texts for all data tables. Record over the id unions: a missing entry is a type error.
 type IR = { name: string; blurb: string; rules: string };
 type NB = { name: string; blurb: string };
 
-const items: Record<ItemTypeId, IR> = {
+/** Items still translated here; content items bring their own German text (merged into DATA_DE below). */
+const items: Partial<Record<ItemTypeId, IR>> = {
   toaster: { name: 'Toaster', blurb: 'Schleudert heißen Toast auf den nächsten Gegner.', rules: 'Feuert alle {1} Toast für {0} Schaden. 455 Reichweite. Jeder Toast trifft einen Gegner.' },
   pan: { name: 'Bratpfanne', blurb: 'Großer, scheppernder Schwung um den Wagen.', rules: 'Schwingt alle {1} auf Gegner in der Nähe für {0} Schaden. 150 Reichweite. Trifft jeden Gegner einmal pro Schwung.' },
   nailgun: { name: 'Nagelpistole', blurb: 'Ratatatat, Dreier-Nagelsalven.', rules: 'Feuert alle {1} eine Dreier-Nagelsalve. {0} Schaden pro Nagel. 480 Reichweite.' },
@@ -16,7 +19,6 @@ const items: Record<ItemTypeId, IR> = {
   battery: { name: 'Batterie', blurb: 'Zack! Schnellere Angriffe, bei Elektrogeräten besonders.', rules: 'Jede angrenzende Waffe erhält {0} Angriffstempo; elektrische Waffen {1}.' },
   magnet: { name: 'Magnet', blurb: 'Münzen kommen zu dir.', rules: '{0} Münz-Sammelradius (stapelt sich nicht). Combo: Nagelsturm mit Nagelpistole + Batterie.' },
   ice: { name: 'Kühlakku', blurb: 'Eisige Treffer bremsen Gegner aus.', rules: 'Treffer der angrenzenden Waffe verlangsamen Gegner um {0} für 1 s. Wiederholte Treffer erneuern den Effekt.' },
-  hotsauce: { name: 'Scharfe Soße', blurb: 'Extra scharfer Schaden.', rules: 'Angrenzende Waffen erhalten {0} Trefferschaden.' },
   lunchbox: { name: 'Brotdose', blurb: 'Ein Pausenbrot. +15 max. LP.', rules: '{0} maximale LP, solange ausgerüstet (stapelt sich nicht, heilt nicht). Combo: Fertiggericht mit Mikrowelle + Batterie.' },
   bell: { name: 'Einkaufsklingel', blurb: 'Kling! Öfter dashen.', rules: 'Dash-Abklingzeit {0} (stapelt sich nicht). Schaltet Schnellkasse neben einer Bratpfanne frei.' },
   bumper: { name: 'Rammschutz', blurb: 'Lande den Dash mit einem Knall.', rules: 'Der Leertasten-Dash endet in einer Druckwelle: {0} Schaden im Umkreis von 90 und Rückstoß (stapelt sich nicht). Schaltet Topf-Slam neben einem Schnellkochtopf frei.' },
@@ -52,7 +54,8 @@ const items: Record<ItemTypeId, IR> = {
   multipack: { name: 'Multipack', blurb: 'Eins kaufen, zwei feuern.', rules: 'Jede angrenzende Waffe: Projektile {0}, Schwünge/Kegel/Mörser greifen einmal zusätzlich an, andere Waffen {1} Schaden.' },
 };
 
-const recipes: Record<RecipeId, { name: string; short: string; summary: string; detail: string }> = {
+/** Combos still translated here; content combos bring their own German text (merged into DATA_DE below). */
+const recipes: Partial<Record<RecipeId, { name: string; short: string; summary: string; detail: string }>> = {
   toastMode: { name: 'Toast-Modus', short: '3 flammende Toasts pro Schuss', summary: 'Toaster berührt Tischventilator UND Benzinkanister: flammender Dreifach-Toast-Fächer.', detail: 'Feuert 3 Toasts im Fächer. Jeder macht 75% Schaden und setzt Gegner in Brand (Brand stapelt sich nicht). Ventilator-Tempo und -Reichweite gelten weiterhin.' },
   nailstorm: { name: 'Nagelsturm', short: 'Nägel durchschlagen und kurven', summary: 'Nagelpistole berührt Magnet UND Batterie: durchschlagende, kurvende Nägel.', detail: 'Jeder Nagel durchschlägt einen weiteren Gegner und kurvt nach dem ersten Treffer auf ein nahes Ziel zu. Das Batterie-Angriffstempo gilt weiterhin.' },
   coldStorage: { name: 'Kühlhaus', short: 'Riesiger Frostsog', summary: 'Staubsauger berührt Kühlakku: eisiger Sog.', detail: 'Der Sog reicht 20% weiter, seine Schadensticks machen 2,5× Schaden und verlangsamen Gegner 1,5 s um 50%. Ersetzt die Kühlakku-Verlangsamung (nie addiert).' },
@@ -205,4 +208,10 @@ const zones: Record<ZoneId, { name: string; blurb: string }> = {
   cart_corral: { name: 'Wagenpark', blurb: 'Viele kleine Blocker' },
 };
 
-export const DATA_DE = { items, recipes, enemies, departments, zones, shifts, starters, goblinSkins, cartSkins, unlocks, tags };
+const withContent = <K extends string, V>(legacy: Partial<Record<K, V>>, content: readonly [K, V][]): Record<K, V> => ({ ...legacy, ...Object.fromEntries(content) }) as Record<K, V>;
+
+export const DATA_DE = {
+  items: withContent(items, contentItems().map((c) => [c.id, itemTextOf(c, 'de')] as const)),
+  recipes: withContent(recipes, contentCombos().map((c) => [c.id, recipeTextOf(c, 'de')] as const)),
+  enemies, departments, zones, shifts, starters, goblinSkins, cartSkins, unlocks, tags,
+};

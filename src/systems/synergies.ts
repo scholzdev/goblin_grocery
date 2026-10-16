@@ -3,10 +3,13 @@ import { RECIPES, RECIPE_TUNING } from '../data/recipes';
 import { SETS, flavorOf, setCfg, setLevels } from '../data/sets';
 import type { ActiveRecipe, BuffId, Build, Inventory, ItemInstance, ItemTypeId, Perk, RecipeId, WeaponStats } from '../types';
 import { adjacentPairs, neighbors } from './inventory';
-import { fmtNum, t } from '../i18n';
+import { fmtNum, lang, t } from '../i18n';
 import { itemT, recipeT } from '../i18n/data';
+import { runCombo, runModule, runPhase, runPlayerHooks, type BuildEnv, type WeaponEnv } from '../engine/build';
+import { contentItem, contentTune } from '../engine/registry';
+import { tierRows } from '../engine/text';
 
-const BUFF_ORDER: BuffId[] = ['fan', 'fuel', 'battery', 'ice', 'hotsauce', 'pricegun', 'tape', 'popper', 'echo', 'multipack'];
+export const BUFF_ORDER: BuffId[] = ['fan', 'fuel', 'battery', 'ice', 'hotsauce', 'pricegun', 'tape', 'popper', 'echo', 'multipack'];
 const tierOf = (i: ItemInstance) => i.tier ?? 1;
 const bonus = (base: number, m: number) => 1 + (base - 1) * m;
 
@@ -23,6 +26,7 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
   const sets = setLevels(placed);
   const weapons: WeaponStats[] = [];
   const recipes: ActiveRecipe[] = [];
+  const env: BuildEnv = { inv, perk, sets, eff, top };
 
   for (const w of [...placed].sort((a, b) => (a.uid < b.uid ? -1 : a.uid > b.uid ? 1 : 0))) {
     const def = ITEMS[w.type];
@@ -46,19 +50,22 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
       const id = ITEMS[n.type].buff;
       if (id) buffTier.set(id, Math.max(buffTier.get(id) ?? 0, eff(n)));
     }
+    const we: WeaponEnv = { env, near, uid: w.uid, matching: matching.map((r) => r.id) };
+    runPhase('base', s, we);
     let multi = 0;
     for (const id of BUFF_ORDER) {
       const mt = buffTier.get(id);
       if (!mt) continue;
       const m = TIER.mult(mt);
-      if (id === 'fan') {
+      const hooked = runModule(id, s, we, mt); // content hook if there is one; undefined = legacy branch
+      if (hooked === false) continue; // the hook skipped it (like the legacy `continue`s): not recorded
+      if (hooked) { /* applied by content */ } else if (id === 'fan') {
         if (mist) continue;
         if (PROJECTILE_PATTERNS.has(b.pattern)) s.projectileSpeed *= bonus(BUFFS.fan.speedMult, m);
         s.range *= bonus(BUFFS.fan.rangeMult, m);
       } else if (id === 'fuel') s.burn = { dps: BUFFS.fuel.dps * m, duration: BUFFS.fuel.duration, tick: BUFFS.fuel.tick };
       else if (id === 'battery') s.cooldown /= bonus(BUFFS.battery.rateMult, def.electrical ? BUFFS.battery.electricMult * m : m);
       else if (id === 'ice') s.slow = { pct: Math.min(0.6, BUFFS.ice.pct * m), duration: BUFFS.ice.duration };
-      else if (id === 'hotsauce') s.damage *= bonus(BUFFS.hotsauce.damageMult, m);
       else if (id === 'pricegun') s.critChance = BUFFS.pricegun.critChance * m;
       else if (id === 'popper') s.popper = { damage: POPPER.damage * m, radius: POPPER.radius };
       else if (id === 'echo') {
@@ -76,6 +83,7 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
       }
       s.buffs.push(id);
     }
+    runPhase('flavor', s, we);
     // Jelly Beans: each touching bag adds its flavor's effect at reduced strength (never weaker than what the real module gave).
     for (const n of near) {
       if (n.type !== 'jellybeans') continue;
@@ -84,9 +92,11 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
       else if (f === 'frost') s.slow = { pct: Math.max(s.slow?.pct ?? 0, Math.min(0.6, BUFFS.ice.pct * m)), duration: BUFFS.ice.duration };
       else if (f === 'blast' && (s.popper?.damage ?? 0) < POPPER.damage * m) s.popper = { damage: POPPER.damage * m, radius: POPPER.radius };
     }
+    runPhase('global-mod', s, we);
     // Sourdough Starter: +6% damage per effective star, per touching starter.
     for (const n of near) if (n.type === 'sourdough') s.damage *= 1 + SOURDOUGH.perStar * eff(n);
     if (def.electrical && has('powerstrip')) s.cooldown /= nearTypes.has('powerstrip') ? BUFFS.powerstripAdjacent : BUFFS.powerstripAll;
+    runPhase('set', s, we);
     // Set bonuses (cart-wide, distinct types). Frost is applied after recipes, see below.
     const fam = def.family, el = def.element;
     if (fam === 'kitchen' && sets.kitchen) s.damage *= setCfg('kitchen', sets.kitchen).damageMult;
@@ -110,16 +120,18 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
     for (const r of matching) {
       if (matching.some((o) => o.replaces?.includes(r.id))) continue; // e.g. Ray Gun replaces Nailstorm
       const sup = near.filter((n) => r.supports.includes(n.type));
-      applyRecipe(s, r.id, tapeArc);
+      if (!runCombo(r.id, s, we)) applyRecipe(s, r.id, tapeArc);
       s.recipes.push(r.id);
       recipes.push({ id: r.id, weaponUid: w.uid, supportUids: sup.map((n) => n.uid).sort() });
     }
+    runPhase('post-combo', s, we);
     if (sets.frost && s.slow) { const f = setCfg('frost', sets.frost); s.slow = { ...s.slow, pct: Math.min(f.slowCap, s.slow.pct + f.slowBonus) }; } // after recipes: coldStorage/brainFreeze set s.slow
     if (multi) {
       s.count += PROJECTILE_PATTERNS.has(b.pattern) ? MULTIPACK.extra + (multi >= 3 ? 1 : 0) : 1;
       s.buffs.push('multipack');
     }
     if (has('fortune')) s.critChance += BUFFS.fortuneCrit * gm('fortune'); // cart-wide, on top of the Price Gun
+    runPhase('final', s, we);
     s.damage *= perk.damageMult ?? 1;
     weapons.push(s);
   }
@@ -136,10 +148,10 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
     }
   }
 
-  return {
+  const build: Build = {
     weapons, recipes, adjacency: adjacentPairs(placed),
-    // Expired Milk's curse multiplies the finished total (not a flat -10).
-    maxHp: Math.round((PLAYER.maxHp + (sets.snacks ? setCfg('snacks', sets.snacks).maxHp : 0) + (has('lunchbox') ? Math.round(BUFFS.lunchboxHp * gm('lunchbox')) : 0) + (has('snackbag') ? BUFFS.snackHp : 0) + (perk.maxHp ?? 0)) * (has('expiredmilk') ? EXPIRED_MILK.hpMult : 1)),
+    // Unrounded here: player hooks add to it, then the Expired Milk curse and the rounding below finish it.
+    maxHp: (PLAYER.maxHp + (sets.snacks ? setCfg('snacks', sets.snacks).maxHp : 0) + (has('lunchbox') ? Math.round(BUFFS.lunchboxHp * gm('lunchbox')) : 0) + (has('snackbag') ? BUFFS.snackHp : 0) + (perk.maxHp ?? 0)),
     reflectMult: has('tinfoilhat') ? TINFOIL.reflectMult * gm('tinfoilhat') : 0,
     stinkDps: has('expiredmilk') ? EXPIRED_MILK.dps * gm('expiredmilk') : 0,
     regen: (has('snackbag') ? BUFFS.snackRegen : 0) + (sets.snacks >= 2 ? setCfg('snacks', sets.snacks).regen : 0),
@@ -160,6 +172,10 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
     invulnBonus: has('bubblewrap') ? BUFFS.bubbleInvuln : 0,
     sets, priceMult: sets.checkout ? setCfg('checkout', sets.checkout).priceMult : 1,
   };
+  runPlayerHooks(build, env);
+  // Expired Milk's curse multiplies the finished total (not a flat -10).
+  build.maxHp = Math.round(build.maxHp * (has('expiredmilk') ? EXPIRED_MILK.hpMult : 1));
+  return build;
 }
 
 /** `tapeArc`: arc already gained from utilities (tape), kept on top of recipe arcs. Behaviour-only combos have no stat effect. */
@@ -202,7 +218,7 @@ export function describeBuffs(s: WeaponStats, inv?: Inventory): string[] {
     else if (id === 'fuel') out.push(t('bfFuel', { v: fmtNum(BUFFS.fuel.dps * m), d: fmtNum(BUFFS.fuel.duration), n }));
     else if (id === 'battery') out.push(t('bfBattery', { v: pc(bonus(BUFFS.battery.rateMult, ITEMS[s.type].electrical ? BUFFS.battery.electricMult * m : m) - 1), n }));
     else if (id === 'ice') out.push(t('bfIce', { v: pc(Math.min(0.6, BUFFS.ice.pct * m)), d: fmtNum(BUFFS.ice.duration), n }));
-    else if (id === 'hotsauce') out.push(t('bfHot', { v: pc(bonus(BUFFS.hotsauce.damageMult, m) - 1), n }));
+    else if (id === 'hotsauce') out.push(t('bfHot', { v: pc(contentTune('hotsauce', tr).damage), n }));
     else if (id === 'pricegun') out.push(t('bfCrit', { v: pc(BUFFS.pricegun.critChance * m), n }));
     else if (id === 'popper') out.push(t('bfPopper', { d: fmtNum(POPPER.damage * m), r: POPPER.radius, n }));
     else if (id === 'echo') out.push(t('bfEcho', { v: pc(Math.min(1, ECHO.fraction * m)), n }));
@@ -225,13 +241,14 @@ export function tierScaling(type: ItemTypeId): ScaleRow[] {
   const row = (label: string, f: (t: number) => string): ScaleRow => ({ label, values: [1, 2, 3].map(f) });
   const m = TIER.mult;
   const w = def.weapon;
+  const content = contentItem(type);
+  if (content && !w) return tierRows(content, lang());
   if (w) return [row(t('rowDamage'), (tr) => fmt(w.damage * TIER.weaponDamage(tr))), row(t('rowCooldown'), (tr) => `${fmt(w.cooldown * TIER.weaponCooldown(tr))} s`)];
   const rows: Partial<Record<ItemTypeId, () => ScaleRow[]>> = {
     fan: () => [row(t('rowRangeReach'), (tr) => pctUp((BUFFS.fan.rangeMult - 1) * m(tr))), row(t('rowProjSpeed'), (tr) => pctUp((BUFFS.fan.speedMult - 1) * m(tr)))],
     fuel: () => [row(t('rowBurn'), (tr) => `${fmt(BUFFS.fuel.dps * m(tr))}/s`)],
     battery: () => [row(t('rowAtkSpeed'), (tr) => pctUp((BUFFS.battery.rateMult - 1) * m(tr))), row(t('rowElectric'), (tr) => pctUp((BUFFS.battery.rateMult - 1) * BUFFS.battery.electricMult * m(tr)))],
     ice: () => [row(t('rowSlow'), (tr) => `${Math.round(Math.min(0.6, BUFFS.ice.pct * m(tr)) * 100)}%`)],
-    hotsauce: () => [row(t('rowDamage'), (tr) => pctUp((BUFFS.hotsauce.damageMult - 1) * m(tr)))],
     pricegun: () => [row(t('rowCrit'), (tr) => `${Math.round(BUFFS.pricegun.critChance * m(tr) * 100)}%`)],
     popper: () => [row(t('rowBlast'), (tr) => fmt(POPPER.damage * m(tr)))],
     doublebag: () => [row(t('rowDouble'), (tr) => `${Math.round(Math.min(1, ECHO.fraction * m(tr)) * 100)}%`)],
