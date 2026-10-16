@@ -115,7 +115,7 @@ describe('computeBuild dispatch', () => {
   });
 
   it('rounds the finished max HP once, after a high-order hook (the Expired Milk curse) multiplied the total', () => {
-    expect(run('toaster', ['lunchbox', 'expiredmilk']).maxHp).toBe(Math.round((40 + 10 + 10) * 0.9)); // 40 base + Snacks L1 (Lunchbox and Expired Milk) + the fixture hook
+    expect(run('toaster', ['lunchbox', 'expiredmilk']).maxHp).toBe(Math.round((40 + 10) * 0.9)); // 40 base + the fixture hook (the fixtures replace the real sets too: no Snacks bonus here)
     expect(calls.filter((c) => c.startsWith('player'))).toEqual(['player:lunchbox', 'player:expiredmilk']);
   });
 });

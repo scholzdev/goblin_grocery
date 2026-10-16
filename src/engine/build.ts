@@ -60,7 +60,7 @@ const byOrder = (a: Entry, b: Entry) => a.order - b.order; // stable: registry o
 
 const ALL: Entry[] = [
   ...contentItems().flatMap((content): Entry[] => [...(content.build ? [content.build] : []), ...(content.extraBuild ?? [])].map((build) => ({ kind: 'item', content, build, order: build.order ?? 0 }))),
-  ...contentSets().map((content): Entry | null => (content.build ? { kind: 'set', content, build: content.build, order: content.build.order ?? 0 } : null)),
+  ...contentSets().flatMap((content): Entry[] => [...(content.build ? [content.build] : []), ...(content.extraBuild ?? [])].map((build) => ({ kind: 'set', content, build, order: build.order ?? 0 }))),
   ...contentCombos().map((content): Entry | null => (content.build ? { kind: 'combo', content, build: content.build, order: content.build.order ?? 0 } : null)),
 ].filter((e): e is Entry => !!e);
 

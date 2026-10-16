@@ -104,6 +104,11 @@ export interface RuntimeCtx {
   alive(): readonly CombatEnemy[];
   nearest(pos: { x: number; y: number }, range: number, exclude?: ReadonlySet<number>): CombatEnemy | null;
   inRadius(pos: { x: number; y: number }, r: number): CombatEnemy[];
+  /**
+   * The Electric-set / ricochet pick: the closest live enemy within `range` of `from` that is not in `seen` (ties go to the later one in
+   * the arena's order, unlike `nearest`: no Honey Jar priority, the range is inclusive).
+   */
+  ricochetTarget(from: { x: number; y: number }, seen: ReadonlySet<number>, range: number): CombatEnemy | null;
   /** `ArenaScene.damageEnemy`: the full pipeline (crit, armor, statuses, kill). `source` null = no weapon (label it with `opts.label`). */
   damage(e: CombatEnemy, dmg: number, source: WeaponStats | null, opts?: HitOpts): void;
   /** Hit every live enemy within `r` of `pos` (+ its radius) once. Returns how many were hit. */
@@ -146,6 +151,8 @@ export interface RuntimeCtx {
   /** A UI string in the current language: coin labels (`coinCoupon`, ...). Content files carry no i18n imports, so they ask the ctx. */
   t(key: UIKey, vars?: Record<string, string | number>): string;
   readonly fx: FxApi;
+  /** The jagged bolt through `points` (the Electric chain), with its zap sound. */
+  arcFx(points: readonly { x: number; y: number }[]): void;
   sound(name: string, opts?: { rate?: number; volume?: number }): void;
   tween(target: object, props: Record<string, number>, ms: number): void;
   delay(seconds: number, fn: () => void): void;

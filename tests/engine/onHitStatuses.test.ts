@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { SETS, SET_L3 } from '../../src/data/sets';
+import { contentSetTune } from '../../src/engine/registry';
 import { combatRng } from '../../src/systems/rng';
 import type { WeaponStats } from '../../src/types';
 import { arena, at, gilded } from '../content/helpers';
@@ -9,6 +9,7 @@ import type { Spec } from '../golden/carts';
 // source (Fuel Can, Jelly Beans, sets, combos) sets the WeaponStats field; the engine applies it. All through FakeCtx with real
 // WeaponStats from computeBuild carts. The fake runs the same functions the scene calls, at the same position of the damage pipeline.
 
+const FROST = contentSetTune('frost', 2), FROST3 = contentSetTune('frost', 3); // L1/L2 share their numbers; L3 replaces them
 const S = (type: Spec['type'], extra: Partial<Spec> = {}): Spec => ({ type, ...extra });
 
 /** First seed whose first combat draw satisfies `ok` (and, with `second`, the second draw too). */
@@ -156,10 +157,10 @@ describe('slow (WeaponStats.slow)', () => {
     // Fizz with an Ice Pack (★3, lifted to an effective ★4 by the Gold Star) and Mop + Spray for Frost L3 (slow cap 70%).
     const { fake, stats, b } = arena([S('fizz'), S('ice', { tier: 3 }), S('mop', { near: [] }), S('spray', { near: [] }), gilded(1)]);
     expect(b.sets.frost).toBe(3);
-    expect(stats.slow?.pct).toBe(SET_L3.frost.slowCap);
+    expect(stats.slow?.pct).toBe(FROST3.slowCap);
     const e = fake.spawnEnemy({ hp: 100 });
     fake.hit(e, 3, stats);
-    expect(e.status.slowPct).toBe(SET_L3.frost.slowCap);
+    expect(e.status.slowPct).toBe(FROST3.slowCap);
   });
 });
 
@@ -174,20 +175,20 @@ describe('Frost L2 freeze', () => {
     const { b, stats } = frost();
     expect(b.sets.frost).toBe(2);
     expect(stats.slow?.pct).toBe(0.35);
-    expect(SETS.frost.stunMinSlow).toBe(0.35);
+    expect(FROST.stunMinSlow).toBe(0.35);
   });
 
   it('freezes on a lucky roll: stun for the set\'s seconds, the ice-block timer and the frost sound', () => {
-    const seed = seedWhere((r) => r < SETS.frost.stunChance);
+    const seed = seedWhere((r) => r < FROST.stunChance);
     const { fake, stats, enemy } = frost(seed);
     fake.hit(enemy, 3, stats);
-    expect(fake.callsOf('stun')).toEqual([{ at: 0, kind: 'stun', enemy: enemy.id, seconds: SETS.frost.stun }]);
-    expect(enemy.frozenT).toBe(SETS.frost.stun);
+    expect(fake.callsOf('stun')).toEqual([{ at: 0, kind: 'stun', enemy: enemy.id, seconds: FROST.stun }]);
+    expect(enemy.frozenT).toBe(FROST.stun);
     expect(fake.callsOf('sound')).toEqual([{ at: 0, kind: 'sound', name: 'frost', opts: { rate: 1.3, volume: 0.5 } }]);
   });
 
   it('does nothing on an unlucky roll, and uses exactly one draw', () => {
-    const seed = seedWhere((r) => r >= SETS.frost.stunChance);
+    const seed = seedWhere((r) => r >= FROST.stunChance);
     const { fake, stats, enemy } = frost(seed);
     fake.hit(enemy, 3, stats);
     expect(fake.callsOf('stun')).toEqual([]);
@@ -195,7 +196,7 @@ describe('Frost L2 freeze', () => {
   });
 
   it('bosses are stunned by the call but never turn into an ice block', () => {
-    const seed = seedWhere((r) => r < SETS.frost.stunChance);
+    const seed = seedWhere((r) => r < FROST.stunChance);
     const { fake, stats, enemy } = frost(seed, true);
     fake.hit(enemy, 3, stats);
     expect(enemy.frozenT).toBeUndefined();
@@ -229,12 +230,12 @@ describe('Frost L2 freeze', () => {
   });
 
   it('Frost L3 freezes for longer, on a better chance', () => {
-    const seed = seedWhere((r) => r < SET_L3.frost.stunChance && r >= SETS.frost.stunChance);
+    const seed = seedWhere((r) => r < FROST3.stunChance && r >= FROST.stunChance);
     const { fake, stats, b } = arena([S('fizz'), S('ice'), S('mop', { near: [] }), S('spray', { near: [] })], { seed });
     expect(b.sets.frost).toBe(3);
     const e = fake.spawnEnemy({ hp: 1000 });
     fake.hit(e, 3, stats);
-    expect(fake.callsOf('stun')).toEqual([{ at: 0, kind: 'stun', enemy: e.id, seconds: SET_L3.frost.stun }]);
+    expect(fake.callsOf('stun')).toEqual([{ at: 0, kind: 'stun', enemy: e.id, seconds: FROST3.stun }]);
   });
 });
 
@@ -246,7 +247,7 @@ describe('draw order inside one hit: ignite first, then the freeze', () => {
     return { ...a, stats: { ...a.stats, ignite: { chance: 0.25, burn: { dps: 3, duration: 2, tick: 0.5 } } } as WeaponStats };
   };
   it('the first draw is the ignite roll, the second the freeze roll', () => {
-    const seed = seedWhere((r) => r >= 0.25, (r) => r < SETS.frost.stunChance);
+    const seed = seedWhere((r) => r >= 0.25, (r) => r < FROST.stunChance);
     const { fake, stats } = both(seed);
     const e = fake.spawnEnemy({ hp: 1000 });
     fake.hit(e, 3, stats);
@@ -255,7 +256,7 @@ describe('draw order inside one hit: ignite first, then the freeze', () => {
     expect(fake.rng()).toBe(draws(seed, 3)[2]);
   });
   it('with a lucky first draw the ignite fires and the freeze takes the second', () => {
-    const seed = seedWhere((r) => r < 0.25, (r) => r >= SETS.frost.stunChance);
+    const seed = seedWhere((r) => r < 0.25, (r) => r >= FROST.stunChance);
     const { fake, stats } = both(seed);
     fake.hit(fake.spawnEnemy({ hp: 1000 }), 3, stats);
     expect(fake.callsOf('ignite')).toHaveLength(1);
@@ -348,7 +349,7 @@ describe('a plain weapon is untouched by the engine modules', () => {
 });
 
 // Guard for the order of ArenaScene.damageEnemy (docs/item-hooks-refactor.md §4c): the engine modules sit exactly where the lines they
-// replaced were, and the lines around them (knockback, flash/number fx, Electric chain, kill) are still there.
+// replaced were, and the lines around them (knockback, flash/number fx, kill) are still there. The sets' afterHit / afterKill emits sit where the Frost freeze, Cleaning knockback, Electric chain, Kitchen heal and Blast pop lines were.
 const arenaSource = (Object.values(import.meta.glob('../../src/scenes/ArenaScene.ts', { query: '?raw', import: 'default', eager: true }))[0] as string);
 describe('ArenaScene.damageEnemy keeps its pipeline', () => {
   const body = arenaSource.slice(arenaSource.indexOf('damageEnemy(e: Enemy'), arenaSource.indexOf('/** Kitchen L2 heal'));
@@ -356,8 +357,8 @@ describe('ArenaScene.damageEnemy keeps its pipeline', () => {
   it('runs the steps in order', () => {
     const order = [
       "H.emit('modifyDamage'", 'RECIPE_TUNING.fiveAlarm', 'RECIPE_TUNING.priceCheck', 'this.rng() < stats.critChance', "H.emit('onCrit'", 'armorDamage(',
-      'e.hp -= dmg', "H.emit('onHit'", 'applyHitStatuses(hit', 'if (o.kb) {', 'e.kx += ', "this.fx.spark(e.x, e.y - 30, 3, armored", 'this.fx.number(', 'scheduleEcho(hit',
-      'stats.chainChance > 0', 'this.killEnemy(e, true, hit)', "recipes.includes('bagIt')", 'setCfg(\'kitchen\', sets.kitchen).healChance', 'setCfg(\'blast\', sets.blast).killChance', 'applyKillEffects(hit',
+      'e.hp -= dmg', "H.emit('onHit'", 'applyHitStatuses(hit', "H.emit('afterHit'", 'if (o.kb) {', 'e.kx += ', "this.fx.spark(e.x, e.y - 30, 3, armored", 'this.fx.number(', 'scheduleEcho(hit',
+      'this.killEnemy(e, true, hit)', "recipes.includes('bagIt')", "H.emit('afterKill'", 'applyKillEffects(hit',
     ].map(at_);
     expect(order).toEqual([...order].sort((a, b) => a - b));
   });

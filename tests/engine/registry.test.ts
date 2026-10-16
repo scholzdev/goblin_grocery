@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { ITEM_IDS } from '../../src/data/items';
 import { RECIPES } from '../../src/data/recipes';
-import { BUILD_PHASES, defineCombo, defineItem, defineSet } from '../../src/engine/define';
-import { ContentError, assertRegistry, contentCombos, contentItem, contentItems, contentSets, createRegistry, validateContent } from '../../src/engine/registry';
+import { BUILD_PHASES, HOOK_NAMES, SET_ORDER, SET_THRESHOLDS, defineCombo, defineItem, defineSet } from '../../src/engine/define';
+import { ContentError, SET_IDS, assertRegistry, contentCombos, contentItem, contentItems, contentSet, contentSetTune, contentSets, createRegistry, validateContent } from '../../src/engine/registry';
+import { renderText } from '../../src/engine/text';
 import { BUFF_ORDER } from '../../src/systems/synergies';
 import type { ItemTypeId, RecipeId } from '../../src/types';
 
@@ -122,6 +123,47 @@ describe('validateContent', () => {
   });
 });
 
+describe('validateContent: sets', () => {
+  it('rejects duplicate set ids', () => {
+    expect(errors({ sets: { 'sets/kitchen.ts': set(), 'sets/other/kitchen.ts': set() } })).toMatch(/duplicate set id "kitchen" \(also in sets\/kitchen\.ts\)/);
+  });
+
+  it('needs three bonus lines per language and both languages', () => {
+    const short = { en: { name: 'Kitchen', bonus: ['a', 'b'] }, de: { name: 'Küche', bonus: ['a', 'b'] } };
+    expect(errors({ sets: { 'sets/kitchen.ts': set({ text: short }) } })).toMatch(/bonus needs exactly 3 entries/);
+    expect(errors({ sets: { 'sets/kitchen.ts': set({ text: { en: short.en } }) } })).toMatch(/bonus needs exactly 3 entries/);
+  });
+
+  it('resolves every placeholder of the name and the three bonus lines against the tune, EN and DE alike', () => {
+    const text = (bonus: string[]) => ({ en: { name: 'Kitchen', bonus }, de: { name: 'Küche', bonus: ['+{damageMult|pctup} Schaden', '+{damageMult|pctup} Schaden', '+{damageMult|pctup} Schaden'] } });
+    expect(errors({ sets: { 'sets/kitchen.ts': set({ text: text(['+{nope} damage', '+{damageMult|pctup} damage', '+{damageMult|pctup} damage']) }) } })).toMatch(/text\.en\.bonus\[0\] uses \{nope\} but tune has no "nope"/);
+    expect(errors({ sets: { 'sets/kitchen.ts': set({ text: text(['+{damageMult|bogus} damage', '+{damageMult|pctup} damage', '+{damageMult|pctup} damage']) }) } })).toMatch(/unknown formatter "bogus"/);
+    expect(errors({ sets: { 'sets/kitchen.ts': set({ text: text(['+{damageMult|pctup} damage', '+{damageMult|pctup} damage', '+{damageMult|pctup} damage']) }) } })).toBe('');
+    expect(errors({ sets: { 'sets/kitchen.ts': set({ text: text(['+{damageMult|pctn} damage', '+{damageMult|pctup} damage', '+{damageMult|pctup} damage']) }) } })).toMatch(/bonus\[0\] and text\.de\.bonus\[0\] use different placeholders/);
+  });
+
+  it('only known hook names, functions, and a finite order; build phases set / post-combo / final', () => {
+    expect(errors({ sets: { 'sets/kitchen.ts': set({ hooks: { onKilll() {} } }) } })).toMatch(/hooks\.onKilll is not a hook/);
+    expect(errors({ sets: { 'sets/kitchen.ts': set({ hooks: { afterKill: 3 } }) } })).toMatch(/hooks\.afterKill must be a function/);
+    expect(errors({ sets: { 'sets/kitchen.ts': set({ hooks: { order: Infinity } }) } })).toMatch(/hooks\.order must be a finite number/);
+    expect(errors({ sets: { 'sets/kitchen.ts': set({ hooks: { order: 5, afterHit() {}, afterKill() {}, onDashHit() {} } }) } })).toBe('');
+    expect(errors({ sets: { 'sets/kitchen.ts': set({ build: { phase: 'module', weapon() {} } }) } })).toMatch(/build\.phase "module" is not valid for set content/);
+    expect(errors({ sets: { 'sets/kitchen.ts': set({ build: { phase: 'set', weapon() {} }, extraBuild: [{ phase: 'final', player() {} }] }) } })).toBe('');
+    expect(errors({ sets: { 'sets/kitchen.ts': set({ extraBuild: [{ phase: 'base', weapon() {} }] }) } })).toMatch(/build\.phase "base" is not valid for set content/);
+    expect(errors({ sets: { 'sets/kitchen.ts': set({ extraBuild: [{ phase: 'set', player() {} }] }) } })).toMatch(/only a player hook must use phase "final"/);
+  });
+
+  it('a set tune takes numbers or L1/L2/L3 triples only', () => {
+    expect(errors({ sets: { 'sets/kitchen.ts': set({ tune: { damageMult: [1.1, 1.2] } }) } })).toMatch(/exactly 3/);
+    expect(errors({ sets: { 'sets/kitchen.ts': set({ tune: { damageMult: NaN } }) } })).toMatch(/not a finite number/);
+  });
+
+  it('flavored items (Jelly Beans) take their element from the instance: no static element allowed', () => {
+    expect(errors({ items: { 'items/fuel.ts': item({ flavored: true, sets: ['tools'] }) } })).toBe('');
+    expect(errors({ items: { 'items/fuel.ts': item({ flavored: true }) } })).toMatch(/flavored items take their element from the instance/);
+  });
+});
+
 describe('createRegistry', () => {
   it('indexes valid content and throws a ContentError listing every problem', () => {
     const reg = createRegistry({ items: { 'items/fuel.ts': item() }, combos: { 'combos/greaseFire.ts': combo() }, sets: { 'sets/kitchen.ts': set() } });
@@ -139,7 +181,31 @@ describe('the real registry', () => {
     expect(() => assertRegistry({ knownItemIds: ITEM_IDS, knownComboIds: Object.keys(RECIPES) })).not.toThrow();
     for (const c of contentItems()) expect(ITEM_IDS, c.id).toContain(c.id);
     for (const c of contentCombos()) expect(Object.keys(RECIPES), c.id).toContain(c.id);
-    expect(contentSets().length).toBeGreaterThanOrEqual(0);
+  });
+  it('has one content file per set, the nine of SET_ORDER, each id equal to its filename', () => {
+    expect(contentSets().map((c) => c.id).sort()).toEqual([...SET_ORDER].sort());
+    expect(SET_IDS).toEqual(SET_ORDER);
+    for (const id of SET_ORDER) expect(contentSet(id)?.id).toBe(id);
+    expect(SET_THRESHOLDS).toEqual([2, 3, 4]);
+  });
+  it('every set tune is a number or an L1/L2/L3 triple, and each bonus line renders at its level in EN and DE', () => {
+    for (const c of contentSets()) {
+      for (const [k, v] of Object.entries(c.tune ?? {})) expect(typeof v === 'number' || (Array.isArray(v) && v.length === 3), `${c.id}.${k}`).toBe(true);
+      for (const lang of ['en', 'de'] as const) {
+        expect(c.text[lang].bonus, `${c.id} ${lang}`).toHaveLength(3);
+        c.text[lang].bonus.forEach((line, i) => expect(renderText(line, c.tune, i + 1, lang), `${c.id} L${i + 1} ${lang}`).not.toMatch(/[{}]/));
+      }
+      expect(contentSetTune(c.id, 3)).toBeDefined();
+    }
+  });
+  it('set hook names are all real hooks, and only afterHit / afterKill / onDashHit are used so far', () => {
+    const used = new Set<string>();
+    for (const c of contentSets()) for (const k of Object.keys(c.hooks ?? {})) { if (k !== 'order') { expect(HOOK_NAMES, `${c.id}.${k}`).toContain(k); used.add(k); } }
+    expect([...used].sort()).toEqual(['afterHit', 'afterKill', 'onDashHit']);
+  });
+  it('the set weapon bonuses keep the legacy sequence: kitchen 10, cleaning 20, tools 30, heat 40, blast 50, electric 60 (set phase), frost last in post-combo', () => {
+    const orders = Object.fromEntries(contentSets().filter((c) => c.build?.weapon).map((c) => [c.id, `${c.build!.phase}:${c.build!.order}`]));
+    expect(orders).toEqual({ kitchen: 'set:10', cleaning: 'set:20', tools: 'set:30', heat: 'set:40', blast: 'set:50', electric: 'set:60', frost: 'post-combo:1000' });
   });
   it('collects the pilot item', () => {
     expect(contentItem('hotsauce')?.build?.phase).toBe('module');

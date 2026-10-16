@@ -70,6 +70,8 @@ export interface ItemDef {
   legendary?: boolean;
   /** Buff this module grants to adjacent weapons (if any). */
   buff?: BuffId;
+  /** Jelly Beans: the instance's flavor is its element for set counting (`setsOf`). */
+  flavored?: boolean;
 }
 
 export interface ItemInstance {

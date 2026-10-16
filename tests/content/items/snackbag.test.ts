@@ -1,8 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { ITEMS, PLAYER } from '../../../src/data/items';
 import snackbag from '../../../src/content/items/snackbag';
-import { setCfg } from '../../../src/data/sets';
-import { contentItem, contentTune } from '../../../src/engine/registry';
+import { contentItem, contentSetTune, contentTune } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { tierScaling } from '../../../src/systems/synergies';
@@ -51,12 +50,12 @@ describe('Family-Size Snack Bag: build', () => {
   it('adds its regen to the snacks set regen (L2 from 3 types, L3 from 4)', () => {
     const l2 = full([at('toaster'), far('snackbag'), far('lunchbox'), far('energy')]);
     expect(l2.sets.snacks).toBe(2);
-    expect(l2.regen).toBeCloseTo(0.25 + setCfg('snacks', 2).regen, 12);
+    expect(l2.regen).toBeCloseTo(0.25 + contentSetTune('snacks', 2).regen, 12);
     expect(l2.regen).toBeCloseTo(0.55, 12);
     const l3 = full([at('toaster'), far('snackbag'), far('lunchbox'), far('energy'), far('fortune')]);
     expect(l3.sets.snacks).toBe(3);
-    expect(l3.regen).toBeCloseTo(0.25 + setCfg('snacks', 3).regen, 12);
-    expect(l3.maxHp).toBe(BASE + 20 + 15 + setCfg('snacks', 3).maxHp);
+    expect(l3.regen).toBeCloseTo(0.25 + contentSetTune('snacks', 3).regen, 12);
+    expect(l3.maxHp).toBe(BASE + 20 + 15 + contentSetTune('snacks', 3).maxHp);
     // the set alone (no bag) is unchanged
     expect(full([at('toaster'), far('lunchbox'), far('energy'), far('fortune')]).regen).toBeCloseTo(0.3, 12);
   });

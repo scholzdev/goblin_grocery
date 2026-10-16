@@ -21,6 +21,11 @@ export type Resolved<T extends Tune> = { readonly [K in keyof T]: number };
 /** `TIER.mult` (data/items re-exports it): the multiplier of a ★-scaled bonus, ★1 = 1, +0.5 per tier, also above ★3 (Gold Star's ★4 = 2.5). */
 export const tierMult = (tier: number): number => 1 + 0.5 * (tier - 1);
 
+/** Every set, in the order the shop lists them and `setLevels` reports them (the registry sorts content by filename, which is not this order). */
+export const SET_ORDER: readonly SetId[] = ['kitchen', 'cleaning', 'tools', 'snacks', 'checkout', 'heat', 'frost', 'blast', 'electric'];
+/** Distinct item types for set level 1/2/3 (the same for every set; each level includes the lower ones). */
+export const SET_THRESHOLDS: readonly [number, number, number] = [2, 3, 4];
+
 /** The flavors a Jelly Beans instance can take (rerolled every shop visit). */
 export const FLAVORS: readonly ElementTag[] = ['heat', 'frost', 'blast'];
 /** Flavor of an instance (a missing one = heat). Re-exported by data/sets. */
@@ -120,7 +125,7 @@ export interface BuildSpec<T extends Tune = Tune> {
 
 /** Every combat hook, in the order a table lists them (the typed payloads are in engine/hooks.ts, the API in engine/ctx.ts). */
 export const HOOK_NAMES: readonly HookName[] = [
-  'onAisleStart', 'onTick', 'modifyDamage', 'onHit', 'onCrit', 'onKill', 'onDashStart', 'onDashHit', 'onDashEnd', 'onEnemyShotTouch', 'onPlayerHit', 'onCoinPickup',
+  'onAisleStart', 'onTick', 'modifyDamage', 'onHit', 'afterHit', 'onCrit', 'onKill', 'afterKill', 'onDashStart', 'onDashHit', 'onDashEnd', 'onEnemyShotTouch', 'onPlayerHit', 'onCoinPickup',
   'pattern:sweep', 'pattern:explode', 'pattern:zap', 'pattern:bounce', 'pattern:shotHit', 'pattern:beam', 'pattern:pulse', 'pattern:cone', 'pattern:puddleEnter', 'pattern:aura',
 ];
 
@@ -170,6 +175,11 @@ export interface ItemContent<T extends Tune = Tune> {
   /** Modules: the buff this item grants to touching weapons (= its BUFF_ORDER entry). */
   buff?: ItemDef['buff'];
   unlock?: ItemUnlock;
+  /**
+   * Jelly Beans: the instance's current flavor (`ItemInstance.flavor`, rerolled every shop visit) is its element, so it counts toward
+   * that element's set. Only for items without a static element (`sets` has just the family). Read by `setsOf` (data/sets).
+   */
+  flavored?: boolean;
   /** Scalars, or per-tier arrays of 3. Legendaries are ★1 only: scalars. */
   tune?: T;
   text: Localized<ItemText>;
@@ -213,11 +223,17 @@ export interface ComboContent<T extends Tune = Tune> {
 
 export interface SetContent<T extends Tune = Tune> {
   id: SetId;
-  /** Arrays are L1/L2/L3. */
+  /** Arrays are L1/L2/L3: `c.tune()` / the rendered text pick the entry of the set's level. */
   tune?: T;
   text: Localized<SetText>;
-  /** Phase `set`, `post-combo` or `final`. `tier` = the set level; hooks only run when the level is above 0. */
+  /**
+   * Phase `set`, `post-combo` or `final`. `tier` = the set level; hooks only run when the level is above 0. `order` positions the hook
+   * among the others of its phase (items first on ties): the set weapon hooks run kitchen 10, cleaning 20, tools 30, heat 40, blast 50,
+   * electric 60 in `set` (the legacy sequence), frost in `post-combo` after every item.
+   */
   build?: BuildSpec<T>;
+  /** More hooks for other phases when a set needs two (Tools: `set` cooldown + `final` dash damage). */
+  extraBuild?: readonly BuildSpec<T>[];
   /** Combat hooks, active while the set level is above 0 (`c.tier` = level): see RuntimeHooks. */
   hooks?: RuntimeHooks<T>;
 }

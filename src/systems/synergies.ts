@@ -1,6 +1,6 @@
 import { BUFFS, BUNDLE, ITEMS, PLAYER, PROJECTILE_PATTERNS, TIER } from '../data/items';
 import { RECIPES, RECIPE_TUNING } from '../data/recipes';
-import { SETS, setCfg, setLevels } from '../data/sets';
+import { setLevels } from '../data/sets';
 import type { ActiveRecipe, BuffId, Build, Inventory, ItemInstance, ItemTypeId, Perk, RecipeId, WeaponStats } from '../types';
 import { adjacentPairs, neighbors } from './inventory';
 import { fmtNum, lang, t } from '../i18n';
@@ -56,24 +56,7 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
     }
     runPhase('flavor', s, we);
     runPhase('global-mod', s, we);
-    runPhase('set', s, we);
-    // Set bonuses (cart-wide, distinct types). Frost is applied after recipes, see below.
-    const fam = def.family, el = def.element;
-    if (fam === 'kitchen' && sets.kitchen) s.damage *= setCfg('kitchen', sets.kitchen).damageMult;
-    if (fam === 'cleaning') {
-      if (sets.cleaning) { const c = setCfg('cleaning', sets.cleaning); s.range *= c.rangeMult; s.aoe *= c.aoeMult; }
-      if (sets.cleaning >= 2 && b.pattern === 'puddle') s.duration += setCfg('cleaning', sets.cleaning).puddleExtra;
-    }
-    if (sets.tools) s.cooldown /= setCfg('tools', sets.tools).cooldownDiv;
-    const ht = setCfg('heat', sets.heat), fuel1 = contentTune('fuel', 1);
-    if (sets.heat && s.burn) s.burn = { ...s.burn, duration: s.burn.duration + ht.burnExtra, dps: s.burn.dps * (sets.heat >= 2 ? ht.burnMult : 1) };
-    if (sets.heat >= 2 && el === 'heat' && !s.burn) s.ignite = { chance: ht.igniteChance, burn: { dps: fuel1.dps * ht.igniteDpsMult, duration: fuel1.duration + ht.igniteExtra, tick: fuel1.tick } };
-    if (sets.blast) {
-      const bl = setCfg('blast', sets.blast);
-      if (s.popper) s.popper = { ...s.popper, radius: s.popper.radius * bl.radiusMult };
-      if (b.pattern === 'zap' || b.pattern === 'mortar') s.aoe *= bl.radiusMult;
-    }
-    if (sets.electric && def.electrical && b.pattern !== 'zap') { s.chainChance = SETS.electric.chance[sets.electric - 1]; s.chainJumps = SETS.electric.jumps[sets.electric - 1]; }
+    runPhase('set', s, we); // the sets (kitchen 10, cleaning 20, tools 30, heat 40, blast 50, electric 60) and Gold Star's bundle (100)
     s.bundle += nearTypes.size; // content hooks (Gold Star's +1, `set` phase) added theirs already
     s.damage *= 1 + BUNDLE.perItem * s.bundle;
     const tapeArc = s.arcDeg - b.arcDeg;
@@ -84,8 +67,7 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
       s.recipes.push(r.id);
       recipes.push({ id: r.id, weaponUid: w.uid, supportUids: sup.map((n) => n.uid).sort() });
     }
-    runPhase('post-combo', s, we);
-    if (sets.frost && s.slow) { const f = setCfg('frost', sets.frost); s.slow = { ...s.slow, pct: Math.min(f.slowCap, s.slow.pct + f.slowBonus) }; } // after recipes: coldStorage/brainFreeze set s.slow
+    runPhase('post-combo', s, we); // Frost's slow bonus sits last (order 1000): it must follow the combos that set `slow`
     runPhase('final', s, we);
     s.damage *= perk.damageMult ?? 1;
     weapons.push(s);
@@ -106,17 +88,17 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
   const build: Build = {
     weapons, recipes, adjacency: adjacentPairs(placed),
     // Unrounded here: player hooks add to it, then the Expired Milk curse and the rounding below finish it.
-    maxHp: (PLAYER.maxHp + (sets.snacks ? setCfg('snacks', sets.snacks).maxHp : 0) + (perk.maxHp ?? 0)),
+    maxHp: PLAYER.maxHp + (perk.maxHp ?? 0),
     reflectMult: 0,
     stinkDps: 0,
-    regen: sets.snacks >= 2 ? setCfg('snacks', sets.snacks).regen : 0,
+    regen: 0, // the Snacks set (L2) and Snack Bag add in their player hooks
     critHeal: 0,
     killCoinMult: 1,
     pickupRadius: PLAYER.pickupRadius + (has('vacuum') ? BUFFS.vacuumPickup : 0) + (perk.pickupRadius ?? 0),
     shoveCooldown: PLAYER.shove.cooldown + (perk.shoveCooldown ?? 0),
     shoveDistMult: 1,
-    shoveDamage: PLAYER.shove.damage + (perk.shoveDamage ?? 0), // Boot adds in its player hook, the Tools set multiplies the total below
-    shoveStun: sets.tools >= 2 ? setCfg('tools', sets.tools).shoveStun : 0,
+    shoveDamage: PLAYER.shove.damage + (perk.shoveDamage ?? 0), // Boot adds in its player hook, then the Tools set (L2, order 200) multiplies the total
+    shoveStun: 0,
     dashSlam: 0,
     dashChain: 0,
     dashCoinChance: 0,
@@ -125,11 +107,9 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
     coinChance: 0,
     armor: 0,
     invulnBonus: 0,
-    sets, priceMult: sets.checkout ? setCfg('checkout', sets.checkout).priceMult : 1,
+    sets, priceMult: 1, // the Checkout set sets it in its player hook
   };
   runPlayerHooks(build, env);
-  // The Tools set (L2+) multiplies the finished dash damage (Boot's bonus included, so it comes after the player hooks).
-  if (sets.tools >= 2) build.shoveDamage *= setCfg('tools', sets.tools).shoveDamageMult;
   // Expired Milk's curse (a high-order player hook) multiplied the finished total; max HP is rounded once, here.
   build.maxHp = Math.round(build.maxHp);
   return build;

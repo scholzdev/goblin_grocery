@@ -13,13 +13,18 @@ import { tuneValue, type Lang, type Localized, type Tune } from './define';
 //   ps    per second                                       0.38/s / 2.5/s / 1.5/s
 //   x     multiplier suffix                                0.38× / 2.5× / 1.5×
 //   deg   degrees, rounded                                0° / 3° / 2°
+//   pctn     percent number only, no % (the author writes "%" or German " %")        38 / 250 / 150
+//   pctup    percent above 1: round((v - 1) x 100), number only  (a 1.15 multiplier)  1.15 -> 15
+//   pctdown  percent below 1: round((1 - v) x 100), number only  (a 0.92 multiplier)  0.92 -> 8
+// The number-only percent formatters exist for set text, where German writes "10 %" with a space and multipliers are stored as
+// 1.1 / 0.92 for the code.
 // A leading `+` or `−` (U+2212) on the formatter prepends that literal sign: `+pct` -> "+38%", `−s` -> "−1.5 s". Signs are never
 // derived from the value (a negative number prints its own "-"), so the author decides: write `{damage|+pct}` for "+25%", or put
 // the sign in the sentence ("gain +{damage|pct}") when the rows do not need to match. The same formatters drive the scaling rows
 // of the shop, so one placeholder renders exactly like its row.
 
 const TOKEN = /\{(\w+)(?:\|([^{}|]*))?\}/g;
-const FMT = /^([+−]?)(n|int|pct|pct1|s|ps|x|deg)$/;
+const FMT = /^([+−]?)(n|int|pct|pct1|pctn|pctup|pctdown|s|ps|x|deg)$/;
 
 export interface Placeholder { key: string; fmt: string }
 
@@ -45,6 +50,9 @@ export function formatValue(value: number, fmt: string, lang: Lang): string {
     case 'n': body = dec(value, 2, lang); break;
     case 'int': body = String(Math.round(value)); break;
     case 'pct': body = `${Math.round(value * 100)}%`; break;
+    case 'pctn': body = String(Math.round(value * 100)); break;
+    case 'pctup': body = String(Math.round((value - 1) * 100)); break;
+    case 'pctdown': body = String(Math.round((1 - value) * 100)); break;
     case 'pct1': body = `${dec(value * 100, 1, lang)}%`; break;
     case 's': body = `${dec(value, 2, lang)} s`; break;
     case 'ps': body = `${dec(value, 2, lang)}/s`; break;

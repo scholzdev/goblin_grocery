@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { ITEMS, TIER } from '../../../src/data/items';
 import jellybeans from '../../../src/content/items/jellybeans';
-import { flavorOf, setCfg, setsOf } from '../../../src/data/sets';
+import { flavorOf, setsOf } from '../../../src/data/sets';
 import { FLAVORS } from '../../../src/engine/define';
-import { contentItem, contentTune } from '../../../src/engine/registry';
+import { contentItem, contentSetTune, contentTune } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { createRun, labAddItem, rollFlavors } from '../../../src/state/run';
@@ -35,7 +35,7 @@ describe('Jelly Beans: flavors', () => {
   it('blast pops like a Party Popper at 70%', () => {
     const w = stats([gun, beans('blast')]);
     // Blast set (Nail Gun is blast, the beans are blast) is L1: popper radius x1.15
-    expect(w.popper).toEqual({ damage: popper.damage * STRENGTH, radius: popper.radius * setCfg('blast', 1).radiusMult });
+    expect(w.popper).toEqual({ damage: popper.damage * STRENGTH, radius: popper.radius * contentSetTune('blast', 1).radiusMult });
   });
 
   it('a flavor adds nothing of the other two', () => {
@@ -114,11 +114,11 @@ describe('Jelly Beans: never weaker than the real module (max)', () => {
   });
 
   it('frost: a stronger Ice Pack wins, a weaker one is raised to the beans', () => {
-    const FROST_BONUS = setCfg('frost', 1).slowBonus; // Ice Pack + frost beans = Frost L1: +10% (capped) after the combos
+    const FROST_BONUS = contentSetTune('frost', 1).slowBonus; // Ice Pack + frost beans = Frost L1: +10% (capped) after the combos
     const strong = stats([gun, at('ice', 3), beans('frost', 1)]).slow!;
-    expect(strong.pct).toBeCloseTo(Math.min(setCfg('frost', 1).slowCap, contentTune('ice', 3).pct + FROST_BONUS), 12);
+    expect(strong.pct).toBeCloseTo(Math.min(contentSetTune('frost', 1).slowCap, contentTune('ice', 3).pct + FROST_BONUS), 12);
     const weak = stats([gun, at('ice', 1), beans('frost', 3)]).slow!;
-    expect(weak.pct).toBeCloseTo(Math.min(setCfg('frost', 1).slowCap, ice.pct * TIER.mult(3) * STRENGTH + FROST_BONUS), 12);
+    expect(weak.pct).toBeCloseTo(Math.min(contentSetTune('frost', 1).slowCap, ice.pct * TIER.mult(3) * STRENGTH + FROST_BONUS), 12);
   });
 
   it('blast: a stronger Party Popper keeps its blast, stronger beans replace it', () => {

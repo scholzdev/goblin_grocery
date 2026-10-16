@@ -16,8 +16,8 @@ import type { ShopPad } from '../input/gamepad';
 import { pickNext, type Dir } from '../input/pad-core';
 import { icons, setIcon } from './icons';
 import { t, fmtNum } from '../i18n';
-import { itemRules, itemT, recipeT, tagT } from '../i18n/data';
-import { SETS, flavorOf, lvOf, setCfg, setCount as setCountOf, setGains, setsOf } from '../data/sets';
+import { itemRules, itemT, recipeT, setBonusT, tagT } from '../i18n/data';
+import { SET_ORDER, SET_THRESHOLDS, flavorOf, lvOf, setCount as setCountOf, setGains, setsOf } from '../data/sets';
 import type { Build, ItemInstance, ItemTypeId, RecipeId, Rotation, RunState, SetId } from '../types';
 
 // Cell pitch in design pixels (cell + 4px gap). 92 for the 4×4 and 5×4 carts; shrinks so bigger carts fit the same 460×368 area.
@@ -191,39 +191,21 @@ export function combosHtml(build: Build, preview?: Build | null, relevant: ItemT
   }).join('');
 }
 
-const pc = (x: number): string => fmtNum(Math.round(x * 100));
-/** Bonus text for one set level, numbers straight from SETS (level 3 from SET_L3). */
-export function setBonus(id: SetId, lv: 1 | 2 | 3): string {
-  const k = `set_${id}${lv}` as const, i = lv - 1;
-  const v = ((): Record<string, string | number | undefined> => {
-    switch (id) {
-      case 'kitchen': { const c = setCfg('kitchen', lv); return lv === 1 ? { v: pc(c.damageMult - 1) } : lv === 2 ? { v: pc(c.healChance), n: c.heal } : { v: pc(c.damageMult - 1), n: c.heal, m: pc(c.healChance) }; }
-      case 'cleaning': { const c = setCfg('cleaning', lv); return lv === 1 ? { v: pc(c.rangeMult - 1) } : lv === 2 ? { v: pc(c.knockbackMult - 1), n: fmtNum(c.puddleExtra) } : { v: pc(c.rangeMult - 1), n: pc(c.knockbackMult - 1), m: fmtNum(c.puddleExtra) }; }
-      case 'tools': { const c = setCfg('tools', lv); return lv === 1 ? { v: pc(c.cooldownDiv - 1) } : lv === 2 ? { v: c.shoveDamageMult, n: fmtNum(c.shoveStun) } : { v: pc(c.cooldownDiv - 1), n: c.shoveDamageMult, m: fmtNum(c.shoveStun) }; }
-      case 'snacks': { const c = setCfg('snacks', lv); return lv === 1 ? { v: c.maxHp } : lv === 2 ? { v: fmtNum(c.regen) } : { v: c.maxHp, n: fmtNum(c.regen) }; }
-      case 'checkout': { const c = setCfg('checkout', lv); return lv === 1 ? { v: pc(1 - c.priceMult) } : lv === 2 ? { v: 1, n: c.interestPer, m: c.interestCap } : { v: pc(1 - c.priceMult), n: c.interestPer, m: c.interestCap }; }
-      case 'heat': { const c = setCfg('heat', lv); return lv === 1 ? { v: fmtNum(c.burnExtra) } : lv === 2 ? { v: fmtNum(c.burnMult), n: pc(c.igniteChance) } : { v: fmtNum(c.burnExtra), n: fmtNum(c.burnMult), m: pc(c.igniteChance) }; }
-      case 'frost': { const c = setCfg('frost', lv); return lv === 1 ? { v: pc(c.slowBonus), n: pc(c.slowCap) } : lv === 2 ? { v: pc(c.stunMinSlow), n: fmtNum(c.stun), m: pc(c.stunChance) } : { v: pc(c.slowBonus), n: pc(c.slowCap), m: pc(c.stunChance), k: fmtNum(c.stun) }; }
-      case 'electric': return { v: pc(SETS.electric.chance[i]), n: SETS.electric.jumps[i], m: pc(SETS.electric.damageMult) };
-      case 'blast': { const c = setCfg('blast', lv); return lv === 1 ? { v: pc(c.radiusMult - 1) } : lv === 2 ? { v: pc(c.killChance), n: c.damage } : { v: pc(c.radiusMult - 1), n: pc(c.killChance), m: c.damage }; }
-    }
-  })();
-  return t(k, v as Record<string, string | number>);
-}
+/** Bonus text for one set level, rendered from the set's content file (src/content/sets/<id>.ts: tune arrays are L1/L2/L3). */
+export const setBonus = setBonusT;
 
-const SET_IDS: SetId[] = ['kitchen', 'cleaning', 'tools', 'snacks', 'checkout', 'heat', 'frost', 'blast', 'electric'];
-const setPips = (id: SetId, n: number, ghost = false): string => `<span class="pips set-${id}">${Array.from({ length: SETS.thresholds[2] }, (_, k) => `<i class="${k < n ? 'on' : ghost && k === n ? 'ghost' : ''}"></i>`).join('')}</span>`;
-const setTiers = (id: SetId, lv: number, fresh = 0, all = true): string => ([1, 2, 3] as const).filter((l) => all || l <= lv + 1).map((l) => `<div class="tier ${l <= lv ? '' : 'locked'} ${l === fresh ? 'new' : ''}"><em>${SETS.thresholds[l - 1]}</em><span>${esc(setBonus(id, l))}</span></div>`).join('');
+const setPips = (id: SetId, n: number, ghost = false): string => `<span class="pips set-${id}">${Array.from({ length: SET_THRESHOLDS[2] }, (_, k) => `<i class="${k < n ? 'on' : ghost && k === n ? 'ghost' : ''}"></i>`).join('')}</span>`;
+const setTiers = (id: SetId, lv: number, fresh = 0, all = true): string => ([1, 2, 3] as const).filter((l) => all || l <= lv + 1).map((l) => `<div class="tier ${l <= lv ? '' : 'locked'} ${l === fresh ? 'new' : ''}"><em>${SET_THRESHOLDS[l - 1]}</em><span>${esc(setBonus(id, l))}</span></div>`).join('');
 const setCount = (id: SetId): number => setCountOf(store.state.inventory.placed, id);
 const setLv = (n: number): number => lvOf(n);
 const chipHtml = (id: SetId): string => `<span class="chip set-${id}">${setIcon(id, 12)}${tagT(id)}</span>`;
 
 /** Set coupons (inside the receipt): sets with >=1 type in the cart; full coupon at lv>=1, collapsed one-liner at lv0. `preview`: an offer type hovered in the shop, showing what it would add. */
 export function setsHtml(preview?: ItemTypeId, previewDouble = false): string {
-  const t1 = SETS.thresholds[0];
+  const t1 = SET_THRESHOLDS[0];
   const gm = new Map((preview ? setGains(store.state.inventory.placed, preview, previewDouble) : []).map((g) => [g.id, g]));
-  const have = SET_IDS.map((id) => ({ id, n: setCount(id) })).filter((x) => x.n > 0).map((x) => ({ ...x, lv: setLv(x.n) })).sort((a, b) => b.lv - a.lv || b.n - a.n);
-  const ghosts = SET_IDS.filter((id) => gm.get(id)?.from === 0);
+  const have = SET_ORDER.map((id) => ({ id, n: setCount(id) })).filter((x) => x.n > 0).map((x) => ({ ...x, lv: setLv(x.n) })).sort((a, b) => b.lv - a.lv || b.n - a.n);
+  const ghosts = SET_ORDER.filter((id) => gm.get(id)?.from === 0);
   if (!have.length && !ghosts.length) return '';
   return `<div class="cut">${t('setsTitle')}</div>` + have.map(({ id, n, lv }) => {
     const g = gm.get(id);
@@ -241,11 +223,11 @@ export function setsHtml(preview?: ItemTypeId, previewDouble = false): string {
 function setCardHtml(id: SetId): string {
   const n = setCount(id), have = new Set(store.state.inventory.placed.map((p) => p.type));
   const members = ITEM_IDS.filter((ty) => setsOf(ty).includes(id)).map((ty) => `<img class="${have.has(ty) ? '' : 'missing'}" src="${svg(`icon_${ty}`)}" alt="${itemT(ty).name}" title="${itemT(ty).name}">`).join('');
-  return `<div class="setcard set-${id}"><div class="hd">${chipHtml(id)}<span class="cnt">${t('setProgress', { n, m: SETS.thresholds[2] })}</span>${setPips(id, n)}</div>${setTiers(id, setLv(n))}<div class="mem">${t('setMembers')}</div><div class="members">${members}</div></div>`;
+  return `<div class="setcard set-${id}"><div class="hd">${chipHtml(id)}<span class="cnt">${t('setProgress', { n, m: SET_THRESHOLDS[2] })}</span>${setPips(id, n)}</div>${setTiers(id, setLv(n))}<div class="mem">${t('setMembers')}</div><div class="members">${members}</div></div>`;
 }
 
 /** Sticker/hover detail for a set gain. */
-const gainText = (g: ReturnType<typeof setGains>[number]): string => { const th = SETS.thresholds, ni = th.findIndex((x) => x > g.to); return g.levelUp ? t('setStkUp', { n: lvOf(g.to) }) : t((['setStkMore', 'setStkMore2', 'setStkMore3'] as const)[Math.max(0, ni < 0 ? 2 : ni)], { n: th[Math.max(0, ni < 0 ? 2 : ni)] - g.to }); };
+const gainText = (g: ReturnType<typeof setGains>[number]): string => { const th = SET_THRESHOLDS, ni = th.findIndex((x) => x > g.to); return g.levelUp ? t('setStkUp', { n: lvOf(g.to) }) : t((['setStkMore', 'setStkMore2', 'setStkMore3'] as const)[Math.max(0, ni < 0 ? 2 : ni)], { n: th[Math.max(0, ni < 0 ? 2 : ni)] - g.to }); };
 
 /** Offer-card set badges: level-up first, then sets already started, then new ones (max 3). Maxed / already-counted sets get none. */
 function setBadges(placed: ItemInstance[], type: ItemTypeId, double = false): string {

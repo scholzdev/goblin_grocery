@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { defineItem, resolveTune, tuneValue } from '../../src/engine/define';
-import { formatValue, legacyRules, placeholders, renderText, tierRows } from '../../src/engine/text';
+import { formatValue, isFormatter, legacyRules, placeholders, renderText, tierRows } from '../../src/engine/text';
 
 describe('formatValue', () => {
   it('pct rounds x100 and adds %', () => {
@@ -20,6 +20,19 @@ describe('formatValue', () => {
     expect(formatValue(2, 'x', 'en')).toBe('2×');
     expect(formatValue(1.5, 'x', 'en')).toBe('1.5×');
     expect(formatValue(29.6, 'deg', 'en')).toBe('30°');
+  });
+  it('pctn, pctup and pctdown print the percent number only, with the same rounding as the legacy pc(x) / pc(m - 1) / pc(1 - m)', () => {
+    expect(formatValue(0.15, 'pctn', 'en')).toBe('15');
+    expect(formatValue(0.35, 'pctn', 'de')).toBe('35'); // no % and no decimal comma: the author writes "%" or German " %"
+    expect(formatValue(1.15, 'pctup', 'en')).toBe('15');  // (1.15 - 1) x 100 = 15.000000000000002
+    expect(formatValue(1.4, 'pctup', 'en')).toBe('40');   // 39.99999999999999
+    expect(formatValue(1.08, 'pctup', 'en')).toBe('8');
+    expect(formatValue(0.92, 'pctdown', 'en')).toBe('8'); // (1 - 0.92) x 100 = 8.000000000000007
+    expect(formatValue(0.85, 'pctdown', 'en')).toBe('15');
+    expect(isFormatter('pctup')).toBe(true);
+    expect(isFormatter('pctdown')).toBe(true);
+    expect(isFormatter('pctn')).toBe(true);
+    expect(renderText('-{m|pctdown} %', { m: 0.92 }, 1, 'de')).toBe('-8 %');
   });
   it('plain numbers match the legacy fmt: up to 2 decimals, German comma, int rounds', () => {
     expect(formatValue(3.75, 'n', 'en')).toBe('3.75');

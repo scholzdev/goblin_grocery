@@ -5,11 +5,10 @@ import { flow } from '../flow';
 import { waveDef, eliteChance, bossTuning, ECONOMY, SHIFTS, WAVE_RAMP } from '../data/waves';
 import { SHOW_HP_BAR, EGG_BLAST, MELON_SLICES, ELITE, GIFTCARD, GUM, THEME_SUMMONS, ELITE_EXCLUDED, AFFIX, MINI_BOSS, bossFor, isBossId, type BossMove } from '../data/enemies';
 import { GumPuddles } from './gum';
-import { CRIT, ITEMS, PLAYER, STARTER_LOOKS } from '../data/items';
-import { SETS, setCfg } from '../data/sets';
+import { CRIT, PLAYER, STARTER_LOOKS } from '../data/items';
 import { RECIPE_TUNING } from '../data/recipes';
 import { addCoins, damagePlayer, takeStockroomItem } from '../state/run';
-import { armorDamage, newHitTracker, pickRicochetTarget, tryHit, type HitTracker } from '../systems/combat';
+import { armorDamage, newHitTracker, tryHit, type HitTracker } from '../systems/combat';
 import type { EnemyId, ShopOffer, WaveDef, WeaponStats } from '../types';
 import { play, setWheel } from '../audio/sfx';
 import { musicFor, playMusic } from '../audio/music';
@@ -20,6 +19,7 @@ import { combatRng, type Rng } from '../systems/rng';
 import { EMPTY_HOOKS, buildHooks, type HitEvent, type HitOpts, type HookTable } from '../engine/hooks';
 import { applyHitStatuses, scheduleEcho } from '../engine/onHitStatuses';
 import { applyKillEffects } from '../engine/onKillEffects';
+import { contentSetTune } from '../engine/registry';
 import { PhaserCtx } from './phaserCtx';
 import { createEnemy, drawTelegraph, updateEnemy, type Enemy } from './enemies';
 import { Arsenal } from './weapons';
@@ -595,10 +595,8 @@ export class ArenaScene extends Phaser.Scene {
 
   damageEnemy(e: Enemy, dmg: number, stats: WeaponStats | null, o: HitOpts): void {
     if (!e.alive) return;
-    const baseDmg = dmg;
     const now = this.time.now / 1000;
     const s = store.state;
-    const sets = s.build.sets;
     const H = this.hooks;
     const key = o.poison ? 'poison' : o.isDot ? 'burn' : stats?.uid ?? o.label ?? 'shove';
     // DAMAGE PIPELINE, in this order (runtime hooks slot into it, docs/item-hooks-refactor.md §4c):
@@ -606,13 +604,13 @@ export class ArenaScene extends Phaser.Scene {
     //   2. legacy x Five-Alarm (burning toast)      3. legacy x mark (Price Check / Sale Flag)
     //   4. crit roll (combat rng): dmg x CRIT.mult, then onCrit hooks (Free Sample), then legacy clearance coin
     //   5. armor (direct hits only)                 6. hp -= dmg, damageByWeapon
-    //   7. onHit hooks, then applyHitStatuses (engine/onHitStatuses: burn, ignite, slow, frost freeze), knockback, flash/number fx,
-    //      scheduleEcho (Double Bag), legacy electric chain
-    //   8. kill: killEnemy (coins; onKill hooks fire inside it, after the bread drop) -> legacy: Bag It, kitchen heal, blast pop ->
-    //      applyKillEffects (engine/onKillEffects: Party Popper)
+    //   7. onHit hooks, then applyHitStatuses (engine/onHitStatuses: burn, ignite, slow), afterHit hooks (the sets: Frost freeze, Cleaning
+    //      knockback mult, Electric chain), knockback, flash/number fx, scheduleEcho (Double Bag)
+    //   8. kill: killEnemy (coins; onKill hooks fire inside it, after the bread drop) -> legacy Bag It -> afterKill hooks (the sets: Kitchen
+    //      heal, Blast pop) -> applyKillEffects (engine/onKillEffects: Party Popper)
     // A hook runs before the legacy lines of its slot; moving legacy lines into hooks top to bottom keeps today's order.
     // The payload is one small object per hit; the engine modules (statuses, echo, kill effects) read it, the emits are guarded by `H.hit`.
-    const hit: HitEvent = { enemy: e, base: dmg, dmg, stats, opts: o, source: key, now, direct: !o.isDot && !o.echo && !o.fromPopper && !o.chained, crit: false, armored: false, killed: false };
+    const hit: HitEvent = { enemy: e, base: dmg, dmg, stats, opts: o, source: key, now, direct: !o.isDot && !o.echo && !o.fromPopper && !o.chained, crit: false, armored: false, killed: false, kbMult: 1 };
     if (H.hit) { H.emit('modifyDamage', hit); dmg = hit.dmg; }
     // Five-Alarm Toast: toast scorches enemies that are already burning.
     if (stats?.recipes.includes('fiveAlarm') && stats.pattern === 'toast' && e.status.burnUntil > now) dmg *= RECIPE_TUNING.fiveAlarm.vsBurning;
@@ -641,13 +639,12 @@ export class ArenaScene extends Phaser.Scene {
     s.stats.damageByWeapon[key] = (s.stats.damageByWeapon[key] ?? 0) + dmg;
     hit.killed = e.hp <= 0;
     if (H.hit) H.emit('onHit', hit);
-    applyHitStatuses(hit, this.ctx); // burn, Heat L2 ignite, slow, Frost L2 freeze (stats-driven, shared by every source)
+    applyHitStatuses(hit, this.ctx); // burn, Heat L2 ignite, slow (stats-driven, shared by every source)
+    if (H.afterHit.length) H.emit('afterHit', hit); // the sets: Frost freeze (needs the slow just applied), Cleaning knockback mult + spritz, Electric chain
     if (o.kb) {
-      const k = o.kb * (1 - e.def.knockbackResist) * (this.hazards.onIce(e.x, e.y) ? DEPT_TUNING.ice.knockbackMult : 1) * (stats && sets.cleaning >= 2 && ITEMS[stats.type].family === 'cleaning' ? setCfg('cleaning', sets.cleaning).knockbackMult : 1);
+      const k = o.kb * (1 - e.def.knockbackResist) * (this.hazards.onIce(e.x, e.y) ? DEPT_TUNING.ice.knockbackMult : 1) * hit.kbMult;
       e.kx += (o.kbX ?? 0) * k * 3; e.ky += (o.kbY ?? 0) * k * 3;
       if (o.blow) { e.blownUntil = now + 0.6; e.blownDmg = o.blow; } // Leaf Blower: marked until it stops against a wall or prop
-      // Cleaning L2: teal spritz on its boosted knockback (direct hits only).
-      if (!o.isDot && stats && stats.pattern !== 'aura' && stats.pattern !== 'puddle' && sets.cleaning >= 2 && ITEMS[stats.type].family === 'cleaning') this.fx.spark(e.x, e.y - 30, 3, 0x3fb7a6);
     }
     if (!o.isDot && !o.quiet) {
       // Short flash with a re-trigger gap so constant fire never leaves a sprite solid white.
@@ -665,33 +662,11 @@ export class ArenaScene extends Phaser.Scene {
       this.fx.number(e.x, e.y - e.sprite.displayHeight * 0.9, dmg, crit ? '#F45F52' : o.poison ? '#8FCB57' : o.isDot ? '#F5BD45' : '#FFF2D5', crit ? 28 : o.isDot ? 16 : 22);
     }
     scheduleEcho(hit, this.ctx); // Double Bag (stats.echo): one delayed second strike per direct hit
-    // Electric set: direct hits may arc to nearby enemies (not aura/puddle ticks; chained hits never chain or echo again).
-    if (stats && stats.chainChance > 0 && !o.isDot && stats.pattern !== 'aura' && stats.pattern !== 'puddle' && !o.chained && this.rng() < stats.chainChance) {
-      const seen = new Set([e.id]);
-      let from: Enemy = e;
-      const pts = [{ x: e.x, y: e.y - 30 }];
-      for (let j = 0; j < stats.chainJumps; j++) {
-        const n = pickRicochetTarget(from, this.enemies.filter((x) => x.alive && x.state !== 'spawn'), seen, SETS.electric.range);
-        if (!n) break;
-        seen.add(n.id);
-        this.fx.spark(n.x, n.y - 30, 4, 0x9be8ff);
-        pts.push({ x: n.x, y: n.y - 30 });
-        this.damageEnemy(n, baseDmg * SETS.electric.damageMult, stats, { chained: true, quiet: o.quiet });
-        from = n;
-      }
-      if (pts.length > 1) this.arcFx(pts);
-    }
     if (e.dummy?.immortal && e.hp <= 0) e.hp = e.maxHp; // lab sandbox: unkillable dummies refill
     if (e.hp <= 0) {
       this.killEnemy(e, true, hit);
       if (stats?.recipes.includes('bagIt')) this.cartCombos.bagKill(); // Bag It: vacuum kills charge the garbage bomb
-      // Kitchen L2: kitchen weapon kills sometimes heal. Blast L2: weapon kills sometimes pop (popper blasts never re-trigger).
-      if (stats && sets.kitchen >= 2 && ITEMS[stats.type].family === 'kitchen' && this.rng() < setCfg('kitchen', sets.kitchen).healChance) {
-        s.hp = Math.min(s.build.maxHp, s.hp + setCfg('kitchen', sets.kitchen).heal);
-        this.healHeartFx(e.x, e.y - 30);
-        store.changed();
-      }
-      if (stats && sets.blast >= 2 && !o.fromPopper && this.rng() < setCfg('blast', sets.blast).killChance) this.popperBlast(e.x, e.y, { damage: setCfg('blast', sets.blast).damage, radius: setCfg('blast', sets.blast).radius }, true);
+      if (H.afterKill.length) H.emit('afterKill', { enemy: e, hit }); // the sets: Kitchen L2 heal, then Blast L2 pop (in that order: both roll)
       applyKillEffects(hit, this.ctx); // Party Popper (stats.popper): kills explode; popper kills never pop again
     }
   }
@@ -703,12 +678,12 @@ export class ArenaScene extends Phaser.Scene {
     this.tweens.add({
       targets: k, v: 1, duration: 350, ease: 'Quad.In',
       onUpdate: () => h.setPosition(x + (this.player.x - x) * k.v, y + (this.player.y - 60 - y) * k.v).setScale(1 - 0.4 * k.v),
-      onComplete: () => { h.destroy(); this.fx.number(this.player.x, this.player.y - 90, SETS.kitchen.heal, '#8FCB57', 20); play('ding', { rate: 1.3, volume: 0.6 }); },
+      onComplete: () => { h.destroy(); this.fx.number(this.player.x, this.player.y - 90, contentSetTune('kitchen', 1).heal, '#8FCB57', 20); play('ding', { rate: 1.3, volume: 0.6 }); },
     });
   }
 
   /** Electric set: one jagged bolt through the chain, fades out fast. */
-  private arcFx(pts: { x: number; y: number }[]): void {
+  arcFx(pts: readonly { x: number; y: number }[]): void {
     const g = this.add.graphics().setDepth(DEPTH.fx);
     const path: { x: number; y: number }[] = [pts[0]];
     for (let i = 1; i < pts.length; i++) {
@@ -1059,8 +1034,7 @@ export class ArenaScene extends Phaser.Scene {
         p.shoveHit = true;
         this.damageEnemy(e, s.build.shoveDamage, null, { kb: PLAYER.shove.knockback, kbX: p.shoveDX, kbY: p.shoveDY, label: 'shove' });
         if (this.hooks.onDashHit.length) this.hooks.emit('onDashHit', { enemy: e, dx: p.shoveDX, dy: p.shoveDY, dmg: s.build.shoveDamage });
-        // (Sale Flag's mark and Tip Jar's coin roll are onDashHit hooks.)
-        if (s.build.shoveStun > 0) { this.stunEnemy(e, s.build.shoveStun); this.fx.ring('fx_pulse', e.x, e.y, 70, 220, 0xf5bd45); }
+        // (Sale Flag's mark, Tip Jar's coin roll and the Tools set's stun are onDashHit hooks.)
       }
       if (wall) p.shoveT = 0;
       if (p.shoveT <= 0) {

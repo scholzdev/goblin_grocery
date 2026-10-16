@@ -8,9 +8,8 @@ import { canPlace, findItem, normalizeRotation } from '../systems/inventory';
 import { mulberry32, type Rng } from '../systems/rng';
 import { zonesOf } from '../data/zones';
 import { currentRerollCost, repairCost, rollDoors, rollOffers, rollZones, sellPrice } from '../systems/shop';
-import { setCfg } from '../data/sets';
 import { computeBuild } from '../systems/synergies';
-import { contentTune } from '../engine/registry';
+import { contentSetTune, contentTune } from '../engine/registry';
 import { FLAVORS } from '../engine/define';
 
 const fail = (reason: string): OpResult => ({ ok: false, reason });
@@ -296,7 +295,7 @@ export function addCoins(state: RunState, amount: number, label: string): void {
 
 export function finishWave(state: RunState): void {
   addCoins(state, Math.round(ECONOMY.waveClearBonus * DEPARTMENTS[state.department].coinMult * MODIFIERS[state.modifier].coinMult * SHIFTS[state.shift].coinMult), t('coinWaveClear'));
-  const ck = setCfg('checkout', state.build.sets.checkout);
+  const ck = contentSetTune('checkout', state.build.sets.checkout);
   const interest = state.build.sets.checkout >= 2 ? Math.min(ck.interestCap, Math.floor(state.money / ck.interestPer)) : 0;
   if (interest > 0) addCoins(state, interest, t('coinInterest'));
   state.stats.wavesCleared++;

@@ -158,7 +158,8 @@ const unlocks: Record<string, string> = {
   'cart-gold': 'Besiege den Filialleiter',
 };
 
-const tags: Record<string, string> = { ranged: 'Fernkampf', melee: 'Nahkampf', area: 'Fläche', electric: 'Elektrisch', kitchen: 'Küche', cleaning: 'Putzen', tools: 'Werkzeug', snacks: 'Snacks', checkout: 'Kasse', heat: 'Hitze', frost: 'Frost', blast: 'Knall' };
+// Weapon tags only: the set names (kitchen ... electric) live in src/content/sets/<id>.ts.
+const tags: Record<string, string> = { ranged: 'Fernkampf', melee: 'Nahkampf', area: 'Fläche' };
 
 const zones: Record<ZoneId, { name: string; blurb: string }> = {
   cereal_wall: { name: 'Müsliwand', blurb: 'Lange Regalgassen' },

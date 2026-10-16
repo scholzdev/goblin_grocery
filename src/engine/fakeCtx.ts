@@ -180,6 +180,15 @@ export class FakeCtx implements RuntimeCtx {
   inRadius(pos: { x: number; y: number }, r: number): CombatEnemy[] {
     return this.enemies.filter((e) => e.alive && e.state !== 'spawn' && (e.x - pos.x) ** 2 + (e.y - pos.y) ** 2 <= (r + e.def.radius) ** 2);
   }
+  ricochetTarget(from: { x: number; y: number }, seen: ReadonlySet<number>, range: number): CombatEnemy | null {
+    let best: CombatEnemy | null = null, bd = range * range;
+    for (const c of this.enemies) {
+      if (!c.alive || c.state === 'spawn' || seen.has(c.id)) continue;
+      const d = (c.x - from.x) ** 2 + (c.y - from.y) ** 2;
+      if (d <= bd) { best = c; bd = d; }
+    }
+    return best;
+  }
   damage(e: CombatEnemy, dmg: number, source: WeaponStats | null, opts: HitOpts = {}): void {
     this.log({ kind: 'damage', enemy: e.id, dmg, source: source?.uid ?? null, opts });
     this.runHit(e, dmg, source, opts);
@@ -251,6 +260,7 @@ export class FakeCtx implements RuntimeCtx {
 
   /** The real strings (current language), so a test sees the label the player would. */
   t(key: UIKey, vars?: Record<string, string | number>): string { return t(key, vars); }
+  arcFx(points: readonly { x: number; y: number }[]): void { this.log({ kind: 'fx', method: 'arc', args: [points] }); }
   sound(name: string, opts?: { rate?: number; volume?: number }): void { this.log({ kind: 'sound', name, opts }); }
   /** Recorded; the end values are applied to the target when the clock reaches `ms`. */
   tween(target: object, props: Record<string, number>, ms: number): void {
@@ -269,14 +279,14 @@ export class FakeCtx implements RuntimeCtx {
 
   /**
    * The combat-rng part of `ArenaScene.damageEnemy` (see the pipeline comment there): modifyDamage, crit roll, onCrit, hp, onHit, the
-   * stats-driven statuses (burn, ignite, slow, Frost L2), echo, and on a lethal hit onKill + the popper blast. Not simulated: Five-Alarm /
-   * mark multipliers, armor, knockback, the Electric chain, the Kitchen / Blast-set kill rolls.
+   * stats-driven statuses (burn, ignite, slow), afterHit (the Frost freeze, Cleaning, Electric chain), echo, and on a lethal hit onKill +
+   * afterKill (Kitchen heal, Blast pop) + the popper blast. Not simulated: Five-Alarm / mark multipliers, armor, knockback itself, Bag It.
    */
   private runHit(e: CombatEnemy, dmg: number, stats: WeaponStats | null, o: HitOpts): void {
     if (!e.alive) return;
     const H = this.hooks, now = this.time;
     const key = o.poison ? 'poison' : o.isDot ? 'burn' : stats?.uid ?? o.label ?? 'shove';
-    const hit: HitEvent = { enemy: e, base: dmg, dmg, stats, opts: o, source: key, now, direct: !o.isDot && !o.echo && !o.fromPopper && !o.chained, crit: false, armored: false, killed: false };
+    const hit: HitEvent = { enemy: e, base: dmg, dmg, stats, opts: o, source: key, now, direct: !o.isDot && !o.echo && !o.fromPopper && !o.chained, crit: false, armored: false, killed: false, kbMult: 1 };
     H.emit('modifyDamage', hit); dmg = hit.dmg;
     if (!o.isDot && stats && stats.critChance > 0 && this.rand() < stats.critChance) {
       dmg *= CRIT.mult;
@@ -286,11 +296,13 @@ export class FakeCtx implements RuntimeCtx {
     e.hp -= dmg;
     hit.killed = e.hp <= 0; H.emit('onHit', hit);
     applyHitStatuses(hit, this);
+    H.emit('afterHit', hit);
     scheduleEcho(hit, this);
     if (e.hp <= 0) {
       e.alive = false;
       e.state = 'dying';
       H.emit('onKill', { enemy: e, hit });
+      H.emit('afterKill', { enemy: e, hit });
       applyKillEffects(hit, this);
     }
   }

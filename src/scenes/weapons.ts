@@ -3,8 +3,7 @@ import type { BurnEffect, WeaponStats } from '../types';
 import { RECIPE_TUNING } from '../data/recipes';
 import { newHitTracker, shieldBlocks, tryHit, isSpent, pickRicochetTarget, type HitTracker } from '../systems/combat';
 import { ITEMS, PUDDLE, TIER } from '../data/items';
-import { contentTune } from '../engine/registry';
-import { SETS, setCfg } from '../data/sets';
+import { contentSetTune, contentTune } from '../engine/registry';
 import { store } from '../state/store';
 import { SHIELD } from '../data/enemies';
 import { applyBurn, applyPoison } from '../systems/combat';
@@ -632,7 +631,7 @@ export class Arsenal {
           const next = pickRicochetTarget(s, sc.enemies.filter((x) => x.alive && x.state !== 'spawn'), s.tracker.hits, 230);
           if (sc.hooks['pattern:bounce'].length) sc.hooks.emit('pattern:bounce', { stats: st, shot: s, x: s.x, y: s.y, next });
           // Confetti Cannon: every bounce goes off like a party popper.
-          if (st.recipes.includes('confettiCannon')) sc.popperBlast(s.x, s.y, { damage: s.damage * RECIPE_TUNING.confettiCannon.damageMult, radius: RECIPE_TUNING.confettiCannon.radius * (store.state.build.sets.blast ? SETS.blast.radiusMult : 1) });
+          if (st.recipes.includes('confettiCannon')) sc.popperBlast(s.x, s.y, { damage: s.damage * RECIPE_TUNING.confettiCannon.damageMult, radius: RECIPE_TUNING.confettiCannon.radius * (store.state.build.sets.blast ? contentSetTune('blast', 1).radiusMult : 1) });
           if (next) {
             const a = Math.atan2(next.y - s.y, next.x - s.x);
             s.vx = Math.cos(a) * sp; s.vy = Math.sin(a) * sp;
@@ -710,6 +709,6 @@ export class Arsenal {
 
 import { applySlow } from '../systems/combat';
 function applySlowFx(e: Enemy, now: number, frostLv: number): void {
-  const f = setCfg('frost', frostLv);
+  const f = contentSetTune('frost', frostLv);
   applySlow(e.status, frostLv > 0 ? { ...PUDDLE.slow, pct: Math.min(f.slowCap, PUDDLE.slow.pct + f.slowBonus) } : PUDDLE.slow, now);
 }

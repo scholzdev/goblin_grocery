@@ -162,7 +162,7 @@ Two implementations: `PhaserCtx` (wraps ArenaScene, Arsenal, fx) and `FakeCtx` (
 | 2 | Migrate build-only items **(done, 3 batches)** | modules + passives whose effect is build-only (fan, battery, hotsauce, pricegun, tape, magnet, lunchbox, bell, energy, fortune, piggy, snackbag, goldstar, powerstrip, sourdough, jellybeans…) | golden identical per batch |
 | 3 | `ctx` + combat hook emit points **(done)** | `PhaserCtx`, `FakeCtx`, seeded `rng`, emit hooks from ArenaScene/weapons with old branches still present | botrun clean |
 | 4 | Migrate runtime items **(done. Batch 1: fuel, ice, popper, doublebag, coupon, sample. Batch 2: boot, bumper, sparewheel, tipjar, flag, bubblewrap, expiredmilk, tinfoilhat; the vacuum pickup stays a `computeBuild` literal until phase 7; multipack's repeat is phase 7)** | per-item FakeCtx tests, botrun |
-| 5 | Sets | 9 set files; remove set branches from damageEnemy | golden + botrun |
+| 5 | Sets **(done)** | 9 set files in `src/content/sets/`; set branches gone from `computeBuild`, `damageEnemy`, `onHitStatuses`; new `afterHit` / `afterKill` hooks; interest and puddle slow still read the set tune | golden + botrun |
 | 6 | Combos | 31 combo files incl. cart combos (`cartCombos.ts` dissolves) | combo-balance test, Lab check |
 | 7 | Patterns | 11 pattern files; weapons define `pattern` + params | botrun |
 | 8 | Delete old | remove BUFFS/RECIPE_TUNING tables, applyRecipe, branches; `data/*` re-exports gone | everything green |
@@ -381,6 +381,48 @@ All eight are now content files (`src/content/items/<id>.ts`) with their EN+DE t
 - **For combos** (phase 6): Price Check owns the mark multiplier (see above) and, with the Flag, the only `markedUntil` writers; Pot Slam (`arsenal.dashBlast` right after the `onDashEnd` emit) is the combo that sits next to the Bumper, so it can be an `onDashEnd` hook of its own (needs `ctx` access to `dashBlast`, or a `pattern:explode` source) and keeps running after the Bumper's because combos register after items; Sparks Fly / Ray Gun (Tin Foil Hat as a support) need nothing from the hat's hooks, they read the weapon stats.
 - **Test files**: each of the eight has a build block (legacy formula to the bit at tiers 1-3 and Gold Star's effective ★4, no stacking), a runtime block and a content block (registered def, tune, order, EN+DE text, rows). The 3x1 Bubble Wrap does not fit `corner()` (6,4) in the 8x6 cart: use `at(type, tier, { near: [], apart: [0], at: [5, 4] })` for wide items.
 - **Unused after batch 2** (delete at phase 8): the ui keys `rowSlam`, `rowChain`, `rowTip`, `rowMark`, `rowArmor`, `rowReflect`, `rowPoison`, `rowDashDist`, `rowDashDmg`; `Build.dashSlam/dashChain/dashCoinChance/dashMark/armor/invulnBonus/reflectMult` once the golden contract is retired.
+
+### Phase 5 learnings (sets)
+
+Nine set files `src/content/sets/<id>.ts` (`defineSet`): kitchen, cleaning, tools, snacks, checkout, heat, frost, blast, electric. Each colocates its tune (L1/L2/L3 arrays), EN/DE text (`name`, three `bonus` rows rendered by `renderText` with the set tune, so `setBonus(id, lv)` and `tagT(id)` read the registry), its build hook and its runtime hooks. `data/sets.ts` keeps only counting (`setsOf`, `setCount`, `setLevels`, `setGains`, `lvOf`) plus the re-exports of `SET_ORDER` / `SET_THRESHOLDS` (now in `engine/define.ts`). `SETS`, `SET_L3` and `setCfg` are gone; non-hook readers use `contentSetTune(id, level)` (registry). The 54 `set_*` ui keys and the set names in `DATA_DE.tags` were deleted; the goldens did not move.
+
+**Engine additions.**
+
+- Two new combat hooks, `afterHit` (`HitEvent`, after `applyHitStatuses`, before the kill check) and `afterKill` (`KillEvent`, after `onKill` and Bag It, before `applyKillEffects`). The existing `onHit` / `onKill` sit before the status code and the kill effects, so the set rolls could not use them without moving the rng draw order. `HitEvent.kbMult` (starts at 1; the knockback line ends with `* hit.kbMult`) lets Cleaning scale the knockback from a hook. Both emits are guarded by `H.afterHit.length` / `H.afterKill.length`.
+- `HookCtx.def(id)` (read an item def, used by Heat for Fuel's burn), `RuntimeCtx.ricochetTarget(from, seen, range)` (a `pickRicochetTarget` wrapper; `ctx.nearest` has different tie, range and Honey Jar rules, so the Electric chain needs its own) and `RuntimeCtx.arcFx(points)`. FakeCtx has all three.
+- `SetContent.extraBuild`: a second list of `BuildSpec`s, flowing into ALL entries of `computeBuild` (the same list the player hooks live in). A set whose bonus has two build positions (Tools: cooldown in `set`, dash damage as a `final` player hook) uses it.
+- `ItemContent.flavored` (Jelly Beans only; the registry requires `sets.length === 1`): `setsOf` takes the flavor as the element for such an item instead of testing `type === 'jellybeans'`. `ItemDef.flavored` is copied by `itemDefOf`.
+- Number-only formatters `pctn` (`10`), `pctup` (`(v-1)*100`), `pctdown` (`(1-v)*100`) for the set rows that embed a percentage inside prose.
+- `SET_ORDER` (the legacy iteration order, which also fixes the registration order of the sets) and `SET_THRESHOLDS = [2,3,4]` in `define.ts`. The registry checks that the set ids equal `SET_ORDER`.
+
+**Order decisions (all golden-verified).**
+
+| Set | Position | Why |
+|---|---|---|
+| kitchen, cleaning, tools, heat, blast, electric | `set` phase, orders 10, 20, 30, 40, 50, 60 | the legacy branch order, and all after Gold Star's Bundle hook (order 100 belongs to the item phase, before the set bonuses) |
+| snacks, checkout | `final` player hook, order 10 | they set `maxHp` / `priceMult` directly, which are not weapon stats; `b.maxHp += maxHp` stays an integer add before the Boot hooks' float work |
+| tools dash damage | `final` player hook, order 200 (via `extraBuild`) | **the Tools multiplier choice**: legacy was `(6 + boot + perk) * mult`. Boot is a `final` player hook at a lower order, so a hook at order 200 sees the full sum and multiplies it, exactly the legacy value. Any item that adds to `shoveDamage` has to stay below 200 |
+| tools stun | same hook sets `shoveStun` (kept for the goldens); the runtime stun is an `onDashHit` hook | `shoveStun` is no longer read by the scene |
+| frost slow clamp | `post-combo`, order 1000 | the legacy clamp ran after the combos; 1000 is above any combo hook |
+| frost freeze | `afterHit`, order 20 | in the old `applyHitStatuses` the freeze was the second roll after the ignite; the ignite stays there, so freeze is the first `afterHit` roll |
+
+Runtime hook orders: kitchen heal `afterKill` 10, blast pop `afterKill` 20 (kitchen first, as in the legacy line order), cleaning `afterHit` 30, frost `afterHit` 20, electric `afterHit` 40, tools `onDashHit` 10. The draw order stays crit, ignite, frost freeze, electric chain, kitchen heal, blast pop; the `damageEnemy` pipeline marker test in `onHitStatuses.test.ts` now uses `afterHit` / `afterKill` markers, and each set test proves "no extra draws" with `combatRng`.
+
+**Semantics kept on purpose.**
+
+- **Heat's ignite roll stays in `onHitStatuses.ts`** (it writes `stats.burn` and the status object, part of the stats contract that the Fuel hook and the scene share); only the Heat build hook (burn extension, the ignite stat from Fuel's tune for heat weapons without a burn) moved. Frost's freeze moved because it is a pure `afterHit` consequence.
+- **Heal popup quirk**: `ArenaScene.healHeartFx` reads `contentSetTune('kitchen', 1).heal` (legacy read `setCfg('kitchen', 1)` for the popup text), so it shows 3 at Kitchen L3 although 4 is healed. Not fixed (behavior-neutral refactor). Same for the Confetti Cannon blast radius in `weapons.ts`: it reads the Blast tune at level 1, so the L3 radius multiplier is ignored (the `build` hook already scales the popper at the set's own level).
+- **Leftover set-tune readers outside hooks**: `weapons.ts` puddle slow (`applySlowFx` with the Frost tune) and the Confetti radius; `state/run.ts` `finishWave` interest (Checkout, `contentSetTune('checkout', lv)`). The interest wants an `onAisleEnd` run hook; that is a run-lifecycle hook that does not exist yet. `tests/content/sets/migration.test.ts` greps the source for leftover set branches and allows exactly these two files.
+- Chain jump targets use `ctx.ricochetTarget` (inclusive range, a later enemy wins a tie), copied from `pickRicochetTarget`.
+
+**Tests.** `tests/content/sets/<id>.test.ts` for each set (threshold behavior at L0..L3 with the tune, EN/DE text, the build fields against the legacy formula, FakeCtx runtime hooks incl. the rng draw counts), `helpers.ts`, `migration.test.ts`; registry tests for set validation (id = filename, unique ids, placeholders, hook names, `extraBuild`, `flavored`) and for the real registry (nine sets, tune triples, rendered bonuses, orders); `text.test.ts` has the three new formatters.
+
+**Notes for phase 6 (combos).**
+
+- Combos use the same dual path: a `combo` / `post-combo` build hook for the stats plus a runtime hook; the registration order is items, sets, combos, so a combo hook ties after an item/set hook of the same order.
+- Price Check owns the mark multiplier and Pot Slam goes through `onDashEnd` (see the batch 2 notes above); Pot Slam needs `dashBlast` from `ctx` or a `pattern:explode` source. Express Checkout is the remaining legacy dash line.
+- A combo that needs a set level reads `c.sets` in its build hook. The Frost clamp at post-combo 1000 means a combo that changes the slow must stay below it.
+- Unused after phase 5 (delete at phase 8): the ui `row*` keys listed above, `Build.shoveStun` (the only set-written field with no reader but the goldens; `regen` is read by the scene and `priceMult` by `systems/shop.ts`, so they stay), and the legacy-shaped `SetId` string unions in `types.ts` once `SET_ORDER` drives the type.
 
 ## 8. Risks
 

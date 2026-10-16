@@ -1,5 +1,5 @@
 import type { ItemTypeId, RecipeId, SetId } from '../types';
-import { BUILD_PHASES, HOOK_NAMES, resolveShape, resolveTune, type BuildPhase, type BuildSpec, type ComboContent, type ItemContent, type RuntimeHooks, type SetContent, type Tune } from './define';
+import { BUILD_PHASES, HOOK_NAMES, SET_ORDER, resolveShape, resolveTune, type BuildPhase, type BuildSpec, type ComboContent, type ItemContent, type RuntimeHooks, type SetContent, type Tune } from './define';
 import { isFormatter, legacyRules, placeholders, renderText } from './text';
 
 // Collects every content file (src/content/{items,combos,sets}/<id>.ts, default export) and validates them.
@@ -18,7 +18,8 @@ export interface ValidateOptions {
   knownComboIds?: readonly string[];
 }
 
-export const SET_IDS: readonly SetId[] = ['kitchen', 'cleaning', 'tools', 'snacks', 'checkout', 'heat', 'frost', 'blast', 'electric'];
+/** Every set id, in the shop's order (`SET_ORDER`). */
+export const SET_IDS: readonly SetId[] = SET_ORDER;
 const FAMILIES = ['kitchen', 'cleaning', 'tools', 'snacks', 'checkout'];
 const ELEMENTS = ['heat', 'frost', 'blast'];
 
@@ -107,6 +108,7 @@ export function validateContent(files: Partial<ContentFiles>, opts: ValidateOpti
     }
     checkBuild(path, c.build, 'item');
     checkHooks(path, c.hooks);
+    if (c.flavored && c.sets?.length !== 1) err(path, 'flavored items take their element from the instance: sets must be just the family');
     if (c.tierBoost) {
       const v = c.tune?.[c.tierBoost.key];
       if (typeof v !== 'number' || !(v > 0)) err(path, `tierBoost.key "${c.tierBoost.key}" must be a positive scalar tune entry`);
@@ -168,6 +170,7 @@ export function validateContent(files: Partial<ContentFiles>, opts: ValidateOpti
       }
     }
     checkBuild(path, c.build, 'set');
+    for (const extra of c.extraBuild ?? []) checkBuild(path, extra, 'set');
     checkHooks(path, c.hooks);
   }
   return errors;
@@ -216,6 +219,9 @@ export const contentSet = (id: SetId): SetContent | undefined => registry.set(id
 export const contentItems = (): readonly ItemContent[] => registry.items;
 export const contentCombos = (): readonly ComboContent[] => registry.combos;
 export const contentSets = (): readonly SetContent[] => registry.sets;
+
+/** A content set's tune resolved at `level` (0 reads like level 1: the base values). The one reader outside build/hooks: run.ts (interest), weapons.ts (puddles). */
+export const contentSetTune = (id: SetId, level: number): Record<string, number> => resolveTune(registry.set(id)?.tune, level);
 
 /** A content item's tune resolved at `tier`. */
 export const contentTune = (id: ItemTypeId, tier: number): Record<string, number> => resolveTune(registry.item(id)?.tune, tier);

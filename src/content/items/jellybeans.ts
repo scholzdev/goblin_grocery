@@ -8,7 +8,7 @@ import { defineItem, flavorOf, tierMult } from '../../engine/define';
 const BASE = 0.7;
 
 export default defineItem({
-  id: 'jellybeans', kind: 'module', sets: ['snacks'], shape: '1x1', price: 10,
+  id: 'jellybeans', kind: 'module', sets: ['snacks'], flavored: true, shape: '1x1', price: 10,
   tune: { base: BASE, strength: [BASE * tierMult(1), BASE * tierMult(2), BASE * tierMult(3)] },
   text: {
     en: { name: 'Jelly Beans', blurb: 'Every shop visit, a new flavor.', rules: 'The flavor changes every shop visit: Heat (Fuel Can burn), Frost (Ice Pack slow) or Blast (Party Popper blast). Adjacent weapons get that effect at {strength|pct} strength, and the beans count toward that flavor\'s set.' },

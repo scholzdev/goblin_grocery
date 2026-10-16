@@ -1,5 +1,5 @@
 import type { BurnEffect, SlowEffect, WeaponStats } from '../types';
-import { applyBurn, applySlow, applyPoison } from '../systems/combat';
+import { applyBurn, applySlow, applyPoison, pickRicochetTarget } from '../systems/combat';
 import { addCoins } from '../state/run';
 import { store } from '../state/store';
 import { play } from '../audio/sfx';
@@ -39,6 +39,9 @@ export class PhaserCtx implements RuntimeCtx {
   inRadius(pos: { x: number; y: number }, r: number): CombatEnemy[] {
     return this.sc.enemies.filter((e) => e.alive && e.state !== 'spawn' && (e.x - pos.x) ** 2 + (e.y - pos.y) ** 2 <= (r + e.def.radius) ** 2);
   }
+  ricochetTarget(from: { x: number; y: number }, seen: ReadonlySet<number>, range: number): CombatEnemy | null {
+    return pickRicochetTarget(from, this.sc.enemies.filter((x) => x.alive && x.state !== 'spawn'), seen as Set<number>, range);
+  }
   damage(e: CombatEnemy, dmg: number, source: WeaponStats | null, opts: HitOpts = {}): void { this.sc.damageEnemy(e as Enemy, dmg, source, opts); }
   damageArea(pos: { x: number; y: number }, r: number, dmg: number, source: WeaponStats | null, opts: HitOpts = {}): number {
     const hit = this.inRadius(pos, r);
@@ -72,6 +75,7 @@ export class PhaserCtx implements RuntimeCtx {
   addCoins(n: number, label: string): void { addCoins(store.state, n, label); }
 
   get fx() { return this.sc.fx; }
+  arcFx(points: readonly { x: number; y: number }[]): void { this.sc.arcFx(points); }
   t(key: UIKey, vars?: Record<string, string | number>): string { return t(key, vars); }
   sound(name: string, opts?: { rate?: number; volume?: number }): void { play(name as AudioName, opts); }
   tween(target: object, props: Record<string, number>, ms: number): void { this.sc.tweens.add({ targets: target, ...props, duration: ms }); }

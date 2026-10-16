@@ -1,8 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { ITEMS } from '../../../src/data/items';
 import powerstrip from '../../../src/content/items/powerstrip';
-import { setCfg } from '../../../src/data/sets';
-import { contentItem, contentTune } from '../../../src/engine/registry';
+import { contentItem, contentSetTune, contentTune } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { tierScaling } from '../../../src/systems/synergies';
@@ -56,7 +55,7 @@ describe('Power Strip: build', () => {
   it('stacks with Battery (rate), then the tools set divides last (two tools types = L1: /1.08)', () => {
     const batE = 1 + contentTune('battery', 1).electric;
     const w = stats([at('toaster'), at('powerstrip'), at('battery')]);
-    expect(w.cooldown).toBeCloseTo(T / batE / 1.4 / setCfg('tools', 1).cooldownDiv, 12);
+    expect(w.cooldown).toBeCloseTo(T / batE / 1.4 / contentSetTune('tools', 1).cooldownDiv, 12);
     expect(w.cooldown).toBeCloseTo(T / batE / ADJ / 1.08, 12);
   });
 

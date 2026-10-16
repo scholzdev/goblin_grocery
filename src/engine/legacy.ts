@@ -17,6 +17,7 @@ export function itemDefOf(c: ItemContent): ItemDef {
   if (c.weapon) def.weapon = c.weapon;
   if (c.legendary) def.legendary = true;
   if (c.buff) def.buff = c.buff;
+  if (c.flavored) def.flavored = true;
   return def;
 }
 

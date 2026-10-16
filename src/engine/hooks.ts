@@ -1,7 +1,8 @@
 import { tierBoostOf } from './build';
 import { contentCombos, contentItems, contentSets } from './registry';
 import { neighbors } from '../systems/inventory';
-import type { ActiveRecipe, Inventory, ItemTypeId, SetId, WeaponStats } from '../types';
+import { ITEMS } from '../data/items';
+import type { ActiveRecipe, Inventory, ItemDef, ItemTypeId, SetId, WeaponStats } from '../types';
 import { HOOK_NAMES, resolveTune, type ComboContent, type ItemContent, type Resolved, type RuntimeHooks, type SetContent, type Tune } from './define';
 import type { CombatEnemy, CombatShot, RuntimeCtx } from './ctx';
 
@@ -58,6 +59,8 @@ export interface HitEvent {
   armored: boolean;
   /** Set when `onHit` runs: this hit took the enemy to 0 HP (it dies right after). */
   killed: boolean;
+  /** Knockback multiplier (starts at 1): `afterHit` hooks multiply it (Cleaning L2), the scene applies it last when it computes the push. */
+  kbMult: number;
 }
 
 export interface KillEvent {
@@ -109,8 +112,12 @@ export interface HookEvents {
   onTick: number;
   modifyDamage: HitEvent;
   onHit: HitEvent;
+  /** After the stats-driven statuses (burn, ignite, slow) and before knockback / flash / echo: Frost freeze, Cleaning knockback, Electric chain. */
+  afterHit: HitEvent;
   onCrit: HitEvent;
   onKill: KillEvent;
+  /** On a lethal hit, after `killEnemy` + `onKill` and Bag It, before the Party Popper blast: Kitchen heal, Blast pop. */
+  afterKill: KillEvent;
   onDashStart: DashStartEvent;
   onDashHit: DashHitEvent;
   onDashEnd: DashEndEvent;
@@ -142,6 +149,8 @@ export interface HookCtx<T extends Tune = Tune> {
   touches(weaponUid: string): boolean;
   /** Highest effective tier of `id` in the cart (0 = not placed). */
   owned(id: ItemTypeId): number;
+  /** The legacy item definition (family, element, base weapon pattern). Sets use it to tell which weapons they apply to. */
+  def(id: ItemTypeId): ItemDef;
   /** Scratch state, fresh for every aisle (counters, timers). Shared by all hooks of the same owner. */
   state: Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
@@ -183,7 +192,7 @@ export function compileHooks(sources: readonly HookSource[], ctx: RuntimeCtx, ow
   const staged: { name: HookName; h: Handler; seq: number }[] = [];
   for (const s of sources) {
     const tune = Object.freeze(resolveTune(s.tune, s.tier));
-    const c: HookCtx = { id: s.id, kind: s.kind, tier: s.tier, tune: () => tune, touches: (uid) => !s.weapons || s.weapons.has(uid), owned, state: {} };
+    const c: HookCtx = { id: s.id, kind: s.kind, tier: s.tier, tune: () => tune, touches: (uid) => !s.weapons || s.weapons.has(uid), owned, def: (id) => ITEMS[id], state: {} };
     const order = s.hooks.order ?? 0;
     for (const name of HOOK_NAMES) {
       const fn = s.hooks[name];
