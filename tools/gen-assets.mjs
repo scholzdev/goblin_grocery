@@ -1074,6 +1074,18 @@ add('icon_canopener', () => {
   return icon(s, 170);
 });
 
+add('icon_decaf', () => {
+  // a to-go coffee cup with a plum lid, a bread-brown sleeve carrying a green leaf (decaf), and a lazy curl of steam
+  let s = line([[84, 44], [76, 34], [86, 24], [78, 14]], C.lavL, 6) + line([[110, 46], [102, 36], [112, 26]], C.lavL, 5);
+  s += S5([[54, 80], [138, 80], [124, 162], [68, 162]], C.cream, C.creamD, { dx: 7, dy: 4 });
+  s += S5([[59, 106], [133, 106], [128, 138], [64, 138]], C.bread, C.breadD, { dx: 5, dy: 3, sw: 4 });
+  s += shape(star(96, 122, 15, 7, 5, -100), C.green, C.greenD, { sw: 3.5, dx: 2, dy: 2 });
+  s += S5([[48, 64], [144, 64], [144, 82], [48, 82]], C.plumSoft, C.plum, { dx: 4, dy: 3, sw: 4 });
+  s += S5(ellPath(96, 58, 22, 9), C.plumSoft, C.plum, { dx: 3, dy: 2, sw: 4 });
+  s += flat([[64, 90], [72, 90], [78, 158], [72, 158]], C.white, 'opacity=".7"') + flat([[54, 68], [92, 68], [92, 72], [54, 72]], C.lav, 'opacity=".8"');
+  return icon(s, 170);
+});
+
 // =====================================================================================
 // ENVIRONMENT
 // =====================================================================================

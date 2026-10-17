@@ -212,11 +212,11 @@ describe('damage through the pipeline, per tag source', () => {
     const soda = toaster.fake.spawnReal('soda', { hp: 1000 }), turkey = toaster.fake.spawnReal('turkey', { hp: 1000 });
     toaster.fake.hit(soda, 10, toaster.stats); toaster.fake.hit(turkey, 10, toaster.stats);
     expect(1000 - soda.hp).toBe(10); // electrical flag, no electric tag
-    expect(1000 - turkey.hp).toBeCloseTo(13, 12); // heat weak; the toaster is not frost, so no resist
+    expect(1000 - turkey.hp).toBeCloseTo(armorDamage(13, 2), 12); // heat weak (13), then the turkey's armor 2 (11); the toaster is not frost, so no resist
     const expired = mop.fake.spawnReal('expired', { hp: 1000 }), turkey2 = mop.fake.spawnReal('turkey', { hp: 1000 });
     mop.fake.hit(expired, 10, mop.stats); mop.fake.hit(turkey2, 10, mop.stats);
     expect(1000 - expired.hp).toBeCloseTo(13, 12); // cleaning weak
-    expect(1000 - turkey2.hp).toBeCloseTo(7, 12); // the mop is frost: the turkey resists
+    expect(1000 - turkey2.hp).toBeCloseTo(armorDamage(7, 2), 12); // the mop is frost: the turkey resists (7), then armor 2 (5)
   });
 
   it('a Spray Bottle (cleaning + frost) is weak-only on a gum (frost), and a heat + frost hit on a turkey cancels out', () => {
@@ -227,7 +227,7 @@ describe('damage through the pipeline, per tag source', () => {
     const fake = new FakeCtx();
     const turkey = fake.spawnReal('turkey', { hp: 1000 });
     fake.damage(turkey, 10, null, { tags: ['heat', 'frost'] });
-    expect(1000 - turkey.hp).toBe(10);
+    expect(1000 - turkey.hp).toBe(armorDamage(10, 2)); // x1.0 through the affinity, then the turkey's armor 2: 8
   });
 
   it('burn tick (heat) vs baguette x1.3, vs gum x0.7; a poison tick vs spitter is resisted x0.7, vs a milk full', () => {
@@ -263,7 +263,7 @@ describe('damage through the pipeline, per tag source', () => {
     fake.popperBlast({ x: 0, y: 0 }, { damage: 10, radius: 100 });
     expect(1000 - milk.hp).toBeCloseTo(13, 12);
     expect(1000 - egg.hp).toBeCloseTo(13, 12);
-    expect(1000 - checkout.hp).toBeCloseTo(7, 12);
+    expect(1000 - checkout.hp).toBeCloseTo(armorDamage(7, 3), 12); // x0.7 = 7, then the Kiosk's armor 3: 4
   });
 
   it('explosion (the Pressure Cooker\'s pot) is a blast hit on top of heat: it hurts a milk by x1.3 though the cooker is heat', () => {
@@ -373,7 +373,7 @@ describe('boss weakness stagger', () => {
     expect(b.state).toBe('stun');
     expect(b.stateT).toBe(AFFINITY.stagger.time);
     expect(fake.callsOf('stagger')).toEqual([{ at: 0, kind: 'stagger', enemy: b.id }]);
-    expect(5000 - b.hp).toBeCloseTo(14, 12); // boss weak = +40%
+    expect(5000 - b.hp).toBeCloseTo(armorDamage(14, 2), 12); // boss weak = +40% (14), then the Freezer's armor 2: 12
   });
 
   it('does not stagger on another tag, on a resisted tag, or from a burn tick', () => {
@@ -463,7 +463,7 @@ describe('boss weakness stagger', () => {
     const b = a.fake.spawnReal('boss_frozen', { hp: 5000 });
     a.fake.hit(b, 10, a.stats);
     expect(b.state).toBe('stun');
-    expect(5000 - b.hp).toBeCloseTo(14, 12);
+    expect(5000 - b.hp).toBeCloseTo(armorDamage(14, 2), 12); // +40% (14), then armor 2: 12
   });
 
   it('tryStagger is a pure decision: weak match, walking, off cooldown, and it starts the cooldown', () => {

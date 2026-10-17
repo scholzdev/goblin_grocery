@@ -2205,6 +2205,38 @@
       "weapon": "toaster"
     }
   ],
+  "buffs.item.decaf.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.decaf.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.decaf.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.decaf.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
   "buffs.item.doublebag.t1.on.blender.de": [
     {
       "lines": [
@@ -6961,6 +6993,46 @@
       }
     ]
   },
+  "items.decaf.de": {
+    "blurb": "Kein Kick, kein Kampfgeist.",
+    "name": "Koffeinfrei",
+    "rules": "Direkte Treffer der angrenzenden Waffe schwächen Gegner: Sie richten 3 s lang {0} weniger Schaden bei dir an. Die stärkere Schwächung gilt, wiederholte Treffer erneuern sie.",
+    "rulesByTier": {
+      "1": "Direkte Treffer der angrenzenden Waffe schwächen Gegner: Sie richten 3 s lang 15% weniger Schaden bei dir an. Die stärkere Schwächung gilt, wiederholte Treffer erneuern sie.",
+      "2": "Direkte Treffer der angrenzenden Waffe schwächen Gegner: Sie richten 3 s lang 20% weniger Schaden bei dir an. Die stärkere Schwächung gilt, wiederholte Treffer erneuern sie.",
+      "3": "Direkte Treffer der angrenzenden Waffe schwächen Gegner: Sie richten 3 s lang 25% weniger Schaden bei dir an. Die stärkere Schwächung gilt, wiederholte Treffer erneuern sie."
+    },
+    "tierScaling": [
+      {
+        "label": "Schwächung",
+        "values": [
+          "15%",
+          "20%",
+          "25%"
+        ]
+      }
+    ]
+  },
+  "items.decaf.en": {
+    "blurb": "No kick, no fight.",
+    "name": "Decaf",
+    "rules": "Direct hits of an adjacent weapon weaken enemies: they deal {0} less damage to you for 3 s. The stronger weakening wins, repeated hits refresh.",
+    "rulesByTier": {
+      "1": "Direct hits of an adjacent weapon weaken enemies: they deal 15% less damage to you for 3 s. The stronger weakening wins, repeated hits refresh.",
+      "2": "Direct hits of an adjacent weapon weaken enemies: they deal 20% less damage to you for 3 s. The stronger weakening wins, repeated hits refresh.",
+      "3": "Direct hits of an adjacent weapon weaken enemies: they deal 25% less damage to you for 3 s. The stronger weakening wins, repeated hits refresh."
+    },
+    "tierScaling": [
+      {
+        "label": "Weaken",
+        "values": [
+          "15%",
+          "20%",
+          "25%"
+        ]
+      }
+    ]
+  },
   "items.doublebag.de": {
     "blurb": "Doppelte Tüte, doppelter Wumms.",
     "name": "Doppeltüte",
@@ -8523,14 +8595,14 @@
   },
   "sets.cleaning.de": {
     "L1": "Putzwaffen +15 % Reichweite/Fläche",
-    "L2": "+40 % Rückstoß, Pfützen halten +1 s länger",
-    "L3": "+25 % Reichweite/Fläche, +80 % Rückstoß, Pfützen halten +2 s länger",
+    "L2": "+40 % Rückstoß, Pfützen halten +1 s länger, Treffer schwächen Gegner um 20 % für 2 s",
+    "L3": "+25 % Reichweite/Fläche, +80 % Rückstoß, Pfützen halten +2 s länger, Treffer schwächen Gegner um 20 % für 2 s",
     "name": "Putzen"
   },
   "sets.cleaning.en": {
     "L1": "Cleaning weapons +15% range/area",
-    "L2": "+40% knockback, puddles last +1 s",
-    "L3": "+25% range/area, +80% knockback, puddles last +2 s",
+    "L2": "+40% knockback, puddles last +1 s, hits weaken enemies by 20% for 2 s",
+    "L3": "+25% range/area, +80% knockback, puddles last +2 s, hits weaken enemies by 20% for 2 s",
     "name": "Cleaning"
   },
   "sets.electric.de": {

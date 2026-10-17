@@ -11,7 +11,7 @@ const OLD = { id: 'boss_frozen', behavior: 'boss', tell: 0.9, attackCooldown: 2.
 
 describe('The Walk-In Freezer (boss_frozen)', () => {
   it('has the stats, sprite scale and tune it had as a table row', () => {
-    expect(ENEMIES.boss_frozen).toEqual({ ...OLD, weak: { heat: 0.4 }, resist: { frost: 0.3 } });
+    expect(ENEMIES.boss_frozen).toEqual({ ...OLD, armor: 2, weak: { heat: 0.4 }, resist: { frost: 0.3 } });
   });
 
   it('shows its name and blurb unchanged in English and German', () => {

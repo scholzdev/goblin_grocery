@@ -3,6 +3,7 @@ import { ITEMS } from '../../../src/data/items';
 import cleaning from '../../../src/content/sets/cleaning';
 import { contentSet, contentSetTune } from '../../../src/engine/registry';
 import { setLang } from '../../../src/i18n/lang';
+import { weakenMult } from '../../../src/systems/combat';
 import { arena, at, far, full } from '../helpers';
 import { expectSetText, hitOf } from './helpers';
 
@@ -62,9 +63,9 @@ describe('Cleaning set: thresholds', () => {
 describe('Cleaning set: content', () => {
   it('is registered with its tune (arrays are L1/L2/L3)', () => {
     expect(contentSet('cleaning')).toBe(cleaning);
-    expect(contentSetTune('cleaning', 1)).toEqual({ rangeMult: 1.15, aoeMult: 1.15, knockbackMult: 1.4, puddleExtra: 1 });
-    expect(contentSetTune('cleaning', 2)).toEqual(contentSetTune('cleaning', 1));
-    expect(contentSetTune('cleaning', 3)).toEqual({ rangeMult: 1.25, aoeMult: 1.25, knockbackMult: 1.8, puddleExtra: 2 });
+    expect(contentSetTune('cleaning', 1)).toEqual({ rangeMult: 1.15, aoeMult: 1.15, knockbackMult: 1.4, puddleExtra: 1, weakenPct: 0, weakenTime: 0 });
+    expect(contentSetTune('cleaning', 2)).toEqual({ ...contentSetTune('cleaning', 1), weakenPct: 0.2, weakenTime: 2 });
+    expect(contentSetTune('cleaning', 3)).toEqual({ rangeMult: 1.25, aoeMult: 1.25, knockbackMult: 1.8, puddleExtra: 2, weakenPct: 0.2, weakenTime: 2 });
   });
 
   it('runs at set order 20, its hook at 30', () => {
@@ -74,8 +75,8 @@ describe('Cleaning set: content', () => {
 
   it('renders EN and DE bonus lines from the tune', () => {
     expectSetText('cleaning', {
-      en: { name: 'Cleaning', bonus: ['Cleaning weapons +15% range/area', '+40% knockback, puddles last +1 s', '+25% range/area, +80% knockback, puddles last +2 s'] },
-      de: { name: 'Putzen', bonus: ['Putzwaffen +15 % Reichweite/Fläche', '+40 % Rückstoß, Pfützen halten +1 s länger', '+25 % Reichweite/Fläche, +80 % Rückstoß, Pfützen halten +2 s länger'] },
+      en: { name: 'Cleaning', bonus: ['Cleaning weapons +15% range/area', '+40% knockback, puddles last +1 s, hits weaken enemies by 20% for 2 s', '+25% range/area, +80% knockback, puddles last +2 s, hits weaken enemies by 20% for 2 s'] },
+      de: { name: 'Putzen', bonus: ['Putzwaffen +15 % Reichweite/Fläche', '+40 % Rückstoß, Pfützen halten +1 s länger, Treffer schwächen Gegner um 20 % für 2 s', '+25 % Reichweite/Fläche, +80 % Rückstoß, Pfützen halten +2 s länger, Treffer schwächen Gegner um 20 % für 2 s'] },
     });
   });
 });
@@ -126,5 +127,41 @@ describe('Cleaning set: knockback', () => {
   it('draws no random numbers', () => {
     const { fake } = emit(3);
     expect(fake.rng()).toBe(run(3).fake.rng());
+  });
+});
+
+// Weaken (docs/item-hooks-refactor.md "Weaken"): L2 / L3 `afterHit` weakens the enemy by 20% for 2 s on every DIRECT hit of a cleaning weapon, quiet cone and puddle ticks included.
+describe('Cleaning set: weaken', () => {
+  const emit = (n: number, opts = {}, patch: object = {}, weapon = LEAF) => {
+    const a = arena(cart(weapon, n), { seed: 1 });
+    const enemy = a.fake.spawnEnemy({ hp: 100, x: 10, y: 80 });
+    a.fake.hooks.emit('afterHit', hitOf(enemy, { ...a.stats, ...patch }, { kb: 100, kbX: 1, kbY: 0, ...opts }));
+    return { ...a, enemy };
+  };
+
+  it('L2 and L3 weaken by 20% for 2 s, L1 does nothing', () => {
+    for (const n of [2, 3]) {
+      const r = emit(n);
+      expect(r.fake.callsOf('weaken')).toEqual([{ at: 0, kind: 'weaken', enemy: r.enemy.id, pct: 0.2, seconds: 2 }]);
+      expect(weakenMult(r.enemy.status, 0)).toBeCloseTo(0.8, 10);
+      expect(weakenMult(r.enemy.status, 2)).toBe(1); // over after its 2 s
+    }
+    expect(emit(1).fake.callsOf('weaken')).toEqual([]);
+  });
+
+  it('counts the quiet cone and puddle ticks (the family\'s main delivery), not DoT, echo, chain or pop hits', () => {
+    expect(emit(2, { quiet: true }).fake.callsOf('weaken')).toHaveLength(1);
+    expect(emit(2, { quiet: true }, { pattern: 'puddle' }, MOP).fake.callsOf('weaken')).toHaveLength(1);
+    for (const o of [{ isDot: true }, { echo: true }, { chained: true }, { fromPopper: true }]) expect(emit(2, o).fake.callsOf('weaken'), JSON.stringify(o)).toEqual([]);
+  });
+
+  it('only cleaning weapons', () => {
+    const a = arena([at('pan'), ...members(3)], { seed: 1 }), enemy = a.fake.spawnEnemy({ hp: 100 });
+    a.fake.hooks.emit('afterHit', hitOf(enemy, a.stats, { kb: 100 }));
+    expect(a.fake.callsOf('weaken')).toEqual([]);
+  });
+
+  it('draws no random numbers', () => {
+    expect(emit(3).fake.rng()).toBe(arena(cart(LEAF, 3), { seed: 1 }).fake.rng());
   });
 });

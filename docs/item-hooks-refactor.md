@@ -5,7 +5,7 @@ Every item, weapon, set, combo and enemy is one file under `src/content/`: its n
 ## Layout
 
 ```
-src/content/items/<id>.ts    one file per item, weapons included (44)
+src/content/items/<id>.ts    one file per item, weapons included (45)
 src/content/combos/<id>.ts   one per combo, cart combos included (32)
 src/content/sets/<id>.ts     kitchen, cleaning, tools, snacks, checkout, heat, frost, blast, electric (9)
 src/content/enemies/<id>.ts  one per enemy: the 15 regular groceries and the 5 bosses (20)
@@ -162,7 +162,7 @@ A call site that fires a hit of a kind the weapon does not say adds `tags` to it
 
 ## Shred: an armor-stripping status
 
-Armor (Canned Beans 3, and the Plated elite affix +3) soaks flat damage off a direct hit. Shred is the enemy status that takes it away: each stack is -1 armor, so armor soaks less, and with none left the hit gains a little damage instead. All numbers are the one const `SHRED` in `engine/define.ts`: `{ cap: 3, duration: 4, bonusShare: 0.5 }`.
+Armor (the table in "Armor" below: Canned Beans 3, Frozen Turkey 2, the Self-Checkout Kiosk 3, the Walk-In Freezer 2, and the Plated elite affix +3) soaks flat damage off a direct hit. Shred is the enemy status that takes it away: each stack is -1 armor, so armor soaks less, and with none left the hit gains a little damage instead. All numbers are the one const `SHRED` in `engine/define.ts`: `{ cap: 3, duration: 4, bonusShare: 0.5 }`.
 
 **Status.** `StatusFx.shredStacks` / `shredUntil` (`systems/combat.ts`). `applyShred(status, stacks, duration, now)`: when the timer has run out the old stacks are dropped first, then `stacks = min(cap, stacks + n)` and `until = max(until, now + duration)`. The stacks share one timer and expire together. `shredStacks(status, now)` is what counts right now. No affinity tag, so `statusDurationMult` never touches it, and bosses are not immune. Hooks call `ctx.shred(e, stacks, seconds?)` (default `SHRED.duration`; `PhaserCtx` and `FakeCtx`, which logs a `shred` call like `mark`). It draws no rng: a source that shreds only sometimes rolls first.
 
@@ -182,6 +182,50 @@ Armor (Canned Beans 3, and the Plated elite affix +3) soaks flat damage off a di
 **Display.** Orange diamonds, one per stack, left of the enemy's health bar (`ArenaScene.drawOverlays`, beside the mark marker). The codex shows an "Armor" row with a shield chip and the number next to the weak / resist rows, and a shredding item's shop card ends its "Strong vs" with an "Armored" chip (`ui/affinity.ts`, `ITEMS[id].shreds`). The Can Opener icon is `icon_canopener` in `tools/gen-assets.mjs`.
 
 **Goldens.** The Can Opener, Crack Open and the Tools L2 / L3 dash-Shred text were added with a deliberate golden update (`build.json` and `text.json` only gained those entries; no existing line changed).
+
+## Armor
+
+Armor is the flat `armor` stat of an enemy file (`stats.armor`). It soaks that many points off every DIRECT hit (burn and poison ticks, puddles, auras and quiet cone ticks pass through) but never more than 70% of the hit: the damage after armor is at least `minShare` (0.3) of it, rounded up. The rule is the one function `armorDamage` (`systems/combat.ts`), which reads `ENEMIES.beans.tune.minShare` for every armored enemy, so a new armored enemy needs no `tune` of its own. `hitArmor` is the pipeline step the scene and the FakeCtx share, Shred (below) takes armor away through `shreddedArmorDamage`. The codex shows an "Armor" row with a shield chip for any enemy with `armor` (`ui/affinity.ts`), mini-boss giants and elites inherit it through the def copy (an elite adds `AFFIX.plated.armor` on top).
+
+| Enemy | Armor | A 10 hit becomes | Notes |
+|---|---|---|---|
+| Canned Beans | 3 | 7 | the original: `tune.minShare` 0.3 lives in its file |
+| Frozen Turkey | 2 | 8 | also on the Turkey giant (mid-shift boss, frozen aisle 4) and a plated Turkey elite (5) |
+| Self-Checkout Kiosk (boss) | 3 | 7 | |
+| Walk-In Freezer (boss) | 2 | 8 | |
+
+Everything else has none. Bosses are armored by their own `stats.armor`, the other three bosses are not. Armor comes after the affinity multiplier, so a heat hit on the Turkey is `armorDamage(x1.3 hit, 2)`.
+
+## Weaken: a status that cuts the damage an enemy deals
+
+Weaken is the enemy status for the player's defense: while it runs the enemy deals less damage to the goblin. The one const is `WEAKEN = { cap: 0.5 }` in `engine/define.ts`.
+
+**Status.** `StatusFx.weakenPct` / `weakenUntil` (`systems/combat.ts`). `applyWeaken(status, pct, duration, now)`: while one is running the stronger percentage wins (`max(old, new)`) and the end is the later of the two (`max(until, now + duration)`), like slow; once it has run out a new application replaces it, even a lower one. The percentage is capped at `WEAKEN.cap` (50%). `weakenMult(status, now)` = `1 - active pct` (1 when expired). No affinity tag, so `statusDurationMult` never touches it (the seconds are exactly what the source asked), and bosses are not immune. Hooks call `ctx.weaken(e, pct, seconds)` (`RuntimeCtx`; `PhaserCtx` and `FakeCtx`, which logs a `weaken` call like `shred`). It draws no rng.
+
+**Where it applies.** At the SOURCE, where the attacking enemy is known: `ArenaScene.enemyDmg(e, dmg)` = `weakenedDamage(e, dmg, now)` (`systems/combat.ts`: the damage times `weakenMult`, rounded to a whole point, never below 1; unweakened it returns `dmg` untouched). Every enemy damage to the goblin goes through it before `hurtPlayer`, and a projectile gets it as its `damage` when it is FIRED, so a bubble shot before the weaken landed still hurts full and one shot while weakened stays weakened for its whole flight (and after the status ran out). `hurtPlayer` and its pipeline (i-frames, `onPlayerHit` such as Bubble Wrap, death) are unchanged: Weaken only lowers the number that goes in.
+
+| Damage | Where | Weakened |
+|---|---|---|
+| contact (a charge's +3 included) | `ArenaScene.contactDamage` | yes |
+| Baguette swipe | `ArenaScene.enemySwipe` | yes |
+| Detergent Spitter bubbles | `scenes/enemies.ts` `beginAttack`, `spitter` | yes, when fired |
+| Egg blast on the goblin | `beginAttack`, `exploder` | yes |
+| boss volley, Oven ring | `beginAttack` `volley`, `bossSpecial` `ring` | yes, when fired |
+| Freezer Cold Snap slush, Smart-TV lanes | `bossSpecial` `slush`, `lanes` | yes, at the strike |
+| oven vents, live cable, event sparks | `scenes/hazards.ts`, `scenes/events.ts` | no: not an enemy's damage |
+
+A Tin Foil Hat reflection reuses the shot's `damage`, so a weakened shot comes back weaker too.
+
+**Sources.**
+
+| Source | Where | What |
+|---|---|---|
+| Decaf (module, Kitchen family) | `content/items/decaf.ts`, `onHit` hook | every direct hit (`hit.direct`, not quiet) of an adjacent weapon weakens by 15 / 20 / 25% (★1 / ★2 / ★3) for 3 s. No roll. 1x1, price 9, unlocked by reaching aisle 4. Kitchen: the family of the Hot Sauce and Ice Pack, whose set is about keeping the goblin fed and standing |
+| Cleaning set L2 / L3 | `content/sets/cleaning.ts` `afterHit`, tune `weakenPct: [0, 0.2, 0.2]`, `weakenTime: [0, 2, 2]` | every direct hit of a cleaning weapon, QUIET ticks included (the spray cone, the mop puddle), weakens by 20% for 2 s. Quiet hits count because they are the family's main delivery; with the spray at 0.55 s and the leaf blower at 0.9 s against a 2 s status it simply stays on whatever the cone keeps touching |
+
+**Display.** A lavender down-arrow right of the enemy's health bar (`ArenaScene.drawOverlays`, the mirror of the Shred diamonds on the left and the price tag above), shown while the weaken is active. The Decaf card carries a "Weaken" row; it has no "Strong vs" strip (no element, nothing it is strong against). Icon `icon_decaf` in `tools/gen-assets.mjs`. Not done: a "damage prevented" line in the run-end breakdown (the receipt only knows damage the goblin DEALS, so it would need its own accumulator).
+
+**Goldens.** The Decaf entries and the Cleaning set L2 / L3 text were added with a deliberate golden update (`build.json` and `text.json` only gained those entries and the two changed text lines).
 
 ## Damage colors
 
@@ -203,6 +247,7 @@ Shown on the run-end receipt (`endHtml` -> `ui/damageBreakdown.ts`, under the fi
 - Golden snapshots in `tests/golden/__snapshots__/`: `build.json` (`computeBuild` output of about 344 carts) and `text.json` (rendered text, EN and DE). Both must stay byte-identical unless a change is intended; regenerate one with `npx vitest run tests/golden/<name>.golden.test.ts -u` and review the diff by key. Never run a blanket `-u`. The `rules` field in `text.json` is the older `{0}`/`{1}` template form, reproduced by the test-only helper `tests/golden/legacyRules.ts`.
 - Registry tests (`tests/engine/registry.test.ts`) validate the rules above on fixtures; the real registry validates itself at load.
 - `tests/shred.test.ts` (the status, the armor table, the explosion source, plated), `tests/content/items/canopener.test.ts`, `tests/content/combos/crackOpen.test.ts`, the dash cases in `tests/content/sets/tools.test.ts`, `tests/sims/shred-sims.test.ts`.
+- `tests/weaken.test.ts` (the status, the damage rule, the source guards, the armor values), `tests/content/items/decaf.test.ts`, the weaken cases in `tests/content/sets/cleaning.test.ts`, `tests/sims/weaken-sims.test.ts`.
 - `tests/engine/affinity.test.ts` (rules, hit tags, pipeline per tag source through `FakeCtx.spawnReal`, status times, stagger, mini-boss inheritance, wiring guards) and `tests/affinity-ui.test.ts` (codex rows, "Strong vs" for weapons and modules, EN and DE).
 - Sims (`?sim=<id>`, docs/sims.md): launch an exact cart, department and enemies in the arena. Use them to look at a change; `tests/sims/sims.test.ts` checks that each combo, weapon, enemy and boss sim shows what it names.
 - `tools/botrun.mjs` plays real runs in a browser: a smoke test (page errors), not a golden test.

@@ -5,7 +5,7 @@ export default defineEnemy({
   id: Enemy.turkey, behavior: 'tank', scale: 0.8, hpBar: true,
   stats: {
     hp: 150, speed: 38, contactDamage: 9, coins: 4, radius: 34,
-    knockbackResist: 0.92,
+    armor: 2, knockbackResist: 0.92,
   },
   weak: { heat: AFFINITY.weak },
   resist: { frost: AFFINITY.resist },

@@ -11,7 +11,7 @@ const OLD = { id: 'turkey', behavior: 'tank', tell: 0, attackCooldown: 0, attack
 
 describe('Frozen Turkey (turkey)', () => {
   it('has the stats, sprite scale and tune it had as a table row', () => {
-    expect(ENEMIES.turkey).toEqual({ ...OLD, weak: { heat: 0.3 }, resist: { frost: 0.3 } });
+    expect(ENEMIES.turkey).toEqual({ ...OLD, armor: 2, weak: { heat: 0.3 }, resist: { frost: 0.3 } });
   });
 
   it('shows its name and blurb unchanged in English and German', () => {

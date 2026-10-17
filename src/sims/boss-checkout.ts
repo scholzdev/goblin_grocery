@@ -4,7 +4,7 @@ import { Item } from '../engine/ids';
 // Boss: boss_checkout. A real aisle 8 in its department (waves, director, the boss) with the same strong cart as the 'boss' sim, god mode on.
 export default defineSim({
   id: 'boss-checkout',
-  notes: 'The Self-Checkout Kiosk (1550 HP), checkout aisle 8. Loop: conveyor, charge, volley (7 receipts in a 70° fan), summon (4 gums and gift cards), charge, conveyor. The conveyor shoves you toward the boss at 170 px/s for 2.4 s: walk against the chevrons.',
+  notes: 'The Self-Checkout Kiosk (1550 HP), checkout aisle 8. Loop: conveyor, charge, volley (7 receipts in a 70° fan), summon (4 gums and gift cards), charge, conveyor. The conveyor shoves you toward the boss at 170 px/s for 2.4 s: walk against the chevrons. Armor 3: every direct hit loses 3 damage (Shred strips it).',
   waves: true,
   aisle: 8,
   department: 'checkout',

@@ -6,7 +6,7 @@ export default defineEnemy({
   id: Enemy.boss_checkout, behavior: 'boss', scale: 0.95,
   stats: {
     hp: 1550, speed: 50, contactDamage: 14, coins: 30, radius: 46,
-    knockbackResist: 1, tell: 0.8, attackCooldown: 2.3, attackDamage: 9, projectileSpeed: 195, projectileLife: 5, lungeSpeed: 560, lungeTime: 0.7,
+    armor: 3, knockbackResist: 1, tell: 0.8, attackCooldown: 2.3, attackDamage: 9, projectileSpeed: 195, projectileLife: 5, lungeSpeed: 560, lungeTime: 0.7,
   },
   tune: { speed: 170, time: 2.4 },
   weak: { electric: AFFINITY.bossWeak },

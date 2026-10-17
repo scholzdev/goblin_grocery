@@ -7,7 +7,7 @@ import { SHOW_HP_BAR, ENEMIES, ELITE, THEME_SUMMONS, ELITE_EXCLUDED, AFFIX, MINI
 import { GumPuddles } from './gum';
 import { CRIT, PLAYER, STARTER_LOOKS } from '../data/items';
 import { addCoins, damagePlayer, takeStockroomItem } from '../state/run';
-import { hitArmor, newHitTracker, shredGain, shredStacks, tryHit, type HitTracker } from '../systems/combat';
+import { hitArmor, newHitTracker, shredGain, shredStacks, tryHit, weakenedDamage, weakenMult, type HitTracker } from '../systems/combat';
 import type { EnemyId, ShopOffer, WaveDef, WeaponStats } from '../types';
 import { play, setWheel } from '../audio/sfx';
 import { musicFor, playMusic } from '../audio/music';
@@ -930,8 +930,15 @@ export class ArenaScene extends Phaser.Scene {
     const dx = near.x - e.x, dy = near.y - e.y;
     const d = near.d;
     const diff = Math.abs(Phaser.Math.Angle.Wrap(Math.atan2(dy, dx) - a));
-    if (d < e.def.attackRange + 26 + p.radius && diff < Phaser.Math.DegToRad(e.def.arcDeg / 2 + 10)) this.hurtPlayer(e.def.attackDamage);
+    if (d < e.def.attackRange + 26 + p.radius && diff < Phaser.Math.DegToRad(e.def.arcDeg / 2 + 10)) this.hurtPlayer(this.enemyDmg(e, e.def.attackDamage));
   }
+
+  /**
+   * What `e`'s attack of `dmg` does to the player right now: its Weaken applied at the source (docs/item-hooks-refactor.md "Weaken"). Every enemy damage to the goblin
+   * goes through here before `hurtPlayer` (contact, swipe, egg blast, the boss strikes), and a shot gets it as its `damage` when it is FIRED, so it keeps the
+   * value for the whole flight. Hazards and events call `hurtPlayer` with their own damage, untouched.
+   */
+  enemyDmg(e: Enemy, dmg: number): number { return weakenedDamage(e, dmg, this.time.now / 1000); }
 
   spawnEnemyShot(key: string, x: number, y: number, a: number, speed: number, life: number, damage: number): void {
     this.arsenal.spawnEnemyShot(key, x, y, a, speed, life, damage);
@@ -1150,7 +1157,7 @@ export class ArenaScene extends Phaser.Scene {
       const d2 = dx * dx + dy * dy;
       if (d2 > r * r) continue;
       const charging = e.state === 'attack' && (e.def.behavior === 'charger' || (e.def.behavior === 'boss' && e.bossMove === 'charge'));
-      this.hurtPlayer(e.def.contactDamage + (charging ? 3 : 0));
+      this.hurtPlayer(this.enemyDmg(e, e.def.contactDamage + (charging ? 3 : 0)));
       // Keep groceries from stacking inside the cart.
       const d = Math.sqrt(d2) || 1;
       if (e.def.behavior !== 'boss') { e.x = near.x + (dx / d) * r; e.y = near.y + (dy / d) * r; }
@@ -1201,6 +1208,14 @@ export class ArenaScene extends Phaser.Scene {
         b.fillStyle(0xf5a13d, 1).fillPoints(pts, true);
         b.lineStyle(1.5, 0x30203f, 1).strokePoints(pts, true);
       }
+    }
+    // Weaken: a lavender down-arrow right of the health bar (the enemy hits you for less), the mirror of the shred diamonds on the left.
+    for (const e of this.enemies) {
+      if (!e.alive || weakenMult(e.status, t) >= 1) continue;
+      const x = e.x + 20 + 10, y = e.y - e.sprite.displayHeight - 6;
+      const pts = [{ x: x - 3, y: y - 6 }, { x: x + 3, y: y - 6 }, { x: x + 3, y: y - 1 }, { x: x + 7, y: y - 1 }, { x, y: y + 7 }, { x: x - 7, y: y - 1 }, { x: x - 3, y: y - 1 }];
+      b.fillStyle(0x9081b6, 1).fillPoints(pts, true);
+      b.lineStyle(1.5, 0x30203f, 1).strokePoints(pts, true);
     }
   }
 

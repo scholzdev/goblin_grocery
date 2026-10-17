@@ -30,7 +30,7 @@ export const tierMult = (tier: number): number => 1 + 0.5 * (tier - 1);
 export const ITEM_ORDER = [
   'toaster', 'pan', 'nailgun', 'vacuum', 'fan', 'fuel', 'battery', 'magnet', 'ice', 'hotsauce', 'lunchbox', 'bell', 'boot', 'bumper', 'sparewheel', 'tipjar', 'flag',
   'microwave', 'blender', 'fizz', 'mop', 'pricegun', 'tape', 'coupon', 'bubblewrap', 'energy', 'fortune', 'sample', 'piggy', 'expiredmilk', 'tinfoilhat', 'jellybeans',
-  'leafblower', 'sourdough', 'powerstrip', 'goldstar', 'laser', 'snackbag', 'cooker', 'spray', 'popper', 'doublebag', 'multipack', 'canopener',
+  'leafblower', 'sourdough', 'powerstrip', 'goldstar', 'laser', 'snackbag', 'cooker', 'spray', 'popper', 'doublebag', 'multipack', 'canopener', 'decaf',
 ] as const;
 
 /** Every combo, in the order `computeBuild` applies the matching ones (it decides which combo hook runs first on a weapon) and the codex lists them. */
@@ -358,6 +358,13 @@ export const AFFINITY = {
  * share one timer (refreshed to the later end by every application) and expire together. No element tag: affinity does not touch it, bosses are not immune.
  */
 export const SHRED = { cap: 3, duration: 4, bonusShare: 0.5 } as const;
+
+/**
+ * Weaken (docs/item-hooks-refactor.md "Weaken"): an enemy status that cuts the damage it deals to the player (contact, melee and its projectiles; hazards are not
+ * its damage). The percentage is capped at `cap`; the strongest running one wins, the end is the later of the two. No element tag: affinity does not touch it,
+ * bosses are not immune.
+ */
+export const WEAKEN = { cap: 0.5 } as const;
 
 /** The enemy behaviors (`EnemyBehavior` of types.ts is derived from this list). */
 export const ENEMY_BEHAVIORS = ['chase', 'charger', 'tank', 'spitter', 'swiper', 'exploder', 'splitter', 'healer', 'thief', 'teleporter', 'boss'] as const;

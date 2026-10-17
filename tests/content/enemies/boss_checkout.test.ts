@@ -11,7 +11,7 @@ const OLD = { id: 'boss_checkout', behavior: 'boss', tell: 0.8, attackCooldown: 
 
 describe('The Self-Checkout Kiosk (boss_checkout)', () => {
   it('has the stats, sprite scale and tune it had as a table row', () => {
-    expect(ENEMIES.boss_checkout).toEqual({ ...OLD, weak: { electric: 0.4 }, resist: { blast: 0.3 } });
+    expect(ENEMIES.boss_checkout).toEqual({ ...OLD, armor: 3, weak: { electric: 0.4 }, resist: { blast: 0.3 } });
   });
 
   it('shows its name and blurb unchanged in English and German', () => {

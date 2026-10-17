@@ -6,6 +6,7 @@ import { FakeCtx } from '../src/engine/fakeCtx';
 import { Enemy, Item, Tag } from '../src/engine/ids';
 import { MARK_MULT } from '../src/engine/marks';
 import { hitTags } from '../src/engine/hitTags';
+import { armorDamage } from '../src/systems/combat';
 import { newDamageStats, recordDamage, totalDamage, type DamageSink } from '../src/systems/damageStats';
 import { UI } from '../src/i18n/ui';
 import { setLang } from '../src/i18n/lang';
@@ -155,11 +156,12 @@ describe('the FakeCtx records the pipeline\'s final damage', () => {
     const d = fake.dmgLog.damage, total = lost(turkey, 1000);
     expect(Object.values(fake.dmgLog.damageByWeapon).reduce((a, b) => a + b, 0)).toBeCloseTo(total, 9);
     expect(totalDamage(d)).toBeCloseTo(total, 9);
-    expect(d.byType.heat).toBeCloseTo(13, 9); // weak: 10 x 1.3, shown as heat
-    expect(d.byType.physical).toBe(10);
-    expect(d.byType.frost).toBeCloseTo(7, 9); // resisted: 10 x 0.7
-    expect(d.weak).toBeCloseTo(13, 9);
-    expect(d.resisted).toBeCloseTo(7, 9);
+    // The turkey has armor 2 (the armor step comes after the affinity): each number is the affinity result, soaked by it.
+    expect(d.byType.heat).toBeCloseTo(armorDamage(13, 2), 9); // weak: 10 x 1.3 = 13, shown as heat; 11 after armor
+    expect(d.byType.physical).toBe(armorDamage(10, 2)); // 8
+    expect(d.byType.frost).toBeCloseTo(armorDamage(7, 2), 9); // resisted: 10 x 0.7 = 7; 5 after armor
+    expect(d.weak).toBeCloseTo(armorDamage(13, 2), 9);
+    expect(d.resisted).toBeCloseTo(armorDamage(7, 2), 9);
     expect(d.dot).toBe(0);
   });
 

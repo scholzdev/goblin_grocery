@@ -1,4 +1,4 @@
-import { applyBurn, applyPoison, applyShred, applySlow, hitArmor, newStatus, shredGain } from '../systems/combat';
+import { applyBurn, applyPoison, applyShred, applySlow, applyWeaken, hitArmor, newStatus, shredGain } from '../systems/combat';
 import { newDamageStats, recordDamage, type DamageSink } from '../systems/damageStats';
 import { combatRng, type Rng } from '../systems/rng';
 import { CRIT, PLAYER } from '../data/items';
@@ -37,6 +37,7 @@ export type Call = { at: number } & (
   | { kind: 'poison'; enemy: number; dps: number; duration: number }
   | { kind: 'mark'; enemy: number; seconds: number }
   | { kind: 'shred'; enemy: number; stacks: number; seconds: number }
+  | { kind: 'weaken'; enemy: number; pct: number; seconds: number }
   | { kind: 'hurt'; dmg: number }
   | { kind: 'heal'; hp: number }
   | { kind: 'healFx'; x: number; y: number }
@@ -255,6 +256,10 @@ export class FakeCtx implements RuntimeCtx {
   shred(e: CombatEnemy, stacks: number, seconds: number = SHRED.duration): void {
     this.log({ kind: 'shred', enemy: e.id, stacks, seconds });
     applyShred(e.status, stacks, seconds, this.time);
+  }
+  weaken(e: CombatEnemy, pct: number, seconds: number): void {
+    this.log({ kind: 'weaken', enemy: e.id, pct, seconds });
+    applyWeaken(e.status, pct, seconds, this.time);
   }
 
   playerNear(x: number, y: number): { x: number; y: number; d: number } {

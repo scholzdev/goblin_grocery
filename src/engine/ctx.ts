@@ -148,6 +148,11 @@ export interface RuntimeCtx {
    * no element, so affinity never scales it. Nothing here is rolled: a source that shreds only sometimes draws its own chance first.
    */
   shred(e: CombatEnemy, stacks: number, seconds?: number): void;
+  /**
+   * Weaken: the enemy deals `pct` less damage to the player for `seconds` (contact, melee, its projectiles; not hazards). The strongest running pct wins and the end is
+   * the later of the two (capped at `WEAKEN.cap`). Bosses are not immune; no element, so affinity never scales it. Nothing is rolled here.
+   */
+  weaken(e: CombatEnemy, pct: number, seconds: number): void;
 
   // ---- player
   readonly player: PlayerView;

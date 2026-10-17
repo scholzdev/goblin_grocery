@@ -1,6 +1,6 @@
 import type { BurnEffect, SlowEffect } from '../types';
 import { ENEMIES } from '../data/enemies';
-import { SHRED } from '../engine/define';
+import { SHRED, WEAKEN } from '../engine/define';
 import { Enemy } from '../engine/ids';
 
 export interface HitTracker { maxHits: number; hits: Set<number> }
@@ -12,8 +12,8 @@ export function tryHit(t: HitTracker, enemyId: number): boolean {
   return true;
 }
 
-export interface StatusFx { burnDps: number; burnUntil: number; burnTick: number; nextBurnAt: number; slowPct: number; slowUntil: number; poisonDps: number; poisonUntil: number; nextPoisonAt: number; shredStacks: number; shredUntil: number }
-export const newStatus = (): StatusFx => ({ burnDps: 0, burnUntil: 0, burnTick: 0.5, nextBurnAt: 0, slowPct: 0, slowUntil: 0, poisonDps: 0, poisonUntil: 0, nextPoisonAt: 0, shredStacks: 0, shredUntil: 0 });
+export interface StatusFx { burnDps: number; burnUntil: number; burnTick: number; nextBurnAt: number; slowPct: number; slowUntil: number; poisonDps: number; poisonUntil: number; nextPoisonAt: number; shredStacks: number; shredUntil: number; weakenPct: number; weakenUntil: number }
+export const newStatus = (): StatusFx => ({ burnDps: 0, burnUntil: 0, burnTick: 0.5, nextBurnAt: 0, slowPct: 0, slowUntil: 0, poisonDps: 0, poisonUntil: 0, nextPoisonAt: 0, shredStacks: 0, shredUntil: 0, weakenPct: 0, weakenUntil: 0 });
 
 const EPS = 1e-9;
 
@@ -67,6 +67,25 @@ export function applyShred(s: StatusFx, stacks: number, duration: number, now: n
 
 /** The stacks that count right now (0 once the timer ran out). */
 export const shredStacks = (s: StatusFx, now: number): number => (s.shredUntil > now ? s.shredStacks : 0);
+
+/**
+ * Weaken: the enemy deals less damage to the player (docs/item-hooks-refactor.md "Weaken"). While one is running the stronger percentage wins and the end
+ * is the later of the two (like slow); once it ran out a new application replaces it. The percentage is capped at `WEAKEN.cap`.
+ */
+export function applyWeaken(s: StatusFx, pct: number, duration: number, now: number): void {
+  const active = s.weakenUntil > now;
+  s.weakenPct = Math.min(WEAKEN.cap, active ? Math.max(s.weakenPct, pct) : pct);
+  s.weakenUntil = Math.max(active ? s.weakenUntil : 0, now + duration);
+}
+
+/** The damage multiplier of an enemy's attacks on the player right now: 1 - the active weaken (1 once it ran out). */
+export const weakenMult = (s: StatusFx, now: number): number => (s.weakenUntil > now ? 1 - s.weakenPct : 1);
+
+/** What an enemy's attack of `dmg` deals to the player: scaled by its weaken, rounded to a whole point, never below 1. Unweakened it is `dmg` untouched. */
+export function weakenedDamage(e: { status: StatusFx }, dmg: number, now: number): number {
+  const m = weakenMult(e.status, now);
+  return m < 1 ? Math.max(1, Math.round(dmg * m)) : dmg;
+}
 
 export const slowFactor = (s: StatusFx, now: number): number => (s.slowUntil > now ? 1 - s.slowPct : 1);
 

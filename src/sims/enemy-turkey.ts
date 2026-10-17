@@ -4,7 +4,7 @@ import { Enemy, Item } from '../engine/ids';
 // Enemy: turkey. Sandbox with a neutral cart (a pan and a toaster, both ★2) and a handful of them; god mode is on, so you can watch the behaviour.
 export default defineSim({
   id: 'enemy-turkey',
-  notes: 'Frozen Turkey (150 HP, speed 38): the slowest and hardest bruiser. 92% knockback resist, 9 damage on contact.',
+  notes: 'Frozen Turkey (150 HP, speed 38): the slowest and hardest bruiser. 92% knockback resist, 9 damage on contact. Armor 2 soaks 2 damage off every direct hit (never more than 70% of it); burn, puddles and auras ignore it.',
   cart: [
     { id: Item.pan, tier: 2, at: [1, 1] },
     { id: Item.toaster, tier: 2, at: [3, 2] },

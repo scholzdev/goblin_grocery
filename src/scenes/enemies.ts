@@ -362,14 +362,14 @@ function beginAttack(scene: ArenaScene, e: Enemy): void {
       const a = Math.atan2(scene.player.y - e.y, scene.player.x - e.x);
       for (let i = 0; i < SPITTER.shots; i++) { // a fan of bubbles: weave through the gaps
         const ai = a + Phaser.Math.DegToRad(SPITTER.spreadDeg) * (i - (SPITTER.shots - 1) / 2);
-        scene.spawnEnemyShot('proj_bubble', e.x + Math.cos(ai) * 24, e.y - 34, ai, d.projectileSpeed, d.projectileLife, d.attackDamage);
+        scene.spawnEnemyShot('proj_bubble', e.x + Math.cos(ai) * 24, e.y - 34, ai, d.projectileSpeed, d.projectileLife, scene.enemyDmg(e, d.attackDamage));
       }
       play('bubble');
       break;
     }
     case 'exploder': { // self-destruct: no kill credit
       e.stateT = 0;
-      if (scene.playerNear(e.x, e.y).d < EGG_BLAST.radius + scene.player.radius * 0.6) scene.hurtPlayer(d.attackDamage);
+      if (scene.playerNear(e.x, e.y).d < EGG_BLAST.radius + scene.player.radius * 0.6) scene.hurtPlayer(scene.enemyDmg(e, d.attackDamage));
       scene.explodeEgg(e);
       break;
     }
@@ -384,7 +384,7 @@ function beginAttack(scene: ArenaScene, e: Enemy): void {
       else if (e.bossMove === 'volley') {
         e.stateT = 0.3;
         const v = volleyShape(scene, e);
-        for (const a of v.angles) scene.spawnEnemyShot(e.kit?.shot ?? 'proj_receipt', e.x + Math.cos(a) * 50, v.y, a, d.projectileSpeed, d.projectileLife, d.attackDamage);
+        for (const a of v.angles) scene.spawnEnemyShot(e.kit?.shot ?? 'proj_receipt', e.x + Math.cos(a) * 50, v.y, a, d.projectileSpeed, d.projectileLife, scene.enemyDmg(e, d.attackDamage));
         play('ding', { rate: 0.8 });
       } else if (e.bossMove === 'special') {
         e.stateT = 0.3;
@@ -473,7 +473,7 @@ function bossSpecial(scene: ArenaScene, e: Enemy): void {
       for (const sp of spots) {
         scene.gum.drop(e.id, sp.x, sp.y, S.slush.radius / GUM.radius, 0x9fd8ff, S.slush.life);
         scene.fx.frostBurst(sp.x, sp.y - 10, 8);
-        if (scene.playerNear(sp.x, sp.y).d < S.slush.radius) scene.hurtPlayer(d.attackDamage);
+        if (scene.playerNear(sp.x, sp.y).d < S.slush.radius) scene.hurtPlayer(scene.enemyDmg(e, d.attackDamage));
       }
       scene.fx.shake(0.006, 160);
       play('splash', { rate: 0.8 });
@@ -482,7 +482,7 @@ function bossSpecial(scene: ArenaScene, e: Enemy): void {
       const n = S.ring.shots + (half ? S.ring.halfExtra : 0), off = spots[0]?.x ?? 0, y = e.y - e.sprite.displayHeight * 0.48;
       for (let i = 0; i < n; i++) {
         const a = off + (i / n) * Math.PI * 2;
-        scene.spawnEnemyShot(e.kit?.shot ?? 'proj_toast', e.x + Math.cos(a) * 50, y, a, S.ring.speed, S.ring.life, d.attackDamage);
+        scene.spawnEnemyShot(e.kit?.shot ?? 'proj_toast', e.x + Math.cos(a) * 50, y, a, S.ring.speed, S.ring.life, scene.enemyDmg(e, d.attackDamage));
       }
       scene.fx.puff(e.x, e.y - 40, 6);
       play('boom', { rate: 1.1 });
@@ -495,7 +495,7 @@ function bossSpecial(scene: ArenaScene, e: Enemy): void {
           scene.tweens.add({ targets: z, alpha: 0, duration: 280, onComplete: () => z.destroy() });
         }
         scene.fx.spark(sp.x, ARENA.top + 60, 4, 0xf5bd45);
-        if (Math.abs(p.x - sp.x) < S.lanes.width / 2 + p.radius * 0.5) scene.hurtPlayer(d.attackDamage);
+        if (Math.abs(p.x - sp.x) < S.lanes.width / 2 + p.radius * 0.5) scene.hurtPlayer(scene.enemyDmg(e, d.attackDamage));
       }
       scene.fx.shake(0.007, 180);
       play('zap', { rate: 0.8 });

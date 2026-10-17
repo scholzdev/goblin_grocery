@@ -1,5 +1,5 @@
 import type { BurnEffect, SlowEffect, WeaponStats } from '../types';
-import { applyBurn, applySlow, applyPoison, applyShred, pickRicochetTarget } from '../systems/combat';
+import { applyBurn, applySlow, applyPoison, applyShred, applyWeaken, pickRicochetTarget } from '../systems/combat';
 import { addCoins } from '../state/run';
 import { store } from '../state/store';
 import { play } from '../audio/sfx';
@@ -59,6 +59,7 @@ export class PhaserCtx implements RuntimeCtx {
   poison(e: CombatEnemy, dps: number, duration: number): void { applyPoison(e.status, dps, poisonTimeFor(e.def, duration), this.now()); }
   mark(e: CombatEnemy, seconds: number): void { applyMark(e, this.now(), seconds); }
   shred(e: CombatEnemy, stacks: number, seconds: number = SHRED.duration): void { applyShred(e.status, stacks, seconds, this.now()); }
+  weaken(e: CombatEnemy, pct: number, seconds: number): void { applyWeaken(e.status, pct, seconds, this.now()); }
 
   get player(): PlayerView { return this.sc.player; }
   playerNear(x: number, y: number): { x: number; y: number; d: number } { return this.sc.playerNear(x, y); }

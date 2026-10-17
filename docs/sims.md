@@ -166,6 +166,18 @@ Shred (docs/item-hooks-refactor.md "Shred"), one sim per source plus the Plated 
 | `combo-crack-open` | Nail Gun + Can Opener ★1 | 8 Beans | Every 3rd nail on the same enemy adds 2 stacks to the Can Opener's 50% roll |
 | `elite-plated` | Toaster ★1 | 2 plated Milk, 2 plated Beans, 2 plain Beans | Plated milk takes 6 of 9, plated beans 3, plain beans 6. F8 and add a Can Opener to strip the plating |
 
+## Weaken and armor sims
+
+Weaken and the armor pass (docs/item-hooks-refactor.md "Weaken", "Armor"). A lavender down-arrow right of an enemy's health bar shows the weaken. The Weaken sims turn god mode OFF (`god: false`, full HP) and keep the groceries immortal, so their hits land on your HP bar; for a "without" run press F8, take the module or weapon out of the cart and fight the same crowd. `tests/sims/weaken-sims.test.ts` derives the numbers from the real build and rules.
+
+| Sim | Cart | Enemies | Look for |
+|---|---|---|---|
+| `weaken-decaf` | Toaster ★1 + Decaf ★3 | 3 Sour Milk, 1 Baguette, 1 Spitter (walking) | -25% for 3 s per toast: contact 4 becomes 3 and 5 becomes 4, the Baguette swipe 7 becomes 5, a Spitter bubble 5 becomes 4 (fixed when fired) |
+| `weaken-cleaning` | Spray Bottle ★1 + Leaf Blower ★1 + Desk Fan (Cleaning L2) | 3 Sour Milk, 2 Baguette (walking) | -20% for 2 s on every cleaning hit, the quiet spray cone included: it fires every 0.55 s, so what it touches stays weakened |
+| `armor-turkey` | Nail Gun ★3 | 4 still Frozen Turkey, 4 still Banana | 6 per nail on the Banana, 4 on the Turkey (armor 2). F8 and add a Can Opener to strip it |
+
+The armor pass also changes the `enemy-turkey`, `boss-frozen` and `boss-checkout` notes (they name the armor), and the notes of `affinity-heat`, `affinity-frost` and `boss-stagger` (their quoted numbers are before the Turkey's / Freezer's armor).
+
 ## Where the code lives
 
 - `src/sims/_sim.ts`: the types, `defineSim`, defaults, `layoutCart` (auto-placement) and `validateSim`.

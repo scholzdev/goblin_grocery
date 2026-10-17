@@ -4,7 +4,7 @@ import { Item } from '../engine/ids';
 // Boss: boss_frozen. A real aisle 8 in its department (waves, director, the boss) with the same strong cart as the 'boss' sim, god mode on.
 export default defineSim({
   id: 'boss-frozen',
-  notes: 'The Walk-In Freezer (1700 HP), frozen aisle 8. Loop: Cold Snap, volley (6 bubbles in an 80° fan), charge, summon (3 expired and sour milk), Cold Snap, charge. Cold Snap marks 3 circles (4 below half HP), one on you, and leaves 7 s of slowing slush. Its charge is long (0.9 s).',
+  notes: 'The Walk-In Freezer (1700 HP), frozen aisle 8. Loop: Cold Snap, volley (6 bubbles in an 80° fan), charge, summon (3 expired and sour milk), Cold Snap, charge. Cold Snap marks 3 circles (4 below half HP), one on you, and leaves 7 s of slowing slush. Its charge is long (0.9 s). Armor 2: every direct hit loses 2 damage (Shred strips it).',
   waves: true,
   aisle: 8,
   department: 'frozen',
