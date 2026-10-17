@@ -17,6 +17,7 @@
     "launch:test": "VITE_DEV_KEYS=1 npm run lab",
     "lab": "osascript -e 'quit app \"Goblin Grocery\"' 2>/dev/null; npm run dist:mac && open \"release/mac-arm64/Goblin Grocery.app\" --args --lab",
     "sim": "vite --open /?sim=example",
+    "buildlab": "node tools/buildlab.mjs",
     "dist:win": "npm run build && electron-builder --win dir --x64",
     "dist:linux": "npm run build && electron-builder --linux dir",
     "icon": "node tools/gen-icon.mjs"
