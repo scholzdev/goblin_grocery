@@ -1,6 +1,6 @@
-# Build-lab (Phase 1a)
+# Build-lab (Phase 1a + 1b)
 
-A headless player. It plays whole runs without Phaser: the real run, shop and build rules, a greedy shop policy, and a combat proxy on `FakeCtx` instead of the arena. Seeded, JSON out. The point is Phase 1b: an optimizer that evolves shop policies and reports which items dominate and which are dead. Phase 1a is the harness it will run on.
+A headless player. It plays whole runs without Phaser: the real run, shop and build rules, a greedy shop policy, and a combat proxy on `FakeCtx` instead of the arena. Seeded, JSON out. Phase 1b adds an optimizer that evolves shop policies (a flat JSON genome) and a balance report of which items dominate and which are dead.
 
 It is a balance instrument, not a replica of the game. It answers "does this build kill faster / survive longer than that one", not "what is the win rate". Read the deviations below before trusting an absolute number.
 
@@ -123,18 +123,63 @@ A port of `tools/botrun.mjs`'s shop block, with the cart size read from the stat
 
 Differences from botrun: it never rerolls (as botrun's default build), never sells, never upgrades a tier with coins; step 6 is new (botrun placed once, with the old cart size).
 
-## Policies and Phase 1b
+## Policies
 
 A policy is `{ name, decideShop(state, view), chooseDoor(doors, state, view), pickCrate(options, state, view), pickStockroom(options, state, view), placeItem(state, item, view) }` (`src/buildlab/policy.ts`). `view = { rng, round }`: the policy's own seeded rng (its only source of randomness) and the call number.
 
 Shop protocol: the lab calls `decideShop(state, view)` again and again with the fresh state. Each call returns the next batch of `ShopAction`s: `buy`, `reroll`, `merge`, `move` (to the grid or the shelf), `rotate`, `upgradeItem`, `upgradeCart`, `upgradeShelf`, `upgradeShop`, `repair`, `sell`, `leave`. The shop ends on `leave`, on `[]`, on a batch where every action failed, or after 64 calls. So a policy never has to guess the outcome of its own earlier actions. `state` must not be mutated.
 
-Plugging in a parameterized policy (Phase 1b):
+- `createGreedyPolicy({ itemWeight, placeBonus, score, repairSlack, upgradeShopAbove, upgradeCartAbove, upgradeShelfAbove, rushAvoidHpFrac, rushAvoidUntilWave, maxRerolls })`. `itemWeight(type, tier, state)` <= 0 skips an offer and a higher value buys first; `placeBonus` adds to a placement's or a crate's score.
+- Anything more different implements `Policy` directly and reuses the helpers: `bestPlacement(state, probe, weights | scorer)` (the full-cart search for an owned or hypothetical item; a function scores the whole `Build` a spot would give), `scoreBuild`, `mergePairs`.
+- Run it: `runBatch({ policy: () => myPolicy, runs, seed, starters, weapons })` returns the whole `Report`; `playRun` one record. A fresh policy is built per run. Give every candidate the same `seed` (common random numbers): the shop rolls, wave plans and combat rng then differ only through the choices.
 
-- `createGreedyPolicy({ itemWeight, placeBonus, score, repairSlack, upgradeShopAbove, upgradeCartAbove, upgradeShelfAbove, rushAvoidHpFrac, rushAvoidUntilWave, maxRerolls })`. `itemWeight(type, tier, state)` <= 0 skips an offer and a higher value buys first; `placeBonus` adds to a placement's or a crate's score. A genome of per-item weights is one `itemWeight` closure.
-- Anything more different implements `Policy` directly and reuses the helpers: `bestPlacement(state, probe, weights)` (the full-cart search for an owned or hypothetical item), `scoreBuild`, `mergePairs`.
-- Run it: `runBatch({ policy: () => myPolicy(genome), runs, seed, starters, weapons })` returns the whole `Report`; `playRun` one record. A fresh policy is built per run. For common random numbers across genomes, give every candidate the same `seed`: the shop rolls, wave plans and combat rng then differ only through the choices.
-- Fitness candidates: `summary.avgAisleReached`, `summary.winRate`, or a mix of `dps` and `leftover` per aisle (smoother than win rate, which is noisy at low rates). Dominance reports come from `itemWinRate` / `itemFinalRate` / `comboRate` over many genomes.
+## The genome (Phase 1b)
+
+`src/buildlab/genome.ts`. A genome is plain JSON, `{ "p": { "item.fan": 1.2, "rule.repairMargin": 9, ... } }`, one number per key of `GENOME_SPEC` (name, bounds, greedy value, integer or not). `genomeFromJSON` fills missing keys with the greedy value, drops unknown ones and clamps to the bounds, so a hand-edited file is always valid.
+
+| keys | meaning |
+|---|---|
+| `item.<id>` (every `ITEM_ORDER` id) | how much the policy wants the item. 0 = never buy. Orders the buys (best first), what is sold first (lowest), what is placed first. Scaled by `1 + rule.tierBonus * (tier - 1)` |
+| `combo.<id>` (every `RECIPE_ORDER` id) | worth of an active combo in the placement score |
+| `set.<id>` (every `SET_ORDER` id) | worth of one set level in the placement score |
+| `rule.buffWeight` | worth of one module buff on a weapon in the placement score |
+| `rule.repairMargin` | repair when hp is more than this below max (hp points) |
+| `rule.upgradeShopAbove` / `upgradeCartAbove` / `upgradeShelfAbove` | coins you must have before buying that upgrade |
+| `rule.buyReserve` | coins kept back when buying |
+| `rule.maxRerolls`, `rerollWant`, `rerollReserve` | reroll while the best offer's item weight is below `rerollWant`, at most `maxRerolls` times per shop, keeping `rerollReserve` coins |
+| `rule.sellOn`, `rule.sellMargin` | when the shelf is full, sell the lowest-weight shelf item to buy an offer worth more than it by `sellMargin` (only if `sellOn` is 1) |
+| `rule.pickItem` | how much the item weight counts next to the placement score when choosing a crate or stockroom item |
+| `door.<kind>` | relative odds of each door kind (the boss door is forced) |
+| `rule.rushAvoidHpFrac`, `rushAvoidUntilWave` | skip the Rush door while hp is below that share of max hp, or in aisles up to that number |
+
+Placement scoring is the Phase 1a one: the policy tries every free spot and rotation, computes the real `Build`, and takes the best `Σ combo weights + Σ set weights x level + rule.buffWeight x buffs`. Crates and stockrooms use the same placement score (plus `rule.pickItem x` the item weight).
+
+**The greedy policy is one genome**: `greedyGenome()` (all item weights 1, combo weights 10, set weights 0, buffWeight 1, tierBonus 0, repairMargin 9, upgrade thresholds 45/30/25, no rerolls, no selling, Rush avoided below 60% hp up to aisle 3). `tests/buildlab/genome.test.ts` plays both over a batch and compares the JSON byte for byte.
+
+## The optimizer
+
+`src/buildlab/evolve.ts`, CLI `npm run buildlab -- evolve [options]` (`--help` lists them: `--pop`, `--gens`, `--seeds-per-eval`, `--starter ID|all`, `--weapon`, `--seed`, `--top-k`, `--held-out`, `--control`, `--shift`, `--theme`, `--pool`, `--out`). Defaults: pop 12, 8 generations, 32 training runs per genome, top 8, 48 held-out runs, 12 random control genomes: about 2 to 3 minutes on a laptop for `--starter all`. `--out PATH` writes `PATH.json` and `PATH.md` (default `buildlab-out/evolve`).
+
+- Search: a seeded (mu + lambda) evolution strategy, mu = max(2, pop/4). Generation 0 is the greedy genome, mutants of it and a few random genomes. Each later generation keeps the mu best (elites, never re-evaluated, so the best fitness cannot drop) and fills the rest with children: a rank-biased elite parent, 25% of the time crossed with a second one (uniform), then Gaussian mutation on the normalized value (`(v - min) / (max - min)`, sigma 0.25 shrinking to 0.08, each parameter hit with probability 0.12, always at least one).
+- Fitness of a run: aisles survived, plus up to 0.5 for the kill share of the aisle it died in (a smoother signal than "died in aisle k"); a win scores 8 + 3 + the hp share left. The fitness of a genome is the mean over a FIXED set of (seed, character, weapon) pairs, the same for every genome and generation (common random numbers: differences are the policy's, not luck). Characters and weapons cycle through the pairs.
+- After the search: the top K distinct genomes (normalized distance of at least 0.03, so a lineage counts once) are re-run on held-out seeds the search never saw, together with the greedy genome and a control population of random genomes (every parameter uniform in its bounds). The report compares these. Training fitness above held-out fitness is overfitting: the search exploited its 32 seeds. More `--seeds-per-eval` reduces it, at linear cost.
+- Deterministic: the same options give the same result (the report's `durationMs` aside).
+
+## Reading the report (`src/buildlab/balance.ts`)
+
+`PATH.md` is for people, `PATH.json` has the same numbers plus the top genomes. The thresholds of every flag are in `BALANCE_CONFIG` (printed in the Items section).
+
+- **Findings** is generated from the flags and numbers below, nothing else. Start there.
+- **Held-out results**: win rate and average aisle of the top genomes, the greedy genome and the random control, on the same held-out seeds. If the top is not clearly above greedy and random, the optimizer found little and every other table is noise.
+- **Items**: "held" is in the cart at the end of the run. `held top` / `held random` are the shares of the top / control runs holding it, `lift` their ratio, `win held` / `win not held` the win rates of the top runs with and without it, `damage share` the item's weapon damage over the damage dealt in the top runs holding it. *dominant*: held in at least 60% of the top builds, lift at least 1.5, and it does not lower the win rate. *dead*: held in at most 5% of the top builds although random builds hold it at least 5%. Dominant is a hint that the optimizer always wants it; check price and tier first. Dead means even a search aimed at winning leaves it on the shelf.
+- **Unmodelled items** (listed in the report and in `UNMODELLED`): the proxy has no player movement, dash or pickup radius, so Bell, Bumper, Running Boot, Energy Drink, Flag, Magnet, Spare Wheel, Tip Jar, Tinfoil Hat and the pickup part of the Vacuum do nothing there. Their rows read "unknown", never "dead". The same holds for the combos in `UNMODELLED_COMBOS` (Express Checkout, Pot Slam, Sugar Rush, Tailwind, Bag It).
+- **Combos / Sets**: how often the top builds have them at the end (sets: level 1/2/3), against random builds, and the win rate with and without.
+- **Reactions**: how often each element reaction went off, totals over the top runs and per run, for top and random builds. A reaction that never fires is dormant.
+- **Starters**: the best win rate and average aisle any top genome reached with each character, and the greedy values.
+- **Top 5 final builds**: the best held-out runs of the top genomes (wins first, then furthest aisle, then hp left) with cart, shelf, combos and sets.
+- **What the optimizer changed**: the rule parameters of the top genomes against the greedy values.
+
+Caveats: the numbers are only as good as the combat proxy (see its section): a fight is a stationary cart against walking enemies, so range, area and sustain are over- or under-valued in ways the real game's movement would change. A signal that holds across `--seed` values and starters is worth acting on; one that appears in a single run is not. Win rates are low in the proxy, so average aisle is the steadier number. The search is small: it finds big effects, not fine balance.
 
 ## Known deviations from the real game
 

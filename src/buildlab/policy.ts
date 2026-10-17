@@ -75,7 +75,9 @@ const perkOf = (state: RunState) => PLAYER.starters[state.starter ?? 'toaster'].
  * Every free spot of the item in the WHOLE current cart (all canonical rotations, every cell), scored by the build it would give; the first best
  * wins (scan order: rotation, row, column), like botrun. null when it fits nowhere. Does not mutate `state`.
  */
-export function bestPlacement(state: RunState, probe: Probe, weights: ScoreWeights = DEFAULT_SCORE): Placement | null {
+export type Scorer = (b: Build) => number;
+export function bestPlacement(state: RunState, probe: Probe, weights: ScoreWeights | Scorer = DEFAULT_SCORE): Placement | null {
+  const score: Scorer = typeof weights === 'function' ? weights : (b) => scoreBuild(b, weights);
   const inv = state.inventory, tier = probe.tier ?? 1;
   const occ = new Set<number>();
   for (const p of inv.placed) for (const c of footprint(p)) occ.add(c.y * 64 + c.x);
@@ -91,7 +93,7 @@ export function bestPlacement(state: RunState, probe: Probe, weights: ScoreWeigh
     for (let y = 0; y + h <= inv.rows; y++) for (let x = 0; x + w <= inv.cols; x++) {
       if (cells.some((c) => occ.has((c.y + y) * 64 + c.x + x))) continue;
       inst.x = x; inst.y = y; inst.rot = rot;
-      const sc = scoreBuild(computeBuild(work, perkOf(state)), weights);
+      const sc = score(computeBuild(work, perkOf(state)));
       if (!best || sc > best.score) best = { x, y, rot, score: sc };
     }
   }
