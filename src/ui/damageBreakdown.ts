@@ -1,11 +1,13 @@
 import { DAMAGE_TYPES, ELEMENT_COLORS, type DamageType } from '../engine/damageType';
 import { totalDamage } from '../systems/damageStats';
+import { REACTION_IDS } from '../engine/define';
+import { REACTION_TEXT } from '../engine/reactions';
 import { t, fmtNum } from '../i18n';
 import type { RunStats } from '../types';
 import { damageTypeName } from './affinity';
 
 // The run-end "damage breakdown" (docs/item-hooks-refactor.md "Damage breakdown"): per-source bars, the damage by type as one stacked bar with a legend,
-// and the DoT / weak / resisted shares and the Shred and mark bonuses. The colors come from `ELEMENT_COLORS` unless the "Damage colors" setting is off.
+// the DoT / weak / resisted shares, the Shred and mark bonuses and the reaction counts. The colors come from `ELEMENT_COLORS` unless the "Damage colors" setting is off.
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 const pct = (v: number, total: number): string => `${Math.round((v / total) * 100)}%`;
@@ -32,6 +34,7 @@ export function damageBreakdownHtml(stats: Pick<RunStats, 'damageByWeapon' | 'da
   const types = DAMAGE_TYPES.filter((ty) => d.byType[ty] > 0).sort((a, b) => d.byType[b] - d.byType[a]);
   const stack = colors ? `<div class="dstack">${types.map((ty) => `<i style="flex:${d.byType[ty]};background:${ELEMENT_COLORS[ty]}" title="${esc(damageTypeName(ty))}"></i>`).join('')}</div>` : '';
   const legend = types.map((ty) => `<span class="dleg">${colors ? `<i style="background:${ELEMENT_COLORS[ty]}"></i>` : ''}${esc(damageTypeName(ty))} <b>${pct(d.byType[ty], total)}</b></span>`).join('');
+  const reacted = REACTION_IDS.filter((r) => d.reactions[r] > 0);
   const line = (label: string, v: string) => `<div class="line"><span>${label}</span><span>${v}</span></div>`;
   const lines = [
     d.dot > 0 && line(t('dmgShareDot'), pct(d.dot, total)),
@@ -39,6 +42,7 @@ export function damageBreakdownHtml(stats: Pick<RunStats, 'damageByWeapon' | 'da
     d.resisted > 0 && line(t('dmgShareResisted'), pct(d.resisted, total)),
     d.shred >= 0.5 && line(t('dmgBonusShred'), `+${fmtNum(Math.round(d.shred))}`),
     d.mark >= 0.5 && line(t('dmgBonusMark'), `+${fmtNum(Math.round(d.mark))}`),
+    reacted.length > 0 && line(t('dmgReactions'), `${reacted.map((r) => `${t(REACTION_TEXT[r].name)} \u00d7${d.reactions[r]}`).join(', ')}${d.byType.reaction >= 0.5 ? ` \u00b7 ${fmtNum(Math.round(d.byType.reaction))}` : ''}`),
   ].filter(Boolean).join('');
   return `<hr class="dash"><div class="dmg">
     <div class="dh">${t('damageByItem')}</div>${bars}${more}

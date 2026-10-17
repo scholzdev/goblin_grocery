@@ -189,6 +189,17 @@ Wet (docs/item-hooks-refactor.md "Wet"). Blue droplets drip down a wet enemy. Go
 | `wet-frost` | Spray Bottle + Ice Pack + Mop (Frost L2) | 6 Sour Milk, 3 Beans | The spray's Ice Pack slow is 35%, 45% on a wet enemy; the Frost freeze is 10% on a dry slowed enemy, 20% on a wet one |
 | `wet-steam` | Spray Bottle + Toaster + Fuel Can | 6 Sour Milk, 2 Baguette | A burn on a wet enemy lasts half as long and dries it (the droplets vanish); dry enemies get the full burn |
 
+## Reaction sims
+
+Element reactions (docs/item-hooks-refactor.md "Reactions"). A teal name pops over the enemy and the burst's damage numbers are teal. Each enemy reacts at most once per second. God mode stays on; the groceries are immortal except in `reaction-crack`. `tests/sims/reaction-sims.test.ts` runs each cart headless and checks its reaction goes off.
+
+| Sim | Cart | Enemies | Look for |
+|---|---|---|---|
+| `reaction-shatter` | Toaster ★1 + Fuel Can + Ice Pack | 8 Sour Milk in a bunch | Burn and slow on every toast: SHATTER! with a burst of 8 + half the toast, the burn and the slow gone |
+| `reaction-fumes` | Toaster ★1 + Fuel Can + Expired Milk | 10 Sour Milk in a bunch | A burning milk that walks into the aura bursts into a green cloud (radius 60, 2 s) that poisons its neighbors |
+| `reaction-conduct` | Spray Bottle ★1 + Laser ★1 | 10 Baguettes in a bunch | The Laser beam on a wet baguette (x1.2) jumps to the 3 nearest for 60%, the Wet is gone |
+| `reaction-crack` | Pressure Cooker ★1 + Can Opener ★3 + Party Popper | 10 Beans (mortal) | A blast on a Beans with 3 Shred stacks throws shrapnel at the 3 nearest within 90 px (+1 Shred each) |
+
 ## Where the code lives
 
 - `src/sims/_sim.ts`: the types, `defineSim`, defaults, `layoutCart` (auto-placement) and `validateSim`.

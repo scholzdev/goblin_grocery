@@ -3,7 +3,7 @@ import { contentComboTune, contentCombos, contentItems, contentSets, contentSetT
 import { neighbors } from '../systems/inventory';
 import { ITEMS } from '../data/items';
 import type { ActiveRecipe, Inventory, ItemDef, ItemTypeId, RecipeId, SetId, SlowEffect, WeaponStats } from '../types';
-import { HOOK_NAMES, resolveTune, type AffinityTag, type ComboContent, type ItemContent, type Resolved, type RuntimeHooks, type SetContent, type Tune } from './define';
+import { HOOK_NAMES, resolveTune, type AffinityTag, type ReactionId, type ComboContent, type ItemContent, type Resolved, type RuntimeHooks, type SetContent, type Tune } from './define';
 import type { CombatEnemy, CombatShot, FxApi, RuntimeCtx } from './ctx';
 
 // Runtime (combat) hooks, docs/item-hooks-refactor.md §4c. Content declares `hooks: { onHit(hit, ctx, c) { ... } }`; this file holds the
@@ -35,6 +35,11 @@ export interface HitOpts {
   blow?: number;
   /** Extra affinity tags this hit carries besides its weapon's and its kind's (`engine/hitTags.ts`): explosions `blast`, the Leaf Blower slam `cleaning`, hazards. */
   tags?: readonly AffinityTag[];
+  /**
+   * The hit is the burst of an element reaction (`engine/reactions.ts`): it never crits, skips the weapon hooks (modifyDamage, onHit, afterHit chains, statuses,
+   * echo, stagger) and armor, never triggers a reaction itself, and is shown and counted as the `reaction` damage type.
+   */
+  reaction?: ReactionId;
 }
 
 /** One `damageEnemy` call, from `modifyDamage` to `onKill`. The same object travels the whole pipeline. */

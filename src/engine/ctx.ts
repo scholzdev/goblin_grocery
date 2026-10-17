@@ -81,10 +81,12 @@ export interface FxApi {
   ring(key: string, x: number, y: number, size: number, duration?: number, tint?: number, inward?: boolean): void;
   popImage(key: string, x: number, y: number, scale?: number, depth?: number): void;
   shake(intensity?: number, duration?: number): void;
+  /** A straight line from (x1, y1) to (x2, y2) that fades out fast: Crack's shrapnel. */
+  streak(x1: number, y1: number, x2: number, y2: number, tint?: number): void;
   /** Bag It: the garbage bag drawn at (x, y) for `seconds` (it swells and shrinks, then disappears). The blast itself is the hook's. */
   garbageBag(x: number, y: number, seconds: number): void;
 }
-export const FX_METHODS = ['spark', 'crumbsAt', 'puff', 'flame', 'confetti', 'frostBurst', 'suck', 'number', 'label', 'ring', 'popImage', 'shake', 'garbageBag'] as const;
+export const FX_METHODS = ['spark', 'crumbsAt', 'puff', 'flame', 'confetti', 'frostBurst', 'suck', 'number', 'label', 'ring', 'popImage', 'shake', 'streak', 'garbageBag'] as const;
 
 /** A player projectile for `spawnShot` (Arsenal.spawn's arguments). */
 export interface ShotSpec { key: string; x: number; y: number; angle: number; speed: number; life: number; damage: number; stats: WeaponStats; maxHits: number }

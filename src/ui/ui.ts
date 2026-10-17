@@ -29,6 +29,7 @@ import type { Fresh } from '../state/profile';
 import { modIcon, setIcon } from './icons';
 import { affinityRowsHtml } from './affinity';
 import { damageBreakdownHtml } from './damageBreakdown';
+import { REACTION_LABEL, REACTION_TEXT } from '../engine/reactions';
 import { weaponTags } from '../engine/hitTags';
 import { t, fmtNum, lang, setLang, LANGS, type Lang, type UIKey } from '../i18n';
 import { newSetLevels, setsOf } from '../data/sets';
@@ -487,7 +488,8 @@ function freshHtml(res: NonNullable<typeof flow.lastResult>): string {
   return `${grid}${rows ? `<div class="almost"><h5 class="sec">${t('almostThere')}</h5>${rows}</div>` : ''}`;
 }
 
-const DMG_LABELS: Record<string, UIKey> = { burn: 'dmgBurn', poison: 'dmgPoison', 'Bag It': 'dmgBag', 'Tin Foil Hat': 'dmgFoil', Slam: 'dmgSlam', shove: 'dmgShove', 'Slam Bumper': 'dmgBumper', 'Can Pyramid': 'dmgBowl', 'Oven vent': 'dmgVent', 'Live cable': 'dmgCable', 'Party Popper': 'dmgPopper', 'Egg Carton': 'dmgEgg' };
+const DMG_LABELS: Record<string, UIKey> = { burn: 'dmgBurn', poison: 'dmgPoison', 'Bag It': 'dmgBag', 'Tin Foil Hat': 'dmgFoil', Slam: 'dmgSlam', shove: 'dmgShove', 'Slam Bumper': 'dmgBumper', 'Can Pyramid': 'dmgBowl', 'Oven vent': 'dmgVent', 'Live cable': 'dmgCable', 'Party Popper': 'dmgPopper', 'Egg Carton': 'dmgEgg', [REACTION_LABEL.shatter]: REACTION_TEXT.shatter.name, [REACTION_LABEL.conduct]: REACTION_TEXT.conduct.name, [REACTION_LABEL.crack]: REACTION_TEXT.crack.name };
+const REACTION_KEYS: readonly string[] = Object.values(REACTION_LABEL);
 
 function endHtml(): string {
   const s = store.state;
@@ -497,7 +499,7 @@ function endHtml(): string {
   const itemOf = (k: string) => s.inventory.placed.find((i) => i.uid === k) ?? s.inventory.shelf.find((i) => i?.uid === k);
   const dmg = damageBreakdownHtml(s.stats, {
     name: (k) => { const it = itemOf(k); return it ? itemT(it.type).name : t(DMG_LABELS[k] ?? 'dmgSold'); },
-    type: (k) => { const it = itemOf(k), tag = it && weaponTags(it.type)[0]; return tag && tag !== 'mark' ? tag : k === 'burn' ? 'heat' : k === 'poison' ? 'poison' : 'physical'; },
+    type: (k) => { const it = itemOf(k), tag = it && weaponTags(it.type)[0]; return tag && tag !== 'mark' ? tag : k === 'burn' ? 'heat' : k === 'poison' ? 'poison' : REACTION_KEYS.includes(k) ? 'reaction' : 'physical'; },
   }, settings.damageColors);
   const mins = Math.floor(s.stats.timeSeconds / 60), secs = Math.floor(s.stats.timeSeconds % 60);
   const fresh = res ? freshHtml(res) : '';

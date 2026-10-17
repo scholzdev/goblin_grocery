@@ -4,6 +4,7 @@ import type { HitTracker } from '../../systems/combat';
 import type { AudioKey } from '../../data/assets';
 import type { CombatEnemy, FxApi, PlayerView } from '../ctx';
 import type { HitOpts, HookTable, WeaponLook } from '../hooks';
+import type { AppliedStatus } from '../reactions';
 
 // What the pattern code (engine/patterns/*) needs from the arena. Types only: Phaser is imported as a type, never at runtime, so the
 // patterns run headless against `FakeArsenal` (fakeHost.ts) and against the real `Arsenal` (scenes/weapons.ts) alike.
@@ -47,6 +48,8 @@ export interface PatternScene {
   nearestEnemy(range: number): PatternEnemy | null;
   nearestEnemyFrom(x: number, y: number, range: number, exclude?: Set<number>): PatternEnemy | null;
   damageEnemy(e: PatternEnemy, dmg: number, stats: WeaponStats | null, opts: HitOpts): void;
+  /** A burn or poison the pattern applied directly (a burning pool's tick): tell the element reactions, as `ctx.ignite` does. */
+  reactionApplied(e: PatternEnemy, kind: AppliedStatus): void;
   /** The cart prop of this weapon kicks (a tween). */
   recoil(uid: string): void;
 }

@@ -10,6 +10,7 @@ import type { Build, BurnEffect, SlowEffect, WeaponStats } from '../types';
 import { FX_METHODS, type AisleView, type CombatEnemy, type CombatShot, type FxApi, type PlayerView, type PoolSpec, type RuntimeCtx, type ShotSpec } from './ctx';
 import { EMPTY_HOOKS, type HitEvent, type HitOpts, type HookTable } from './hooks';
 import { applyMark, markedDamage } from './marks';
+import { Reactor, markFrostStun } from './reactions';
 import { affinityMult, burnFor, markMult, poisonTimeFor, slowFor, statusDurationMult, tryStagger } from './affinity';
 import { AFFINITY, SHRED, WET_STATUS, type AffinityTag } from './define';
 import { hitTags } from './hitTags';
@@ -100,6 +101,8 @@ export class FakeCtx implements RuntimeCtx {
   readonly fx: FxApi;
   /** The run's damage breakdown as `ArenaScene` keeps it (`RunStats.damageByWeapon` + `damage`): every hit of `runHit` is recorded here. */
   readonly dmgLog: DamageSink = { damageByWeapon: {}, damage: newDamageStats() };
+  /** The element reactions (engine/reactions.ts), the same rules the arena runs; their counts land in `dmgLog.damage.reactions`. */
+  readonly reactor = new Reactor(this, () => this.dmgLog);
   readonly seed: number;
   private readonly rand: Rng;
   private nextId = 1;
@@ -236,20 +239,24 @@ export class FakeCtx implements RuntimeCtx {
     const applied = seconds * statusDurationMult(e.def, tag);
     e.state = 'stun';
     e.stateT = Math.max(e.stateT ?? 0, applied);
+    if (tag === 'frost') { markFrostStun(e.status, applied, this.time); this.reactor.applied(e, 'frost'); } // a frost stun is a freeze: the enemy is frosted
     return applied;
   }
   // The log keeps what the hook asked for; the status on the enemy has the duration scaled by its affinity (burnFor / slowFor / poisonTimeFor).
   ignite(e: CombatEnemy, burn: BurnEffect): void {
     this.log({ kind: 'ignite', enemy: e.id, burn });
     applyBurn(e.status, burnVsWet(e.status, burnFor(e.def, this.aisle.burn(burn)), this.time), this.time);
+    this.reactor.applied(e, 'burn');
   }
   slow(e: CombatEnemy, slow: SlowEffect): void {
     this.log({ kind: 'slow', enemy: e.id, slow });
-    applySlow(e.status, slowVsWet(e.status, slowFor(e.def, slow), this.time), this.time);
+    applySlow(e.status, slowVsWet(e.status, slowFor(e.def, slow), this.time), this.time, true); // the stats-driven slow is the frost channel (see PhaserCtx.slow)
+    this.reactor.applied(e, 'frost');
   }
   poison(e: CombatEnemy, dps: number, duration: number): void {
     this.log({ kind: 'poison', enemy: e.id, dps, duration });
     applyPoison(e.status, dps, poisonTimeFor(e.def, duration), this.time);
+    this.reactor.applied(e, 'poison');
   }
   mark(e: CombatEnemy, seconds: number): void {
     this.log({ kind: 'mark', enemy: e.id, seconds });
@@ -333,7 +340,7 @@ export class FakeCtx implements RuntimeCtx {
 
   /**
    * The combat-rng part of `ArenaScene.damageEnemy` (see the pipeline comment there): modifyDamage, the element affinity, the mark, crit roll, onCrit, hp, onHit, the
-   * stats-driven statuses (burn, ignite, slow), afterHit (the Frost freeze, Cleaning, Electric chain), echo, and on a lethal hit onKill +
+   * stats-driven statuses (burn, ignite, slow), afterHit (the Frost freeze, Cleaning, Electric chain), the element reactions, echo, and on a lethal hit onKill +
    * afterKill (Kitchen heal, Blast pop) + the popper blast, and the engine's mark multiplier. The armor step (with Shred) is the shared `hitArmor`. Not simulated: knockback itself.
    */
   private runHit(e: CombatEnemy, dmg: number, stats: WeaponStats | null, o: HitOpts): void {
@@ -341,15 +348,16 @@ export class FakeCtx implements RuntimeCtx {
     const H = this.hooks, now = this.time;
     const key = o.poison ? 'poison' : o.isDot ? 'burn' : stats?.uid ?? o.label ?? 'shove';
     const tags = hitTags(stats, o);
-    const hit: HitEvent = { enemy: e, base: dmg, dmg, stats, opts: o, source: key, now, tags, direct: !o.isDot && !o.echo && !o.fromPopper && !o.chained, crit: false, armored: false, killed: false, kbMult: 1 };
-    H.emit('modifyDamage', hit); dmg = hit.dmg;
+    const hit: HitEvent = { enemy: e, base: dmg, dmg, stats, opts: o, source: key, now, tags, direct: !o.isDot && !o.echo && !o.fromPopper && !o.chained && !o.reaction, crit: false, armored: false, killed: false, kbMult: 1 };
+    const rx = !!o.reaction, open = this.reactor.begin(e, o); // rx: a reaction's own burst (never crits, never reacts again)
+    if (!rx) { H.emit('modifyDamage', hit); dmg = hit.dmg; }
     const aff = affinityMult(e.def, tags);
     dmg *= aff; // element soft counters (engine/affinity), after the modifyDamage hooks like the scene
-    dmg *= wetElectricMult(e.status, tags, now); // Wet: electric hits on a wet enemy, right after the affinity like the scene
+    if (!rx) dmg *= wetElectricMult(e.status, tags, now); // Wet: electric hits on a wet enemy, right after the affinity like the scene
     const unmarked = dmg;
     dmg = markedDamage(dmg, e.markedUntil, now, markMult(e.def)); // the shared mark rule (engine/marks), after the affinity like the scene
     const markBonus = dmg - unmarked;
-    if (!o.isDot && stats && stats.critChance > 0 && this.rand() < stats.critChance) {
+    if (!o.isDot && !rx && stats && stats.critChance > 0 && this.rand() < stats.critChance) {
       dmg *= CRIT.mult;
       hit.crit = true; hit.dmg = dmg; H.emit('onCrit', hit); dmg = hit.dmg;
     }
@@ -357,13 +365,17 @@ export class FakeCtx implements RuntimeCtx {
     dmg = soaked; // armor and shred (systems/combat), direct hits only, like the scene
     hit.armored = dmg < hit.dmg * 0.5; hit.dmg = dmg;
     e.hp -= dmg;
-    recordDamage(this.dmgLog, { source: key, dmg, type: damageType(tags, e.def, o), isDot: !!o.isDot, weak: aff > 1, resisted: aff < 1, shred: shredBonus, mark: markBonus });
-    hit.killed = e.hp <= 0; H.emit('onHit', hit);
-    applyHitStatuses(hit, this);
-    H.emit('afterHit', hit);
-    if (e.hp > 0 && !o.isDot && tryStagger(e, tags, (e.markedUntil ?? 0) > now, now)) { this.log({ kind: 'stagger', enemy: e.id }); e.state = 'stun'; e.stateT = Math.max(e.stateT ?? 0, AFFINITY.stagger.time); }
+    recordDamage(this.dmgLog, { source: key, dmg, type: damageType(tags, e.def, { isDot: o.isDot, poison: o.poison, reaction: rx }), isDot: !!o.isDot, weak: aff > 1, resisted: aff < 1, shred: shredBonus, mark: markBonus });
+    hit.killed = e.hp <= 0;
+    if (!rx) {
+      H.emit('onHit', hit);
+      applyHitStatuses(hit, this);
+      H.emit('afterHit', hit);
+      this.reactor.end(open, { dmg, tags }); // element reactions: the statuses applied above and this hit's own tags
+    }
+    if (e.hp > 0 && !o.isDot && !rx && tryStagger(e, tags, (e.markedUntil ?? 0) > now, now)) { this.log({ kind: 'stagger', enemy: e.id }); e.state = 'stun'; e.stateT = Math.max(e.stateT ?? 0, AFFINITY.stagger.time); }
     scheduleEcho(hit, this);
-    if (e.hp <= 0) {
+    if (e.hp <= 0 && e.alive) { // (a reaction's burst on this very enemy may already have killed it)
       e.alive = false;
       e.state = 'dying';
       H.emit('onKill', { enemy: e, hit });

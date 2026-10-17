@@ -1,4 +1,5 @@
 import { DAMAGE_TYPES, type DamageType } from '../engine/damageType';
+import { REACTION_IDS, type ReactionId } from '../engine/define';
 
 // The run's damage breakdown (docs/item-hooks-refactor.md "Damage breakdown"). A small pure accumulator, fed by `ArenaScene.damageEnemy` and
 // `FakeCtx.runHit` at the one point where the final damage of a hit is known (what is subtracted from hp, overkill included, exactly like the old
@@ -6,7 +7,7 @@ import { DAMAGE_TYPES, type DamageType } from '../engine/damageType';
 
 /** The per-run totals besides the per-source map (`RunStats.damageByWeapon`, keyed like `HitEvent.source`). */
 export interface DamageStats {
-  /** Damage per display type (`damageType`), every type present. `reaction` is reserved and stays 0 until reactions exist. */
+  /** Damage per display type (`damageType`), every type present. `reaction` is the burst damage of the element reactions (engine/reactions.ts). */
   byType: Record<DamageType, number>;
   /** Burn and poison ticks. */
   dot: number;
@@ -18,6 +19,8 @@ export interface DamageStats {
   shred: number;
   /** Extra damage of the mark: damage after the mark multiplier minus before it (pre-crit, pre-armor, like the pipeline slot). */
   mark: number;
+  /** How often each element reaction went off (Toxic Fumes has no burst of its own, so its count is the only trace it leaves). */
+  reactions: Record<ReactionId, number>;
 }
 
 /** Where a hit is recorded: `RunStats` and the FakeCtx's own log both fit. */
@@ -39,7 +42,7 @@ export interface DamageRecord {
   mark: number;
 }
 
-export const newDamageStats = (): DamageStats => ({ byType: Object.fromEntries(DAMAGE_TYPES.map((t) => [t, 0])) as Record<DamageType, number>, dot: 0, weak: 0, resisted: 0, shred: 0, mark: 0 });
+export const newDamageStats = (): DamageStats => ({ byType: Object.fromEntries(DAMAGE_TYPES.map((t) => [t, 0])) as Record<DamageType, number>, dot: 0, weak: 0, resisted: 0, shred: 0, mark: 0, reactions: Object.fromEntries(REACTION_IDS.map((r) => [r, 0])) as Record<ReactionId, number> });
 
 export function recordDamage(sink: DamageSink, h: DamageRecord): void {
   const d = sink.damage;
@@ -50,6 +53,11 @@ export function recordDamage(sink: DamageSink, h: DamageRecord): void {
   else if (h.resisted) d.resisted += h.dmg;
   d.shred += h.shred;
   d.mark += h.mark;
+}
+
+/** One element reaction went off. */
+export function recordReaction(sink: Pick<DamageSink, 'damage'>, id: ReactionId): void {
+  sink.damage.reactions[id] += 1;
 }
 
 /** All damage dealt (the sum of the types). */

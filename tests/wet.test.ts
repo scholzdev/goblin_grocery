@@ -56,7 +56,7 @@ describe('WET_STATUS and the status', () => {
 describe('Wet + electric', () => {
   it('an electric hit on a wet enemy deals x1.2; dry, or wet without the electric tag, is untouched', () => {
     const f = new FakeCtx();
-    const dry = f.spawnEnemy({ hp: 1000 }), wet = f.spawnEnemy({ hp: 1000 }), wetHeat = f.spawnEnemy({ hp: 1000 });
+    const dry = f.spawnEnemy({ hp: 1000 }), wet = f.spawnEnemy({ hp: 1000, x: 1000 }), wetHeat = f.spawnEnemy({ hp: 1000, x: 2000 }); // far apart: the Conduct reaction would chain to a neighbor
     f.wet(wet); f.wet(wetHeat);
     f.hit(dry, 10, null, { tags: ['electric'] });
     f.hit(wet, 10, null, { tags: ['electric'] });
@@ -77,7 +77,7 @@ describe('Wet + electric', () => {
 
   it('a Blender hit (electric by its element) is x1.2 on a wet enemy', () => {
     const { fake, stats: w } = arena([at('blender')]);
-    const dry = fake.spawnEnemy({ hp: 1000 }), wet = fake.spawnEnemy({ hp: 1000 });
+    const dry = fake.spawnEnemy({ hp: 1000 }), wet = fake.spawnEnemy({ hp: 1000, x: 1000 }); // far apart: the Conduct reaction would chain to a neighbor
     fake.wet(wet);
     fake.hit(dry, 10, w);
     fake.hit(wet, 10, w);
@@ -125,7 +125,7 @@ describe('Wet + electric', () => {
       const all = field(lucky);
       for (const e of all.row) all.fake.wet(e);
       all.fake.hit(all.row[0], 10, all.stats);
-      expect(all.fake.callsOf('damage')).toHaveLength(3); // 2 + 1, not 2 + 1 per wet link
+      expect(all.fake.callsOf('damage').filter((c) => !c.opts.reaction)).toHaveLength(3); // 2 + 1, not 2 + 1 per wet link (the Conduct bursts on the wet enemies are not the chain)
       const elsewhere = field(lucky);
       elsewhere.fake.wet(elsewhere.row[3]); // the origin is dry
       elsewhere.fake.hit(elsewhere.row[0], 10, elsewhere.stats);

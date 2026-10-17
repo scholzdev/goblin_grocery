@@ -52,7 +52,7 @@ export const puddle: Pattern = {
         // Floor ellipse test (puddles are drawn flattened).
         const dx = (e.x - pd.x) / pd.r, dy = (e.y - pd.y) / (pd.r * 0.62);
         if (dx * dx + dy * dy > 1) continue;
-        if (pd.burnOnly) { if (pd.burn) applyBurn(e.status, burnVsWet(e.status, burnFor(e.def, sc.aisleEvent.burn(pd.burn)), now), now); continue; } // Wet: a pool burn on a wet enemy is halved and dries it
+        if (pd.burnOnly) { if (pd.burn) { applyBurn(e.status, burnVsWet(e.status, burnFor(e.def, sc.aisleEvent.burn(pd.burn)), now), now); sc.reactionApplied(e, 'burn'); } continue; } // Wet: a pool burn on a wet enemy is halved and dries it
         let slow = pd.slow!;
         if (sc.hooks['pattern:puddleEnter'].length) {
           const seen = (pd.seen ??= new Set()), first = !seen.has(e.id);

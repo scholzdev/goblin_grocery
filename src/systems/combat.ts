@@ -12,8 +12,8 @@ export function tryHit(t: HitTracker, enemyId: number): boolean {
   return true;
 }
 
-export interface StatusFx { burnDps: number; burnUntil: number; burnTick: number; nextBurnAt: number; slowPct: number; slowUntil: number; poisonDps: number; poisonUntil: number; nextPoisonAt: number; shredStacks: number; shredUntil: number; weakenPct: number; weakenUntil: number; wetUntil: number }
-export const newStatus = (): StatusFx => ({ burnDps: 0, burnUntil: 0, burnTick: 0.5, nextBurnAt: 0, slowPct: 0, slowUntil: 0, poisonDps: 0, poisonUntil: 0, nextPoisonAt: 0, shredStacks: 0, shredUntil: 0, weakenPct: 0, weakenUntil: 0, wetUntil: 0 });
+export interface StatusFx { burnDps: number; burnUntil: number; burnTick: number; nextBurnAt: number; slowPct: number; slowUntil: number; poisonDps: number; poisonUntil: number; nextPoisonAt: number; shredStacks: number; shredUntil: number; weakenPct: number; weakenUntil: number; wetUntil: number; frostUntil: number; reactionCdUntil: number }
+export const newStatus = (): StatusFx => ({ burnDps: 0, burnUntil: 0, burnTick: 0.5, nextBurnAt: 0, slowPct: 0, slowUntil: 0, poisonDps: 0, poisonUntil: 0, nextPoisonAt: 0, shredStacks: 0, shredUntil: 0, weakenPct: 0, weakenUntil: 0, wetUntil: 0, frostUntil: 0, reactionCdUntil: 0 });
 
 const EPS = 1e-9;
 
@@ -49,10 +49,15 @@ export function tickPoison(s: StatusFx, now: number): number {
   return dmg;
 }
 
-export function applySlow(s: StatusFx, slow: SlowEffect, now: number): void {
+/**
+ * `frost`: the slow came from a frost source (the stats-driven `ctx.slow` channel: Ice Pack, Jelly frost, Cold Storage, Brain Freeze). It also stamps `frostUntil`,
+ * which the Shatter reaction reads ("frosted", engine/reactions.ts). The soap puddle and the wet-floor slow call this without it.
+ */
+export function applySlow(s: StatusFx, slow: SlowEffect, now: number, frost = false): void {
   const active = s.slowUntil > now;
   s.slowPct = active ? Math.max(s.slowPct, slow.pct) : slow.pct;
   s.slowUntil = Math.max(active ? s.slowUntil : 0, now + slow.duration);
+  if (frost) s.frostUntil = Math.max(s.frostUntil, now + slow.duration);
 }
 
 /**
@@ -161,14 +166,14 @@ export function shreddedArmorDamage(dmg: number, armor: number, stacks: number):
  * The armor step of the damage pipeline, shared by `ArenaScene.damageEnemy` and `FakeCtx`: direct hits only (burn / poison ticks and quiet area ticks pass
  * through untouched; the vacuum pulse is not quiet and is armored). Reads the enemy's armor and its live shred stacks.
  */
-export function hitArmor(e: { def: { armor?: number }; status: StatusFx }, dmg: number, o: { isDot?: boolean; quiet?: boolean }, now: number): number {
-  if (o.isDot || o.quiet) return dmg;
+export function hitArmor(e: { def: { armor?: number }; status: StatusFx }, dmg: number, o: { isDot?: boolean; quiet?: boolean; reaction?: unknown }, now: number): number {
+  if (o.isDot || o.quiet || o.reaction) return dmg; // a reaction's burst is not a weapon hit: armor does not soak it
   return shreddedArmorDamage(dmg, e.def.armor ?? 0, shredStacks(e.status, now));
 }
 
 /** The damage Shred added to a hit that went `dmg` -> `soaked` through `hitArmor`: `soaked` minus what the same hit deals with no stacks (0 without Shred, and for hits armor skips). */
-export function shredGain(e: { def: { armor?: number } }, dmg: number, soaked: number, o: { isDot?: boolean; quiet?: boolean }): number {
-  if (o.isDot || o.quiet) return 0;
+export function shredGain(e: { def: { armor?: number } }, dmg: number, soaked: number, o: { isDot?: boolean; quiet?: boolean; reaction?: unknown }): number {
+  if (o.isDot || o.quiet || o.reaction) return 0;
   return Math.max(0, soaked - armorDamage(dmg, e.def.armor ?? 0));
 }
 

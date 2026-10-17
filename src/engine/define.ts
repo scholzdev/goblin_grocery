@@ -376,6 +376,24 @@ export const WEAKEN = { cap: 0.5 } as const;
  */
 export const WET_STATUS = { duration: 3, electricMult: 1.2, chainBonus: 1, frostSlowBonus: 0.1, freezeChanceMult: 2, burnDurationMult: 0.5, slowCap: 0.7 } as const;
 
+/** The element reactions (`engine/reactions.ts`, `ReactionId` is derived from this list). */
+export const REACTION_IDS = ['shatter', 'fumes', 'conduct', 'crack'] as const;
+export type ReactionId = (typeof REACTION_IDS)[number];
+
+/**
+ * Element reactions (docs/item-hooks-refactor.md "Reactions"): a status or hit that meets a status already on the enemy sets off a burst. One cooldown for all
+ * of them, per enemy. `shatter` (burn + frosted): `flat` + `share` of the triggering hit's damage on that enemy. `fumes` (burn + poison): a poison cloud of
+ * `radius` that lives `duration` s, ticks every `tick` s and poisons the OTHER enemies in it for `poisonDuration` s. `conduct` (wet + an electric hit): `hops` hits of
+ * `share` of the hit along the nearest enemies. `crack` (shred at the cap + a blast hit): `targets` enemies within `radius` take `share` of the hit and `shred` stacks.
+ */
+export const REACTIONS = {
+  cooldown: 1,
+  shatter: { flat: 8, share: 0.5 },
+  fumes: { radius: 60, duration: 2, tick: 0.5, poisonDuration: 2 },
+  conduct: { hops: 3, share: 0.6 },
+  crack: { targets: 3, radius: 90, share: 0.5, shred: 1 },
+} as const;
+
 /** The enemy behaviors (`EnemyBehavior` of types.ts is derived from this list). */
 export const ENEMY_BEHAVIORS = ['chase', 'charger', 'tank', 'spitter', 'swiper', 'exploder', 'splitter', 'healer', 'thief', 'teleporter', 'boss'] as const;
 

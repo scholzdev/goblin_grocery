@@ -21,6 +21,7 @@ import { EMPTY_HOOKS, buildHooks, type HitEvent, type HitOpts, type HookTable } 
 import { applyHitStatuses, scheduleEcho } from '../engine/onHitStatuses';
 import { applyKillEffects } from '../engine/onKillEffects';
 import { markedDamage } from '../engine/marks';
+import type { AppliedStatus } from '../engine/reactions';
 import { ELEMENT_COLORS, colorNum, damageType, numberStyle } from '../engine/damageType';
 import { recordDamage } from '../systems/damageStats';
 import { affinityMult, markMult, resistTag, statusDurationMult, tryStagger, weakTag } from '../engine/affinity';
@@ -568,6 +569,9 @@ export class ArenaScene extends Phaser.Scene {
     play('cap_ping', { rate: 1.2, volume: 0.6 });
   }
 
+  /** A status the pattern code applied directly (a burning pool's tick) reports it here, so the element reactions see it like a `ctx.ignite` (engine/reactions). */
+  reactionApplied(e: Enemy, kind: AppliedStatus): void { this.ctx.reactor.applied(e, kind); }
+
   /** Floor slow multiplier for enemies (ice). */
   groundSlow(e: Enemy): number {
     return (this.hazards.onIce(e.x, e.y) ? 1 - DEPT_TUNING.ice.enemySlow : 1) * this.aisleEvent.enemySpeed() * (store.state.modifier === 'coldRoom' ? 1 - ROOMS.coldRoom.enemySlow : 1);
@@ -636,27 +640,29 @@ export class ArenaScene extends Phaser.Scene {
     // DAMAGE PIPELINE, in this order (runtime hooks slot into it, docs/item-hooks-refactor.md §4c):
     //   1. modifyDamage hooks   pre-crit, pre-armor: multiply hit.dmg (Five-Alarm Toast, order 10)
     //   2. element affinity (engine/affinity): x (1 + best weak - best resist) of the hit's tags (engine/hitTags) against this enemy
+    //   (a reaction's own burst, `o.reaction`, takes a short path: the affinity and the mark, no modifyDamage, wet bonus, crit, armor, onHit, statuses, afterHit, stagger)
     //   2b. Wet: x WET_STATUS.electricMult when the hit carries `electric` and the enemy is wet (systems/combat wetElectricMult), same slot as the affinity
     //   3. the mark rule (engine/marks): x Price Check's damageMult while marked, for every source (Sale Flag marks too); the Manager's is bigger
     //   4. crit roll (combat rng): dmg x CRIT.mult, then onCrit hooks (Free Sample, then the Clearance Sale coin)
     //   5. armor (direct hits only), hp -= dmg, damageByWeapon
     //   6. onHit hooks, then applyHitStatuses (engine/onHitStatuses: burn, ignite, slow), afterHit hooks (the sets: Frost freeze, Cleaning
-    //      knockback mult, Electric chain), the boss weakness stagger, knockback, flash/number fx, scheduleEcho (Double Bag)
+    //      knockback mult, Electric chain), the element reactions (engine/reactions: the statuses this hit applied and the hit itself, checked once), the boss weakness stagger, knockback, flash/number fx, scheduleEcho (Double Bag)
     //   7. kill: killEnemy (coins; onKill hooks fire inside it, after the bread drop: Coupon, Bag It's charge) -> afterKill hooks (the sets:
     //      Kitchen heal, Blast pop) -> applyKillEffects (engine/onKillEffects: Party Popper)
     // A hook runs before the engine lines of its slot.
     // The payload is one small object per hit; the engine modules (statuses, echo, kill effects) read it, the emits are guarded by `H.hit`.
     const tags = hitTags(stats, o);
-    const hit: HitEvent = { enemy: e, base: dmg, dmg, stats, opts: o, source: key, now, tags, direct: !o.isDot && !o.echo && !o.fromPopper && !o.chained, crit: false, armored: false, killed: false, kbMult: 1 };
-    if (H.hit) { H.emit('modifyDamage', hit); dmg = hit.dmg; }
+    const hit: HitEvent = { enemy: e, base: dmg, dmg, stats, opts: o, source: key, now, tags, direct: !o.isDot && !o.echo && !o.fromPopper && !o.chained && !o.reaction, crit: false, armored: false, killed: false, kbMult: 1 };
+    const rx = !!o.reaction, open = this.ctx.reactor.begin(e, o); // rx: a reaction's own burst (never crits, never reacts again)
+    if (H.hit && !rx) { H.emit('modifyDamage', hit); dmg = hit.dmg; }
     const aff = affinityMult(e.def, tags); // element soft counters: after Five-Alarm (a modifyDamage hook), before the mark and the crit roll
     dmg *= aff;
-    dmg *= wetElectricMult(e.status, tags, now); // Wet: an electric hit on a wet enemy, x WET_STATUS.electricMult, right after the affinity (before the mark and the crit)
+    if (!rx) dmg *= wetElectricMult(e.status, tags, now); // Wet: an electric hit on a wet enemy, x WET_STATUS.electricMult, right after the affinity (before the mark and the crit)
     const unmarked = dmg;
     dmg = markedDamage(dmg, e.markedUntil, now, markMult(e.def)); // Price Check / Sale Flag mark
     const markBonus = dmg - unmarked;
     // Crits resolve here and only here (never on burn ticks).
-    const crit = !o.isDot && !!stats && stats.critChance > 0 && this.rng() < stats.critChance;
+    const crit = !o.isDot && !rx && !!stats && stats.critChance > 0 && this.rng() < stats.critChance;
     if (crit) {
       dmg *= CRIT.mult;
       this.fx.popImage('fx_crit', e.x + Phaser.Math.Between(-10, 10), e.y - e.sprite.displayHeight - 6, 0.8);
@@ -673,13 +679,16 @@ export class ArenaScene extends Phaser.Scene {
     if (!o.isDot) e.lastHitT = now;
     // The breakdown (systems/damageStats) and the number's colour read the same facts: the display type, weak (aff > 1) or resisted (aff < 1).
     const wk = aff > 1 ? weakTag(e.def, tags) : null, rs = aff < 1 ? resistTag(e.def, tags) : null;
-    const type = damageType(tags, e.def, o);
+    const type = damageType(tags, e.def, { isDot: o.isDot, poison: o.poison, reaction: rx });
     recordDamage(s.stats, { source: key, dmg, type, isDot: !!o.isDot, weak: aff > 1, resisted: aff < 1, shred: shredBonus, mark: markBonus });
     hit.killed = e.hp <= 0;
-    if (H.hit) H.emit('onHit', hit);
-    applyHitStatuses(hit, this.ctx); // burn, Heat L2 ignite, slow (stats-driven, shared by every source)
-    if (H.afterHit.length) H.emit('afterHit', hit); // the sets: Frost freeze (needs the slow just applied), Cleaning knockback mult + spritz, Electric chain
-    if (e.def.behavior === 'boss' && e.hp > 0 && !o.isDot && tryStagger(e, tags, (e.markedUntil ?? 0) > now, now)) this.staggerEnemy(e, weakTag(e.def, tags, (e.markedUntil ?? 0) > now)); // a boss hit on its weak tag: a brief stagger (walk only, cooldown)
+    if (!rx) {
+      if (H.hit) H.emit('onHit', hit);
+      applyHitStatuses(hit, this.ctx); // burn, Heat L2 ignite, slow (stats-driven, shared by every source)
+      if (H.afterHit.length) H.emit('afterHit', hit); // the sets: Frost freeze (needs the slow just applied), Cleaning knockback mult + spritz, Electric chain
+      this.ctx.reactor.end(open, { dmg, tags }); // element reactions: the statuses applied above and this hit's own tags (engine/reactions)
+    }
+    if (e.def.behavior === 'boss' && e.hp > 0 && !o.isDot && !rx && tryStagger(e, tags, (e.markedUntil ?? 0) > now, now)) this.staggerEnemy(e, weakTag(e.def, tags, (e.markedUntil ?? 0) > now)); // a boss hit on its weak tag: a brief stagger (walk only, cooldown)
     if (o.kb) {
       const k = o.kb * (1 - e.def.knockbackResist) * (this.hazards.onIce(e.x, e.y) ? DEPT_TUNING.ice.knockbackMult : 1) * hit.kbMult;
       e.kx += (o.kbX ?? 0) * k * 3; e.ky += (o.kbY ?? 0) * k * 3;
@@ -696,7 +705,7 @@ export class ArenaScene extends Phaser.Scene {
       if (armored) { this.fx.label(e.x, e.y - e.sprite.displayHeight - 10, lang() === 'de' ? '-Panzer' : '-armor', '#AAB2C2', 16); play('cap_ping', { rate: 0.7 }); }
       if (e.def.behavior === 'boss') play('boss_hit');
     }
-    if (crit || now - e.lastHitNumberAt > 0.14 || dmg >= 10) {
+    if (crit || rx || now - e.lastHitNumberAt > 0.14 || dmg >= 10) {
       e.lastHitNumberAt = now;
       // The damage type's colour (engine/damageType; the "Damage colors" setting off keeps the old scheme): weak a size up and brighter, resisted a size down at half alpha, a crit big with the bold outline.
       const st = numberStyle({ type, crit, isDot: !!o.isDot, poison: !!o.poison, weak: wk, resisted: rs }, settings.damageColors);
@@ -704,7 +713,7 @@ export class ArenaScene extends Phaser.Scene {
     }
     scheduleEcho(hit, this.ctx); // Double Bag (stats.echo): one delayed second strike per direct hit
     if (e.dummy?.immortal && e.hp <= 0) e.hp = e.maxHp; // lab sandbox: unkillable dummies refill
-    if (e.hp <= 0) {
+    if (e.hp <= 0 && e.alive) { // (a reaction's burst on this very enemy may already have killed it)
       this.killEnemy(e, true, hit);
       if (H.afterKill.length) H.emit('afterKill', { enemy: e, hit }); // the sets: Kitchen L2 heal, then Blast L2 pop (in that order: both roll)
       applyKillEffects(hit, this.ctx); // Party Popper (stats.popper): kills explode; popper kills never pop again

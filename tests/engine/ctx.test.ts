@@ -48,16 +48,16 @@ describe('FakeCtx recording', () => {
 
   it('records statuses and applies them (burn, slow, poison, mark, stun)', () => {
     const c = new FakeCtx({ burnMult: 2 });
-    const e = c.spawnEnemy({ hp: 100 });
+    const e = c.spawnEnemy({ hp: 100 }), cold = c.spawnEnemy({ hp: 100 }), sick = c.spawnEnemy({ hp: 100 }); // burn next to frost / poison on ONE enemy would react (Shatter / Fumes)
     c.ignite(e, { dps: 3, duration: 2, tick: 0.5 });
-    c.slow(e, { pct: 0.3, duration: 4 });
-    c.poison(e, 1, 5);
+    c.slow(cold, { pct: 0.3, duration: 4 });
+    c.poison(sick, 1, 5);
     c.mark(e, 3);
     c.stun(e, 1);
     expect(e.status.burnDps).toBe(6); // the aisle's burn modifier went through ctx.aisle.burn
     expect(e.status.burnUntil).toBe(2);
-    expect(e.status.slowPct).toBe(0.3);
-    expect(e.status.poisonDps).toBe(1);
+    expect(cold.status.slowPct).toBe(0.3);
+    expect(sick.status.poisonDps).toBe(1);
     expect(e.markedUntil).toBe(3);
     expect(e.state).toBe('stun');
     expect(c.calls.map((x) => x.kind)).toEqual(['ignite', 'slow', 'poison', 'mark', 'stun']);

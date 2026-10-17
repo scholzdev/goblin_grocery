@@ -10,6 +10,7 @@ import type { HitOpts } from '../engine/hooks';
 import { SHRED, WET_STATUS, type AffinityTag } from '../engine/define';
 import { burnFor, poisonTimeFor, slowFor } from '../engine/affinity';
 import { applyMark } from '../engine/marks';
+import { Reactor, markFrostStun } from '../engine/reactions';
 import type { ArenaScene } from './ArenaScene';
 import type { Enemy } from './enemies';
 import { beamOnce, boltFx, explodeAt, spawnFirePool, sweepOnce } from '../engine/patterns';
@@ -22,6 +23,9 @@ type AudioName = Parameters<typeof play>[0];
  * method that already does the work. The real `Enemy`/`Shot`/`Player` objects are handed out as the narrower `Combat*` views.
  */
 export class PhaserCtx implements RuntimeCtx {
+  /** The element reactions (engine/reactions.ts): `damageEnemy` opens and closes a hit on it, the status calls below report their applications to it. */
+  readonly reactor = new Reactor(this, () => store.state.stats);
+
   constructor(private sc: ArenaScene) {}
 
   now(): number { return this.sc.time.now / 1000; }
@@ -53,12 +57,18 @@ export class PhaserCtx implements RuntimeCtx {
     for (const e of hit) this.sc.damageEnemy(e as Enemy, dmg, source, opts);
     return hit.length;
   }
-  stun(e: CombatEnemy, seconds: number, tag?: AffinityTag): number { return this.sc.stunEnemy(e as Enemy, seconds, tag); }
+  stun(e: CombatEnemy, seconds: number, tag?: AffinityTag): number {
+    const applied = this.sc.stunEnemy(e as Enemy, seconds, tag);
+    if (applied > 0 && tag === 'frost') { markFrostStun(e.status, applied, this.now()); this.reactor.applied(e, 'frost'); } // a frost stun is a freeze: the enemy is frosted
+    return applied;
+  }
   // Status durations scale with the enemy's element affinity (engine/affinity); the dps and the slow percentage never do.
   // Wet (systems/combat): a burn on a wet enemy is halved and dries it, a frost slow on a wet enemy gains points.
-  ignite(e: CombatEnemy, burn: BurnEffect): void { const now = this.now(); applyBurn(e.status, burnVsWet(e.status, burnFor(e.def, this.sc.aisleEvent.burn(burn)), now), now); }
-  slow(e: CombatEnemy, slow: SlowEffect): void { const now = this.now(); applySlow(e.status, slowVsWet(e.status, slowFor(e.def, slow), now), now); }
-  poison(e: CombatEnemy, dps: number, duration: number): void { applyPoison(e.status, dps, poisonTimeFor(e.def, duration), this.now()); }
+  // Reactions: every burn / frost / poison application is reported to the reactor (checked once, at the end of the hit it belongs to, or at once outside a hit).
+  // `slow` is the stats-driven frost channel (Ice Pack, Jelly frost, Cold Storage, Brain Freeze), so it marks the enemy frosted; the soap puddle and the wet floor slow without it.
+  ignite(e: CombatEnemy, burn: BurnEffect): void { const now = this.now(); applyBurn(e.status, burnVsWet(e.status, burnFor(e.def, this.sc.aisleEvent.burn(burn)), now), now); this.reactor.applied(e, 'burn'); }
+  slow(e: CombatEnemy, slow: SlowEffect): void { const now = this.now(); applySlow(e.status, slowVsWet(e.status, slowFor(e.def, slow), now), now, true); this.reactor.applied(e, 'frost'); }
+  poison(e: CombatEnemy, dps: number, duration: number): void { applyPoison(e.status, dps, poisonTimeFor(e.def, duration), this.now()); this.reactor.applied(e, 'poison'); }
   mark(e: CombatEnemy, seconds: number): void { applyMark(e, this.now(), seconds); }
   shred(e: CombatEnemy, stacks: number, seconds: number = SHRED.duration): void { applyShred(e.status, stacks, seconds, this.now()); }
   weaken(e: CombatEnemy, pct: number, seconds: number): void { applyWeaken(e.status, pct, seconds, this.now()); }

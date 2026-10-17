@@ -88,6 +88,7 @@ export class FakeArsenal implements PatternHost {
       nearestEnemy: (range) => f.nearest(f.player, range) as PatternEnemy | null,
       nearestEnemyFrom: (x, y, range, exclude) => f.nearest({ x, y }, range, exclude) as PatternEnemy | null,
       damageEnemy: (e, dmg, stats, opts) => f.damage(e, dmg, stats, opts),
+      reactionApplied: (e, kind) => f.reactor.applied(e, kind),
       recoil: (uid) => { self.recoils.push(uid); },
     };
   }

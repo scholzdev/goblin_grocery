@@ -122,6 +122,13 @@ export class Fx {
     this.scene.tweens.add({ targets: img, alpha: 0, y: y - 20, delay: 360, duration: 260, onComplete: () => img.destroy() });
   }
 
+  /** A straight line that fades out fast (Crack's shrapnel). */
+  streak(x1: number, y1: number, x2: number, y2: number, tint = 0xffffff): void {
+    const g = this.scene.add.graphics().setDepth(DEPTH.fx);
+    g.lineStyle(4, tint, 1).lineBetween(x1, y1, x2, y2).lineStyle(1.5, 0xffffff, 1).lineBetween(x1, y1, x2, y2);
+    this.scene.tweens.add({ targets: g, alpha: 0, duration: 200, onComplete: () => g.destroy() });
+  }
+
   /** Bag It: a garbage bag at (x, y) that swells and shrinks for `seconds`, then goes (the blast after it is the combo hook's). */
   garbageBag(x: number, y: number, seconds: number): void {
     const g = this.scene.add.graphics().setPosition(x, y).setDepth(DEPTH.fx - 3);
