@@ -30,7 +30,7 @@ describe('REACTIONS and the frosted rule', () => {
   it('the numbers', () => {
     expect(REACTIONS).toEqual({
       cooldown: 1,
-      shatter: { flat: 8, share: 0.5 },
+      shatter: { flat: 8, share: 0.5, cooldown: 3 },
       fumes: { radius: 60, duration: 2, tick: 0.5, poisonDuration: 2 },
       conduct: { hops: 3, share: 0.6 },
       crack: { targets: 3, radius: 90, share: 0.5, shred: 1 },
@@ -444,21 +444,57 @@ describe('Crack: shred at the cap + a blast hit', () => {
 });
 
 describe('cooldown and order', () => {
-  it('one reaction per enemy per second across all of them; a second after, the enemy reacts again', () => {
+  it('Shatter has its own 3 s cooldown per enemy: blocked at 2.9 s, allowed at 3 s, and a blocked trigger eats nothing', () => {
     const f = new FakeCtx();
     const e = f.spawnEnemy({ hp: 1000 });
     f.slow(e, SLOW); f.ignite(e, BURN);
     expect(counts(f).shatter).toBe(1);
-    f.advance(0.5);
-    f.slow(e, SLOW); f.ignite(e, BURN); // blocked
-    expect(counts(f).shatter).toBe(1);
-    expect(isBurning(e.status, f.time)).toBe(true); // a blocked trigger eats nothing
-    f.advance(0.49); // t = 0.99
+    f.advance(1); // the shared 1 s is over, Shatter's 3 s is not
     f.slow(e, SLOW); f.ignite(e, BURN);
     expect(counts(f).shatter).toBe(1);
-    f.advance(0.01); // t = 1
+    expect(isBurning(e.status, f.time)).toBe(true);
+    expect(isFrosted(e.status, f.time)).toBe(true);
+    f.advance(1.9); // t = 2.9
+    f.slow(e, SLOW); f.ignite(e, BURN);
+    expect(counts(f).shatter).toBe(1);
+    f.advance(0.1); // t = 3
     f.slow(e, SLOW);
     expect(counts(f).shatter).toBe(2);
+    expect(e.status.shatterCdUntil).toBe(6);
+  });
+
+  it('the shared 1 s still blocks the others after a Shatter, and they go off at 1 s (Fumes, Conduct, Crack keep 1 s)', () => {
+    const f = new FakeCtx();
+    const [e, b] = row(f, [0, 800]);
+    f.slow(e, SLOW); f.ignite(e, BURN); // Shatter
+    f.poison(e, 2, 9);
+    f.advance(0.99);
+    f.ignite(e, BURN); // Fumes possible, blocked by the shared cooldown
+    expect(counts(f).fumes).toBe(0);
+    f.advance(0.01); // t = 1
+    f.ignite(e, BURN);
+    expect(counts(f)).toEqual({ shatter: 1, fumes: 1, conduct: 0, crack: 0 });
+    // Conduct and Crack: 1 s apart on the same enemy
+    f.wet(b, 9); f.shred(b, 3);
+    f.hit(b, 10, null, { tags: ['electric'] });
+    expect(counts(f).conduct).toBe(1);
+    f.hit(b, 10, null, { tags: ['blast'] });
+    expect(counts(f).crack).toBe(0);
+    f.advance(1);
+    f.shred(b, 3);
+    f.hit(b, 10, null, { tags: ['blast'] });
+    expect(counts(f).crack).toBe(1);
+  });
+
+  it('a Shatter that waits on its own cooldown lets Fumes through once the shared cooldown allows', () => {
+    const f = new FakeCtx();
+    const [e, n] = row(f, [0, 50]);
+    f.slow(e, SLOW); f.ignite(e, BURN); // Shatter at 0
+    f.advance(1.5);
+    f.slow(e, SLOW); f.poison(e, 2, 9);
+    f.ignite(e, BURN); // burn + frosted (Shatter: waiting) and burn + poison
+    expect(counts(f)).toEqual({ shatter: 1, fumes: 1, conduct: 0, crack: 0 });
+    expect(n.status.poisonDps).toBe(2);
   });
 
   it('the cooldown is shared by the four reactions and kept per enemy', () => {
@@ -486,11 +522,11 @@ describe('cooldown and order', () => {
     const f = new FakeCtx();
     const e = f.spawnEnemy({ hp: 1000 });
     f.slow(e, SLOW); f.ignite(e, BURN);
-    f.advance(1);
+    f.advance(3);
     f.slow(e, SLOW); // frosted again, not burning
     f.ignite(e, BURN);
     cleanseStatus(e.status); // burn gone
-    f.advance(1);
+    f.advance(3);
     f.slow(e, SLOW);
     expect(counts(f).shatter).toBe(2);
   });

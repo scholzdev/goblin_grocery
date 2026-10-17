@@ -382,13 +382,13 @@ export type ReactionId = (typeof REACTION_IDS)[number];
 
 /**
  * Element reactions (docs/item-hooks-refactor.md "Reactions"): a status or hit that meets a status already on the enemy sets off a burst. One cooldown for all
- * of them, per enemy. `shatter` (burn + frosted): `flat` + `share` of the triggering hit's damage on that enemy. `fumes` (burn + poison): a poison cloud of
+ * of them, per enemy. `shatter` (burn + frosted): `flat` + `share` of the triggering hit's damage on that enemy; it also has its own longer per-enemy `cooldown` (s). `fumes` (burn + poison): a poison cloud of
  * `radius` that lives `duration` s, ticks every `tick` s and poisons the OTHER enemies in it for `poisonDuration` s. `conduct` (wet + an electric hit): `hops` hits of
  * `share` of the hit along the nearest enemies. `crack` (shred at the cap + a blast hit): `targets` enemies within `radius` take `share` of the hit and `shred` stacks.
  */
 export const REACTIONS = {
   cooldown: 1,
-  shatter: { flat: 8, share: 0.5 },
+  shatter: { flat: 8, share: 0.5, cooldown: 3 },
   fumes: { radius: 60, duration: 2, tick: 0.5, poisonDuration: 2 },
   conduct: { hops: 3, share: 0.6 },
   crack: { targets: 3, radius: 90, share: 0.5, shred: 1 },

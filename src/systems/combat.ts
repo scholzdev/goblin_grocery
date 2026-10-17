@@ -12,8 +12,8 @@ export function tryHit(t: HitTracker, enemyId: number): boolean {
   return true;
 }
 
-export interface StatusFx { burnDps: number; burnUntil: number; burnTick: number; nextBurnAt: number; slowPct: number; slowUntil: number; poisonDps: number; poisonUntil: number; nextPoisonAt: number; shredStacks: number; shredUntil: number; weakenPct: number; weakenUntil: number; wetUntil: number; frostUntil: number; reactionCdUntil: number }
-export const newStatus = (): StatusFx => ({ burnDps: 0, burnUntil: 0, burnTick: 0.5, nextBurnAt: 0, slowPct: 0, slowUntil: 0, poisonDps: 0, poisonUntil: 0, nextPoisonAt: 0, shredStacks: 0, shredUntil: 0, weakenPct: 0, weakenUntil: 0, wetUntil: 0, frostUntil: 0, reactionCdUntil: 0 });
+export interface StatusFx { burnDps: number; burnUntil: number; burnTick: number; nextBurnAt: number; slowPct: number; slowUntil: number; poisonDps: number; poisonUntil: number; nextPoisonAt: number; shredStacks: number; shredUntil: number; weakenPct: number; weakenUntil: number; wetUntil: number; frostUntil: number; reactionCdUntil: number; shatterCdUntil: number }
+export const newStatus = (): StatusFx => ({ burnDps: 0, burnUntil: 0, burnTick: 0.5, nextBurnAt: 0, slowPct: 0, slowUntil: 0, poisonDps: 0, poisonUntil: 0, nextPoisonAt: 0, shredStacks: 0, shredUntil: 0, weakenPct: 0, weakenUntil: 0, wetUntil: 0, frostUntil: 0, reactionCdUntil: 0, shatterCdUntil: 0 });
 
 const EPS = 1e-9;
 

@@ -49,8 +49,10 @@ export const isFrosted = (s: StatusFx, now: number): boolean => s.frostUntil > n
 export function markFrostStun(s: StatusFx, seconds: number, now: number): void {
   s.frostUntil = Math.max(s.frostUntil, now + seconds);
 }
-/** Is the per-enemy reaction cooldown over. */
+/** Is the per-enemy reaction cooldown (shared by all four) over. */
 export const reactionReady = (s: StatusFx, now: number): boolean => now >= s.reactionCdUntil - EPS;
+/** Is Shatter's own, longer per-enemy cooldown over (on top of the shared one). */
+export const shatterReady = (s: StatusFx, now: number): boolean => now >= s.shatterCdUntil - EPS;
 
 /** Shatter eats the burn. */
 export function consumeBurn(s: StatusFx): void {
@@ -93,7 +95,8 @@ export interface TriggerHit { dmg: number; tags: readonly AffinityTag[] }
  * hit (a puddle or aura tick, a hook) it is checked at once with no hit damage (Shatter's burst is then its flat part only). A reaction's own burst hits are flagged
  * (`HitOpts.reaction`), never open a hit and apply no status, so they cannot set another reaction off.
  *
- * Order when several apply to the same trigger: Shatter, Fumes, Conduct, Crack. One per enemy per `REACTIONS.cooldown`; a blocked trigger is lost. A new burn on a wet enemy
+ * Order when several apply to the same trigger: Shatter, Fumes, Conduct, Crack. One per enemy per `REACTIONS.cooldown`; a blocked trigger is lost. Shatter also waits
+ * `REACTIONS.shatter.cooldown` after its own last one on that enemy; while it waits, the others can still go off once the shared cooldown allows. A new burn on a wet enemy
  * steams first (`burnVsWet` dries it in the application), so by the time the hit ends the Wet is gone and Conduct cannot fire.
  */
 export class Reactor {
@@ -127,13 +130,14 @@ export class Reactor {
     if (!e.alive || e.state === 'spawn' || e.state === 'dying' || !reactionReady(s, now)) return;
     const burning = isBurning(s, now), poisoned = isPoisoned(s, now);
     let id: ReactionId | null = null;
-    if (e.hp > 0 && burning && isFrosted(s, now) && fresh & (BIT.burn | BIT.frost)) id = 'shatter'; // (a burst on a corpse would do nothing: the hit that kills takes no Shatter, the others still go off)
+    if (e.hp > 0 && burning && isFrosted(s, now) && fresh & (BIT.burn | BIT.frost) && shatterReady(s, now)) id = 'shatter'; // (a burst on a corpse would do nothing: the hit that kills takes no Shatter, the others still go off)
     else if (burning && poisoned && fresh & (BIT.burn | BIT.poison)) id = 'fumes';
     else if (hit && isWet(s, now) && hit.tags.includes('electric')) id = 'conduct';
     else if (hit && shredStacks(s, now) >= SHRED.cap && hit.tags.includes('blast')) id = 'crack';
     if (!id) return;
 
     s.reactionCdUntil = now + REACTIONS.cooldown;
+    if (id === 'shatter') s.shatterCdUntil = now + REACTIONS.shatter.cooldown;
     recordReaction(this.stats(), id);
     ctx.fx.label(e.x, e.y - 80, ctx.t(REACTION_TEXT[id].label), ELEMENT_COLORS.reaction, 24);
     if (id === 'shatter') this.shatter(e, hit);
