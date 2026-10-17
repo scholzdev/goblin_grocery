@@ -7,7 +7,7 @@ import { SHOW_HP_BAR, ENEMIES, ELITE, THEME_SUMMONS, ELITE_EXCLUDED, AFFIX, MINI
 import { GumPuddles } from './gum';
 import { CRIT, PLAYER, STARTER_LOOKS } from '../data/items';
 import { addCoins, damagePlayer, takeStockroomItem } from '../state/run';
-import { hitArmor, newHitTracker, shredStacks, tryHit, type HitTracker } from '../systems/combat';
+import { hitArmor, newHitTracker, shredGain, shredStacks, tryHit, type HitTracker } from '../systems/combat';
 import type { EnemyId, ShopOffer, WaveDef, WeaponStats } from '../types';
 import { play, setWheel } from '../audio/sfx';
 import { musicFor, playMusic } from '../audio/music';
@@ -20,6 +20,8 @@ import { EMPTY_HOOKS, buildHooks, type HitEvent, type HitOpts, type HookTable } 
 import { applyHitStatuses, scheduleEcho } from '../engine/onHitStatuses';
 import { applyKillEffects } from '../engine/onKillEffects';
 import { markedDamage } from '../engine/marks';
+import { ELEMENT_COLORS, colorNum, damageType, numberStyle } from '../engine/damageType';
+import { recordDamage } from '../systems/damageStats';
 import { affinityMult, markMult, resistTag, statusDurationMult, tryStagger, weakTag } from '../engine/affinity';
 import { AFFINITY, type AffinityTag } from '../engine/define';
 import { hitTags } from '../engine/hitTags';
@@ -55,9 +57,6 @@ import { ARENA, ENTRIES, SIDE_UNITS, DECO_SPOTS, edgeSolids } from '../data/aren
 import { labDummies, type LabDummy } from '../lab';
 export { ARENA };
 
-/** Damage-number and flash colours of the affinity tags (the set chips' hues): a weak hit's number, the boss "WEAK!" label and its ring. */
-const AFFINITY_TINT: Record<AffinityTag, number> = { heat: 0xff7a3d, frost: 0x8fd8ff, electric: 0xf5e26b, blast: 0xff8fc8, cleaning: 0x4fd1c5, poison: 0x8fcb57, mark: 0xf5bd45 };
-const AFFINITY_COLOR = Object.fromEntries(Object.entries(AFFINITY_TINT).map(([k, v]) => [k, '#' + v.toString(16).padStart(6, '0').toUpperCase()])) as Record<AffinityTag, string>;
 
 interface Player {
   x: number; y: number; radius: number; facing: 1 | -1;
@@ -563,8 +562,8 @@ export class ArenaScene extends Phaser.Scene {
     e.state = 'stun';
     e.stateT = Math.max(e.stateT, AFFINITY.stagger.time);
     e.staggered = true;
-    this.fx.label(e.x, e.y - e.sprite.displayHeight - 30, t('weakFlash'), tag ? AFFINITY_COLOR[tag] : '#FFF2D5', 24);
-    this.fx.ring('fx_pulse', e.x, e.y, 120, 220, tag ? AFFINITY_TINT[tag] : 0xffffff);
+    this.fx.label(e.x, e.y - e.sprite.displayHeight - 30, t('weakFlash'), tag ? ELEMENT_COLORS[tag] : '#FFF2D5', 24);
+    this.fx.ring('fx_pulse', e.x, e.y, 120, 220, tag ? colorNum(ELEMENT_COLORS[tag]) : 0xffffff);
     play('cap_ping', { rate: 1.2, volume: 0.6 });
   }
 
@@ -650,7 +649,9 @@ export class ArenaScene extends Phaser.Scene {
     if (H.hit) { H.emit('modifyDamage', hit); dmg = hit.dmg; }
     const aff = affinityMult(e.def, tags); // element soft counters: after Five-Alarm (a modifyDamage hook), before the mark and the crit roll
     dmg *= aff;
+    const unmarked = dmg;
     dmg = markedDamage(dmg, e.markedUntil, now, markMult(e.def)); // Price Check / Sale Flag mark
+    const markBonus = dmg - unmarked;
     // Crits resolve here and only here (never on burn ticks).
     const crit = !o.isDot && !!stats && stats.critChance > 0 && this.rng() < stats.critChance;
     if (crit) {
@@ -662,12 +663,15 @@ export class ArenaScene extends Phaser.Scene {
     }
     // Armor (Canned Beans, plated elites) and Shred: direct hits only; burn, puddles, auras and cones (isDot/quiet) pass through; the vacuum pulse is armored.
     // Shred stacks (engine/define SHRED) take armor off, and below zero they add damage (systems/combat shreddedArmorDamage).
-    const soaked = hitArmor(e, dmg, o, now), armored = soaked < dmg * 0.5;
+    const soaked = hitArmor(e, dmg, o, now), armored = soaked < dmg * 0.5, shredBonus = shredGain(e, dmg, soaked, o);
     dmg = soaked;
     hit.dmg = dmg; hit.armored = armored;
     e.hp -= dmg;
     if (!o.isDot) e.lastHitT = now;
-    s.stats.damageByWeapon[key] = (s.stats.damageByWeapon[key] ?? 0) + dmg;
+    // The breakdown (systems/damageStats) and the number's colour read the same facts: the display type, weak (aff > 1) or resisted (aff < 1).
+    const wk = aff > 1 ? weakTag(e.def, tags) : null, rs = aff < 1 ? resistTag(e.def, tags) : null;
+    const type = damageType(tags, e.def, o);
+    recordDamage(s.stats, { source: key, dmg, type, isDot: !!o.isDot, weak: aff > 1, resisted: aff < 1, shred: shredBonus, mark: markBonus });
     hit.killed = e.hp <= 0;
     if (H.hit) H.emit('onHit', hit);
     applyHitStatuses(hit, this.ctx); // burn, Heat L2 ignite, slow (stats-driven, shared by every source)
@@ -691,9 +695,9 @@ export class ArenaScene extends Phaser.Scene {
     }
     if (crit || now - e.lastHitNumberAt > 0.14 || dmg >= 10) {
       e.lastHitNumberAt = now;
-      // Weak hits take the element's colour a size up, resisted ones a dim grey a size down; a crit stays a crit.
-      const wk = aff > 1 ? weakTag(e.def, tags) : null, rs = aff < 1 ? resistTag(e.def, tags) : null;
-      this.fx.number(e.x, e.y - e.sprite.displayHeight * 0.9, dmg, crit ? '#F45F52' : wk ? AFFINITY_COLOR[wk] : rs ? '#9C93B0' : o.poison ? '#8FCB57' : o.isDot ? '#F5BD45' : '#FFF2D5', crit ? 28 : wk ? (o.isDot ? 18 : 25) : rs ? (o.isDot ? 14 : 19) : o.isDot ? 16 : 22);
+      // The damage type's colour (engine/damageType; the "Damage colors" setting off keeps the old scheme): weak a size up and brighter, resisted a size down at half alpha, a crit big with the bold outline.
+      const st = numberStyle({ type, crit, isDot: !!o.isDot, poison: !!o.poison, weak: wk, resisted: rs }, settings.damageColors);
+      this.fx.number(e.x, e.y - e.sprite.displayHeight * 0.9, dmg, st.color, st.size, st);
     }
     scheduleEcho(hit, this.ctx); // Double Bag (stats.echo): one delayed second strike per direct hit
     if (e.dummy?.immortal && e.hp <= 0) e.hp = e.maxHp; // lab sandbox: unkillable dummies refill

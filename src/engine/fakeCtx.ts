@@ -1,4 +1,5 @@
-import { applyBurn, applyPoison, applyShred, applySlow, hitArmor, newStatus } from '../systems/combat';
+import { applyBurn, applyPoison, applyShred, applySlow, hitArmor, newStatus, shredGain } from '../systems/combat';
+import { newDamageStats, recordDamage, type DamageSink } from '../systems/damageStats';
 import { combatRng, type Rng } from '../systems/rng';
 import { CRIT, PLAYER } from '../data/items';
 import { ENEMIES } from '../data/enemies';
@@ -11,6 +12,7 @@ import { applyMark, markedDamage } from './marks';
 import { affinityMult, burnFor, markMult, poisonTimeFor, slowFor, statusDurationMult, tryStagger } from './affinity';
 import { AFFINITY, SHRED, type AffinityTag } from './define';
 import { hitTags } from './hitTags';
+import { damageType } from './damageType';
 import { applyHitStatuses, scheduleEcho } from './onHitStatuses';
 import { applyKillEffects } from './onKillEffects';
 
@@ -93,6 +95,8 @@ export class FakeCtx implements RuntimeCtx {
   /** The compiled hooks `damage`/`hit`/`hurt` dispatch to. */
   hooks: HookTable = EMPTY_HOOKS;
   readonly fx: FxApi;
+  /** The run's damage breakdown as `ArenaScene` keeps it (`RunStats.damageByWeapon` + `damage`): every hit of `runHit` is recorded here. */
+  readonly dmgLog: DamageSink = { damageByWeapon: {}, damage: newDamageStats() };
   readonly seed: number;
   private readonly rand: Rng;
   private nextId = 1;
@@ -328,15 +332,20 @@ export class FakeCtx implements RuntimeCtx {
     const tags = hitTags(stats, o);
     const hit: HitEvent = { enemy: e, base: dmg, dmg, stats, opts: o, source: key, now, tags, direct: !o.isDot && !o.echo && !o.fromPopper && !o.chained, crit: false, armored: false, killed: false, kbMult: 1 };
     H.emit('modifyDamage', hit); dmg = hit.dmg;
-    dmg *= affinityMult(e.def, tags); // element soft counters (engine/affinity), after the modifyDamage hooks like the scene
+    const aff = affinityMult(e.def, tags);
+    dmg *= aff; // element soft counters (engine/affinity), after the modifyDamage hooks like the scene
+    const unmarked = dmg;
     dmg = markedDamage(dmg, e.markedUntil, now, markMult(e.def)); // the shared mark rule (engine/marks), after the affinity like the scene
+    const markBonus = dmg - unmarked;
     if (!o.isDot && stats && stats.critChance > 0 && this.rand() < stats.critChance) {
       dmg *= CRIT.mult;
       hit.crit = true; hit.dmg = dmg; H.emit('onCrit', hit); dmg = hit.dmg;
     }
-    dmg = hitArmor(e, dmg, o, now); // armor and shred (systems/combat), direct hits only, like the scene
+    const soaked = hitArmor(e, dmg, o, now), shredBonus = shredGain(e, dmg, soaked, o);
+    dmg = soaked; // armor and shred (systems/combat), direct hits only, like the scene
     hit.armored = dmg < hit.dmg * 0.5; hit.dmg = dmg;
     e.hp -= dmg;
+    recordDamage(this.dmgLog, { source: key, dmg, type: damageType(tags, e.def, o), isDot: !!o.isDot, weak: aff > 1, resisted: aff < 1, shred: shredBonus, mark: markBonus });
     hit.killed = e.hp <= 0; H.emit('onHit', hit);
     applyHitStatuses(hit, this);
     H.emit('afterHit', hit);

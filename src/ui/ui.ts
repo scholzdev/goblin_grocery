@@ -28,6 +28,8 @@ import type { DepartmentId, EnemyId, ItemTypeId, LabOpts, Perk, RecipeId, Starte
 import type { Fresh } from '../state/profile';
 import { modIcon, setIcon } from './icons';
 import { affinityRowsHtml } from './affinity';
+import { damageBreakdownHtml } from './damageBreakdown';
+import { weaponTags } from '../engine/hitTags';
 import { t, fmtNum, lang, setLang, LANGS, type Lang, type UIKey } from '../i18n';
 import { newSetLevels, setsOf } from '../data/sets';
 import { flavorOf } from '../engine/define';
@@ -247,6 +249,7 @@ function settingsHtml(): string {
     ${slider('master', t('master'))}${slider('music', t('music'))}${slider('sfx', t('effects'))}
     <label class="check"><input type="checkbox" data-set="reducedMotion" ${settings.reducedMotion ? 'checked' : ''}>${t('reducedMotion')}</label>
     <label class="check"><input type="checkbox" data-set="shake" ${settings.shake ? 'checked' : ''}>${t('screenShake')}</label>
+    <label class="check"><input type="checkbox" data-set="damageColors" ${settings.damageColors ? 'checked' : ''}>${t('damageColors')}</label>
     <button class="btn small" data-act="replay-tutorial">${t('tutReplay')}</button>
     ${controlsHtml()}
     ${desktop ? `<label class="check"><input type="checkbox" data-set="fullscreen" ${settings.fullscreen ? 'checked' : ''}>${t('fullscreen')}</label>` : ''}
@@ -491,11 +494,11 @@ function endHtml(): string {
   const won = s.phase === 'victory';
   const res = flow.lastResult;
   const icons = [...s.inventory.placed].map((i) => `<span class="endicon ${rarityClass(i.type, i.tier)}" title="${itemT(i.type).name}"><img src="${svg(`icon_${i.type}`)}" alt="${itemT(i.type).name}">${starsHtml(i.tier)}</span>`).join('');
-  const dmg = Object.entries(s.stats.damageByWeapon).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([k, v]) => {
-    const it = s.inventory.placed.find((i) => i.uid === k) ?? s.inventory.shelf.find((i) => i?.uid === k);
-    const name = it ? itemT(it.type).name : t(DMG_LABELS[k] ?? 'dmgSold');
-    return `<div class="line"><span>${name}</span><span>${Math.round(v)}</span></div>`;
-  }).join('');
+  const itemOf = (k: string) => s.inventory.placed.find((i) => i.uid === k) ?? s.inventory.shelf.find((i) => i?.uid === k);
+  const dmg = damageBreakdownHtml(s.stats, {
+    name: (k) => { const it = itemOf(k); return it ? itemT(it.type).name : t(DMG_LABELS[k] ?? 'dmgSold'); },
+    type: (k) => { const it = itemOf(k), tag = it && weaponTags(it.type)[0]; return tag && tag !== 'mark' ? tag : k === 'burn' ? 'heat' : k === 'poison' ? 'poison' : 'physical'; },
+  }, settings.damageColors);
   const mins = Math.floor(s.stats.timeSeconds / 60), secs = Math.floor(s.stats.timeSeconds % 60);
   const fresh = res ? freshHtml(res) : '';
   return `<div class="endcard receipt ${fresh ? 'cols' : ''}">
@@ -513,7 +516,7 @@ function endHtml(): string {
     <div style="font-weight:800;text-align:center">${t('finalCart')}</div>
     <div class="icons">${icons || '—'}</div>
     ${s.build.recipes.length ? `<div style="text-align:center">${s.build.recipes.map((r) => `<span class="badge">${recipeT(r.id).name}</span>`).join(' ')}</div>` : ''}
-    ${dmg ? `<hr class="dash"><div style="font-weight:800">${t('damageByItem')}</div>${dmg}` : ''}
+    ${dmg}
     <hr class="dash">
     <div class="score">${t('pts', { n: res?.score ?? 0 })}</div>
     ${res?.newBest ? `<span class="newbest sticker">${t('newBest')}</span>` : ''}

@@ -118,6 +118,12 @@ export function hitArmor(e: { def: { armor?: number }; status: StatusFx }, dmg: 
   return shreddedArmorDamage(dmg, e.def.armor ?? 0, shredStacks(e.status, now));
 }
 
+/** The damage Shred added to a hit that went `dmg` -> `soaked` through `hitArmor`: `soaked` minus what the same hit deals with no stacks (0 without Shred, and for hits armor skips). */
+export function shredGain(e: { def: { armor?: number } }, dmg: number, soaked: number, o: { isDot?: boolean; quiet?: boolean }): number {
+  if (o.isDot || o.quiet) return 0;
+  return Math.max(0, soaked - armorDamage(dmg, e.def.armor ?? 0));
+}
+
 /** Cereal shield: blocks a shot when its reversed travel direction is within the half-angle of the facing vector. */
 export function shieldBlocks(shotVx: number, shotVy: number, faceX: number, faceY: number, halfDeg = ENEMIES.cereal.tune.halfAngleDeg): boolean {
   const sl = Math.hypot(shotVx, shotVy), fl = Math.hypot(faceX, faceY);

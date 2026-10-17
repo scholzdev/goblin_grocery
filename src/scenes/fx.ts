@@ -87,16 +87,20 @@ export class Fx {
     this.dust.emitParticleAt(Math.cos(a) * r, Math.sin(a) * r * 0.62);
   }
 
-  number(x: number, y: number, value: number, color = '#FFF2D5', size = 22): void {
-    this.label(x, y, String(Math.round(value)), color, size);
+  /** A damage number. `look` (engine/damageType `numberStyle`) adds the alpha (resisted hits) and the bold outlined crit. */
+  number(x: number, y: number, value: number, color = '#FFF2D5', size = 22, look?: { alpha: number; crit: boolean }): void {
+    this.label(x, y, String(Math.round(value)), color, size, look);
   }
 
-  label(x: number, y: number, text: string, color = '#FFF2D5', size = 22): void {
+  label(x: number, y: number, text: string, color = '#FFF2D5', size = 22, look?: { alpha: number; crit: boolean }): void {
     const t = this.numbers[this.numberIdx];
     this.numberIdx = (this.numberIdx + 1) % MAX_NUMBERS;
     this.scene.tweens.killTweensOf(t);
+    const crit = !!look?.crit;
     t.setText(text).setPosition(x + Phaser.Math.Between(-8, 8), y).setColor(color)
-      .setFontSize(size).setAlpha(1).setScale(0.6).setVisible(true);
+      .setFontSize(size).setFontStyle(crit ? 'bold' : '').setStroke('#30203F', crit ? 8 : 5) // a crit: bold, thicker outline and a white halo, never its own colour
+      .setShadow(0, 0, '#FFFFFF', crit ? 7 : 0, true, false)
+      .setAlpha(look?.alpha ?? 1).setScale(0.6).setVisible(true);
     this.scene.tweens.add({ targets: t, y: y - 34, scale: 1, duration: 160, ease: 'Back.Out' });
     this.scene.tweens.add({ targets: t, alpha: 0, delay: 380, duration: 220, onComplete: () => t.setVisible(false) });
   }

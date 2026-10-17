@@ -157,6 +157,23 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .endcard .line span:last-child { font-family: var(--display); }
 .endcard .icons { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin: 6px 0; }
 .endcard .icons img { width: 40px; height: 40px; }
+/* run-end damage breakdown (ui/damageBreakdown.ts): per-source bars, the stacked damage-type bar and its legend, the share / bonus lines */
+.endcard .dmg { font-size: 14px; }
+.endcard .dmg .dh { font-weight: 800; font-size: 16px; margin: 4px 0 3px; }
+.endcard .dbar { display: grid; grid-template-columns: minmax(70px, 34%) 1fr auto; align-items: center; gap: 8px; padding: 1px 0; font-weight: 800; }
+.endcard .dbar .dn { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.endcard .dtrack { height: 12px; border: 2px solid var(--plum); border-radius: 6px; background: rgba(48, 32, 63, 0.08); overflow: hidden; }
+.endcard .dtrack i { display: block; height: 100%; border-right: 2px solid var(--plum); box-sizing: border-box; }
+.endcard .dv { font-family: var(--display); text-align: right; white-space: nowrap; }
+.endcard .dv small { font-family: var(--ui); font-weight: 800; font-size: 12px; margin-left: 6px; opacity: 0.7; }
+.endcard .dmore { font-size: 12px; font-weight: 800; opacity: 0.6; text-align: right; }
+.endcard .dstack { display: flex; height: 14px; border: 2px solid var(--plum); border-radius: 7px; overflow: hidden; }
+.endcard .dstack i { min-width: 3px; border-right: 2px solid var(--plum); }
+.endcard .dstack i:last-child { border-right: 0; }
+.endcard .dlegend { display: flex; flex-wrap: wrap; gap: 2px 12px; margin: 4px 0; font-weight: 800; font-size: 13px; }
+.endcard .dleg i { display: inline-block; width: 10px; height: 10px; border: 2px solid var(--plum); border-radius: 50%; margin-right: 4px; vertical-align: -1px; box-sizing: content-box; }
+.endcard .dlines { margin-top: 2px; font-size: 13px; }
+.endcard .dlines .line { padding: 0; }
 .endcard .score { font-family: var(--display); font-size: 40px; text-align: center; }
 .endcard .newbest { display: block; width: max-content; margin: 0 auto; font-size: 18px; padding: 4px 14px 1px; transform: rotate(-3deg); }
 
@@ -696,6 +713,8 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .chip.aff-poison { background: #e3f3c9; color: #4d7a1a; }
 .chip.aff-mark { background: #fff1c2; color: #8a6200; }
 .chip.aff-armor { background: #e3e8f1; color: #46506a; }
+/* the codex / Strong-vs element chips take the damage color (--ec = ELEMENT_COLORS): a light wash of it with a darkened label */
+.chip.aff-el { background: color-mix(in srgb, var(--ec) 28%, #fff); color: color-mix(in srgb, var(--ec) 35%, #30203F); }
 .set-electric { --sc: #8a6200; --sb: #fff1c2; }
 .set-kitchen { --sc: #9a5412; --sb: #ffe2c2; }
 .set-cleaning { --sc: #1f7a70; --sb: #cdf2ee; }

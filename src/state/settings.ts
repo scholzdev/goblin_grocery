@@ -8,6 +8,8 @@ export interface Settings {
   sfx: number;
   reducedMotion: boolean;
   shake: boolean;
+  /** Damage numbers take the color of their damage type (and the run-end breakdown its element colors); off keeps the neutral scheme. */
+  damageColors: boolean;
   hintSeen: boolean;
   tutorialDone: boolean;
   /** Ids of finished tutorial steps and one-time tips. */
@@ -22,7 +24,7 @@ export interface BestRun { score: number; wave: number; won: boolean; date: stri
 
 const KEY = 'goblin-grocery.settings.v1';
 const BEST = 'goblin-grocery.best.v1';
-const DEFAULTS: Settings = { master: 0.8, music: 0.45, sfx: 0.8, reducedMotion: false, shake: true, hintSeen: false, tutorialDone: false, tutorialSeen: [], fullscreen: true, language: systemLang(), keys: defaultKeys() };
+const DEFAULTS: Settings = { master: 0.8, music: 0.45, sfx: 0.8, reducedMotion: false, shake: true, damageColors: true, hintSeen: false, tutorialDone: false, tutorialSeen: [], fullscreen: true, language: systemLang(), keys: defaultKeys() };
 
 function read<T>(key: string): T | null {
   try {

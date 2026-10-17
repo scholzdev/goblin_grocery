@@ -2,6 +2,7 @@
 import type { DoorId, ModifierId } from './data/modifiers';
 import type { EventKind } from './data/events';
 import type { ZoneId } from './data/zones';
+import type { DamageStats } from './systems/damageStats';
 import type { AffinityMap, AffinityTag, BUFF_ORDER, ELEMENTS, ENEMY_BEHAVIORS, ENEMY_ORDER, FAMILIES, ITEM_ORDER, RECIPE_ORDER, SET_ORDER, STARTER_ORDER, THEME_ORDER } from './engine/define';
 
 /** The id unions are derived from the order lists of engine/define.ts (which the registry checks against the content files). */
@@ -301,6 +302,8 @@ export interface RunStats {
   kills: number;
   coinsEarned: number;
   damageByWeapon: Record<string, number>;
+  /** The rest of the run's damage breakdown (`systems/damageStats`). */
+  damage: DamageStats;
   wavesCleared: number;
   timeSeconds: number;
   bossDefeated: boolean;

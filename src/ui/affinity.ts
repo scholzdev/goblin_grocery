@@ -3,6 +3,7 @@ import type { EnemyId, ItemTypeId } from '../types';
 import { ENEMIES, enemiesWeakTo, enemyFrame, isBossId } from '../data/enemies';
 import { ITEMS } from '../data/items';
 import { itemTags } from '../engine/hitTags';
+import { ELEMENT_COLORS, type DamageType } from '../engine/damageType';
 import { t } from '../i18n';
 import { enemyT, tagT } from '../i18n/data';
 import { setIcon } from './icons';
@@ -16,9 +17,15 @@ const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 /** A tag's display name: the five element sets come from their set file (Heat, Frost, Blast, Electric, Cleaning), poison and marks from the UI table. */
 export const affinityName = (tag: AffinityTag): string => (tag === 'poison' ? t('affPoison') : tag === 'mark' ? t('affMark') : tagT(tag));
 
-/** A tag as a small chip with its set icon and colour (the set chips of the shop; poison and marks have their own). */
+/** A damage type's display name: the tag names plus Physical (no tag) and the reserved Reaction. */
+export const damageTypeName = (type: DamageType): string => (type === 'physical' ? t('dmgPhysical') : type === 'reaction' ? t('dmgReaction') : affinityName(type));
+
+/**
+ * A tag as a small chip with its set icon, in the element's damage color (`ELEMENT_COLORS`, the same hue as the damage numbers; the `set-` / `aff-`
+ * class keeps the shop's set chip look as the base, `aff-el` retints it from `--ec`). Marks keep their gold chip.
+ */
 export const affinityChip = (tag: AffinityTag): string =>
-  `<span class="chip ${tag === 'poison' || tag === 'mark' ? `aff-${tag}` : `set-${tag}`}">${setIcon(tag, 12)}${esc(affinityName(tag))}</span>`;
+  `<span class="chip ${tag === 'poison' || tag === 'mark' ? `aff-${tag}` : `set-${tag}`}${tag === 'mark' ? '' : ' aff-el'}" style="--ec:${ELEMENT_COLORS[tag]}">${setIcon(tag, 12)}${esc(affinityName(tag))}</span>`;
 
 /** The armor chip of the codex: a shield and the armor number (Canned Beans). */
 export const armorChip = (armor: number): string => `<span class="chip aff-armor">${setIcon('armor', 12)}${armor}</span>`;

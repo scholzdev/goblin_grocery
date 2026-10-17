@@ -9,6 +9,7 @@ import { mulberry32, type Rng } from '../systems/rng';
 import { zonesOf } from '../data/zones';
 import { currentRerollCost, repairCost, rollDoors, rollOffers, rollZones, sellPrice } from '../systems/shop';
 import { computeBuild } from '../systems/synergies';
+import { newDamageStats } from '../systems/damageStats';
 import { contentSetTune, contentTune } from '../engine/registry';
 import { FLAVORS } from '../engine/define';
 
@@ -35,7 +36,7 @@ export function createRun(seed: number, starter: StarterId = 'toaster', shift = 
   const state: RunState = {
     phase: 'title', wave: 1, hp: PLAYER.maxHp, money: PLAYER.startMoney + (PLAYER.starters[starter].perk?.startMoney ?? 0), inventory,
     build: undefined as unknown as Build, shop: null, shopLevel: 1, starter, weapon, shift, theme, department: theme, modifier: 'none', route: [theme], mods: ['none'], doors: null, zone, zones: [zone], doorZones: null, coinLog: [], nextUid: 1, seed,
-    stats: { kills: 0, coinsEarned: 0, damageByWeapon: {}, wavesCleared: 0, timeSeconds: 0, bossDefeated: false },
+    stats: { kills: 0, coinsEarned: 0, damageByWeapon: {}, damage: newDamageStats(), wavesCleared: 0, timeSeconds: 0, bossDefeated: false },
   };
   const w = STARTER_WEAPONS[weapon];
   inventory.placed.push({ uid: newUid(state), type: weapon, x: w.x, y: w.y, rot: w.rot });

@@ -183,6 +183,18 @@ Armor (Canned Beans 3, and the Plated elite affix +3) soaks flat damage off a di
 
 **Goldens.** The Can Opener, Crack Open and the Tools L2 / L3 dash-Shred text were added with a deliberate golden update (`build.json` and `text.json` only gained those entries; no existing line changed).
 
+## Damage colors
+
+Every hit is shown as one display type: `physical` (no tag), `heat`, `frost`, `electric`, `poison`, `blast`, `cleaning`, plus a reserved `reaction` nothing produces yet. `engine/damageType.ts` holds the one palette, `ELEMENT_COLORS` (white, orange `#FF8A2B`, icy blue `#7FD6FF`, yellow `#FFE64D`, green `#8FCB57`, red `#FF4D4D`, lilac `#C792FF`; `mark` has a gold entry for the boss "WEAK!" flash), and the pure `damageType(tags, def, opts)`. Priority: reaction > a tag the enemy is weak to > the DoT tick tag (burn heat, poison poison) > the first weapon / item tag > physical. It is display only: damage still comes from `affinityMult` (best weak minus best resist of all tags).
+
+The palette is used by the arena's damage numbers (`numberStyle`, called in `ArenaScene.damageEnemy`), the codex weak / resist chips (`ui/affinity.ts`: the chip keeps its `set-` / `aff-` class and `aff-el` retints it from `--ec`) and the run-end breakdown. Number look: a weak hit is a size up and brighter, a resisted one a size down at 50% alpha, a DoT tick smaller, and a crit big with a bold thick outline and a white halo (`Fx.label`), never its own color. The setting "Damage colors" (`settings.damageColors`, default on, in Settings next to Screen shake) turns it off: numbers keep the old neutral scheme (coral crit, grey resisted, gold burn, green poison, cream) and the breakdown draws no colors.
+
+## Damage breakdown
+
+`systems/damageStats.ts` is a pure accumulator, `recordDamage(sink, record)`, called from `ArenaScene.damageEnemy` (into `RunStats`) and `FakeCtx.runHit` (into `fake.dmgLog`) at the one point the final damage is known: after armor, `e.hp -= dmg`, overkill included, exactly where `damageByWeapon` was counted. It only reads values the pipeline already computed, so no damage value and no rng draw changed. It keeps, next to `damageByWeapon` (per source): `byType` (every display type, `reaction` stays 0), `dot` (burn and poison ticks), `weak` / `resisted` (final damage of hits whose affinity multiplier was above / below 1), `shred` and `mark`. The shred bonus is what Shred added over the same hit with no stacks (`shredGain` in `systems/combat.ts`: stripped armor plus the exposed bonus), the mark bonus is the damage after the mark multiplier minus before it (pre-crit, pre-armor, the slot of the pipeline).
+
+Shown on the run-end receipt (`endHtml` -> `ui/damageBreakdown.ts`, under the final cart): the top four sources as bars with their share (colored by the source's element when colors are on), "Damage by type" as one stacked bar with a legend, and lines for the DoT, weak and resisted shares and the Shred and mark bonuses (zero lines are hidden). Tests: `tests/damage-colors.test.ts`.
+
 ## Testing
 
 - `tests/content/items|combos|sets|enemies/<id>.test.ts`: one file per content file. The enemy tests hardcode the pre-refactor stats, tune and EN/DE text (`tests/content/enemies/registry.test.ts` covers the registry and its validation). Build asserts go through `full(cart)` / `stats(cart)` (`tests/content/helpers.ts`, carts from `at('fan', 2)`, `far('ice')`, `gilded(i)`).
