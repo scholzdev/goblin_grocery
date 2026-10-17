@@ -98,11 +98,11 @@ describe('computeBuild dispatch', () => {
     expect(calls).toContain('flavor:1');
   });
 
-  it('gives hooks other content items\' tunes through ctx.tuneOf (resolved per tier; empty for a legacy item)', () => {
+  it('gives hooks other content items\' tunes through ctx.tuneOf (resolved per tier)', () => {
     const inv = cart('toaster', ['jellybeans']); // cart() builds while placing
     tunes.length = 0;
     computeBuild(inv);
-    expect(tunes).toEqual(['3.75:5:0']); // Fuel Can dps [2.5, 3.75, 5] at ★2 and ★3; the Toaster is not content
+    expect(tunes).toEqual(['3.75:5:3']); // Fuel Can dps [2.5, 3.75, 5] at ★2 and ★3; the Toaster's tune has damage, cooldown and range (every item is content now)
   });
 
   it('runs player hooks after all weapons, by order, only for owned items', () => {

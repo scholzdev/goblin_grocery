@@ -1,4 +1,4 @@
-import { BUFFS, BUNDLE, ITEMS, PLAYER, PROJECTILE_PATTERNS, TIER } from '../data/items';
+import { BUNDLE, ITEMS, PLAYER, PROJECTILE_PATTERNS, TIER } from '../data/items';
 import { RECIPES } from '../data/recipes';
 import { setLevels } from '../data/sets';
 import type { ActiveRecipe, BuffId, Build, Inventory, ItemInstance, ItemTypeId, Perk, WeaponStats } from '../types';
@@ -19,7 +19,6 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
   const eff = (i: ItemInstance) => tierOf(i) + boost(i);
   /** Highest tier among placed copies of a type (0 if none). */
   const top = (t: ItemTypeId) => Math.max(0, ...placed.filter((p) => p.type === t).map(eff));
-  const has = (t: ItemTypeId) => top(t) > 0;
   const sets = setLevels(placed);
   const weapons: WeaponStats[] = [];
   const recipes: ActiveRecipe[] = [];
@@ -94,7 +93,7 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
     regen: 0, // the Snacks set (L2) and Snack Bag add in their player hooks
     critHeal: 0,
     killCoinMult: 1,
-    pickupRadius: PLAYER.pickupRadius + (has('vacuum') ? BUFFS.vacuumPickup : 0) + (perk.pickupRadius ?? 0),
+    pickupRadius: PLAYER.pickupRadius + (perk.pickupRadius ?? 0), // the Vacuum and Magnet add in their player hooks
     shoveCooldown: PLAYER.shove.cooldown + (perk.shoveCooldown ?? 0),
     shoveDistMult: 1,
     shoveDamage: PLAYER.shove.damage + (perk.shoveDamage ?? 0), // Boot adds in its player hook, then the Tools set (L2, order 200) multiplies the total
@@ -145,17 +144,11 @@ export function describeBuffs(s: WeaponStats, inv?: Inventory): string[] {
   return out;
 }
 
-const fmt = (x: number) => fmtNum(+x.toFixed(2));
 type ScaleRow = { label: string; values: string[] };
 
-/** Per-level values (★1/★2/★3) for the inspector, mirroring computeBuild's formulas. Empty for legendaries. */
+/** Per-level values (★1/★2/★3) for the inspector: the content file's rows. Empty for legendaries. */
 export function tierScaling(type: ItemTypeId): ScaleRow[] {
-  const def = ITEMS[type];
-  if (def.legendary) return [];
-  const row = (label: string, f: (t: number) => string): ScaleRow => ({ label, values: [1, 2, 3].map(f) });
-  const w = def.weapon;
   const content = contentItem(type);
-  if (content && !w) return tierRows(content, lang());
-  if (w) return [row(t('rowDamage'), (tr) => fmt(w.damage * TIER.weaponDamage(tr))), row(t('rowCooldown'), (tr) => `${fmt(w.cooldown * TIER.weaponCooldown(tr))} s`)];
-  return [];
+  if (!content || ITEMS[type].legendary) return [];
+  return tierRows(content, lang());
 }

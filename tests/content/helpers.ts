@@ -1,6 +1,7 @@
 import { ITEMS } from '../../src/data/items';
 import { FakeCtx, type FakeOptions } from '../../src/engine/fakeCtx';
 import { buildHooks } from '../../src/engine/hooks';
+import { FakeArsenal } from '../../src/engine/patterns/fakeHost';
 import { computeBuild } from '../../src/systems/synergies';
 import type { ItemTypeId, WeaponStats } from '../../src/types';
 import type { Perk } from '../../src/types';
@@ -41,4 +42,15 @@ export function arena(specs: Spec[], opts: FakeOptions = {}, perk: Perk = {}, co
   const fake = new FakeCtx({ build: b, ...opts });
   fake.attach(buildHooks(inv, b.recipes, b.sets, fake));
   return { fake, b, inv, stats: b.weapons[0] };
+}
+
+/**
+ * `arena` plus the pattern code: a `FakeArsenal` over the cart's weapons (their looks already asked from the hooks). `a.fake` is the FakeCtx
+ * (enemies, clock, rng, call log); `a.step(dt)` runs one frame of the weapons, `a.run(n, dt)` several.
+ */
+export function arsenal(specs: Spec[], opts: FakeOptions = {}, perk: Perk = {}, cols = 8, rows = 6) {
+  const ar = arena(specs, opts, perk, cols, rows);
+  const a = new FakeArsenal(ar.fake, ar.b);
+  a.applyLooks();
+  return { ...ar, a };
 }

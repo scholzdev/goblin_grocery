@@ -164,7 +164,7 @@ Two implementations: `PhaserCtx` (wraps ArenaScene, Arsenal, fx) and `FakeCtx` (
 | 4 | Migrate runtime items **(done. Batch 1: fuel, ice, popper, doublebag, coupon, sample. Batch 2: boot, bumper, sparewheel, tipjar, flag, bubblewrap, expiredmilk, tinfoilhat; the vacuum pickup stays a `computeBuild` literal until phase 7; multipack's repeat is phase 7)** | per-item FakeCtx tests, botrun |
 | 5 | Sets **(done)** | 9 set files in `src/content/sets/`; set branches gone from `computeBuild`, `damageEnemy`, `onHitStatuses`; new `afterHit` / `afterKill` hooks; interest and puddle slow still read the set tune | golden + botrun |
 | 6 | Combos **(done)** | 31 combo files in `src/content/combos/` incl. the cart combos; `cartCombos.ts` is gone (runtime in combo hooks, the status lines in `scenes/playerOverlay.ts`); `RECIPE_TUNING`, `applyRecipe` and the legacy recipe tables are gone; 31 combo sims `?sim=combo-<id>` | golden + combo-balance + botrun + sims |
-| 7 | Patterns | 11 pattern files; weapons define `pattern` + params | botrun |
+| 7 | Patterns **(done)** | `src/engine/patterns/` (11 pattern files + `projectile.ts`, `common.ts`, `types.ts`, `fakeHost.ts`); the 12 weapons are content files `src/content/items/<id>.ts` with `weapon` (pattern + base stats) and a `tune`; `scenes/weapons.ts` is a thin `PatternHost`; the cosmetic combo reads and Nailstorm's homing are combo hooks (`pattern:look`, `pattern:shotMove`); the Vacuum pickup is a `final` player hook; 12 weapon sims `?sim=weapon-<id>` | golden + botrun + sims |
 | 8 | Delete old | remove BUFFS/RECIPE_TUNING tables, applyRecipe, branches; `data/*` re-exports gone | everything green |
 
 Phases 0, 1 and 3 run one at a time. **Phases 2, 4 and 6 split into parallel sessions** by file batch: each item and combo is its own file, and the registry glob means no shared list to edit.
@@ -484,8 +484,8 @@ Runtime hook orders: kitchen heal `afterKill` 10, blast pop `afterKill` 20 (kitc
 **Semantics kept on purpose (deviations from "clean").**
 
 - The three flags `expressSweep`, `dashBlast`, `firePool` and `critCoin` stay on `WeaponStats` and are set by the combo `build` hooks, because the `Build` golden snapshots contain them. Nothing reads them at runtime any more (comments in `types.ts`). Delete them in phase 8 together with the golden regeneration.
-- `weapons.ts` still has cosmetic `recipes.includes('toastMode' | 'nailstorm' | 'greaseFire' | 'brainFreeze')` reads (sprite tint, flame sparks, rotation speed, the toast sound rate). They touch no rule; phase 7 moves them into the patterns.
-- Nailstorm's homing is still done in the projectile update of `weapons.ts` (reads `s.homing` and `contentComboTune('nailstorm')`): it is part of the shot's motion, which belongs to the phase 7 pattern.
+- `weapons.ts` still has cosmetic `recipes.includes('toastMode' | 'nailstorm' | 'greaseFire' | 'brainFreeze')` reads (sprite tint, flame sparks, rotation speed, the toast sound rate). They touch no rule. **Done in phase 7:** each is a `pattern:look` hook in its combo file.
+- Nailstorm's homing is still done in the projectile update of `weapons.ts` (reads `s.homing` and `contentComboTune('nailstorm')`): it is part of the shot's motion, which belongs to the phase 7 pattern. **Done in phase 7:** Nailstorm's `pattern:shotHit` / `pattern:shotMove` hooks.
 - The Blast-set radius for Confetti is now read at set level L1 (`c.tuneOf('blast')`), exactly as before; the L3 multiplier is still ignored (documented in the phase 5 notes).
 - Text quirks preserved byte for byte (golden `text.json`): the Sparks Fly DE detail says "TV-Dinner" while the DE combo name is "Fertiggericht"; the ordinal suffixes in the Chicken Dinner ("4th"), Frostbite Nails ("3rd") and Ray Gun ("3rd") text are literal, not computed from `every`; Express Checkout keeps the literal "1.0 s" (the `s` formatter would print "1 s"). Fix them together when the text is reworked.
 - `WeaponStats` fields that no code reads any more after phases 4..6 (besides the flags above) are listed for phase 8 below.
@@ -494,7 +494,7 @@ Runtime hook orders: kitchen heal `afterKill` 10, blast pop `afterKill` 20 (kitc
 
 **Sims.** `src/sims/combo-<id>.ts` (kebab-case of the combo id: `combo-bag-it`, `combo-five-alarm`, ...), one per combo, listed in `docs/sims.md`. Cart parts have explicit `at`, found by a search over the grid with the real build code; Bag It and Clearance Sale have mortal dummies (`immortal: false`), Smoothie Shield has spitters. Two sims activate a second combo by the nature of the parts: Sour Mist's spray + fan is also Mist Machine, and Tailwind's sim has an Energy Drink so Sugar Rush (cart combo) is active too.
 
-**Notes for phase 7 (patterns).**
+**Notes for phase 7 (patterns)** (all done, see the phase 7 learnings below).
 
 - The pattern code now only emits events; every combo branch is out of `Arsenal` (`rayShots`, `expressIcd`, `chickenSweeps`, `dashBlast`, the puddle `frozen`, the laser's power-surge scheduling and marking). What stays is the cosmetic `recipes.includes` reads and nailstorm homing (above). Moving them: give the pattern a param (`tint`, `spark`, `turn`) that the combo's build hook sets, or a `pattern:*` event.
 - `Arsenal.weaponOf(uid)` + public `laser` / `explode` / `bolt` back the `ctx.sweep` / `explode` / `beam` forwarders; a pattern file should expose "run this weapon once at (x, y, angle)" as its own entry point instead of a public method on `Arsenal`.
@@ -507,6 +507,49 @@ Runtime hook orders: kitchen heal `afterKill` 10, blast pop `afterKill` 20 (kitc
 - The ui `row*` keys of the sets (phase 5 note) and any remaining `recipeT`-shaped fields on `RecipeDef` (`short`, `summary`, `detail` are rendered in English into `RECIPES` for the legacy readers).
 - The `RecipeId` union in `types.ts` can be derived from `RECIPE_ORDER`; `RECIPES` goes when its last readers (`synergies.ts` matching, `recipeParts`, `recipeIcon`) read the content directly.
 - `systems/combat.ts` still re-exports `tailwindFeedsSugar`; drop it when the old tests import it from `engine/stacks`.
+
+**Phase 7 learnings (patterns).**
+
+*Architecture.*
+
+- `src/engine/patterns/` is Phaser-free at runtime (Phaser is a type-only import, guarded by a test). A `Pattern` is `{ id, tick?, fire, blind?, update? }`; `PATTERNS` is the table keyed by `WeaponPattern`, and a weapon's content file picks one with `weapon.pattern`. The pattern owns geometry, damage calls and the `pattern:*` events; combos only hook those events.
+- The pattern code runs against a `PatternHost` (`types.ts`): the pools (`weapons`, `shots`, `puddles`, `pots`), the arsenal clock, `looks`, `repeatDelay`, `build`, `spawn`, `kill`, `sound` and `sc`, a `PatternScene` facet of the arena (`enemies`, `player`, `hooks`, `fx`, `rng`, `nearestEnemy`, `damageEnemy`, `recoil` ...). `scenes/weapons.ts` (`Arsenal`, under 200 lines) is the real host: sprite pools, the blade ring, the enemy projectiles. `fakeHost.ts` (`FakeArsenal`) is the test host over a `FakeCtx`; `arsenal(specs)` in `tests/content/helpers.ts` builds one from a real cart.
+- One frame is `stepArsenal(h, dt, firing, enemyShots)`: `h.time += dt`, then `stepWeapons` (per weapon: the pattern's `tick`, the cooldown, the target search, `fire`, recoil), `updateShots`, the host's enemy shots, then the WORLD patterns' `update` (puddles before pots, the legacy order). A weapon with no target retries in 0.05 s; a `blind` pattern (Mop) never waits for one.
+- Entry points combos call through `ctx`: `sweepOnce`, `beamOnce`, `explodeAt`, `boltFx`, `spawnFirePool`, `removePuddle`. `PhaserCtx` passes `this.sc.arsenal` as the host, so a combo-driven sweep or explosion is the same code as the weapon's own.
+- Pattern parameters that are not `WeaponStats`: `WeaponRt.base` (the item's `weapon`: `knockback`, `fx`) and `WeaponRt.tune` (the item's content tune resolved at the weapon's tier: Mop's `slowPct` / `slowDuration`, Leaf Blower's `blow`, multiplied by `weaponDamageMult(tier)`). `weaponRt(stats, index, blades)` builds one (cooldown staggered 0.4 s + 0.17 s per weapon).
+- New hooks: `pattern:look` (collected once per weapon into `Arsenal.looks` by `collectLooks`, called at the end of `ArenaScene.rebuildHooks()`; a `WeaponLook` is `{ soundRate, trail, hitSpark, bladeSpin, bladeTint, puddleKey, puddleFx }`) and `pattern:shotMove` (emitted for shots with `shot.homing` set, before the move; `ev.steer(angle)` keeps the speed). `pattern:fire` is now emitted by the toast and ricochet patterns as well as the burst (one per projectile, `handled` skips the default shot); the burst draws its rng number before the emit, as before.
+- Content shape (`engine/define.ts`): `weaponBase({...})` fills the `WeaponBase` defaults, `weaponTiers(W)` gives the damage / interval ★ triples (`base x weaponDamageMult(t)` / `weaponCooldownMult(t)`, the very expressions `computeBuild` uses, so they match to the bit), `WEAPON_ROWS` are the two shop rows (Damage / Interval). The rules text uses `{damage}`, `{cooldown|s}`, `{range}` ...; the legacy conversion renders the row placeholders as `{0}` / `{1}` and the scalar ones as ★1 literals, which is what the golden text snapshots hold. The Laser is a legendary: a scalar tune, no rows.
+- The 12 weapon files carry no code except the Vacuum's build hook. All per-weapon behaviour is pattern + data; a test forbids `.type === '...'` in the pattern files.
+
+*Moves.*
+
+- Cosmetics: Toast Mode (pop rate 0.85, golden hit spark, flame trail), Nailstorm (teal spark trail), Grease Fire (burning puddle sprite and flames), Brain Freeze (blade spin 9, pale tint) are each a `pattern:look` hook in their combo file. `ArenaScene`'s hit-spark tint reads `arsenal.looks`. No scene file reads a recipe any more (guard test).
+- Nailstorm: `pattern:shotHit` arms `shot.homing`, `pattern:shotMove` steers with `ctx.nearest(shot, homingRange, ev.hits)` and clamps the turn to `homingTurn x dt` (wrap via `wrapAngle`, a bit-exact copy of Phaser's `Angle.Wrap`). `WeaponStats.homing` is set only for the golden.
+- Vacuum pickup: `build: { phase: 'final', player(b, c) { b.pickupRadius += c.tune().pickup } }` in `vacuum.ts` (tune `pickup: 60`). It does not stack for a second vacuum (the player hook runs once per item type), same as the literal it replaced. `BUFFS` and the `has()` helper in `synergies.ts` are gone; the `pickupRadius` literal is `PLAYER.pickupRadius + perk`.
+- Mop: the slip (25% for 0.5 s) moved from the `PUDDLE` table into the Mop's tune; Frost's extra slow is still read in `patterns/puddle.ts` through `h.build.sets.frost` and `contentSetTune('frost')` (a by-name set reader, listed in `tests/content/sets/migration.test.ts`).
+- Multipack's repeat is `repeat()` in `patterns/common.ts` (sweeps, cones, mortars); the gap is `contentTune('multipack', 1).repeatDelay`, read once in `scenes/weapons.ts`.
+
+*Deviations and kept quirks.*
+
+- The golden `Build` / text snapshots are untouched. Flags nothing reads any more stay on `WeaponStats` for them: `homing` joins `critCoin`, `expressSweep`, `dashBlast`, `firePool`.
+- `ui.ts` `rowDamage` / `rowCooldown` are unused now (the labels are in `WEAPON_ROWS`); delete in phase 8.
+- Cosmetic `Math.random` stays where it was (flame trails, the sweep's tween direction, the bounce pitch, the suction dust); a test limits `Math.random` in `engine/patterns` to lines that draw fx or play sounds and forbids `flow.rng`. No new gameplay draw; the burst's one draw per nail is checked against `combatRng` in order.
+- `tests/engine/build.test.ts`: the `tuneOf` test now expects the toaster's three tune keys; `tests/engine/rng.test.ts` also scans `engine/patterns`.
+- Projectile hits need the shot inside the arena (y 140..790, x 30..1250), so headless projectile tests put the goblin at (100, 400); and `FakeArsenal` moves nothing but shots (enemies stand where the test put them).
+
+*Tests and sims.* `tests/engine/patterns.test.ts` (the table, runtime, `stepWeapons` / `stepArsenal` order, Multipack repeat, `pattern:fire`, projectile flight, looks, entry points, source guards), `tests/content/items/<weapon>.test.ts` for all 12 (content, EN/DE text, shop rows, build per tier to the bit, pattern behaviour through `FakeArsenal` with exact numbers, rng draws for the Nail Gun), extra describes in the `toastMode`, `nailstorm`, `greaseFire`, `brainFreeze` combo tests, and `weapon sims` in `tests/sims/sims.test.ts`. Sims: `src/sims/weapon-<id>.ts` (listed in `docs/sims.md`).
+
+*Phase 8 deletion checklist (everything below is dead or golden-only after phase 7).*
+
+1. `WeaponStats` fields set only for the golden `Build` JSON: `homing`, `critCoin`, `expressSweep`, `dashBlast`, `firePool`; and `Build.shoveStun`, `dashSlam`, `dashChain`, `dashCoinChance`, `dashMark`, `armor`, `invulnBonus`, `reflectMult` if nothing reads them (grep first). Regenerate the goldens only with the owner's approval and review the diff by field.
+2. `src/data/items.ts`: the empty `LEGACY_ITEMS` and the dual path (`itemDefOf` or legacy); then derive `ITEMS` / `ITEM_IDS` order from the content registry order (keep the same order: shop rolls depend on it) and drop `ITEM_ORDER`.
+3. `ui.ts` `rowDamage` / `rowCooldown` (EN and DE) and the other sets' unused `row*` keys.
+4. `RECIPES` / `RecipeDef` legacy shape and the `RecipeId` union (derive from the combo registry); the `ItemTypeId` union likewise.
+5. `systems/combat.ts` `tailwindFeedsSugar` re-export.
+6. The Frost slow read in `patterns/puddle.ts` (`h.build.sets.frost` + `contentSetTune('frost')`) could become a `pattern:puddleEnter`-style hook of the Frost set; then drop `puddle.ts` from the by-name reader list in `migration.test.ts`.
+7. `MULTIPACK_REPEAT_DELAY` in `scenes/weapons.ts` and `weaponRt`'s `ITEMS[...]` / `contentItem(...)` reads in `patterns/common.ts` (pass the item definition in instead, then the patterns import nothing from `data/`).
+8. `WeaponBase` fields that only the legacy `ItemDef.weapon` shape needs (`fx`, `knockback` stay; the zero defaults of `pull`, `tick`, `duration`, ... could move into the pattern's own tune), and `PROJECTILE_PATTERNS` / the `['sweep','cone','mortar']` lists in `synergies.ts` (`describeBuffs`) when the buff lines become item text.
+9. `fakeHost.ts` stays: the pattern tests use it.
 
 ## 8. Risks
 

@@ -1,95 +1,10 @@
-import type { Cell, ItemDef, ItemTypeId, Perk, StarterId, StarterWeapon, WeaponBase } from '../types';
-import { PROJECTILE_PATTERNS, resolveShape, tierMult } from '../engine/define';
+import type { Cell, ItemDef, ItemTypeId, Perk, StarterId, StarterWeapon } from '../types';
+import { PROJECTILE_PATTERNS, resolveShape, tierMult, weaponCooldownMult, weaponDamageMult } from '../engine/define';
 import { itemDefOf } from '../engine/legacy';
 import { contentItem } from '../engine/registry';
 
-const rect = (w: number, h: number): Cell[] => {
-  const cells: Cell[] = [];
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) cells.push({ x, y });
-  return cells;
-};
-
-const shape = (...rows: string[]): Cell[] => rows.flatMap((r, y) => [...r].flatMap((ch, x) => (ch === '#' ? [{ x, y }] : [])));
-
-const weapon = (w: Partial<WeaponBase> & Pick<WeaponBase, 'pattern' | 'damage' | 'cooldown' | 'range'>): WeaponBase => ({
-  projectileSpeed: 0, count: 1, burstInterval: 0, arcDeg: 0, pull: 0, tick: 0, duration: 0, bounces: 0, chain: 0, aoe: 0, ...w,
-});
-
-/** Items still defined here. An item moves to src/content/items/<id>.ts by deleting its entry (and its other legacy branches). */
-const LEGACY_ITEMS: Partial<Record<ItemTypeId, ItemDef>> = {
-  toaster: {
-    id: 'toaster', family: 'kitchen', element: 'heat', tags: ['ranged'], name: 'Toaster', kind: 'weapon', cells: rect(2, 1), price: 12, electrical: true,
-    blurb: 'Lobs hot toast at the nearest grocery.',
-    rules: 'Fires toast for {0} damage every {1}. 455 range. Each toast hits one enemy.',
-    weapon: weapon({ pattern: 'toast', damage: 9, cooldown: 1.0, range: 455, projectileSpeed: 540 }),
-  },
-  pan: {
-    id: 'pan', family: 'kitchen', element: 'heat', tags: ['melee'], name: 'Frying Pan', kind: 'weapon', cells: rect(1, 3), price: 10, electrical: false,
-    blurb: 'Big clangy sweep around the cart.',
-    rules: 'Sweeps toward nearby enemies for {0} damage every {1}. 150 reach. Hits each enemy once per swing.',
-    weapon: weapon({ pattern: 'sweep', damage: 9, cooldown: 1.15, range: 150, arcDeg: 150 }),
-  },
-  nailgun: {
-    id: 'nailgun', family: 'tools', element: 'blast', tags: ['ranged'], name: 'Nail Gun', kind: 'weapon', cells: rect(2, 1), price: 16, electrical: true,
-    blurb: 'Rat-a-tat three-nail bursts.',
-    rules: 'Fires a three-nail burst every {1}. {0} damage per nail. 480 range.',
-    weapon: weapon({ pattern: 'burst', damage: 3, cooldown: 1.1, range: 480, projectileSpeed: 760, count: 3, burstInterval: 0.08 }),
-  },
-  vacuum: {
-    id: 'vacuum', family: 'cleaning', tags: ['area'], name: 'Vacuum', kind: 'weapon', cells: shape('###', '.#.'), price: 18, electrical: true,
-    blurb: 'Sucks groceries closer. Sucks coins closer too.',
-    rules: 'Constantly pulls nearby enemies toward the cart. Every {1}, enemies in range take {0} damage. +60 coin pickup radius.',
-    weapon: weapon({ pattern: 'pulse', damage: 2, cooldown: 0.65, range: 150, pull: 70 }),
-  },
-  microwave: {
-    id: 'microwave', family: 'kitchen', element: 'heat', tags: ['area'], name: 'Microwave', kind: 'weapon', cells: shape('.##', '##.'), price: 20, electrical: true,
-    blurb: 'Ding! Nukes a grocery from across the aisle.',
-    rules: 'Every {1} zaps the toughest enemy within 380 (Elites first, then most HP) for {0} damage, splashing everything within 70. Electrical.',
-    weapon: weapon({ pattern: 'zap', damage: 24, cooldown: 2.4, range: 380, aoe: 70 }),
-  },
-  blender: {
-    id: 'blender', family: 'kitchen', tags: ['melee', 'area'], name: 'Blender', kind: 'weapon', cells: rect(1, 2), price: 15, electrical: true,
-    blurb: 'Whirring blades around the cart.',
-    rules: 'Shreds every enemy within 85 for {0} damage every {1} (each enemy once per tick). Electrical.',
-    weapon: weapon({ pattern: 'aura', damage: 2, cooldown: 0.3, range: 85 }),
-  },
-  fizz: {
-    id: 'fizz', family: 'snacks', element: 'frost', tags: ['ranged'], name: 'Fizz Cannon', kind: 'weapon', cells: rect(2, 1), price: 14, electrical: false,
-    blurb: 'Shaken soda fires ricocheting bottle caps.',
-    rules: 'Fires a bottle cap for {0} damage every {1} that bounces to 2 more enemies (never the same one twice). 420 range.',
-    weapon: weapon({ pattern: 'ricochet', damage: 6, cooldown: 1.0, range: 420, projectileSpeed: 620, bounces: 2 }),
-  },
-  mop: {
-    id: 'mop', family: 'cleaning', element: 'frost', tags: ['area'], name: 'Mop', kind: 'weapon', cells: [{ x: 0, y: 0 }, { x: 0, y: 1 }, { x: 0, y: 2 }, { x: 1, y: 2 }], price: 11, electrical: false,
-    blurb: 'Leaves slippery soap puddles behind you.',
-    rules: 'Every {1} drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip: 25% slow and {0} damage every 0.5 s.',
-    weapon: weapon({ pattern: 'puddle', damage: 3, cooldown: 1.6, range: 60, tick: 0.5, duration: 3 }),
-  },
-  leafblower: {
-    id: 'leafblower', family: 'cleaning', tags: ['area'], name: 'Leaf Blower', kind: 'weapon', cells: rect(2, 1), price: 14, electrical: false,
-    blurb: 'Huff and puff. Slams groceries into things.',
-    rules: 'Every {1} blasts a 50° cone (220 reach) for {0} damage and a heavy push. Blown groceries that hit a wall or prop take 8 slam damage (scales with level).',
-    weapon: weapon({ pattern: 'cone', damage: 3, cooldown: 0.9, range: 220, arcDeg: 50, knockback: 300 }),
-  },
-  laser: {
-    id: 'laser', family: 'checkout', tags: ['ranged'], name: 'Self-Checkout Laser', kind: 'weapon', cells: shape('.#.', '###', '.#.'), price: 40, electrical: true, legendary: true,
-    blurb: 'Unexpected item in the bagging area. ZAP.',
-    rules: 'Every 1.6 s fires a barcode beam (620 long) that hits every enemy in the line once for 20 damage. Electrical.',
-    weapon: weapon({ pattern: 'laser', damage: 20, cooldown: 1.6, range: 620 }),
-  },
-  cooker: {
-    id: 'cooker', family: 'kitchen', element: 'heat', tags: ['area'], name: 'Pressure Cooker', kind: 'weapon', cells: shape('##.', '.##'), price: 18, electrical: false,
-    blurb: 'Lobs a whistling pot. KABOOM.',
-    rules: 'Every {1} lobs a pot at the densest group within 420. It explodes for {0} damage to everything within 90, with knockback.',
-    weapon: weapon({ pattern: 'mortar', damage: 16, cooldown: 2.6, range: 420, aoe: 90, projectileSpeed: 380 }),
-  },
-  spray: {
-    id: 'spray', family: 'cleaning', element: 'frost', tags: ['melee'], name: 'Spray Bottle', kind: 'weapon', cells: rect(1, 2), price: 12, electrical: false,
-    blurb: 'Pssht pssht pssht. Hits everything in front.',
-    rules: 'Every {1} sprays a 70° cone (170 reach) for {0} damage to every enemy inside (each once per spray).',
-    weapon: weapon({ pattern: 'cone', damage: 3, cooldown: 0.55, range: 170, arcDeg: 70 }),
-  },
-};
+/** Items still defined here. An item moves to src/content/items/<id>.ts by deleting its entry (and its other legacy branches). Phase 7 moved the last ones (the 12 weapons), so this is empty until phase 8 deletes it with the dual path below. */
+const LEGACY_ITEMS: Partial<Record<ItemTypeId, ItemDef>> = {};
 
 /** Order of `ITEMS` / `ITEM_IDS` (shop rolls and UI lists depend on it): fixed here so moving an item to content never reorders anything. */
 const ITEM_ORDER: ItemTypeId[] = [
@@ -155,10 +70,6 @@ export const STARTER_LOOKS: Record<StarterId, { head?: string; torso?: string }>
   night: { head: 'acc_headlamp' },
 };
 
-export const BUFFS = {
-  vacuumPickup: 60,
-};
-
 /** Bundle Deal: each weapon gains +6% damage per distinct item type touching it. */
 export const BUNDLE = { perItem: 0.06 };
 
@@ -170,8 +81,8 @@ export const TIER = {
   max: 3,
   /** Multiplier applied to the bonus part of a module/passive effect (e.g. +30% → +45% at ★2). */
   mult: tierMult,
-  weaponDamage: (t: number) => 1 + 0.5 * (t - 1),
-  weaponCooldown: (t: number) => 1 - 0.1 * (t - 1),
+  weaponDamage: weaponDamageMult,
+  weaponCooldown: weaponCooldownMult,
   /** Total coin value of an item at tier t (★2 = two copies). Sell = floor(value / 2). */
   value: (price: number, t: number) => price * 2 ** (t - 1),
   /** Cost to buy the next tier directly: equals the current value. */
@@ -179,6 +90,5 @@ export const TIER = {
 };
 
 export const CRIT = { mult: 2 };
-export const PUDDLE = { slow: { pct: 0.25, duration: 0.5 } };
 
 export { PROJECTILE_PATTERNS };

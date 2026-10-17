@@ -68,6 +68,15 @@ describe('Math.random in gameplay code', () => {
     const bad = source(file).split('\n').map((l, i) => [i + 1, l] as const).filter(([, l]) => l.includes('Math.random') && !cosmetic.test(l));
     expect(bad).toEqual([]);
   });
+  it('the pattern code (engine/patterns) is held to the same rule: Math.random only on cosmetic lines (fx, sounds, sprite rotation), never flow.rng', () => {
+    const patterns = import.meta.glob('../../src/engine/patterns/*.ts', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
+    const sound = /\bfx\.|\bplay\(|\.sound\(|animT|rotation:/;
+    for (const [f, src] of Object.entries(patterns)) {
+      const bad = src.split('\n').map((l, i) => [i + 1, l] as const).filter(([, l]) => l.includes('Math.random') && !sound.test(l));
+      expect(bad, f).toEqual([]);
+      expect(src, f).not.toMatch(/flow\.rng/);
+    }
+  });
   it('no scene file reads flow.rng for a roll that belongs to combat (statuses, crits, AI)', () => {
     // flow.rng stays for shop-adjacent rolls: spawn plan, kill coins, event picks, crates. weapons.ts and enemies.ts roll combat only.
     for (const f of ['weapons', 'enemies', 'hazards', 'playerOverlay']) expect(source(f)).not.toMatch(/flow\.rng/);

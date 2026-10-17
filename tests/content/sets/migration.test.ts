@@ -18,8 +18,8 @@ describe('no set tuning or set branches outside the content files', () => {
   it('computeBuild, the scenes and the engine modules do not read set levels by name any more (except the two documented readers)', () => {
     const byName = /\bsets\.(kitchen|cleaning|tools|snacks|checkout|heat|frost|blast|electric)\b/;
     const hits = Object.entries(sources).filter(([f, src]) => !f.includes('/data/sets.ts') && byName.test(src)).map(([f]) => f.replace('../../../src/', ''));
-    // run.ts pays the Checkout interest; weapons.ts reads the Frost / Blast level for the puddle slow and the Confetti Cannon (phase 7: patterns).
-    expect(hits.sort()).toEqual(['scenes/weapons.ts', 'state/run.ts']);
+    // run.ts pays the Checkout interest; the puddle pattern reads the Frost level for the soap slip (phase 7 moved it there from weapons.ts).
+    expect(hits.sort()).toEqual(['engine/patterns/puddle.ts', 'state/run.ts']);
   });
 
   it('the arena applies the knockback multiplier the Cleaning hook left on the hit, and nothing reads build.shoveStun or build.regen of a set', () => {

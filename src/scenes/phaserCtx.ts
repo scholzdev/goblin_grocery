@@ -8,6 +8,7 @@ import type { CombatEnemy, CombatShot, PoolSpec, PlayerView, RuntimeCtx, ShotSpe
 import type { HitOpts } from '../engine/hooks';
 import type { ArenaScene } from './ArenaScene';
 import type { Enemy } from './enemies';
+import { beamOnce, boltFx, explodeAt, spawnFirePool, sweepOnce } from '../engine/patterns';
 import type { Shot } from './weapons';
 
 type AudioName = Parameters<typeof play>[0];
@@ -65,11 +66,11 @@ export class PhaserCtx implements RuntimeCtx {
   healFx(x: number, y: number): void { this.sc.healHeartFx(x, y); }
 
   spawnShot(spec: ShotSpec): CombatShot | null { return this.sc.arsenal.spawn(spec.key, spec.x, spec.y, spec.angle, spec.speed, spec.life, spec.damage, spec.stats, spec.maxHits); }
-  spawnPool(spec: PoolSpec): void { this.sc.arsenal.firePool(spec.x, spec.y, spec.r, spec.time, spec.stats, spec.tune); }
+  spawnPool(spec: PoolSpec): void { spawnFirePool(this.sc.arsenal, spec.x, spec.y, spec.r, spec.time, spec.stats, spec.tune); }
   popperBlast(pos: { x: number; y: number }, pop: { damage: number; radius: number }, setPop = false): void { this.sc.popperBlast(pos.x, pos.y, pop, setPop); }
-  sweep(weaponUid: string, angle: number, bonus = false): void { const w = this.sc.arsenal.weaponOf(weaponUid); if (w) this.sc.arsenal.sweep(w, angle, bonus); }
-  explode(weaponUid: string, x: number, y: number): void { const w = this.sc.arsenal.weaponOf(weaponUid); if (w) this.sc.arsenal.explode(x, y, w.stats); }
-  beam(weaponUid: string, target: CombatEnemy, echo = false): void { const w = this.sc.arsenal.weaponOf(weaponUid); if (w) this.sc.arsenal.laser(w, target as Enemy, echo); }
+  sweep(weaponUid: string, angle: number, bonus = false): void { const w = this.sc.arsenal.weaponOf(weaponUid); if (w) sweepOnce(this.sc.arsenal, w, angle, bonus); }
+  explode(weaponUid: string, x: number, y: number): void { const w = this.sc.arsenal.weaponOf(weaponUid); if (w) explodeAt(this.sc.arsenal, x, y, w.stats); }
+  beam(weaponUid: string, target: CombatEnemy, echo = false): void { const w = this.sc.arsenal.weaponOf(weaponUid); if (w) beamOnce(this.sc.arsenal, w, target as Enemy, echo); }
   enemyShots(): readonly CombatShot[] { return this.sc.arsenal.enemyShots; }
   killShot(shot: CombatShot): void { this.sc.arsenal.kill(shot as Shot); }
   reflectShot(shot: CombatShot, mult: number): void { this.sc.arsenal.reflect(shot as Shot, mult); }
@@ -79,7 +80,7 @@ export class PhaserCtx implements RuntimeCtx {
 
   get fx() { return this.sc.fx; }
   arcFx(points: readonly { x: number; y: number }[]): void { this.sc.arcFx(points); }
-  boltFx(x: number, y: number, small: boolean): void { this.sc.arsenal.bolt(x, y, small); }
+  boltFx(x: number, y: number, small: boolean): void { boltFx(this.sc.arsenal, x, y, small); }
   setLine(id: string, text: string | null, order = 0): void { this.sc.overlay.setLine(id, text, order); }
   t(key: UIKey, vars?: Record<string, string | number>): string { return t(key, vars); }
   sound(name: string, opts?: { rate?: number; volume?: number }): void { play(name as AudioName, opts); }

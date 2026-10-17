@@ -99,6 +99,27 @@ One sim per combo, `src/sims/combo-<id>.ts` with the combo id in kebab-case (`?s
 
 `tests/sims/sims.test.ts` checks that every combo sim activates its combo through `createSimRun` and `computeBuild` (and exactly the extra combos listed above), so an item change that breaks an adjacency shows up as a failing test, not a silent sim.
 
+## Weapon sims
+
+One sim per weapon, `src/sims/weapon-<id>.ts` (`?sim=weapon-toaster`, `weapon-pan`, `weapon-nailgun`, `weapon-vacuum`, `weapon-microwave`, `weapon-blender`, `weapon-fizz`, `weapon-mop`, `weapon-leafblower`, `weapon-laser`, `weapon-cooker`, `weapon-spray`). The cart is the weapon alone at ★3 (the legendary Laser has no tiers) at `[2, 1]`, no modules and no combo, so you see the bare pattern of `src/engine/patterns`. God mode on, dummies immortal unless the notes say otherwise. The notes name the ★3 damage and interval and what to look for:
+
+| Sim | Enemies | Look for |
+| --- | --- | --- |
+| `weapon-toaster` | 8 milk in a bunch on the right | One toast per 0.8 s at the nearest enemy, one enemy per toast. |
+| `weapon-pan` | ring of 12 milk | The 150° sweep hits only the half of the ring inside the arc. |
+| `weapon-nailgun` | 8 milk in a bunch | Bursts of three nails, 0.08 s apart, each aimed at the nearest enemy then. |
+| `weapon-vacuum` | 10 mortal milk | Suction toward the cart, the pulse every 0.52 s, coins flying in from 130 px (the +60 pickup radius). |
+| `weapon-microwave` | milk and cereal bunch, a far Elite melon | The zap picks the Elite first, then the toughest, and splashes around it. |
+| `weapon-blender` | 10 walking milk | The blade ring and the tick damage on whatever comes within 85. |
+| `weapon-fizz` | three bunches of 4 milk | The cap bounces on to 2 more enemies within 230, never the same one twice. |
+| `weapon-mop` | 10 walking milk | A puddle behind you every 1.28 s even with nobody around; the slow and 6 damage per 0.5 s. |
+| `weapon-leafblower` | 8 milk by the right wall | The push (300) slams them into the wall for 16 extra damage. |
+| `weapon-laser` | a far bunch and a ring of 5 milk | One beam down the line with the most enemies. |
+| `weapon-cooker` | a big bunch right, a small one left | The pot goes to the densest group; the blast pushes everything back. |
+| `weapon-spray` | 8 milk close in front | The 70° cone hits all of them each spray, with a light push. |
+
+`tests/sims/sims.test.ts` checks that each weapon sim has exactly its weapon (★3, or ★1 for the legendary), an explicit `at`, notes and dummies, and that the build `createSimRun` computes carries the weapon's pattern with its base damage and interval scaled by the tier. Each weapon's behaviour in the patterns is tested in `tests/content/items/<weapon>.test.ts`.
+
 ## Where the code lives
 
 - `src/sims/_sim.ts`: the types, `defineSim`, defaults, `layoutCart` (auto-placement) and `validateSim`.

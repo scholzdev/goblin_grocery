@@ -1,10 +1,11 @@
 import Phaser from 'phaser';
 import { settings } from '../state/settings';
+import { DEPTH } from '../data/depth';
 
 // Pooled, bounded visual effects: particles, damage numbers, floating rings.
 
 const MAX_NUMBERS = 14;
-export const DEPTH = { floor: 0, decal: 2, telegraph: 4, world: 10, fx: 5000, bars: 6000, numbers: 7000 };
+export { DEPTH };
 
 export class Fx {
   private sparks: Phaser.GameObjects.Particles.ParticleEmitter;

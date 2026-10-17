@@ -1,0 +1,9 @@
+import { defineSim } from './_sim';
+
+// Weapon: cooker. The weapon alone at ★3 in the cart, with enemies that show off its pattern.
+export default defineSim({
+  id: 'weapon-cooker',
+  notes: 'Pressure Cooker ★3: every 2.08 s lobs a pot at the densest group within 420; it explodes for 32 to everything within 90, with knockback. The big bunch on the right wins over the small one on the left.',
+  cart: [{ id: 'cooker', tier: 3, at: [2, 1] }],
+  enemies: [{ id: 'milk', count: 9, spread: 'cluster', at: [960, 380] }, { id: 'milk', count: 3, spread: 'cluster', at: [400, 600] }],
+});

@@ -4,7 +4,7 @@ import { neighbors } from '../systems/inventory';
 import { ITEMS } from '../data/items';
 import type { ActiveRecipe, Inventory, ItemDef, ItemTypeId, RecipeId, SetId, WeaponStats } from '../types';
 import { HOOK_NAMES, resolveTune, type ComboContent, type ItemContent, type Resolved, type RuntimeHooks, type SetContent, type Tune } from './define';
-import type { CombatEnemy, CombatShot, RuntimeCtx } from './ctx';
+import type { CombatEnemy, CombatShot, FxApi, RuntimeCtx } from './ctx';
 
 // Runtime (combat) hooks, docs/item-hooks-refactor.md §4c. Content declares `hooks: { onHit(hit, ctx, c) { ... } }`; this file holds the
 // payload types and the compiled dispatch. Pure: no Phaser (the scene fills the payloads and owns the emit points).
@@ -119,6 +119,33 @@ export interface ConeEvent extends PatternBase { x: number; y: number; angle: nu
 export interface PuddleEnterEvent extends PatternBase { enemy: CombatEnemy; puddle: { x: number; y: number; r: number }; first: boolean }
 /** A Blender tick, after its damage. */
 export interface AuraEvent extends PatternBase { x: number; y: number; range: number; hit: boolean }
+/**
+ * A player shot with `homing` set (a hook arms it, usually on `pattern:shotHit`) is about to move this frame. `steer(angle)` turns its
+ * velocity to `angle` at the same speed (and its sprite with it); `hits` are the enemies it already pierced. The event object is reused
+ * between shots and frames: do not keep it.
+ */
+export interface ShotMoveEvent extends PatternBase { shot: CombatShot; dt: number; hits: ReadonlySet<number>; steer(angle: number): void }
+/**
+ * The cosmetics of one weapon, asked once when the aisle's hooks are compiled (`Arsenal.applyLooks`). A combo or item changes how its
+ * weapon is drawn by editing `look`; nothing here has a gameplay effect. The pattern code reads the finished object.
+ */
+export interface LookEvent extends PatternBase { look: WeaponLook }
+
+/** How a weapon is drawn and sounds. Every field is optional; the pattern has a default for each. Pure presentation. */
+export interface WeaponLook {
+  /** Pitch of the firing sound (Toast Mode plays the toast pop lower). */
+  soundRate?: number;
+  /** Runs every frame for each live shot of the weapon: particle trails. */
+  trail?(shot: { x: number; y: number; vx: number; vy: number }, fx: FxApi): void;
+  /** Tint of the sparks on a direct hit of this weapon (default white). */
+  hitSpark?: number;
+  /** Blender: blade rotation speed (rad/s, default 12) and tint (default none). */
+  bladeSpin?: number;
+  bladeTint?: number;
+  /** Mop: sprite key of the puddle (default `fx_puddle`) and a per-frame particle callback for each live puddle of the weapon. */
+  puddleKey?: string;
+  puddleFx?(puddle: { x: number; y: number; r: number }, fx: FxApi): void;
+}
 
 /** Event type per hook name. `onTick`'s event is the frame delta in seconds (no payload object per frame). */
 export interface HookEvents {
@@ -143,12 +170,14 @@ export interface HookEvents {
   'pattern:zap': ZapEvent;
   'pattern:bounce': BounceEvent;
   'pattern:shotHit': ShotHitEvent;
+  'pattern:shotMove': ShotMoveEvent;
   'pattern:beam': BeamEvent;
   'pattern:fire': FireEvent;
   'pattern:pulse': PulseEvent;
   'pattern:cone': ConeEvent;
   'pattern:puddleEnter': PuddleEnterEvent;
   'pattern:aura': AuraEvent;
+  'pattern:look': LookEvent;
 }
 export type HookName = keyof HookEvents;
 

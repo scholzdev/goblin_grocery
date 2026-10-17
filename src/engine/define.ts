@@ -1,6 +1,6 @@
 import type { Unlock } from '../data/unlocks';
 import type { HookName, RuntimeHookMap } from './hooks';
-import type { ActiveRecipe, Build, Cell, DepartmentId, ElementTag, FamilyTag, Inventory, ItemDef, ItemInstance, ItemTypeId, Perk, RecipeId, SetId, StarterWeapon, WeaponStats } from '../types';
+import type { ActiveRecipe, Build, Cell, DepartmentId, ElementTag, FamilyTag, Inventory, ItemDef, ItemInstance, ItemTypeId, Perk, RecipeId, SetId, StarterWeapon, WeaponBase, WeaponStats } from '../types';
 
 // Content definitions for the item-hooks refactor (docs/item-hooks-refactor.md). Types only plus identity `define*` helpers:
 // a content file is data (tune, text) and pure build behavior together. No Phaser, no DOM, no imports from data/*.
@@ -23,6 +23,16 @@ export const tierMult = (tier: number): number => 1 + 0.5 * (tier - 1);
 
 /** Every set, in the order the shop lists them and `setLevels` reports them (the registry sorts content by filename, which is not this order). */
 export const SET_ORDER: readonly SetId[] = ['kitchen', 'cleaning', 'tools', 'snacks', 'checkout', 'heat', 'frost', 'blast', 'electric'];
+/** Pure math the pattern code shares with content (Phaser's `Angle.Wrap`, to the bit: content may not import Phaser). Wraps to [-PI, PI). */
+export const wrapAngle = (a: number): number => {
+  const min = -Math.PI, range = Math.PI - min;
+  return min + ((((a - min) % range) + range) % range);
+};
+
+/** Weapon tiers (`TIER.weaponDamage` / `TIER.weaponCooldown` re-export these): a ★n weapon deals this x its base damage and waits this x its base cooldown. */
+export const weaponDamageMult = (t: number): number => 1 + 0.5 * (t - 1);
+export const weaponCooldownMult = (t: number): number => 1 - 0.1 * (t - 1);
+
 /** Distinct item types for set level 1/2/3 (the same for every set; each level includes the lower ones). */
 export const SET_THRESHOLDS: readonly [number, number, number] = [2, 3, 4];
 
@@ -63,6 +73,22 @@ export function resolveShape(s: Shape): Cell[] {
 
 /** Same as `shape(...)` in data/items.ts: rows of `#` (filled) and anything else (empty). */
 export const cells = (...rows: string[]): Cell[] => rows.flatMap((r, y) => [...r].flatMap((ch, x) => (ch === '#' ? [{ x, y }] : [])));
+
+// ---- weapons ----------------------------------------------------------------------------------------------------------
+
+/** A weapon's base stats with the defaults every pattern shares (what the legacy `weapon()` helper in data/items did). */
+export const weaponBase = (w: Partial<WeaponBase> & Pick<WeaponBase, 'pattern' | 'damage' | 'cooldown' | 'range'>): WeaponBase => ({
+  projectileSpeed: 0, count: 1, burstInterval: 0, arcDeg: 0, pull: 0, tick: 0, duration: 0, bounces: 0, chain: 0, aoe: 0, ...w,
+});
+
+/**
+ * The per-tier `damage` / `cooldown` tune entries of a weapon (the shop row and the rules text): the base stat times the tier
+ * multiplier, with the exact expression `computeBuild` uses, so the displayed number is the stat. Legendary weapons (one tier) use scalars instead.
+ */
+export const weaponTiers = (w: Pick<WeaponBase, 'damage' | 'cooldown'>): { damage: TierTriple; cooldown: TierTriple } => ({
+  damage: [w.damage * weaponDamageMult(1), w.damage * weaponDamageMult(2), w.damage * weaponDamageMult(3)],
+  cooldown: [w.cooldown * weaponCooldownMult(1), w.cooldown * weaponCooldownMult(2), w.cooldown * weaponCooldownMult(3)],
+});
 
 // ---- build hooks ------------------------------------------------------------------------------------------------------
 
@@ -128,7 +154,7 @@ export interface BuildSpec<T extends Tune = Tune> {
 /** Every combat hook, in the order a table lists them (the typed payloads are in engine/hooks.ts, the API in engine/ctx.ts). */
 export const HOOK_NAMES: readonly HookName[] = [
   'onAisleStart', 'onTick', 'modifyDamage', 'onHit', 'afterHit', 'onCrit', 'onKill', 'afterKill', 'onDashStart', 'onDashHit', 'onDashEnd', 'onEnemyShotTouch', 'onPlayerHit', 'onCoinPickup',
-  'pattern:sweep', 'pattern:explode', 'pattern:zap', 'pattern:bounce', 'pattern:shotHit', 'pattern:beam', 'pattern:fire', 'pattern:pulse', 'pattern:cone', 'pattern:puddleEnter', 'pattern:aura',
+  'pattern:sweep', 'pattern:explode', 'pattern:zap', 'pattern:bounce', 'pattern:shotHit', 'pattern:shotMove', 'pattern:beam', 'pattern:fire', 'pattern:pulse', 'pattern:cone', 'pattern:puddleEnter', 'pattern:aura', 'pattern:look',
 ];
 
 type Handler = (event: never, ctx: never) => void;
@@ -152,6 +178,12 @@ export interface SetText { name: string; bonus: readonly [string, string, string
 
 /** One row of the shop's per-level scaling table: the values at ★1/★2/★3 of `tune[key]`, formatted with `fmt` (default `n`). */
 export interface RowSpec<T extends Tune = Tune> { label: Localized<string>; key: keyof T & string; fmt?: string }
+
+/** The two scaling rows every weapon shows (labels as the old `rowDamage` / `rowCooldown`). Needs `damage` and `cooldown` tune entries ({@link weaponTiers}). */
+export const WEAPON_ROWS: readonly RowSpec<{ damage: TierTriple; cooldown: TierTriple }>[] = [
+  { label: { en: 'Damage', de: 'Schaden' }, key: 'damage' },
+  { label: { en: 'Interval', de: 'Intervall' }, key: 'cooldown', fmt: 's' },
+];
 
 // ---- shop metadata (typed, not wired until the item that needs it moves) ----------------------------------------------
 

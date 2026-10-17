@@ -580,6 +580,7 @@ export class ArenaScene extends Phaser.Scene {
   rebuildHooks(): void {
     const s = store.state;
     this.hooks = buildHooks(s.inventory, s.build.recipes, s.build.sets, this.ctx);
+    this.arsenal.applyLooks(); // the weapons' cosmetics come from the same hooks (`pattern:look`)
   }
 
   /** Integer in [min, max] from the combat rng (the seeded stand-in for Phaser.Math.Between). */
@@ -651,7 +652,7 @@ export class ArenaScene extends Phaser.Scene {
         e.flashT = 0.06;
         if (e.def.behavior === 'boss') e.sprite.setTint(0xffb8ae); else e.sprite.setTintFill(0xffffff);
       }
-      this.fx.spark(e.x, e.y - 30, 3, armored ? 0xaab2c2 : stats?.recipes.includes('toastMode') ? 0xf5bd45 : 0xffffff);
+      this.fx.spark(e.x, e.y - 30, 3, armored ? 0xaab2c2 : (stats && this.arsenal.looks.get(stats.uid)?.hitSpark) ?? 0xffffff);
       if (armored) { this.fx.label(e.x, e.y - e.sprite.displayHeight - 10, lang() === 'de' ? '-Panzer' : '-armor', '#AAB2C2', 16); play('cap_ping', { rate: 0.7 }); }
       if (e.def.behavior === 'boss') play('boss_hit');
     }

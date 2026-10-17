@@ -47,6 +47,7 @@ export interface WeaponBase {
   chain: number;           // zap: extra chained targets
   aoe: number;             // zap: splash radius around the target
   knockback?: number;      // cone: per-weapon knockback (default: the spray's 40)
+  fx?: string;             // cone: texture of the spray/gust sprite (default 'fx_spray')
 }
 
 export interface ItemDef {
@@ -132,7 +133,7 @@ export interface WeaponStats {
   /** Pressure Point flag (mortar blasts leave a burning pool). Not read at runtime (the combo's pattern:explode hook spawns the pool); kept for the golden build snapshots, delete in phase 8. */
   firePool: boolean;
   pierce: number;          // extra enemies a projectile may pass through (0 = hits one)
-  homing: boolean;         // curve toward nearby target after first hit
+  homing: boolean;         // Nailstorm flag. Not read at runtime (the combo's pattern:shotHit / pattern:shotMove hooks steer the nails); kept for the golden build snapshots, delete in phase 8
   burn: BurnEffect | null;
   /** Heat L2: chance to set a non-burning weapon's hit on fire. */
   ignite: { chance: number; burn: BurnEffect } | null;

@@ -1,7 +1,7 @@
 import { defineCombo } from '../../engine/define';
 
 // Mop + Fuel Can: bigger puddles whose burn is doubled (it multiplies the Fuel Can burn the module phase left, no stacking). The flaming
-// puddle sprite and the flame particles are drawn from `recipes` in the puddle pattern (phase 7).
+// puddle sprite and the flame particles are this combo's `pattern:look` (cosmetic only).
 export default defineCombo({
   id: 'greaseFire', requires: ['mop', 'fuel'],
   tune: { radiusMult: 1.4, burnMult: 2 },
@@ -23,6 +23,14 @@ export default defineCombo({
       const t = c.tune();
       w.range *= t.radiusMult;
       if (w.burn) w.burn = { ...w.burn, dps: w.burn.dps * t.burnMult };
+    },
+  },
+  hooks: {
+    'pattern:look'(ev, _ctx, c) {
+      if (!c.touches(ev.stats.uid)) return;
+      const between = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1) + min);
+      ev.look.puddleKey = 'fx_puddle_fire';
+      ev.look.puddleFx = (pd, fx) => { if (Math.random() < 0.25) fx.flame(pd.x + between(-pd.r, pd.r) * 0.8, pd.y + between(-pd.r, pd.r) * 0.4); };
     },
   },
 });

@@ -3,7 +3,7 @@ import { createSimRegistry, simRegistry } from '../../src/sims/_registry';
 import { SIM_DEFAULTS, SimError, defineSim, layoutCart, simDummies, validateSim, type SimDef } from '../../src/sims/_sim';
 import { createSimRun } from '../../src/state/sim';
 import { setLevels } from '../../src/data/sets';
-import { ITEMS } from '../../src/data/items';
+import { ITEMS, WEAPON_IDS } from '../../src/data/items';
 import { footprint } from '../../src/systems/inventory';
 import { BOSS_WAVE } from '../../src/data/waves';
 import { mulberry32 } from '../../src/systems/rng';
@@ -242,6 +242,45 @@ describe('combo sims', () => {
   it('Smoothie Shield has shooters to block, and Ray Gun replaces Nailstorm', () => {
     expect(simDummies(sim('combo-smoothie-shield')).some((d) => d.id === 'spitter')).toBe(true);
     expect(createSimRun(sim('combo-ray-gun')).build.recipes.map((r) => r.id)).toEqual(['rayGun']);
+  });
+});
+
+// One sim per weapon (src/sims/weapon-<id>.ts): the weapon alone in the cart at ★3 (the legendary Laser has no tiers), explicit `at`, enemies that
+// show off its pattern. The build comes through the same path as the game, so the numbers in the notes are checked against it.
+describe('weapon sims', () => {
+  const simOf = (id: string): SimDef => sim(`weapon-${id}`);
+
+  it('there is one sim for every weapon', () => {
+    expect(WEAPON_IDS).toHaveLength(12);
+    for (const id of WEAPON_IDS) expect(simRegistry.get(`weapon-${id}`), id).toBeDefined();
+    expect(simRegistry.ids.filter((i) => i.startsWith('weapon-'))).toHaveLength(12);
+  });
+  it('each sim has exactly that weapon, at ★3 (the legendary at ★1), with an explicit spot, notes and dummies in the arena sandbox', () => {
+    for (const id of WEAPON_IDS) {
+      const s = simOf(id);
+      expect(s.cart, id).toEqual([ITEMS[id].legendary ? { id, at: [2, 1] } : { id, tier: 3, at: [2, 1] }]);
+      expect(s.notes, id).toBeTruthy();
+      expect(s.waves ?? false, id).toBe(false);
+      expect(simDummies(s).length, id).toBeGreaterThan(0);
+    }
+  });
+  it('the build is the weapon alone: its pattern, and base damage and interval scaled by the tier', () => {
+    for (const id of WEAPON_IDS) {
+      const { build } = createSimRun(simOf(id)), base = ITEMS[id].weapon!, tier = ITEMS[id].legendary ? 1 : 3;
+      expect(build.weapons, id).toHaveLength(1);
+      expect(build.recipes, id).toEqual([]);
+      expect(build.weapons[0], id).toMatchObject({ type: id, pattern: base.pattern, tier, damage: base.damage * (1 + 0.5 * (tier - 1)), cooldown: base.cooldown * (1 - 0.1 * (tier - 1)) });
+    }
+  });
+  it('the notes name the weapon\'s ★3 damage and interval', () => {
+    for (const id of WEAPON_IDS) {
+      const w = createSimRun(simOf(id)).build.weapons[0];
+      expect(simOf(id).notes, id).toContain(`${+w.cooldown.toFixed(2)} s`);
+    }
+  });
+  it('the vacuum\'s dummies are mortal (coins drop), the others keep their dummies alive', () => {
+    expect(simDummies(simOf('vacuum')).every((d) => !d.immortal)).toBe(true);
+    for (const id of WEAPON_IDS.filter((w) => w !== 'vacuum')) expect(simDummies(simOf(id)).every((d) => d.immortal), id).toBe(true);
   });
 });
 

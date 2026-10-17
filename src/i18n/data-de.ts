@@ -9,20 +9,7 @@ type IR = { name: string; blurb: string; rules: string };
 type NB = { name: string; blurb: string };
 
 /** Items still translated here; content items bring their own German text (merged into DATA_DE below). */
-const items: Partial<Record<ItemTypeId, IR>> = {
-  toaster: { name: 'Toaster', blurb: 'Schleudert heißen Toast auf den nächsten Gegner.', rules: 'Feuert alle {1} Toast für {0} Schaden. 455 Reichweite. Jeder Toast trifft einen Gegner.' },
-  pan: { name: 'Bratpfanne', blurb: 'Großer, scheppernder Schwung um den Wagen.', rules: 'Schwingt alle {1} auf Gegner in der Nähe für {0} Schaden. 150 Reichweite. Trifft jeden Gegner einmal pro Schwung.' },
-  nailgun: { name: 'Nagelpistole', blurb: 'Ratatatat, Dreier-Nagelsalven.', rules: 'Feuert alle {1} eine Dreier-Nagelsalve. {0} Schaden pro Nagel. 480 Reichweite.' },
-  vacuum: { name: 'Staubsauger', blurb: 'Saugt Gegner heran. Münzen übrigens auch.', rules: 'Zieht Gegner in der Nähe ständig zum Wagen. Alle {1} erleiden Gegner im Radius {0} Schaden. +60 Münz-Sammelradius.' },
-  microwave: { name: 'Mikrowelle', blurb: 'Kling! Beamt einen Gegner quer durch den Gang.', rules: 'Zappt alle {1} den zähsten Gegner im Umkreis von 380 (zuerst Elite, dann meiste LP) für {0} Schaden, mit Flächenschaden im Umkreis von 70. Elektrisch.' },
-  blender: { name: 'Mixer', blurb: 'Surrende Klingen rund um den Wagen.', rules: 'Schreddert alle {1} jeden Gegner im Umkreis von 85 für {0} Schaden (jeden Gegner einmal pro Tick). Elektrisch.' },
-  fizz: { name: 'Sprudelkanone', blurb: 'Geschüttelte Limo schießt abprallende Kronkorken.', rules: 'Feuert alle {1} einen Kronkorken für {0} Schaden, der auf 2 weitere Gegner abprallt (nie zweimal auf denselben). 420 Reichweite.' },
-  mop: { name: 'Wischmopp', blurb: 'Hinterlässt rutschige Seifenpfützen.', rules: 'Hinterlässt alle {1} eine Seifenpfütze (Radius 60, hält 3 s). Gegner darin rutschen: 25% langsamer und {0} Schaden alle 0,5 s.' },
-  laser: { name: 'Selbstscan-Laser', blurb: 'Unerwarteter Artikel im Gepäckbereich. ZACK.', rules: 'Feuert alle 1,6 s einen Barcode-Strahl (620 lang), der jeden Gegner auf der Linie einmal für 20 Schaden trifft. Elektrisch.' },
-  cooker: { name: 'Schnellkochtopf', blurb: 'Schleudert einen pfeifenden Topf. KABUMM.', rules: 'Schleudert alle {1} einen Topf auf die dichteste Gruppe im Umkreis von 420. Er explodiert und macht {0} Schaden an allem im Umkreis von 90, mit Rückstoß.' },
-  spray: { name: 'Sprühflasche', blurb: 'Pssht pssht pssht. Trifft alles davor.', rules: 'Sprüht alle {1} einen 70°-Kegel (170 Reichweite) und macht {0} Schaden an jedem Gegner darin (je einmal pro Sprühstoß).' },
-  leafblower: { name: 'Laubbläser', blurb: 'Puff puff. Schleudert Gegner gegen Sachen.', rules: 'Bläst alle {1} einen 50°-Kegel (220 Reichweite) für {0} Schaden und einen kräftigen Stoß. Weggeblasene Gegner, die gegen eine Wand oder Deko prallen, erleiden 8 Aufprallschaden (skaliert mit der Stufe).' },
-};
+const items: Partial<Record<ItemTypeId, IR>> = {};
 
 const enemies: Record<EnemyId, NB> = {
   milk: { name: 'Saure Milch', blurb: 'Über dem Datum und stinksauer darüber. Läuft einfach auf dich zu. Immer wieder.' },

@@ -1,7 +1,7 @@
 import { defineCombo } from '../../engine/define';
 
-// Blender + Ice Pack: a wider, chilling blade storm. Replaces the Ice Pack slow for this weapon. The pale spinning blades are drawn from
-// `recipes` in the blender pattern (phase 7).
+// Blender + Ice Pack: a wider, chilling blade storm. Replaces the Ice Pack slow for this weapon. The slower, pale spinning blades are this
+// combo's `pattern:look` (cosmetic only).
 export default defineCombo({
   id: 'brainFreeze', requires: ['blender', 'ice'],
   tune: { radiusMult: 1.25, pct: 0.4, duration: 0.6 },
@@ -23,6 +23,13 @@ export default defineCombo({
     weapon(w, c) {
       const t = c.tune();
       w.range *= t.radiusMult; w.slow = { pct: t.pct, duration: t.duration };
+    },
+  },
+  hooks: {
+    'pattern:look'(ev, _ctx, c) {
+      if (!c.touches(ev.stats.uid)) return;
+      ev.look.bladeSpin = 9;
+      ev.look.bladeTint = 0xcff3ff;
     },
   },
 });
