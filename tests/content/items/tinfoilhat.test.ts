@@ -1,33 +1,16 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { ITEMS, TIER } from '../../../src/data/items';
+import { ITEMS } from '../../../src/data/items';
 import tinfoilhat from '../../../src/content/items/tinfoilhat';
 import { contentItem, contentTune } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { tierScaling } from '../../../src/systems/synergies';
-import { around, arena, at, corner, far, full, gilded } from '../helpers';
+import { around, arena, at, corner, far, gilded } from '../helpers';
 
 afterEach(() => setLang('en'));
 
 const scenes = import.meta.glob('../../../src/scenes/*.ts', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
 const source = (file: string): string => Object.entries(scenes).find(([k]) => k.endsWith(`/${file}`))![1];
-
-// Legacy: while dashing (and 0.1 s after) enemy shots that touch the goblin are reflected for 1.5x (x TIER.mult) of their damage instead of hurting.
-describe('Tin Foil Hat: build field', () => {
-  it('sets reflectMult to 1.5 / 2.25 / 3 at ★1 / ★2 / ★3, 0 without the item', () => {
-    expect(full([at('toaster')]).reflectMult).toBe(0);
-    expect([1, 2, 3].map((t) => full([at('toaster'), far('tinfoilhat', t)]).reflectMult)).toEqual([1.5, 2.25, 3]);
-  });
-
-  it('matches the legacy formula 1.5 x TIER.mult to the bit, also at Gold Star\'s effective ★4 (3.75)', () => {
-    for (const t of [1, 2, 3]) expect(full([at('toaster'), far('tinfoilhat', t)]).reflectMult).toBe(1.5 * TIER.mult(t));
-    expect(full([at('toaster'), corner('tinfoilhat', 3), gilded(1)]).reflectMult).toBe(3.75);
-  });
-
-  it('does not stack: the best copy counts once', () => {
-    expect(full([at('toaster'), far('tinfoilhat', 1), far('tinfoilhat', 3)]).reflectMult).toBe(3);
-  });
-});
 
 // The reflect is an `onEnemyShotTouch` hook; the dash window (`player.reflectT`) is kept by onDashStart + onTick, with the frame semantics of the
 // old line in updatePlayer: `if (shoveT > 0) reflectT = grace; else reflectT -= dt`, evaluated at the start of the frame.
@@ -149,12 +132,11 @@ describe('Tin Foil Hat: the legacy reads are gone', () => {
 });
 
 describe('Tin Foil Hat: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('tinfoilhat')).toBe(tinfoilhat);
-    expect(ITEMS.tinfoilhat).toMatchObject({ id: 'tinfoilhat', family: 'tools', name: 'Tin Foil Hat', kind: 'passive', price: 9, electrical: false });
+    expect(ITEMS.tinfoilhat).toMatchObject({ id: 'tinfoilhat', family: 'tools', kind: 'passive', price: 9, electrical: false });
     expect(ITEMS.tinfoilhat.element).toBeUndefined();
     expect(ITEMS.tinfoilhat.cells).toEqual([{ x: 0, y: 0 }]);
-    expect(ITEMS.tinfoilhat.rules).toBe('While dashing (and 0.1 s after), enemy shots that touch you are reflected back at the groceries for {0} of their damage instead of hurting you. Combos: Sparks Fly with Microwave + Battery; Ray Gun with Nail Gun + Battery + Magnet.');
   });
 
   it('keeps its tune in one place', () => {

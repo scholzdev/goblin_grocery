@@ -1,32 +1,14 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { ITEMS, TIER } from '../../../src/data/items';
+import { ITEMS } from '../../../src/data/items';
 import tipjar from '../../../src/content/items/tipjar';
 import { contentItem, contentTune } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { combatRng } from '../../../src/systems/rng';
 import { tierScaling } from '../../../src/systems/synergies';
-import { around, arena, at, corner, far, full, gilded } from '../helpers';
+import { around, arena, at, corner, far, gilded } from '../helpers';
 
 afterEach(() => setLang('en'));
-
-// Legacy: each enemy the dash hits has a 40% chance (x TIER.mult, max 100%) to drop a coin; the best copy counts once.
-describe('Tip Jar: build field', () => {
-  it('sets dashCoinChance to 0.4 / 0.6 / 0.8 at ★1 / ★2 / ★3, 0 without the item', () => {
-    expect(full([at('toaster')]).dashCoinChance).toBe(0);
-    [0.4, 0.6, 0.8].forEach((c, i) => expect(full([at('toaster'), far('tipjar', i + 1)]).dashCoinChance).toBeCloseTo(c, 12));
-  });
-
-  it('matches the legacy formula min(1, 0.4 x TIER.mult) to the bit, and Gold Star\'s effective ★4 hits the 100% cap', () => {
-    for (const t of [1, 2, 3]) expect(full([at('toaster'), far('tipjar', t)]).dashCoinChance).toBe(Math.min(1, 0.4 * TIER.mult(t)));
-    expect(Math.min(1, 0.4 * TIER.mult(4))).toBe(1);
-    expect(full([at('toaster'), corner('tipjar', 3), gilded(1)]).dashCoinChance).toBe(1);
-  });
-
-  it('does not stack: the best copy counts once', () => {
-    expect(full([at('toaster'), far('tipjar', 1), far('tipjar', 3)]).dashCoinChance).toBeCloseTo(0.8, 12);
-  });
-});
 
 // The roll is an `onDashHit` hook: one combat-rng draw per enemy the dash hits, then a coin at that enemy.
 describe('Tip Jar: runtime', () => {
@@ -91,11 +73,10 @@ describe('Tip Jar: runtime', () => {
 });
 
 describe('Tip Jar: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('tipjar')).toBe(tipjar);
-    expect(ITEMS.tipjar).toMatchObject({ id: 'tipjar', family: 'checkout', name: 'Tip Jar', kind: 'passive', price: 9, electrical: false });
+    expect(ITEMS.tipjar).toMatchObject({ id: 'tipjar', family: 'checkout', kind: 'passive', price: 9, electrical: false });
     expect(ITEMS.tipjar.cells).toEqual([{ x: 0, y: 0 }]);
-    expect(ITEMS.tipjar.rules).toBe('Each grocery the Space dash hits has a {0} chance to drop a coin (does not stack).');
   });
 
   it('keeps its tune in one place', () => {

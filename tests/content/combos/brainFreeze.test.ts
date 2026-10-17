@@ -12,8 +12,7 @@ describe('Brain Freeze: build', () => {
     expect(w.slow).toEqual({ pct: 0.4, duration: 0.6 });
     expect(w.damage).toBe(base.damage);
   });
-  it('overrides the Ice Pack slow', () => {
-    expect(brainFreeze.overrides).toEqual(['slow']);
+  it('replaces the Ice Pack slow instead of adding to it', () => {
     expect(weaponOf(partsOf(brainFreeze)).slow).toEqual({ pct: 0.5 - 0.1, duration: 0.6 });
   });
   it('order guard: Frost L1 (post-combo, order 1000) adds +0.1 after the combo slow: 0.4 -> 0.5', () => {

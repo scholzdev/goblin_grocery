@@ -15,7 +15,7 @@ export default defineCombo({
     de: {
       name: 'Funkenflug', short: 'Zaps springen +{chain}, können betäuben',
       summary: 'Mikrowelle berührt Aluhut UND Batterie: die Funken fliegen überallhin.',
-      detail: 'Jeder Zap springt auf {chain} weitere Gegner in der Nähe über ({chainMult|pct} Schaden), und jeder Kettentreffer betäubt mit {stunChance|pct} Chance für {stun|s}. Stapelt sich mit TV-Dinner.',
+      detail: 'Jeder Zap springt auf {chain} weitere Gegner in der Nähe über ({chainMult|pct} Schaden), und jeder Kettentreffer betäubt mit {stunChance|pct} Chance für {stun|s}. Stapelt sich mit Fertiggericht.',
     },
   },
   build: {

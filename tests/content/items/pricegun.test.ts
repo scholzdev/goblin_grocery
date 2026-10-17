@@ -24,7 +24,6 @@ describe('Price Gun: build', () => {
     expect(w.buffs).toEqual(['pricegun']);
     expect(w.cooldown).toBe(plain.cooldown);
     expect(w.range).toBe(plain.range);
-    expect(w.critCoin).toBe(false);
   });
 
   it('does nothing for a weapon it does not touch', () => {
@@ -48,13 +47,12 @@ describe('Price Gun: build', () => {
 });
 
 describe('Price Gun: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('pricegun')).toBe(pricegun);
     const def = ITEMS.pricegun;
-    expect(def).toMatchObject({ id: 'pricegun', family: 'checkout', name: 'Price Gun', kind: 'module', price: 12, electrical: false, buff: 'pricegun' });
+    expect(def).toMatchObject({ id: 'pricegun', family: 'checkout', kind: 'module', price: 12, electrical: false, buff: 'pricegun' });
     expect(def.element).toBeUndefined();
     expect(def.cells).toEqual([{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }]);
-    expect(def.rules).toBe('Adjacent weapons gain a {0} chance to crit for double damage (not burn). Combo: Clearance Sale with Fizz Cannon + Coupon Book.');
     expect(def.legendary).toBeUndefined();
     expect(def.weapon).toBeUndefined();
   });

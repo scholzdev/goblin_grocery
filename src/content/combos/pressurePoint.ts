@@ -17,11 +17,6 @@ export default defineCombo({
       detail: 'Jede Explosion hinterlässt {poolTime|s} lang eine Feuerlache: Gegner darin brennen (mindestens {dps} Schaden/s, kein Stapeln).',
     },
   },
-  build: {
-    phase: 'combo',
-    // `firePool` stays on the weapon stats for the golden snapshots; nothing reads it, the hook below owns the behavior.
-    weapon(w) { w.firePool = true; },
-  },
   hooks: {
     'pattern:explode'(ev, ctx, c) {
       if (!c.touches(ev.stats.uid)) return;

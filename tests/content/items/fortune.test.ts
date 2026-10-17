@@ -55,12 +55,11 @@ describe('Fortune Cookie: build', () => {
 });
 
 describe('Fortune Cookie: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('fortune')).toBe(fortune);
-    expect(ITEMS.fortune).toMatchObject({ id: 'fortune', family: 'snacks', name: 'Fortune Cookie', kind: 'passive', price: 8, electrical: false });
+    expect(ITEMS.fortune).toMatchObject({ id: 'fortune', family: 'snacks', kind: 'passive', price: 8, electrical: false });
     expect(ITEMS.fortune.element).toBeUndefined();
     expect(ITEMS.fortune.cells).toEqual([{ x: 0, y: 0 }]);
-    expect(ITEMS.fortune.rules).toBe('Every weapon gains {0} chance to crit for double damage (adds to the Price Gun, does not stack).');
     expect(ITEMS.fortune.legendary).toBeUndefined();
     expect(ITEMS.fortune.buff).toBeUndefined();
   });

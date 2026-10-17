@@ -28,7 +28,8 @@ import type { DepartmentId, EnemyId, ItemTypeId, LabOpts, Perk, RecipeId, Starte
 import type { Fresh } from '../state/profile';
 import { modIcon, setIcon } from './icons';
 import { t, fmtNum, lang, setLang, LANGS, type Lang, type UIKey } from '../i18n';
-import { flavorOf, newSetLevels, setsOf } from '../data/sets';
+import { newSetLevels, setsOf } from '../data/sets';
+import { flavorOf } from '../engine/define';
 import { ZONES } from '../data/zones';
 import { cartSkinT, deptT, enemyT, goblinSkinT, itemT, recipeT, shiftT, starterT, tagT, unlockNeedT, zoneT } from '../i18n/data';
 

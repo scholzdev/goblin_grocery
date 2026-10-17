@@ -1,6 +1,6 @@
 import type { ItemTypeId, RecipeId, SetId } from '../types';
-import { BUILD_PHASES, HOOK_NAMES, SET_ORDER, resolveShape, resolveTune, type BuildPhase, type BuildSpec, type ComboContent, type ItemContent, type RuntimeHooks, type SetContent, type Tune } from './define';
-import { isFormatter, legacyRules, placeholders, renderText } from './text';
+import { BUILD_PHASES, ELEMENTS, FAMILIES, HOOK_NAMES, ITEM_ORDER, RECIPE_ORDER, SET_ORDER, resolveShape, resolveTune, type BuildPhase, type BuildSpec, type ComboContent, type ItemContent, type RuntimeHooks, type SetContent, type Tune } from './define';
+import { isFormatter, placeholders, renderText } from './text';
 
 // Collects every content file (src/content/{items,combos,sets}/<id>.ts, default export) and validates them.
 // Adding a file is the only registration there is.
@@ -12,20 +12,21 @@ export interface ContentFiles {
 }
 
 export interface ValidateOptions {
-  /** Every item id that exists outside content (legacy tables). Needed to resolve a combo's `requires`; skipped when omitted. */
+  /** Item ids that may be named by a combo's `requires` besides the given files. Skipped when omitted (fixtures). */
   knownItemIds?: readonly string[];
-  /** Every combo id that exists outside content. Needed to resolve `replaces`; skipped when omitted. */
+  /** Combo ids that may be named by `replaces` besides the given files. Skipped when omitted (fixtures). */
   knownComboIds?: readonly string[];
+  /** The complete item list the game expects (`ITEM_ORDER`): every file must be listed and every listed id must have a file. */
+  itemOrder?: readonly string[];
+  /** The complete combo list (`RECIPE_ORDER`), checked the same way. */
+  comboOrder?: readonly string[];
 }
 
 /** Every set id, in the shop's order (`SET_ORDER`). */
 export const SET_IDS: readonly SetId[] = SET_ORDER;
-const FAMILIES = ['kitchen', 'cleaning', 'tools', 'snacks', 'checkout'];
-const ELEMENTS = ['heat', 'frost', 'blast'];
 
 const baseName = (path: string): string => (path.split('/').pop() ?? path).replace(/\.[^.]+$/, '');
 const isTriple = (v: unknown): boolean => Array.isArray(v) && v.length === 3 && v.every((n) => typeof n === 'number' && Number.isFinite(n));
-const LIFECYCLE_HOOKS = ['onShopEnter', 'onAisleEnd', 'onMerge'];
 const phasesFor: Record<'item' | 'combo' | 'set', readonly BuildPhase[]> = { item: BUILD_PHASES.filter((p) => p !== 'combo'), combo: ['combo'], set: ['set', 'post-combo', 'final'] };
 
 /** Every problem found in the given files (empty = valid). Does not throw. */
@@ -71,7 +72,7 @@ export function validateContent(files: Partial<ContentFiles>, opts: ValidateOpti
   const checkHooks = (path: string, hooks: RuntimeHooks | undefined) => {
     for (const [k, v] of Object.entries(hooks ?? {})) {
       if (k === 'order') { if (typeof v !== 'number' || !Number.isFinite(v)) err(path, 'hooks.order must be a finite number'); }
-      else if (!(HOOK_NAMES as readonly string[]).includes(k) && !LIFECYCLE_HOOKS.includes(k)) err(path, `hooks.${k} is not a hook (${HOOK_NAMES.join(', ')})`);
+      else if (!(HOOK_NAMES as readonly string[]).includes(k)) err(path, `hooks.${k} is not a hook (${HOOK_NAMES.join(', ')})`);
       else if (typeof v !== 'function') err(path, `hooks.${k} must be a function`);
     }
   };
@@ -88,8 +89,8 @@ export function validateContent(files: Partial<ContentFiles>, opts: ValidateOpti
     dup(itemSeen, path, c.id, 'item'); itemIds.add(c.id);
     if (baseName(path) !== c.id) err(path, `filename must match the id "${c.id}"`);
     if (!(c.price > 0)) err(path, 'price must be a positive number');
-    if (!FAMILIES.includes(c.sets?.[0])) err(path, `sets[0] must be a family (${FAMILIES.join(', ')})`);
-    if (c.sets?.[1] !== undefined && !ELEMENTS.includes(c.sets[1])) err(path, `sets[1] must be an element (${ELEMENTS.join(', ')})`);
+    if (!(FAMILIES as readonly string[]).includes(c.sets?.[0])) err(path, `sets[0] must be a family (${FAMILIES.join(', ')})`);
+    if (c.sets?.[1] !== undefined && !(ELEMENTS as readonly string[]).includes(c.sets[1])) err(path, `sets[1] must be an element (${ELEMENTS.join(', ')})`);
     if ((c.kind === 'weapon') !== !!c.weapon) err(path, c.kind === 'weapon' ? 'a weapon needs a weapon definition' : 'only weapons have a weapon definition');
     checkTune(path, c.tune, !c.legendary);
     checkTexts(path, c.text, ['name', 'blurb', 'rules'], c.tune);
@@ -121,10 +122,7 @@ export function validateContent(files: Partial<ContentFiles>, opts: ValidateOpti
     if (c.build?.phase === 'module') {
       if (!c.buff) err(path, 'a module-phase item needs `buff` (its BUFF_ORDER entry)');
       if (!c.build.weapon) err(path, 'a module-phase item needs a weapon hook');
-    }
-    // Everything the legacy tables will be built from must convert.
-    try { for (const lang of ['en', 'de'] as const) legacyRules(c.text[lang].rules, c, lang); }
-    catch (e) { err(path, (e as Error).message); }
+    } else if (c.buff) err(path, '`buff` needs a module-phase build hook (the item grants that buff to touching weapons)');
     // Render once per tier so a bad value shows up here, not in the shop.
     try { for (const lang of ['en', 'de'] as const) for (const tier of [1, 2, 3]) renderText(c.text[lang].rules, c.tune, tier, lang); }
     catch (e) { err(path, (e as Error).message); }
@@ -151,6 +149,15 @@ export function validateContent(files: Partial<ContentFiles>, opts: ValidateOpti
     checkHooks(path, c.hooks);
     if (c.build?.phase === 'combo' && !c.build.weapon && !c.cart) err(path, 'a weapon combo in the combo phase needs a weapon hook');
   }
+
+  /** A content kind and its order list name the same ids. */
+  const checkOrder = (kind: string, list: string, ids: Set<string>, order: readonly string[] | undefined) => {
+    if (!order) return;
+    for (const id of ids) if (!order.includes(id)) err(kind, `"${id}" is missing from ${list} (src/engine/define.ts)`);
+    for (const id of order) if (!ids.has(id)) err(kind, `${list} lists "${id}", which has no content file (src/content/${kind}/${id}.ts)`);
+  };
+  checkOrder('items', 'ITEM_ORDER', itemIds, opts.itemOrder);
+  checkOrder('combos', 'RECIPE_ORDER', comboIds, opts.comboOrder);
 
   // ---- sets
   const setSeen = new Map<string, string>();
@@ -205,13 +212,7 @@ const FILES: ContentFiles = {
   sets: import.meta.glob<SetContent>('../content/sets/*.ts', { eager: true, import: 'default' }),
 };
 
-export const registry: Registry = createRegistry(FILES);
-
-/** Checks that need the legacy tables too (a combo's `requires` / `replaces` resolve to content or legacy ids). Called once by data/items.ts. */
-export function assertRegistry(opts: ValidateOptions): void {
-  const problems = validateContent(FILES, opts);
-  if (problems.length) throw new ContentError(problems);
-}
+export const registry: Registry = createRegistry(FILES, { itemOrder: ITEM_ORDER, comboOrder: RECIPE_ORDER });
 
 export const contentItem = (id: ItemTypeId): ItemContent | undefined => registry.item(id);
 export const contentCombo = (id: RecipeId): ComboContent | undefined => registry.combo(id);

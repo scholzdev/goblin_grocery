@@ -4,6 +4,7 @@ import { degToRad } from '../../src/engine/patterns/common';
 import { PATTERNS, stepArsenal, stepWeapons, weaponRt, emitFire, collectLooks, removePuddle, spawnFirePool } from '../../src/engine/patterns';
 import { FakeArsenal, StubSprite } from '../../src/engine/patterns/fakeHost';
 import { wrapAngle, weaponDamageMult, weaponCooldownMult, weaponBase, weaponTiers } from '../../src/engine/define';
+import { contentItem } from '../../src/engine/registry';
 import { combatRng } from '../../src/systems/rng';
 import type { WeaponPattern } from '../../src/types';
 import { arsenal, at } from '../content/helpers';
@@ -44,7 +45,7 @@ describe('weapon runtime', () => {
 
   it('weaponRt builds the same runtime the arsenal uses', () => {
     const { b } = arsenal([at('toaster')]);
-    const rt = weaponRt(b.weapons[0], 3, null);
+    const rt = weaponRt(b.weapons[0], 3, null, contentItem('toaster')!);
     expect(rt).toMatchObject({ cd: 0.4 + 3 * 0.17, burstLeft: 0, burstT: 0, blades: null, electrical: true });
   });
 });
@@ -421,7 +422,7 @@ describe('guards on the module\'s source', () => {
 
   it('the pattern files have no per-weapon branch: they never compare an item type', () => {
     for (const [f, src] of real) expect(src, f).not.toMatch(/\.type\s*[!=]==?\s*'/);
-    for (const [f, src] of real.filter(([f]) => f !== 'common.ts')) expect(src, f).not.toMatch(/ITEMS\[/); // only weaponRt reads the item table
+    for (const [f, src] of real) expect(src, f).not.toMatch(/ITEMS\[|data\/items|contentItem/); // the host hands each weapon its content file to weaponRt
   });
 
   it('the legacy scene file is thin: no pattern code, no combo reads, no per-weapon branch', () => {

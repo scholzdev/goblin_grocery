@@ -5,8 +5,8 @@ import type { ActiveRecipe, BuffId, Build, Inventory, ItemInstance, ItemTypeId, 
 import { resolveTune, type BuildCtx, type BuildPhase, type BuildSpec, type ComboContent, type ItemContent, type SetContent, type Tune } from './define';
 import { contentCombos, contentItems, contentSets, contentTune } from './registry';
 
-// Build-phase dispatch for content files. `computeBuild` (systems/synergies.ts) calls these at the position of each legacy
-// branch: if content defines a hook there it runs, otherwise the legacy branch does. Pure: no Phaser, no RNG.
+// Build-phase dispatch for content files. `computeBuild` (systems/synergies.ts) calls these at the position of each phase (the module
+// loop, the other phases, the combos, the player hooks); the item, set and combo files hold all the effects. Pure: no Phaser, no RNG.
 
 /** What `computeBuild` already knows about the cart. */
 export interface BuildEnv {
@@ -25,8 +25,6 @@ export interface WeaponEnv {
   /** Instances touching the weapon. */
   near: ItemInstance[];
   uid: string;
-  /** Combos whose parts all touch the weapon (before `replaces` filtering). */
-  matching: readonly RecipeId[];
   /** Arc already gained from utilities (tape) before the combos ran. */
   tapeArc: number;
 }
@@ -46,7 +44,6 @@ function makeCtx(env: BuildEnv, owner: Owner, tier: number, w?: WeaponEnv, activ
     count: (set) => setCount(placed, set),
     level: (set) => env.sets[set],
     def: (id) => ITEMS[id],
-    matching: w?.matching ?? [],
     active,
     tapeArc: w?.tapeArc ?? 0,
     cart: env.inv,
@@ -107,13 +104,12 @@ export function tierBoostOf(placed: ItemInstance[]): (i: ItemInstance) => number
 // ---- dispatch ---------------------------------------------------------------------------------------------------------
 
 /**
- * `module` phase (inside the BUFF_ORDER loop): runs the content hook for `buff` if there is one. Returns `undefined` when the
- * buff has no content hook (run the legacy branch), otherwise `true` if it applied or `false` if the hook skipped it
- * (the legacy `continue`: do not record the buff).
+ * `module` phase (inside the BUFF_ORDER loop): runs the hook of the item that grants `buff`. `true` if it applied, `false` if the hook
+ * skipped it (it returned `false`, e.g. Double Bag on an aura): the buff is then not recorded.
  */
-export function runModule(buff: BuffId, s: WeaponStats, we: WeaponEnv, tier: number): boolean | undefined {
+export function runModule(buff: BuffId, s: WeaponStats, we: WeaponEnv, tier: number): boolean {
   const c = MODULES.get(buff);
-  if (!c) return undefined;
+  if (!c) return false; // the registry guarantees every item with a `buff` has a module hook (tests with fixture tables skip the rest)
   return c.build!.weapon!(s, makeCtx(we.env, { id: c.id, tune: c.tune, item: true }, tier, we)) !== false;
 }
 
@@ -134,12 +130,10 @@ export function runPhase(phase: Exclude<BuildPhase, 'module' | 'combo'>, s: Weap
   }
 }
 
-/** `combo` phase (inside the per-recipe loop): the content hook for this combo, if any. Returns false to run the legacy branch. */
-export function runCombo(id: RecipeId, s: WeaponStats, we: WeaponEnv): boolean {
+/** `combo` phase (inside the per-recipe loop): the combo's build hook, if it changes stats (many combos only have runtime hooks). */
+export function runCombo(id: RecipeId, s: WeaponStats, we: WeaponEnv): void {
   const c = COMBOS.get(id);
-  if (!c) return false;
-  c.build!.weapon!(s, makeCtx(we.env, { id: c.id, tune: c.tune, item: false }, 1, we));
-  return true;
+  if (c) c.build!.weapon!(s, makeCtx(we.env, { id: c.id, tune: c.tune, item: false }, 1, we));
 }
 
 /** Player hooks (`build.player`), after every weapon is built, in `order`. Items: in the cart. Sets: level > 0. Combos: active. */

@@ -12,7 +12,7 @@ export default defineItem({
     de: { name: 'Steckdosenleiste', blurb: 'Steckt den ganzen Wagen auf einmal ein.', rules: 'Jede elektrische Waffe im Wagen erhält {allGain|+pct} Angriffstempo; elektrische Waffen, die sie berühren, stattdessen {adjacentGain|+pct}.' },
   },
   build: {
-    // Right after Sourdough's damage (both are global-mod): legacy ran the Sourdough loop, then this line, then the set bonuses.
+    // Right after Sourdough's damage (both are global-mod, orders 10 and 20), before the set bonuses.
     // Cart-wide, so it runs for every weapon while a strip is in the cart; two strips never stack (touching one is the better case).
     phase: 'global-mod', order: 20,
     weapon(w, c) {

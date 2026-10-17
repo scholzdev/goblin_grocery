@@ -1,14 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import potSlam from '../../../src/content/combos/potSlam';
-import { applyCombo, arena, bare, describeCombo, partsOf, at } from './helpers';
+import { arena, describeCombo, partsOf, at } from './helpers';
 
 describeCombo('potSlam', potSlam, ['Pot Slam', 'Topf-Slam']);
 
 describe('Pot Slam: build', () => {
-  it('only flags dashBlast (golden contract)', () => {
-    const base = bare('cooker'), w = applyCombo(potSlam, base);
-    expect(w.dashBlast).toBe(true);
-    expect({ ...w, dashBlast: false }).toEqual({ ...base, dashBlast: false });
+  it('changes no stats: the blast is the onDashEnd hook', () => {
+    expect(potSlam.build).toBeUndefined();
   });
 });
 

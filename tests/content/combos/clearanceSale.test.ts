@@ -6,10 +6,9 @@ import { applyCombo, arena, bare, describeCombo, draws, partsOf } from './helper
 describeCombo('clearanceSale', clearanceSale, ['Clearance Sale', 'Räumungsverkauf']);
 
 describe('Clearance Sale: build', () => {
-  it('adds two bounces and flags critCoin (golden contract: nothing reads the flag, the onCrit hook owns the behavior)', () => {
+  it('adds two bounces (the coin itself is the onCrit hook)', () => {
     const base = bare('fizz'), w = applyCombo(clearanceSale, base);
     expect(w.bounces).toBe(base.bounces + 2);
-    expect(w.critCoin).toBe(true);
   });
 });
 

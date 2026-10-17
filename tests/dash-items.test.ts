@@ -5,14 +5,13 @@ import { mulberry32 } from '../src/systems/rng';
 import { inLane } from '../src/systems/obstacles';
 import { createRun } from '../src/state/run';
 import { cart } from './cart';
-import { ITEMS, ITEM_IDS, PLAYER, TIER } from '../src/data/items';
-import { contentTune } from '../src/engine/registry';
+import { ITEM_IDS, PLAYER } from '../src/data/items';
+import { contentItem } from '../src/engine/registry';
 import { RECIPES } from '../src/data/recipes';
 import { UNLOCKS } from '../src/data/unlocks';
 import { DASH_PROPS, OBSTACLES, OBSTACLE_KINDS } from '../src/data/obstacles';
 import { ZONES } from '../src/data/zones';
 import { SVG_ASSETS } from '../src/data/assets';
-import { DATA_DE } from '../src/data/../i18n/data-de';
 import type { ItemTypeId } from '../src/types';
 
 const DASH_ITEMS: ItemTypeId[] = ['bumper', 'sparewheel', 'tipjar', 'flag'];
@@ -23,31 +22,16 @@ const build = (item: ItemTypeId, tier = 1) => {
 };
 
 describe('dash items', () => {
-  it('each starts off and switches on with its item, scaling by tier', () => {
-    const base = computeBuild(cart('toaster', []));
-    expect([base.dashSlam, base.dashChain, base.dashCoinChance, base.dashMark]).toEqual([0, 0, 0, 0]);
-    const base1 = (id: ItemTypeId, key: string) => contentTune(id, 1)[key]; // the ★1 numbers
-    expect(build('bumper').dashSlam).toBe(base1('bumper', 'slam'));
-    expect(build('bumper', 3).dashSlam).toBe(base1('bumper', 'slam') * TIER.mult(3));
-    expect(build('sparewheel').dashChain).toBe(base1('sparewheel', 'window'));
-    expect(build('sparewheel', 2).dashChain).toBeCloseTo(base1('sparewheel', 'window') * 1.5);
-    expect(build('tipjar').dashCoinChance).toBeCloseTo(base1('tipjar', 'chance'));
-    expect(build('tipjar', 3).dashCoinChance).toBeCloseTo(base1('tipjar', 'chance') * 2);
-    expect(build('flag').dashMark).toBe(base1('flag', 'duration'));
-    expect(build('flag', 2).dashMark).toBeCloseTo(base1('flag', 'duration') * 1.5);
-  });
-  it('they leave the plain dash alone and do not stack as duplicates', () => {
+  it('they leave the plain dash alone', () => {
     const b = build('bumper');
     expect(b.shoveCooldown).toBe(PLAYER.shove.cooldown);
     expect(b.shoveDamage).toBe(PLAYER.shove.damage);
-    const two = cart('toaster', ['flag', 'flag']);
-    expect(computeBuild(two).dashMark).toBe(contentTune('flag', 1).duration);
   });
   it('have scaling rows, unlock entries and German text', () => {
     for (const id of DASH_ITEMS) {
       expect(tierScaling(id), id).not.toHaveLength(0);
       expect(UNLOCKS.some((u) => u.kind === 'item' && u.item === id), id).toBe(true);
-      expect(DATA_DE.items[id].rules.match(/\{\d\}/g), id).toEqual(ITEMS[id].rules.match(/\{\d\}/g));
+      expect(contentItem(id)?.text.de.rules, id).toBeTruthy();
     }
   });
   it('show up in the shop once unlocked, and never while locked', () => {
@@ -75,10 +59,9 @@ describe('dash items', () => {
 describe('Pot Slam', () => {
   it('needs both Pressure Cooker and Slam Bumper touching', () => {
     expect(RECIPES.potSlam.weapon).toBe('cooker');
-    expect(computeBuild(cart('cooker', ['bumper'])).weapons[0].dashBlast).toBe(true);
     expect(computeBuild(cart('cooker', ['bumper'])).weapons[0].recipes).toContain('potSlam');
-    expect(computeBuild(cart('cooker', [])).weapons[0].dashBlast).toBe(false);
-    expect(computeBuild(cart('microwave', ['bumper'])).weapons[0].dashBlast).toBe(false);
+    expect(computeBuild(cart('cooker', [])).weapons[0].recipes).not.toContain('potSlam');
+    expect(computeBuild(cart('microwave', ['bumper'])).weapons[0].recipes).not.toContain('potSlam');
   });
 });
 

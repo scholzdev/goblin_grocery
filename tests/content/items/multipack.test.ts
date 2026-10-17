@@ -103,12 +103,11 @@ describe('Multipack: Gold Star (effective ★4)', () => {
 });
 
 describe('Multipack: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('multipack')).toBe(multipack);
     const def = ITEMS.multipack;
-    expect(def).toMatchObject({ id: 'multipack', family: 'snacks', element: 'blast', name: 'Multipack', kind: 'module', price: 13, electrical: false, buff: 'multipack' });
+    expect(def).toMatchObject({ id: 'multipack', family: 'snacks', element: 'blast', kind: 'module', price: 13, electrical: false, buff: 'multipack' });
     expect(def.cells).toEqual([{ x: 0, y: 0 }]);
-    expect(def.rules).toBe('Any adjacent weapon: projectiles {0}, sweeps/cones/mortars attack one extra time, other weapons {1} damage.');
     expect(def.legendary).toBeUndefined();
     expect(def.weapon).toBeUndefined();
   });

@@ -19,8 +19,7 @@ export default defineCombo({
   },
   build: {
     phase: 'combo',
-    // `critCoin` stays on the weapon stats for the golden snapshots; nothing reads it, the hook below owns the behavior.
-    weapon(w, c) { w.bounces += c.tune().extraBounces; w.critCoin = true; },
+    weapon(w, c) { w.bounces += c.tune().extraBounces; },
   },
   hooks: {
     onCrit(hit, ctx, c) {

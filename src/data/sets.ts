@@ -4,9 +4,8 @@ import type { ElementTag, ItemInstance, ItemTypeId, SetId } from '../types';
 
 /**
  * Set tuning, text and behavior live in `src/content/sets/<id>.ts` (docs/item-hooks-refactor.md). What stays here is the counting:
- * which item types belong to a set, the level thresholds and the cart-wide levels. `SET_THRESHOLDS` is shared by every set.
+ * which item types belong to a set and the cart-wide levels (`SET_THRESHOLDS`, shared by every set, is in engine/define).
  */
-export { SET_ORDER, SET_THRESHOLDS };
 
 /** Every set an item type counts toward: its family, its element, and 'electric' for electrical items. */
 export function setsOf(type: ItemTypeId, flavor?: ElementTag): SetId[] {
@@ -16,9 +15,6 @@ export function setsOf(type: ItemTypeId, flavor?: ElementTag): SetId[] {
 }
 
 export const lvOf = (n: number): 0 | 1 | 2 | 3 => (n >= SET_THRESHOLDS[2] ? 3 : n >= SET_THRESHOLDS[1] ? 2 : n >= SET_THRESHOLDS[0] ? 1 : 0);
-
-/** Jelly Beans flavor of an instance (missing = heat): defined in engine/define so the content file shares it. */
-export { flavorOf };
 
 /** Set-membership weight of a placed item: a double pack counts as 2 distinct types for its family set only. */
 const weightIn = (p: ItemInstance, id: SetId): number => (p.double && ITEMS[p.type].family === id ? 2 : 1);

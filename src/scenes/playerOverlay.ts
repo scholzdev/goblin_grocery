@@ -5,8 +5,7 @@ import { DEPTH } from './fx';
 import type { ArenaScene } from './ArenaScene';
 
 /**
- * The two things drawn on and around the goblin that belong to no weapon (the old `cartCombos.ts`, which dissolved in phase 6; the combo
- * rules went into the combo hooks, docs/item-hooks-refactor.md §7b):
+ * The two things drawn on and around the goblin that belong to no weapon (the combo rules are combo hooks):
  * - the status text above the goblin ("SUGAR ###", "BAG x3"): hooks write lines with `ctx.setLine`, this shows them while the goblin fights;
  * - the Expired Milk cloud under it (drawing only: the poison is the item's `onTick` hook).
  */

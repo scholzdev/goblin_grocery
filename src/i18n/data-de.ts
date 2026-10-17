@@ -1,15 +1,10 @@
-import type { DepartmentId, EnemyId, ItemTypeId, RecipeId, StarterId } from '../types';
+import type { DepartmentId, EnemyId, StarterId } from '../types';
 import type { CartSkin, GoblinSkin } from '../data/unlocks';
-import { itemTextOf, recipeTextOf } from '../engine/legacy';
-import { contentCombos, contentItems } from '../engine/registry';
 import type { ZoneId } from '../data/zones';
 
-// German texts for all data tables. Record over the id unions: a missing entry is a type error.
-type IR = { name: string; blurb: string; rules: string };
+// German texts for the data tables. Record over the id unions: a missing entry is a type error. Items, combos and sets are not here:
+// their German text lives in the content file (src/content/<kind>/<id>.ts), read through i18n/data.
 type NB = { name: string; blurb: string };
-
-/** Items still translated here; content items bring their own German text (merged into DATA_DE below). */
-const items: Partial<Record<ItemTypeId, IR>> = {};
 
 const enemies: Record<EnemyId, NB> = {
   milk: { name: 'Saure Milch', blurb: 'Über dem Datum und stinksauer darüber. Läuft einfach auf dich zu. Immer wieder.' },
@@ -131,10 +126,6 @@ const zones: Record<ZoneId, { name: string; blurb: string }> = {
   cart_corral: { name: 'Wagenpark', blurb: 'Viele kleine Blocker' },
 };
 
-const withContent = <K extends string, V>(legacy: Partial<Record<K, V>>, content: readonly [K, V][]): Record<K, V> => ({ ...legacy, ...Object.fromEntries(content) }) as Record<K, V>;
-
 export const DATA_DE = {
-  items: withContent(items, contentItems().map((c) => [c.id, itemTextOf(c, 'de')] as const)),
-  recipes: Object.fromEntries(contentCombos().map((c) => [c.id, recipeTextOf(c, 'de')])) as Record<RecipeId, { name: string; short: string; summary: string; detail: string }>, // every combo is content: its German text lives in its file
   enemies, departments, zones, shifts, starters, goblinSkins, cartSkins, unlocks, tags,
 };

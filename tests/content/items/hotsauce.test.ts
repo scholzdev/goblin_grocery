@@ -61,12 +61,11 @@ describe('Hot Sauce: build', () => {
 });
 
 describe('Hot Sauce: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('hotsauce')).toBe(hotsauce);
     const def = ITEMS.hotsauce;
-    expect(def).toMatchObject({ id: 'hotsauce', family: 'kitchen', element: 'heat', name: 'Hot Sauce', kind: 'module', price: 7, electrical: false, buff: 'hotsauce' });
+    expect(def).toMatchObject({ id: 'hotsauce', family: 'kitchen', element: 'heat', kind: 'module', price: 7, electrical: false, buff: 'hotsauce' });
     expect(def.cells).toEqual([{ x: 0, y: 0 }]);
-    expect(def.rules).toBe('Adjacent weapons gain {0} hit damage.');
     expect(def.legendary).toBeUndefined();
     expect(def.weapon).toBeUndefined();
   });
@@ -84,7 +83,7 @@ describe('Hot Sauce: content', () => {
     expect([1, 2, 3].map((t) => itemRules('hotsauce', t))).toEqual([
       'Angrenzende Waffen erhalten +25% Trefferschaden.', 'Angrenzende Waffen erhalten +38% Trefferschaden.', 'Angrenzende Waffen erhalten +50% Trefferschaden.',
     ]);
-    expect(itemT('hotsauce')).toEqual({ name: 'Scharfe Soße', blurb: 'Extra scharfer Schaden.', rules: 'Angrenzende Waffen erhalten {0} Trefferschaden.' });
+    expect(itemT('hotsauce')).toEqual({ name: 'Scharfe Soße', blurb: 'Extra scharfer Schaden.' });
   });
 
   it('generates the shop scaling row', () => {

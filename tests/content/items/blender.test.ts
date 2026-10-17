@@ -15,15 +15,14 @@ afterEach(() => setLang('en'));
 // Pattern behaviour runs headless through the FakeArsenal (src/engine/patterns/fakeHost.ts): the cart's real build, the compiled hooks, a fake clock.
 
 describe('Blender: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('blender')).toBe(blender);
     const def = ITEMS.blender;
-    expect(def).toMatchObject({ id: 'blender', family: 'kitchen', name: 'Blender', kind: 'weapon', price: 15, electrical: true });
+    expect(def).toMatchObject({ id: 'blender', family: 'kitchen', kind: 'weapon', price: 15, electrical: true });
     expect(def.element).toBeUndefined();
     expect(def.tags).toEqual(['melee', 'area']);
     expect(def.legendary).toBeUndefined();
     expect(def.cells).toEqual([{x: 0, y: 0}, {x: 0, y: 1}]);
-    expect(def.rules).toBe('Shreds every enemy within 85 for {0} damage every {1} (each enemy once per tick). Electrical.');
     expect(def.weapon).toEqual({ pattern: 'aura', damage: 2, cooldown: 0.3, range: 85, projectileSpeed: 0, count: 1, burstInterval: 0, arcDeg: 0, pull: 0, tick: 0, duration: 0, bounces: 0, chain: 0, aoe: 0 });
   });
 

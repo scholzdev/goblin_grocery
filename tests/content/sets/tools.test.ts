@@ -23,28 +23,24 @@ describe('Tools set: thresholds', () => {
     const b = full(cart(0));
     expect(b.weapons[0].cooldown).toBe(baseCooldown);
     expect(b.shoveDamage).toBe(PLAYER.shove.damage);
-    expect(b.shoveStun).toBe(0);
   });
 
   it('L1 +8% attack rate (cooldown / 1.08) for every weapon; the dash is untouched', () => {
     const b = full(cart(1));
     expect(b.weapons[0].cooldown).toBeCloseTo(baseCooldown / 1.08, 12);
     expect(b.shoveDamage).toBe(PLAYER.shove.damage);
-    expect(b.shoveStun).toBe(0);
   });
 
   it('L2 doubles the dash damage and stuns 0.3 s; the cooldown bonus stays', () => {
     const b = full(cart(2));
     expect(b.weapons[0].cooldown).toBeCloseTo(baseCooldown / 1.08, 12);
     expect(b.shoveDamage).toBe(PLAYER.shove.damage * 2);
-    expect(b.shoveStun).toBe(0.3);
   });
 
   it('L3 replaces the numbers: cooldown / 1.15, dash x3, stun 0.45 s', () => {
     const b = full(cart(3));
     expect(b.weapons[0].cooldown).toBeCloseTo(baseCooldown / 1.15, 12);
     expect(b.shoveDamage).toBe(PLAYER.shove.damage * 3);
-    expect(b.shoveStun).toBe(0.45);
   });
 
   it('applies to weapons of any family (a kitchen weapon in a Tools cart attacks faster too)', () => {
@@ -129,7 +125,4 @@ describe('Tools set: dash stun', () => {
     expect(fake.calls.map((c) => c.kind).filter((k) => k === 'dropCoin' || k === 'stun')).toEqual(['dropCoin', 'stun']);
   });
 
-  it('the build field stays for the snapshots, the arena no longer reads it', () => {
-    expect(full(cart(2)).shoveStun).toBe(0.3);
-  });
 });

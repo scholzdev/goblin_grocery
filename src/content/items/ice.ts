@@ -3,7 +3,7 @@ import { defineItem } from '../../engine/define';
 export default defineItem({
   id: 'ice', kind: 'module', sets: ['kitchen', 'frost'], shape: '1x2', price: 8, buff: 'ice',
   unlock: 'starting',
-  // slow per ★ (the legacy 25% base x TIER.mult), capped at `cap`: the cap only bites for Gold Star's effective ★4 (62.5%) and
+  // slow per ★ (25% base x TIER.mult), capped at `cap`: the cap only bites for Gold Star's effective ★4 (62.5%) and
   // for Jelly Beans, which reads this tune at ★1
   tune: { pct: [0.25, 0.375, 0.5], duration: 1, cap: 0.6 },
   text: {

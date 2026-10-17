@@ -2,7 +2,7 @@ import { tierBoostOf } from './build';
 import { contentComboTune, contentCombos, contentItems, contentSets, contentSetTune, contentTune } from './registry';
 import { neighbors } from '../systems/inventory';
 import { ITEMS } from '../data/items';
-import type { ActiveRecipe, Inventory, ItemDef, ItemTypeId, RecipeId, SetId, WeaponStats } from '../types';
+import type { ActiveRecipe, Inventory, ItemDef, ItemTypeId, RecipeId, SetId, SlowEffect, WeaponStats } from '../types';
 import { HOOK_NAMES, resolveTune, type ComboContent, type ItemContent, type Resolved, type RuntimeHooks, type SetContent, type Tune } from './define';
 import type { CombatEnemy, CombatShot, FxApi, RuntimeCtx } from './ctx';
 
@@ -116,7 +116,8 @@ export interface PulseEvent extends PatternBase { x: number; y: number; inside: 
 /** A Spray Bottle / Leaf Blower cone, after its damage. */
 export interface ConeEvent extends PatternBase { x: number; y: number; angle: number; hits: CombatEnemy[] }
 /** An enemy inside a puddle on its tick; `first`: its first tick in this puddle (Black Ice). */
-export interface PuddleEnterEvent extends PatternBase { enemy: CombatEnemy; puddle: { x: number; y: number; r: number }; first: boolean }
+/** An enemy inside a puddle at its tick. `slow` is the slow this tick applies (writable: the Frost set strengthens it). */
+export interface PuddleEnterEvent extends PatternBase { enemy: CombatEnemy; puddle: { x: number; y: number; r: number }; first: boolean; slow: SlowEffect }
 /** A Blender tick, after its damage. */
 export interface AuraEvent extends PatternBase { x: number; y: number; range: number; hit: boolean }
 /**
@@ -193,7 +194,7 @@ export interface HookCtx<T extends Tune = Tune> {
   touches(weaponUid: string): boolean;
   /** Highest effective tier of `id` in the cart (0 = not placed). */
   owned(id: ItemTypeId): number;
-  /** The legacy item definition (family, element, base weapon pattern). Sets use it to tell which weapons they apply to. */
+  /** The item's plain definition (family, element, base weapon pattern). Sets use it to tell which weapons they apply to. */
   def(id: ItemTypeId): ItemDef;
   /**
    * Another content owner's tune: an item at tier `level`, a combo (scalars), or a set at level `level` (default 1). Empty for an id that is

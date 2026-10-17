@@ -2,6 +2,7 @@ import type { WeaponStats, Build } from '../../types';
 import { newHitTracker } from '../../systems/combat';
 import type { FakeCtx } from '../fakeCtx';
 import type { HookTable, WeaponLook } from '../hooks';
+import { contentItem } from '../registry';
 import { collectLooks, weaponRt } from './common';
 import { stepArsenal } from './index';
 import type { PatternEnemy, PatternHost, PatternScene, Pot, Puddle, Shot, Sprite, WeaponRt } from './types';
@@ -66,7 +67,7 @@ export class FakeArsenal implements PatternHost {
   constructor(readonly fake: FakeCtx, build: Build = fake.build, opts: { repeatDelay?: number } = {}) {
     this.build = build;
     this.repeatDelay = opts.repeatDelay ?? 0.18;
-    this.weapons = build.weapons.map((s, i) => weaponRt(s, i, s.pattern === 'aura' ? new StubSprite('fx_blades') : null));
+    this.weapons = build.weapons.map((s, i) => weaponRt(s, i, s.pattern === 'aura' ? new StubSprite('fx_blades') : null, contentItem(s.type)!));
     const self = this, f = fake;
     this.sc = {
       add: { image: (x, y, key) => { const s = new StubSprite(key); s.x = x; s.y = y; self.sprites.push(s); return s; } },

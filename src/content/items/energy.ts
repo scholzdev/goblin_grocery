@@ -2,7 +2,7 @@ import { defineItem } from '../../engine/define';
 
 export default defineItem({
   id: 'energy', kind: 'passive', sets: ['snacks'], shape: '1x1', price: 8,
-  tune: { speed: [0.12, 0.18, 0.24] }, // movement speed bonus per ★ (the legacy 12% base x TIER.mult)
+  tune: { speed: [0.12, 0.18, 0.24] }, // movement speed bonus per ★ (12% base x TIER.mult)
   text: {
     en: { name: 'Energy Drink', blurb: 'Zoom zoom. Faster cart.', rules: '{speed|+pct} movement speed (does not stack).' },
     de: { name: 'Energydrink', blurb: 'Wruum wruum. Schnellerer Wagen.', rules: '{speed|+pct} Bewegungstempo (stapelt sich nicht).' },

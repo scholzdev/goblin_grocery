@@ -19,8 +19,7 @@ export default defineCombo({
   },
   build: {
     phase: 'combo',
-    // `w.homing` is no longer read at runtime (the hooks below own the behavior); it stays for the golden build snapshots.
-    weapon(w, c) { w.pierce += c.tune().extraPierce; w.homing = true; },
+    weapon(w, c) { w.pierce += c.tune().extraPierce; },
   },
   hooks: {
     'pattern:look'(ev, _ctx, c) {

@@ -94,6 +94,3 @@ export function healTargets<T extends Healable>(healer: T, all: T[], radius = HO
   }
   return out;
 }
-
-// Tailwind's Sugar Rush gate moved to engine/stacks.ts with the combos (phase 6); kept here for the old imports.
-export { tailwindFeedsSugar } from '../engine/stacks';

@@ -17,7 +17,6 @@ export default defineCombo({
       detail: 'Der Sog reicht {radiusMult|pctup}% weiter, seine Schadensticks machen {damageMult|x} Schaden und verlangsamen Gegner {duration|s} um {pct|pct}. Ersetzt die Kühlakku-Verlangsamung (nie addiert).',
     },
   },
-  overrides: ['slow'],
   build: {
     phase: 'combo',
     weapon(w, c) {

@@ -4,7 +4,7 @@ import { defineItem, flavorOf, tierMult } from '../../engine/define';
 // It adds that flavor's real module effect (Fuel Can burn, Ice Pack slow, Party Popper blast) at `base` x the tier multiplier of its own
 // effective tier, but never weaker than what the real module already gave the weapon. The beans also count toward the flavor's set
 // (data/sets `setsOf`). `strength` is that product per ★ for the text and the shop row; the hook multiplies `tierMult(tier) * base`
-// itself, which also holds at Gold Star's ★4 (and keeps the legacy float order).
+// itself, which also holds at Gold Star's ★4.
 const BASE = 0.7;
 
 export default defineItem({

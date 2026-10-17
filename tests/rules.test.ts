@@ -170,11 +170,9 @@ describe('recipes', () => {
     const nl = w0(inv(it_('nailgun', 1, 1), it_('magnet', 0, 1), it_('battery', 3, 1)));
     expect(nl.recipes).toContain('nailstorm');
     expect(nl.pierce).toBe(1);
-    expect(nl.homing).toBe(true);
     expect(nl.cooldown).toBeCloseTo(1.1 / batE / 1.08);
     const p = w0(inv(it_('pan', 0, 0), it_('bell', 1, 0)));
     expect(p.recipes).toContain('expressCheckout');
-    expect(p.expressSweep).toBe(true);
   });
   it('running boot scales dash distance and damage by tier', () => {
     const t = (tier: number) => computeBuild(inv({ ...it_('boot', 0, 0), tier } as ItemInstance));
@@ -549,7 +547,6 @@ describe('tiers', () => {
     const both = w0(inv(it_('fizz', 1, 1), it_('pricegun', 1, 2, 0), it_('coupon', 3, 1)));
     expect(both.recipes).toContain('clearanceSale');
     expect(both.bounces).toBe(4);
-    expect(both.critCoin).toBe(true);
     expect(w0(inv(it_('fizz', 1, 1), it_('coupon', 3, 1))).recipes).toEqual([]);
   });
   it('grease fire only via recipe; toaster fuel burns 2.5', () => {
@@ -560,11 +557,10 @@ describe('tiers', () => {
     expect(w0(inv(it_('mop', 0, 0), mk('fuel', 1, 0, 3))).burn!.dps).toBeCloseTo(10);
     expect(w0(inv(it_('toaster', 0, 0), it_('fuel', 2, 0))).burn!.dps).toBe(2.5);
   });
-  it('bubble wrap armor: the build field is set, but the soak is an onPlayerHit hook (content/items/bubblewrap.test.ts); damagePlayer is plain', () => {
+  it('bubble wrap armor is an onPlayerHit hook (content/items/bubblewrap.test.ts); damagePlayer is plain', () => {
     const s = createRun(1);
     s.inventory.placed.push(it_('bubblewrap', 0, 3));
     s.build = computeBuild(s.inventory);
-    expect(s.build.armor).toBe(1);
     damagePlayer(s, 1);
     expect(s.hp).toBe(39);
     damagePlayer(s, 5);
@@ -1017,9 +1013,8 @@ describe('aoe / multi-hit modules', () => {
   it('pressure point predicate and burn; spray + fuel gets no burn', () => {
     const w = w0(inv(it_('cooker', 0, 0), it_('fuel', 2, 0)));
     expect(w.recipes).toContain('pressurePoint');
-    expect(w.firePool).toBe(true);
     expect(w.burn).toEqual({ dps: 2.5, duration: 3, tick: 0.5 });
-    expect(w0(inv(it_('cooker', 0, 0))).firePool).toBe(false);
+    expect(w0(inv(it_('cooker', 0, 0))).recipes).not.toContain('pressurePoint');
     const sp = w0(inv(it_('spray', 0, 0), it_('fuel', 1, 0)));
     expect(sp.burn!.dps).toBe(2.5); // universal fuel
     expect(sp.recipes).toEqual([]);
@@ -1435,11 +1430,9 @@ describe('set bonuses', () => {
     expect(computeBuild(inv(it_('vacuum', 0, 0), it_('ice', 2, 0), it_('mop', 0, 3))).weapons.find((w) => w.type === 'vacuum')!.slow!.pct).toBe(0.6); // coldStorage 0.5 + 0.1, frost 2 types
     expect(computeBuild(inv(it_('toaster', 0, 0), it_('popper', 2, 0), it_('multipack', 3, 0))).weapons[0].popper!.radius).toBeCloseTo(70 * 1.15);
   });
-  it('tools L2 doubles dash damage and stuns; snacks L2 regen stacks with snack bag', () => {
+  it('tools L2 doubles dash damage; snacks L2 regen stacks with snack bag', () => {
     const t3 = b('nailgun', 'tape', 'boot');
     expect(t3.shoveDamage).toBe((PLAYER.shove.damage + contentTune('boot', 1).damage) * 2);
-    expect(t3.shoveStun).toBe(0.3);
-    expect(b('nailgun', 'tape').shoveStun).toBe(0);
     expect(b('lunchbox', 'energy', 'fizz').regen).toBeCloseTo(0.3);
     expect(b('lunchbox', 'energy', 'snackbag').regen).toBeCloseTo(contentTune('snackbag', 1).regenHp / contentTune('snackbag', 1).interval + 0.3);
   });

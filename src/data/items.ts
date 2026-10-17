@@ -1,26 +1,27 @@
 import type { Cell, ItemDef, ItemTypeId, Perk, StarterId, StarterWeapon } from '../types';
-import { PROJECTILE_PATTERNS, resolveShape, tierMult, weaponCooldownMult, weaponDamageMult } from '../engine/define';
-import { itemDefOf } from '../engine/legacy';
+import { ITEM_ORDER, resolveShape, tierMult, weaponCooldownMult, weaponDamageMult, type ItemContent } from '../engine/define';
 import { contentItem } from '../engine/registry';
 
-/** Items still defined here. An item moves to src/content/items/<id>.ts by deleting its entry (and its other legacy branches). Phase 7 moved the last ones (the 12 weapons), so this is empty until phase 8 deletes it with the dual path below. */
-const LEGACY_ITEMS: Partial<Record<ItemTypeId, ItemDef>> = {};
+/** The shape of a content item that the rest of the game reads (cells, family, element, flags). Names and texts are not here: `itemT` reads them from the content file. */
+const itemDefOf = (c: ItemContent): ItemDef => {
+  const def: ItemDef = {
+    id: c.id, family: c.sets[0], kind: c.kind, cells: resolveShape(typeof c.shape === 'function' ? c.shape(1) : c.shape), price: c.price, electrical: !!c.electrical,
+  };
+  if (c.sets[1]) def.element = c.sets[1];
+  if (c.tags) def.tags = [...c.tags];
+  if (c.weapon) def.weapon = c.weapon;
+  if (c.legendary) def.legendary = true;
+  if (c.buff) def.buff = c.buff;
+  if (c.flavored) def.flavored = true;
+  return def;
+};
 
-/** Order of `ITEMS` / `ITEM_IDS` (shop rolls and UI lists depend on it): fixed here so moving an item to content never reorders anything. */
-const ITEM_ORDER: ItemTypeId[] = [
-  'toaster', 'pan', 'nailgun', 'vacuum', 'fan', 'fuel', 'battery', 'magnet', 'ice', 'hotsauce', 'lunchbox', 'bell', 'boot', 'bumper', 'sparewheel', 'tipjar', 'flag',
-  'microwave', 'blender', 'fizz', 'mop', 'pricegun', 'tape', 'coupon', 'bubblewrap', 'energy', 'fortune', 'sample', 'piggy', 'expiredmilk', 'tinfoilhat', 'jellybeans',
-  'leafblower', 'sourdough', 'powerstrip', 'goldstar', 'laser', 'snackbag', 'cooker', 'spray', 'popper', 'doublebag', 'multipack',
-];
-
-/** Every item: the content file when there is one (converted to the legacy `ItemDef`), otherwise the legacy entry above. */
+/** Every item, in `ITEM_ORDER` (engine/define), as the plain def derived from its content file (src/content/items/<id>.ts). */
 export const ITEMS: Record<ItemTypeId, ItemDef> = Object.fromEntries(ITEM_ORDER.map((id) => {
-  const c = contentItem(id), def = c ? itemDefOf(c) : LEGACY_ITEMS[id];
-  if (!def) throw new Error(`item "${id}" has neither a content file nor a legacy entry`);
-  if (c && LEGACY_ITEMS[id]) throw new Error(`item "${id}" is defined twice: delete its legacy entry in data/items.ts`);
-  return [id, def];
+  const c = contentItem(id);
+  if (!c) throw new Error(`item "${id}" has no content file (src/content/items/${id}.ts)`);
+  return [id, itemDefOf(c)];
 })) as Record<ItemTypeId, ItemDef>;
-for (const id of Object.keys(LEGACY_ITEMS)) if (!ITEM_ORDER.includes(id as ItemTypeId)) throw new Error(`item "${id}" is missing from ITEM_ORDER`);
 
 /** Footprint at a tier: content items with a `shape(tier)` (Sourdough Starter grows 1 -> 2 -> 3 cells) follow it, everything else keeps its def footprint. */
 export const cellsFor = (type: ItemTypeId, tier = 1): Cell[] => {
@@ -31,7 +32,7 @@ export const cellsFor = (type: ItemTypeId, tier = 1): Cell[] => {
 /** Footprint of an item instance (pre-rotation): the one place cells are read from. */
 export const cellsOf = (i: { type: ItemTypeId; tier?: number }): Cell[] => cellsFor(i.type, i.tier ?? 1);
 
-export const ITEM_IDS = Object.keys(ITEMS) as ItemTypeId[];
+export const ITEM_IDS: ItemTypeId[] = [...ITEM_ORDER];
 export const WEAPON_IDS = ITEM_IDS.filter((id) => ITEMS[id].kind === 'weapon');
 
 /** Global tuning for the player and build. */
@@ -90,5 +91,3 @@ export const TIER = {
 };
 
 export const CRIT = { mult: 2 };
-
-export { PROJECTILE_PATTERNS };

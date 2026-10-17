@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { defineItem, resolveTune, tuneValue } from '../../src/engine/define';
-import { formatValue, isFormatter, legacyRules, placeholders, renderText, tierRows } from '../../src/engine/text';
+import { formatValue, isFormatter, placeholders, renderText, tierRows } from '../../src/engine/text';
 
 describe('formatValue', () => {
   it('pct rounds x100 and adds %', () => {
@@ -112,15 +112,5 @@ describe('tierRows', () => {
   });
   it('throws on a row whose tune key is missing', () => {
     expect(() => tierRows({ tune: {}, rows: [{ label: { en: 'x', de: 'x' }, key: 'nope' }] }, 'en')).toThrow(/no tune key "nope"/);
-  });
-});
-
-describe('legacyRules', () => {
-  it('turns placeholders that match a row into {index} and inlines scalars', () => {
-    expect(legacyRules(fixture.text.en.rules, fixture, 'en')).toBe('Burn {0} for 2 s, reach {1}.');
-    expect(legacyRules(fixture.text.de.rules, fixture, 'de')).toBe('Brand {0} für 2 s, Reichweite {1}.');
-  });
-  it('throws for a per-tier placeholder that has no row', () => {
-    expect(() => legacyRules('Burn {dps}', fixture, 'en')).toThrow(/no matching row/);
   });
 });

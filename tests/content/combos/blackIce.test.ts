@@ -5,7 +5,7 @@ import { arena, describeCombo, partsOf, at } from './helpers';
 describeCombo('blackIce', blackIce, ['Black Ice', 'Glatteis']);
 
 describe('Black Ice: runtime', () => {
-  const enter = (stats: never, enemy: never, first: boolean) => ({ stats, enemy, first, puddle: { x: 0, y: 0, r: 60 } });
+  const enter = (stats: never, enemy: never, first: boolean) => ({ stats, enemy, first, puddle: { x: 0, y: 0, r: 60 }, slow: { pct: 0.25, duration: 0.5 } });
   it('an enemy\'s first tick in a puddle freezes it (stun 0.8 s) with a frost burst above it', () => {
     const { fake, stats } = arena(partsOf(blackIce));
     const e = fake.spawnEnemy({ x: 3, y: 90 });

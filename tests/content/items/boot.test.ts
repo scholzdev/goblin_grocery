@@ -50,8 +50,7 @@ describe('Running Boot: build', () => {
     // Nail Gun + Duct Tape + Boot = 3 tools types: Tools L2 (dash damage x2, dash stun 0.3 s)
     const tools = full([at('nailgun'), far('tape'), far('boot', 2)], { shoveDamage: 2 });
     expect(tools.sets.tools).toBe(2);
-    expect(tools.shoveStun).toBe(0.3);
-    expect(tools.shoveDamage).toBe((BASE + 9 + 2) * 2); // the legacy (base + boot + perk) x mult
+    expect(tools.shoveDamage).toBe((BASE + 9 + 2) * 2); // (base + boot + perk) x mult
     expect(full([at('nailgun'), far('tape')]).shoveDamage).toBe(BASE); // no boot, Tools L1: nothing multiplies
   });
 });
@@ -66,12 +65,11 @@ describe('Running Boot: runtime', () => {
 });
 
 describe('Running Boot: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('boot')).toBe(boot);
-    expect(ITEMS.boot).toMatchObject({ id: 'boot', family: 'tools', name: 'Running Boot', kind: 'passive', price: 9, electrical: false });
+    expect(ITEMS.boot).toMatchObject({ id: 'boot', family: 'tools', kind: 'passive', price: 9, electrical: false });
     expect(ITEMS.boot.element).toBeUndefined();
     expect(ITEMS.boot.cells).toEqual([{ x: 0, y: 0 }]);
-    expect(ITEMS.boot.rules).toBe('Space dash: {0} distance and {1} damage.');
   });
 
   it('keeps its tune in one place', () => {

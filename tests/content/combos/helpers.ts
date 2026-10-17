@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ITEMS } from '../../../src/data/items';
-import { RECIPES, RECIPE_ORDER } from '../../../src/data/recipes';
+import { RECIPES } from '../../../src/data/recipes';
+import { RECIPE_ORDER } from '../../../src/engine/define';
 import { resolveTune, type BuildCtx, type ComboContent as Combo } from '../../../src/engine/define';
 import { contentCombo } from '../../../src/engine/registry';
 import { recipeT } from '../../../src/i18n/data';
@@ -46,7 +47,7 @@ const DECOYS: ItemTypeId[] = ['toaster', 'pan', 'nailgun', 'vacuum', 'microwave'
 export function describeCombo(id: RecipeId, mod: ComboContent, names: [string, string]): void {
   describe(`${names[0]}: recipe`, () => {
     const specs = partsOf(mod);
-    it('is the registered content file with the legacy RecipeDef converted from it', () => {
+    it('is the registered content file, and the combo table is derived from it', () => {
       expect(contentCombo(id)).toBe(mod);
       expect(mod.id).toBe(id);
       expect(RECIPE_ORDER).toContain(id);

@@ -17,8 +17,8 @@ export default defineItem({
   },
   tierBoost: { key: 'tiers', excludes: ['weapon', 'legendary'] },
   build: {
-    // Runs before the legacy set bonuses; computeBuild then *adds* the distinct touching types to `bundle` (it starts at 0).
-    // High `order` so later set-phase hooks that change the bundle count come first once sets move into content.
+    // Runs before the set bonuses; computeBuild then *adds* the distinct touching types to `bundle` (it starts at 0).
+    // High `order`: it runs after the set hooks of the same phase.
     phase: 'set', order: 100,
     weapon(w, c) { if (c.touches(w)) w.bundle += c.tune().bundle; },
   },

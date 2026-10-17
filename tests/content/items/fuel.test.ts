@@ -55,12 +55,11 @@ describe('Fuel Can: build', () => {
 });
 
 describe('Fuel Can: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('fuel')).toBe(fuel);
     const def = ITEMS.fuel;
-    expect(def).toMatchObject({ id: 'fuel', family: 'tools', element: 'heat', name: 'Fuel Can', kind: 'module', price: 11, electrical: false, buff: 'fuel' });
+    expect(def).toMatchObject({ id: 'fuel', family: 'tools', element: 'heat', kind: 'module', price: 11, electrical: false, buff: 'fuel' });
     expect(def.cells).toEqual([{ x: 0, y: 0 }, { x: 0, y: 1 }]);
-    expect(def.rules).toBe('Any adjacent weapon sets enemies on fire: {0} burn damage for 2 s (refreshes, never stacks).');
     expect(def.legendary).toBeUndefined();
     expect(def.weapon).toBeUndefined();
   });

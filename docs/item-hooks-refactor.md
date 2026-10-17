@@ -1,8 +1,91 @@
-# Item hooks refactor: plan
+# Content system: how it works
+
+Every item, weapon, set and combo is one file under `src/content/`: its numbers (`tune`), its EN and DE text, its build effect and its combat hooks. The engine only runs hooks; it holds no item-specific code. To change an effect you edit one file and its test. The rest of this document is the history of the refactor that got here (plan, per-phase learnings); the part below is the reference.
+
+## Layout
+
+```
+src/content/items/<id>.ts    one file per item, weapons included (43)
+src/content/combos/<id>.ts   one per combo, cart combos included (31)
+src/content/sets/<id>.ts     kitchen, cleaning, tools, snacks, checkout, heat, frost, blast, electric (9)
+src/engine/define.ts         defineItem / defineCombo / defineSet, all content types, the order lists, tier and shape helpers
+src/engine/registry.ts       import.meta.glob collects the files, validates them (throws at load), contentItem / contentCombo / contentSet / contentTune / contentSetTune
+src/engine/build.ts          runs build hooks in phase order for systems/synergies.ts (computeBuild)
+src/engine/hooks.ts          runtime hook types; compiles the cart's handlers once per build
+src/engine/ctx.ts            the narrow runtime API (`ctx`) hooks use; PhaserCtx lives in scenes/, FakeCtx in engine/fakeCtx.ts
+src/engine/text.ts           renders `{key|fmt}` placeholders from the tune
+src/engine/patterns/         weapon behavior (toast, sweep, burst, pulse, zap, aura, ricochet, puddle, laser, mortar, cone + projectile.ts, common.ts)
+src/data/items.ts, recipes.ts, sets.ts   plain tables derived from the content (ITEMS, RECIPES, counting), no content of their own
+src/sims/                    playtest scenarios, see docs/sims.md
+```
+
+`data/*` only derives: `ITEMS` and `RECIPES` are built from the content files, the ids come from the order lists below.
+
+## The order lists
+
+`ITEM_ORDER`, `RECIPE_ORDER` and `BUFF_ORDER` in `engine/define.ts` are the one place order lives. They are explicit on purpose: the shop rolls iterate `ITEM_ORDER` (reordering it changes every seeded run), and combos are matched in `RECIPE_ORDER`. `SET_ORDER` is `[...FAMILIES, ...ELEMENTS, 'electric']`. The id unions (`ItemTypeId`, `RecipeId`, `SetId`, `BuffId`, `FamilyTag`, `ElementTag`) in `types.ts` are derived from these lists. The registry fails at load if a content file is missing from its list or a listed id has no file. Hook registration order (and so same-`order` ties) is items, then combos, then sets, each in file-path order.
+
+## Add or change content
+
+**An item.** Add `src/content/items/<id>.ts` (`defineItem`), put the id in `ITEM_ORDER` (where it should appear in shop rolls: at the end keeps seeded runs of the old items unchanged), add `tests/content/items/<id>.test.ts`. Fields: `id`, `kind` (`weapon` | `module` | `passive`), `sets` (`[family]` or `[family, element]`), `shape`, `price`, `tune`, `text` (`name`, `blurb`, `rules`), and any of `build`, `hooks`, `extraBuild`, `rows`, `unlock`, `shopBias`, `enhancedBy`, `starterGuarantee`, `flavored`, `legendary`, `electrical`, `tags`. A module that sets a `buff` (one of `BUFF_ORDER`) needs a `module`-phase build hook; the `order` of module hooks follows `BUFF_ORDER`.
+
+**A weapon.** An item with `kind: 'weapon'` and `weapon: { pattern, base stats }`. `pattern` names a file in `src/engine/patterns/`; to make a new pattern, add the file and register it in `patterns/index.ts`. Weapon tuning (damage, cooldown per tier) goes through `WEAPON_ROWS`. Add a sim `src/sims/weapon-<id>.ts`.
+
+**A set.** `src/content/sets/<id>.ts` (`defineSet`) with per-level arrays in `tune` (`[L1, L2, L3]`) and `text.<lang>.bonus` as three strings. A set is active at level above 0 (`SET_THRESHOLDS` 2 / 3 / 4 distinct types). Its build effect is a `set`-phase hook (or `post-combo`), its combat effect a runtime hook. Adding a set id means adding it to `FAMILIES` or `ELEMENTS` in `define.ts`.
+
+**A combo.** `src/content/combos/<id>.ts` (`defineCombo`) with `requires` (weapon first, unless `cart: true`), optional `replaces` (other combos it switches off) and `suppresses` (module buffs it switches off on its weapon, e.g. Mist Machine suppresses the Desk Fan), `tune`, `text` (`name`, `short`, `summary`, `detail`), a `combo`-phase build hook and runtime hooks. Put the id in `RECIPE_ORDER` and add a sim `src/sims/combo-<id>.ts`.
+
+**Numbers and text.** Per-tier values are arrays of three (`[★1, ★2, ★3]`), flat ones scalars. Text never contains a bare number: use `{key}` or `{key|fmt}` (`n`, `int`, `pct`, `pct1`, `pctn`, `pctup`, `pctdown`, `s`, `ps`, `x`, `deg`, with an optional leading `+` or `−`; the registry rejects unknown formatters and keys). `tests/content/text-lint.test.ts` fails on a digit that is not a placeholder, with a short allowlist of deliberate literals (each with a reason, and a stale-entry check). EN and DE must use the same placeholders.
+
+## Build phases
+
+`computeBuild` is pure (no rng, no Phaser). Hooks run in these phases, in this order, each sorted by `order` then registration order; player hooks run after every weapon.
+
+| Phase | What runs |
+|---|---|
+| `base` | pattern defaults, tier damage and cooldown |
+| `module` | the buff modules, in `BUFF_ORDER` (fan, fuel, battery, ice, hotsauce, pricegun, tape, popper, echo, multipack); `return false` = "did not apply" (not recorded in `stats.buffs`) |
+| `flavor` | Jelly Beans |
+| `global-mod` | Sourdough, Power Strip, Gold Star (tier, bundle) |
+| `set` | set bonuses (kitchen 10, cleaning 20, tools 30, heat 40, blast 50, electric 60) |
+| `combo` | combos (`replaces` and `suppresses` applied by `computeBuild`) |
+| `post-combo` | multipack count, Frost slow cap (order 1000), fortune crit add |
+| `final` | perk multipliers and cart-wide player fields |
+
+A build hook is `weapon(stats, c)` and/or `player(build, c)`. `c` offers `tier`, `tune()`, `touching(weapon)`, `owned(id)`, `count(set)`, `level(set)`, `tuneOf(id, tier)`, `def(id)`.
+
+## Runtime hooks
+
+Declared in `hooks: { order?, <hook>(event, ctx, c) {} }`. Handlers are compiled once per build into flat arrays, only for what the cart contains. `c` is the owner's tier and resolved tune (`c.tune()`), `c.touches(weaponUid)`, `c.owned(id)`, `c.def(id)`, `c.tuneOf(...)`. The events are typed in `engine/hooks.ts`, the `ctx` API (`now`, `rng`, enemies, `damage`, `stun`, `heal`, `dropCoin`, `fx.*`, ...) in `engine/ctx.ts`.
+
+- Run: `onAisleStart`, `onTick(dt)`.
+- Damage pipeline (`ArenaScene.damageEnemy`, in this order): `modifyDamage` (pre-crit, multiply `hit.dmg`), crit roll (combat rng), `onCrit`, armor and `hp -= dmg`, `onHit`, the stats-driven statuses (`engine/onHitStatuses.ts`: burn, ignite, slow, echo), `afterHit`; on a lethal hit `killEnemy` (loot), `onKill`, the stats-driven on-kill effects (`engine/onKillEffects.ts`), `afterKill`. Five-Alarm (order 10) comes before the mark multiplier (`engine/marks.ts`).
+- Player: `onDashStart`, `onDashHit`, `onDashEnd`, `onEnemyShotTouch`, `onPlayerHit`, `onCoinPickup`.
+- Patterns: `pattern:sweep`, `explode`, `zap`, `bounce`, `shotHit`, `shotMove`, `beam`, `fire`, `pulse`, `cone`, `puddleEnter` (the handler may rewrite `ev.slow`), `aura`, `look` (cosmetics).
+
+Combat randomness is the seeded combat rng (`ctx.rng()`), never `Math.random`, and the number and order of draws is part of the behavior: a refactor must not add, drop or reorder draws.
+
+Deliberate by-name reads that are not hooks (each is a documented host read of a content tune): checkout interest in `state/run.ts` (`contentSetTune('checkout', lv)`; there is no run-lifecycle hook), the Multipack repeat delay in the arsenal (`contentTune('multipack', 1).repeatDelay`), the kitchen heal popup in `ArenaScene.healHeartFx`. The migration tests list the files allowed to read content by name.
+
+## Testing
+
+- `tests/content/items|combos|sets/<id>.test.ts`: one file per content file. Build asserts go through `full(cart)` / `stats(cart)` (`tests/content/helpers.ts`, carts from `at('fan', 2)`, `far('ice')`, `gilded(i)`).
+- Runtime asserts: `arena(cart)` gives a real build and a `FakeCtx` wired to the compiled hooks (`fake.hit(enemy, dmg, stats)`, `fake.callsOf('stun')`, `fake.spawnEnemy`, a deterministic clock and rng; `seedWhere` / `draws` in the helpers choose a seed whose first draws satisfy given predicates). `arsenal(cart)` adds a `FakeArsenal`: the real pattern code over the cart's weapons, `a.step(dt)` / `a.run(n, dt)`.
+- `describeCombo` / `expectSetText` pin the registered content and its EN and DE texts.
+- Golden snapshots in `tests/golden/__snapshots__/`: `build.json` (`computeBuild` output of about 344 carts) and `text.json` (rendered text, EN and DE). Both must stay byte-identical unless a change is intended; regenerate one with `npx vitest run tests/golden/<name>.golden.test.ts -u` and review the diff by key. Never run a blanket `-u`. The `rules` field in `text.json` is the older `{0}`/`{1}` template form, reproduced by the test-only helper `tests/golden/legacyRules.ts`.
+- Registry tests (`tests/engine/registry.test.ts`) validate the rules above on fixtures; the real registry validates itself at load.
+- Sims (`?sim=<id>`, docs/sims.md): launch an exact cart, department and enemies in the arena. Use them to look at a change; `tests/sims/sims.test.ts` checks that each combo and weapon sim shows what it names.
+- `tools/botrun.mjs` plays real runs in a browser: a smoke test (page errors), not a golden test.
+
+---
+
+# History: the item-hooks refactor (plan and per-phase notes)
+
+The sections below are the plan as written and the learnings of each phase. Phase 8 deleted the old paths, so statements about "legacy" code, `c.matching`, lifecycle hooks (`onShopEnter`, `onAisleEnd`, `onMerge`) and `overrides` describe the state at that time; see "Phase 8 learnings".
 
 Goal: every item, combo and set lives in its own file (data, numbers, text and behavior together), and the engine calls hooks. Changing an effect touches one file, and each file gets its own test.
 
-Status: draft for approval. Based on the touchpoint inventory of 2026-10-16.
+Status: done (phases 0 to 8). Based on the touchpoint inventory of 2026-10-16.
 
 ## 1. Why: what the inventory found
 
@@ -165,7 +248,7 @@ Two implementations: `PhaserCtx` (wraps ArenaScene, Arsenal, fx) and `FakeCtx` (
 | 5 | Sets **(done)** | 9 set files in `src/content/sets/`; set branches gone from `computeBuild`, `damageEnemy`, `onHitStatuses`; new `afterHit` / `afterKill` hooks; interest and puddle slow still read the set tune | golden + botrun |
 | 6 | Combos **(done)** | 31 combo files in `src/content/combos/` incl. the cart combos; `cartCombos.ts` is gone (runtime in combo hooks, the status lines in `scenes/playerOverlay.ts`); `RECIPE_TUNING`, `applyRecipe` and the legacy recipe tables are gone; 31 combo sims `?sim=combo-<id>` | golden + combo-balance + botrun + sims |
 | 7 | Patterns **(done)** | `src/engine/patterns/` (11 pattern files + `projectile.ts`, `common.ts`, `types.ts`, `fakeHost.ts`); the 12 weapons are content files `src/content/items/<id>.ts` with `weapon` (pattern + base stats) and a `tune`; `scenes/weapons.ts` is a thin `PatternHost`; the cosmetic combo reads and Nailstorm's homing are combo hooks (`pattern:look`, `pattern:shotMove`); the Vacuum pickup is a `final` player hook; 12 weapon sims `?sim=weapon-<id>` | golden + botrun + sims |
-| 8 | Delete old | remove BUFFS/RECIPE_TUNING tables, applyRecipe, branches; `data/*` re-exports gone | everything green |
+| 8 | Delete old **(done)** | legacy tables, dual paths, golden-only fields, dead lifecycle hooks and unused i18n keys removed; the id unions derive from the order lists; `data/*` only derives; this document became the reference at the top | everything green |
 
 Phases 0, 1 and 3 run one at a time. **Phases 2, 4 and 6 split into parallel sessions** by file batch: each item and combo is its own file, and the registry glob means no shared list to edit.
 
@@ -178,7 +261,7 @@ Phase 1 is done: the engine is in `src/engine/` and Hot Sauce is the pilot (`src
 - **Migrating an item means deleting all of its legacy pieces**: the `LEGACY_ITEMS` entry, the `BUFFS` entry, its `computeBuild` branch, its `tierScaling` row and its DE line in `data-de.ts`. Defining an item in both places throws at load.
 - **Order lists:** `ITEM_ORDER` and `RECIPE_ORDER` drive shop rolls and recipe application. New content must be added there and to the id union type.
 - **Import rule:** content files import only `engine/define`. Importing `data/items` creates a cycle.
-- **Module hooks:** the content `order` must match `BUFF_ORDER` (fan 10 … multipack 100; a test checks this). A legacy `continue` becomes `return false`. Fan checks `c.matching.includes('mistMachine')`. Multipack splits into a `module` part and a `post-combo` count part.
+- **Module hooks:** the content `order` must match `BUFF_ORDER` (fan 10 … multipack 100; a test checks this). A legacy `continue` becomes `return false`. Fan checked `c.matching.includes('mistMachine')` (phase 8 replaced that with the combo's `suppresses`). Multipack splits into a `module` part and a `post-combo` count part.
 - **Tier:** `c.tune()` extrapolates above ★3 linearly (Gold Star). Effects that aren't linear in tier (caps, `>= 3` thresholds, armor = tier) must use `c.tier`.
 - **Non-module phases run once per owned item type.** Per-instance effects (Sourdough, Jelly Beans) loop over `c.touching(w)`.
 - **Player hooks always run last.** Expired Milk's ×0.9 needs a high `order`, and the final `Math.round` on maxHp stays.
@@ -501,12 +584,7 @@ Runtime hook orders: kitchen heal `afterKill` 10, blast pop `afterKill` 20 (kitc
 - `pattern:fire` is only emitted by the Nail Gun burst. Toast, ricochet and the other projectile patterns have no equivalent, because no combo needs one; add it the same way (`handled` flag) when a combo wants to replace a shot.
 - The 'hit' stage costs one emit per enemy hit; it is guarded by the empty-handler-list check like the others. Keep it that way when a pattern is rewritten.
 
-**Notes for phase 8 (delete old).**
-
-- `WeaponStats.critCoin`, `expressSweep`, `dashBlast`, `firePool` (set, never read; the golden `Build` JSON has them) and `homing` once the pattern reads a param instead; `Build.shoveStun` (phase 5). Regenerate the goldens only with the owner's approval and review the diff by field.
-- The ui `row*` keys of the sets (phase 5 note) and any remaining `recipeT`-shaped fields on `RecipeDef` (`short`, `summary`, `detail` are rendered in English into `RECIPES` for the legacy readers).
-- The `RecipeId` union in `types.ts` can be derived from `RECIPE_ORDER`; `RECIPES` goes when its last readers (`synergies.ts` matching, `recipeParts`, `recipeIcon`) read the content directly.
-- `systems/combat.ts` still re-exports `tailwindFeedsSugar`; drop it when the old tests import it from `engine/stacks`.
+**Notes for phase 8** were done; see "Phase 8 learnings" before the risks.
 
 **Phase 7 learnings (patterns).**
 
@@ -539,7 +617,7 @@ Runtime hook orders: kitchen heal `afterKill` 10, blast pop `afterKill` 20 (kitc
 
 *Tests and sims.* `tests/engine/patterns.test.ts` (the table, runtime, `stepWeapons` / `stepArsenal` order, Multipack repeat, `pattern:fire`, projectile flight, looks, entry points, source guards), `tests/content/items/<weapon>.test.ts` for all 12 (content, EN/DE text, shop rows, build per tier to the bit, pattern behaviour through `FakeArsenal` with exact numbers, rng draws for the Nail Gun), extra describes in the `toastMode`, `nailstorm`, `greaseFire`, `brainFreeze` combo tests, and `weapon sims` in `tests/sims/sims.test.ts`. Sims: `src/sims/weapon-<id>.ts` (listed in `docs/sims.md`).
 
-*Phase 8 deletion checklist (everything below is dead or golden-only after phase 7).*
+*Phase 8 deletion checklist (everything below was dead or golden-only after phase 7; done in phase 8, see "Phase 8 learnings").*
 
 1. `WeaponStats` fields set only for the golden `Build` JSON: `homing`, `critCoin`, `expressSweep`, `dashBlast`, `firePool`; and `Build.shoveStun`, `dashSlam`, `dashChain`, `dashCoinChance`, `dashMark`, `armor`, `invulnBonus`, `reflectMult` if nothing reads them (grep first). Regenerate the goldens only with the owner's approval and review the diff by field.
 2. `src/data/items.ts`: the empty `LEGACY_ITEMS` and the dual path (`itemDefOf` or legacy); then derive `ITEMS` / `ITEM_IDS` order from the content registry order (keep the same order: shop rolls depend on it) and drop `ITEM_ORDER`.
@@ -550,6 +628,34 @@ Runtime hook orders: kitchen heal `afterKill` 10, blast pop `afterKill` 20 (kitc
 7. `MULTIPACK_REPEAT_DELAY` in `scenes/weapons.ts` and `weaponRt`'s `ITEMS[...]` / `contentItem(...)` reads in `patterns/common.ts` (pass the item definition in instead, then the patterns import nothing from `data/`).
 8. `WeaponBase` fields that only the legacy `ItemDef.weapon` shape needs (`fx`, `knockback` stay; the zero defaults of `pull`, `tick`, `duration`, ... could move into the pattern's own tune), and `PROJECTILE_PATTERNS` / the `['sweep','cone','mortar']` lists in `synergies.ts` (`describeBuffs`) when the buff lines become item text.
 9. `fakeHost.ts` stays: the pattern tests use it.
+
+**Phase 8 learnings (delete old).**
+
+*What went.*
+
+- `engine/legacy.ts` (`legacyRules`, the `{0}` template shim), `LEGACY_ITEMS` and the dual `ITEMS` path; the legacy `RECIPES` shape (it was `RecipeT`-like: now only `id`, `weapon`, `supports`, `replaces`, `suppresses`); `DATA_DE.items` / `recipes` and `withContent`; `assertRegistry`; the `tailwindFeedsSugar` re-export in `systems/combat.ts`; the `data/sets.ts` re-exports (`SET_ORDER`, `SET_THRESHOLDS`, `flavorOf` are imported from `engine/define`).
+- `ItemDef` lost `name`, `blurb`, `rules` (text is only in the content files; `itemT` / `recipeT` / `itemRules` render it). The unions `ItemTypeId`, `RecipeId`, `SetId`, `BuffId`, `FamilyTag`, `ElementTag` are derived from `ITEM_ORDER`, `RECIPE_ORDER`, `SET_ORDER`, `BUFF_ORDER`, `FAMILIES`, `ELEMENTS` (all `as const` in `engine/define.ts`). The registry checks both directions (file without list entry, list entry without file).
+- Golden-only fields, never read by the game, are gone. `Build`: `coinChance`, `critHeal`, `dashSlam`, `dashChain`, `dashCoinChance`, `dashMark`, `reflectMult`, `armor`, `invulnBonus`, `shoveStun`. `WeaponStats`: `homing`, `critCoin`, `expressSweep`, `dashBlast`, `firePool`. Items and combos whose only build effect was setting one of them lost their `build` block (the runtime hook does the work). `build.json` was regenerated once; a scratch script proved the new file equals the old one with exactly those keys deleted from every entry (pure key removal, 5230 lines out, none in). `Build.stinkDps` stays: `playerOverlay` reads it.
+- Run-lifecycle hooks `onShopEnter`, `onAisleEnd`, `onMerge` were typed but never emitted; removed from the types and the registry (checkout interest and the Sourdough/Jelly Beans rises are done by run code; see "kept").
+- `suppresses` is functional: `computeBuild` collects the `suppresses` of the matching combos and skips those modules, so Fan no longer asks `c.matching.includes('mistMachine')` (`BuildCtx.matching` and `WeaponEnv.matching` are gone). The never-read `overrides` field of combos (Cold Storage, Brain Freeze) is removed from the type and the files; their slow wins by hook phase order, which tests pin by behavior.
+- `computeBuild`'s `runModule` / `runCombo` no longer return "run the legacy branch"; a module without a hook is just skipped (tests mock the registry with fixtures).
+- Frost's puddle slow is a set hook: `PuddleEnterEvent` carries a writable `slow`, the puddle pattern applies `ev.slow`, and `content/sets/frost.ts` adds the set bonus in `'pattern:puddleEnter'` (set hooks run after combo hooks, so Black Ice's freeze sees the pre-bonus slow as before). `patterns/puddle.ts` no longer imports a set tune.
+- `weaponRt(stats, index, blades, item)` takes the item content as an argument (`Arsenal.setBuild` and `FakeArsenal` pass `contentItem(stats.type)`); `patterns/common.ts` imports neither `data/items` nor the registry.
+- 41 unused ui i18n keys x 2 languages (the 33 `row*` keys of the old per-level table, plus `weaponKeyHint`, `beginHint`, `pickAisle`, `themeKeyHint`, `themeHazard`, `managerAwaits`, `dailyTitle`, `setsHint`) were removed after a grep for each key and for dynamic prefixes (`modName_`, `tut*`, `tip*`, `bk_*`, `affix_*`, `ev*`, which stay).
+- Stale comments ("legacy", phase numbers, `cartCombos`, "(the legacy N x TIER.mult)") were rewritten or deleted across `src/`.
+
+*Text.* `text.json` changed in one entry: Sparks Fly DE detail named "TV-Dinner" where the DE name of that item is "Fertiggericht" (now fixed, and a test pins that the detail names the combo partner's DE name). Blurbs and rules with literal numbers now use placeholders (Lunch Box `{hp|+int}`, Sale Flag `{bonus|pct}`, Bubble Wrap gets a `minDamage` tune key), rendering to the same strings. The bare-number lint (`tests/content/text-lint.test.ts`) enforces this; its allowlist is Coupon rules ("+1 coin"), Checkout set bonus ("+1 coin"), Price Gun and Fortune blurbs (jokes) and Express Checkout detail ("1.0 s": the `s` formatter would print "1 s", so a test ties the literal to `tune.icd`).
+
+*Fuel Can.* The rules text already uses `{duration|s}` from the tune (2 s), so it never drifts from the number. The runtime duration is 2 s, or 3 s when the weapon is in the Heat set at level 1 or more (`burnExtra` +1 s in `content/sets/heat.ts`), which is why a Fuel Can next to a toaster, pan or cooker burns for 3 s and next to a nailgun, vacuum or spray bottle for 2 s (golden `item.fuel.t1.on.*`). The plan example in §3 used `duration: 3`, which is the likely source of "3 s". The text is correct for the Fuel Can on its own; the Heat bonus is stated by the Heat set text. Left unchanged. Note `describeBuffs` also prints the base duration.
+
+*Kept on purpose.*
+
+- Checkout interest (`state/run.ts` reads `contentSetTune('checkout', lv)`): there is no run-lifecycle hook, and adding one for a single reader would be more machinery than the read. Same for the Multipack `repeatDelay` (arsenal field) and the kitchen heal popup `ArenaScene.healHeartFx` (it reads the L1 `heal`, so it shows 3 at L3 while 4 is healed: a known display quirk, not fixed because it is not a refactor).
+- `WeaponBase` zero-defaults and the `['sweep','cone','mortar']` / `PROJECTILE_PATTERNS` lists in `describeBuffs`: engine-level classification of patterns, not item content.
+- `ITEM_ORDER` / `RECIPE_ORDER` stay explicit lists (content is read in path order, the shop and the matching need the historical order).
+- `tests/golden/legacyRules.ts`: the `{0}`/`{1}` form of `rules` is what `text.json` has always held, so the test reproduces it.
+
+*Tests.* Deleted: assertions on the removed golden-only fields (about 20 `build field` tests), the `legacyRules` and per-tier-placeholder tests, `rules` template asserts on `ITEMS.x.rules`, the `overrides` asserts, the lifecycle-hook asserts. Rewritten to the content API: `name` / `rules` reads via `itemT` / `recipeT`, `combo-balance` (reads `recipes.includes(...)` instead of the removed flags), the Mop Frost test (real cart), `blackIce` (events carry `slow`). Added: the bare-number lint, the order-list checks in the registry tests, the Frost `puddleEnter` hook tests, the Sparks Fly DE text test.
 
 ## 8. Risks
 

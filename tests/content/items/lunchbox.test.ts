@@ -59,13 +59,12 @@ describe('Lunchbox: build', () => {
 });
 
 describe('Lunchbox: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('lunchbox')).toBe(lunchbox);
-    expect(ITEMS.lunchbox).toMatchObject({ id: 'lunchbox', family: 'snacks', name: 'Lunchbox', kind: 'passive', price: 9, electrical: false });
+    expect(ITEMS.lunchbox).toMatchObject({ id: 'lunchbox', family: 'snacks', kind: 'passive', price: 9, electrical: false });
     expect(ITEMS.lunchbox.element).toBeUndefined();
     expect(ITEMS.lunchbox.cells).toEqual([{ x: 0, y: 0 }, { x: 1, y: 0 }]);
-    expect(ITEMS.lunchbox.blurb).toBe('A packed lunch. +15 max HP.');
-    expect(ITEMS.lunchbox.rules).toBe('{0} maximum HP while equipped (does not stack, does not heal). Combo: TV Dinner with Microwave + Battery.');
+    expect(itemT('lunchbox').blurb).toBe('A packed lunch. +15 max HP.');
     expect(ITEMS.lunchbox.legendary).toBeUndefined();
   });
 

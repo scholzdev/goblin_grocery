@@ -13,12 +13,12 @@ import { toast } from './toast';
 import { zap } from './zap';
 import type { Pattern, PatternHost } from './types';
 
-// The weapon patterns (docs/item-hooks-refactor.md phase 7). A weapon's content file names one in `weapon.pattern`; the arsenal asks the
+// The weapon patterns (docs/item-hooks-refactor.md). A weapon's content file names one in `weapon.pattern`; the arsenal asks the
 // table below what to do each frame. Combos change a pattern through its `pattern:*` events (engine/hooks.ts), never by editing it.
 
 export const PATTERNS: Readonly<Record<WeaponPattern, Pattern>> = { toast, burst, sweep, pulse, aura, zap, ricochet, puddle, laser, mortar, cone };
 
-/** What lives on in the world between attacks, in the order it updates: floor patches before lobbed pots (the legacy order). */
+/** What lives on in the world between attacks, in the order it updates: floor patches before lobbed pots (puddles update before pots). */
 const WORLD: readonly Pattern[] = [puddle, mortar];
 
 /**
@@ -42,7 +42,7 @@ export function stepWeapons(h: PatternHost, dt: number, firing: boolean): void {
 }
 
 /**
- * One frame of the whole arsenal, in the legacy order: the arsenal clock, the weapons, the player projectiles, `enemyShots` (the arena's
+ * One frame of the whole arsenal, in this order: the arsenal clock, the weapons, the player projectiles, `enemyShots` (the arena's
  * own projectiles, which the host moves), then floor patches and pots.
  */
 export function stepArsenal(h: PatternHost, dt: number, firing: boolean, enemyShots?: () => void): void {

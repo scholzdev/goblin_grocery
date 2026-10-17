@@ -15,15 +15,14 @@ afterEach(() => setLang('en'));
 // Pattern behaviour runs headless through the FakeArsenal (src/engine/patterns/fakeHost.ts): the cart's real build, the compiled hooks, a fake clock.
 
 describe('Nail Gun: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('nailgun')).toBe(nailgun);
     const def = ITEMS.nailgun;
-    expect(def).toMatchObject({ id: 'nailgun', family: 'tools', name: 'Nail Gun', kind: 'weapon', price: 16, electrical: true });
+    expect(def).toMatchObject({ id: 'nailgun', family: 'tools', kind: 'weapon', price: 16, electrical: true });
     expect(def.element).toBe('blast');
     expect(def.tags).toEqual(['ranged']);
     expect(def.legendary).toBeUndefined();
     expect(def.cells).toEqual([{x: 0, y: 0}, {x: 1, y: 0}]);
-    expect(def.rules).toBe('Fires a three-nail burst every {1}. {0} damage per nail. 480 range.');
     expect(def.weapon).toEqual({ pattern: 'burst', damage: 3, cooldown: 1.1, range: 480, projectileSpeed: 760, count: 3, burstInterval: 0.08, arcDeg: 0, pull: 0, tick: 0, duration: 0, bounces: 0, chain: 0, aoe: 0 });
   });
 

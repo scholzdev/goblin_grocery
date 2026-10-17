@@ -94,24 +94,6 @@ export function tierRows(content: RowSource, lang: Lang): ScaleRow[] {
   }));
 }
 
-/**
- * The legacy item rules template: `{0}`, `{1}`, ... index the scaling rows (what `itemRules` fills in). Each placeholder that
- * matches a row (same key and formatter) becomes that row's index; a placeholder on a scalar becomes its literal ★1 text (legacy
- * rules hard-coded those). A per-tier placeholder without a row cannot be expressed in the legacy form and throws.
- * Only used to keep `ITEMS[id].rules` / `DATA_DE.items[id].rules` identical while old code still reads them.
- */
-export function legacyRules(template: string, content: RowSource, lang: Lang): string {
-  const rows = rowSpecs(content);
-  return template.replace(TOKEN, (_, key: string, fmt: string | undefined) => {
-    const f = fmt ?? 'n';
-    const i = rows.findIndex((r) => r.key === key && r.fmt === f);
-    if (i >= 0) return `{${i}}`;
-    const v = content.tune?.[key];
-    if (typeof v === 'number') return formatValue(v, f, lang);
-    throw new Error(`text: per-tier placeholder {${key}|${f}} in "${template}" has no matching row (add a rows entry with key "${key}" and fmt "${f}"; legacy code reads rules as {0}, {1}, ...)`);
-  });
-}
-
 /** A combo's text with every placeholder filled (combos have scalar tune: tier is irrelevant). */
 export const renderAll = <S extends object>(text: S, tune: Tune | undefined, lang: Lang): S => {
   const out: Record<string, string> = {};

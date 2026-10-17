@@ -2,7 +2,7 @@ import type { RuntimeCtx } from './ctx';
 import type { HitEvent } from './hooks';
 import { contentTune } from './registry';
 
-// Stats-driven on-hit behavior (docs/item-hooks-refactor.md §7b, phase 4). `WeaponStats.burn` / `slow` / `ignite` / `echo` are a contract
+// Stats-driven on-hit behavior (docs/item-hooks-refactor.md). `WeaponStats.burn` / `slow` / `ignite` / `echo` are a contract
 // that several sources set (burn: Fuel Can, Jelly Beans heat, Grease Fire ...; slow: Ice Pack, Jelly frost, Cold Storage ...), so applying
 // them belongs to the engine, not to any one item. The arena calls these at the damage pipeline's step 7, after the `onHit` hooks, in
 // this order: `applyHitStatuses` (burn, Heat L2 ignite, slow), the `afterHit` hooks (Frost L2 freeze, Cleaning, Electric chain: the sets),

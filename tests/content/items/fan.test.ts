@@ -69,13 +69,12 @@ describe('Desk Fan: build', () => {
 });
 
 describe('Desk Fan: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('fan')).toBe(fan);
     const def = ITEMS.fan;
-    expect(def).toMatchObject({ id: 'fan', family: 'cleaning', name: 'Desk Fan', kind: 'module', price: 9, electrical: false, buff: 'fan' });
+    expect(def).toMatchObject({ id: 'fan', family: 'cleaning', kind: 'module', price: 9, electrical: false, buff: 'fan' });
     expect(def.element).toBeUndefined();
     expect(def.cells).toEqual([{ x: 0, y: 0 }, { x: 0, y: 1 }]);
-    expect(def.rules).toBe('Any adjacent weapon gains {0} range or reach and {1} projectile speed.');
     expect(def.legendary).toBeUndefined();
     expect(def.weapon).toBeUndefined();
   });
@@ -92,7 +91,7 @@ describe('Desk Fan: content', () => {
     ]);
     setLang('de');
     expect(itemRules('fan', 3)).toBe('Jede angrenzende Waffe erhält +60% Reichweite und +60% Projektiltempo.');
-    expect(itemT('fan')).toEqual({ name: 'Tischventilator', blurb: 'Wuusch. Mehr Reichweite für alles, was er berührt.', rules: 'Jede angrenzende Waffe erhält {0} Reichweite und {1} Projektiltempo.' });
+    expect(itemT('fan')).toEqual({ name: 'Tischventilator', blurb: 'Wuusch. Mehr Reichweite für alles, was er berührt.' });
   });
 
   it('generates the shop scaling rows', () => {

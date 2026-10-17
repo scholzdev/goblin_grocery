@@ -1,6 +1,6 @@
 import type { Unlock } from '../data/unlocks';
 import type { HookName, RuntimeHookMap } from './hooks';
-import type { ActiveRecipe, Build, Cell, DepartmentId, ElementTag, FamilyTag, Inventory, ItemDef, ItemInstance, ItemTypeId, Perk, RecipeId, SetId, StarterWeapon, WeaponBase, WeaponStats } from '../types';
+import type { ActiveRecipe, BuffId, Build, Cell, DepartmentId, ElementTag, FamilyTag, Inventory, ItemDef, ItemInstance, ItemTypeId, Perk, RecipeId, SetId, StarterWeapon, WeaponBase, WeaponStats } from '../types';
 
 // Content definitions for the item-hooks refactor (docs/item-hooks-refactor.md). Types only plus identity `define*` helpers:
 // a content file is data (tune, text) and pure build behavior together. No Phaser, no DOM, no imports from data/*.
@@ -18,18 +18,43 @@ export type Tune = Readonly<Record<string, TuneValue>>;
 /** A tune with every per-tier array resolved to one number. */
 export type Resolved<T extends Tune> = { readonly [K in keyof T]: number };
 
-/** `TIER.mult` (data/items re-exports it): the multiplier of a ★-scaled bonus, ★1 = 1, +0.5 per tier, also above ★3 (Gold Star's ★4 = 2.5). */
+/** `TIER.mult`: the multiplier of a ★-scaled bonus, ★1 = 1, +0.5 per tier, also above ★3 (Gold Star's ★4 = 2.5). */
 export const tierMult = (tier: number): number => 1 + 0.5 * (tier - 1);
 
-/** Every set, in the order the shop lists them and `setLevels` reports them (the registry sorts content by filename, which is not this order). */
-export const SET_ORDER: readonly SetId[] = ['kitchen', 'cleaning', 'tools', 'snacks', 'checkout', 'heat', 'frost', 'blast', 'electric'];
+// ---- id lists ---------------------------------------------------------------------------------------------------------
+// The registry collects content by filename (src/content/<kind>/<id>.ts), which is not the order the game iterates in. These lists are
+// that order, and the id unions of types.ts (ItemTypeId, RecipeId, SetId, ...) are derived from them. The registry fails to load when
+// a content file is not listed here, or a listed id has no file: a new item/combo is a file plus one entry.
+
+/** Every item, in the order of the shop's rolls and the UI lists (a shop roll walks this list, so reordering it changes every seeded run). */
+export const ITEM_ORDER = [
+  'toaster', 'pan', 'nailgun', 'vacuum', 'fan', 'fuel', 'battery', 'magnet', 'ice', 'hotsauce', 'lunchbox', 'bell', 'boot', 'bumper', 'sparewheel', 'tipjar', 'flag',
+  'microwave', 'blender', 'fizz', 'mop', 'pricegun', 'tape', 'coupon', 'bubblewrap', 'energy', 'fortune', 'sample', 'piggy', 'expiredmilk', 'tinfoilhat', 'jellybeans',
+  'leafblower', 'sourdough', 'powerstrip', 'goldstar', 'laser', 'snackbag', 'cooker', 'spray', 'popper', 'doublebag', 'multipack',
+] as const;
+
+/** Every combo, in the order `computeBuild` applies the matching ones (it decides which combo hook runs first on a weapon) and the codex lists them. */
+export const RECIPE_ORDER = [
+  'toastMode', 'nailstorm', 'coldStorage', 'expressCheckout', 'brainFreeze', 'tvDinner', 'clearanceSale', 'greaseFire', 'pressurePoint', 'mistMachine',
+  'fiveAlarm', 'sizzlingSkillet', 'chickenDinner', 'frostbiteNails', 'staticCling', 'reheat', 'smoothieShield', 'confettiCannon', 'blackIce', 'shrapnel',
+  'pressureWasher', 'powerSurge', 'potSlam', 'priceCheck', 'sugarRush', 'smashBank', 'bagIt', 'sourMist', 'sparksFly', 'rayGun', 'tailwind',
+] as const;
+
+/** The module buffs, in the order the `module` build phase applies them to a weapon (a module item's `build.order` must follow it: 10, 20, ...). */
+export const BUFF_ORDER = ['fan', 'fuel', 'battery', 'ice', 'hotsauce', 'pricegun', 'tape', 'popper', 'echo', 'multipack'] as const;
+
+/** Set-bonus tags: one family per item (its `sets[0]`), an optional element (`sets[1]`); the `electrical` flag adds the 'electric' set. */
+export const FAMILIES = ['kitchen', 'cleaning', 'tools', 'snacks', 'checkout'] as const;
+export const ELEMENTS = ['heat', 'frost', 'blast'] as const;
+/** Every set, in the order the shop lists them and `setLevels` reports them. */
+export const SET_ORDER = [...FAMILIES, ...ELEMENTS, 'electric'] as const;
 /** Pure math the pattern code shares with content (Phaser's `Angle.Wrap`, to the bit: content may not import Phaser). Wraps to [-PI, PI). */
 export const wrapAngle = (a: number): number => {
   const min = -Math.PI, range = Math.PI - min;
   return min + ((((a - min) % range) + range) % range);
 };
 
-/** Weapon tiers (`TIER.weaponDamage` / `TIER.weaponCooldown` re-export these): a ★n weapon deals this x its base damage and waits this x its base cooldown. */
+/** Weapon tiers (`TIER.weaponDamage` / `TIER.weaponCooldown`): a ★n weapon deals this x its base damage and waits this x its base cooldown. */
 export const weaponDamageMult = (t: number): number => 1 + 0.5 * (t - 1);
 export const weaponCooldownMult = (t: number): number => 1 - 0.1 * (t - 1);
 
@@ -37,13 +62,13 @@ export const weaponCooldownMult = (t: number): number => 1 - 0.1 * (t - 1);
 export const SET_THRESHOLDS: readonly [number, number, number] = [2, 3, 4];
 
 /** The flavors a Jelly Beans instance can take (rerolled every shop visit). */
-export const FLAVORS: readonly ElementTag[] = ['heat', 'frost', 'blast'];
-/** Flavor of an instance (a missing one = heat). Re-exported by data/sets. */
+export const FLAVORS: readonly ElementTag[] = ELEMENTS;
+/** Flavor of an instance (a missing one = heat). */
 export const flavorOf = (p: Pick<ItemInstance, 'flavor'>): ElementTag => p.flavor ?? 'heat';
 
 /**
  * Value of one tune entry at `tier`. Arrays hold ★1..★3. Above ★3 (Gold Star lifts a ★3 module to an effective ★4) the last
- * step is continued linearly, which is exactly what `TIER.mult` does for the legacy tables. Below ★1 clamps to ★1.
+ * step is continued linearly, which is exactly what `TIER.mult` does. Below ★1 clamps to ★1.
  */
 export function tuneValue(v: TuneValue, tier: number): number {
   if (typeof v === 'number') return v;
@@ -76,7 +101,7 @@ export const cells = (...rows: string[]): Cell[] => rows.flatMap((r, y) => [...r
 
 // ---- weapons ----------------------------------------------------------------------------------------------------------
 
-/** A weapon's base stats with the defaults every pattern shares (what the legacy `weapon()` helper in data/items did). */
+/** A weapon's base stats with the defaults every pattern shares. */
 export const weaponBase = (w: Partial<WeaponBase> & Pick<WeaponBase, 'pattern' | 'damage' | 'cooldown' | 'range'>): WeaponBase => ({
   projectileSpeed: 0, count: 1, burstInterval: 0, arcDeg: 0, pull: 0, tick: 0, duration: 0, bounces: 0, chain: 0, aoe: 0, ...w,
 });
@@ -97,7 +122,7 @@ export const weaponTiers = (w: Pick<WeaponBase, 'damage' | 'cooldown'>): { damag
  * Weapon hooks (`weapon`) run once per weapon at the phase's position. `module` is special: it runs inside the BUFF_ORDER loop,
  * per touching buff, with the highest effective tier of that buff. Player hooks (`player`) always run at the very end.
  */
-/** Weapon patterns that fire projectiles (Desk Fan speed, Duct Tape pierce, Multipack extra shots). Re-exported by data/items. */
+/** Weapon patterns that fire projectiles (Desk Fan speed, Duct Tape pierce, Multipack extra shots). */
 export const PROJECTILE_PATTERNS: ReadonlySet<string> = new Set(['toast', 'burst', 'ricochet']);
 
 export type BuildPhase = 'base' | 'module' | 'flavor' | 'global-mod' | 'set' | 'combo' | 'post-combo' | 'final';
@@ -124,10 +149,8 @@ export interface BuildCtx<T extends Tune = Tune> {
   count(set: SetId): number;
   /** Level (0..3) of a set. */
   level(set: SetId): 0 | 1 | 2 | 3;
-  /** The legacy item definition (family, element, electrical, base weapon stats). */
+  /** The item's plain definition (family, element, electrical, base weapon stats). */
   def(id: ItemTypeId): ItemDef;
-  /** Combos whose parts all touch the weapon being built (before `replaces` filtering). Empty for player hooks. */
-  readonly matching: readonly RecipeId[];
   /** Combos active in the finished build. Only filled for player hooks. */
   readonly active: readonly ActiveRecipe[];
   /** Arc (degrees) the weapon gained from utilities (Duct Tape) before the combos ran: a combo that sets the arc keeps it on top (Pressure Washer). 0 in player hooks. */
@@ -141,8 +164,8 @@ export interface BuildSpec<T extends Tune = Tune> {
   /** Position among hooks of the same phase (default 0, ties: file order). In `module` it must follow BUFF_ORDER. */
   order?: number;
   /**
-   * Edit one weapon's stats. In `module`, returning `false` means "did not apply" (the legacy `continue`: the buff is not
-   * recorded in `stats.buffs`).
+   * Edit one weapon's stats. In `module`, returning `false` means "did not apply" (the buff is not recorded in
+   * `stats.buffs`).
    */
   weapon?(stats: WeaponStats, c: BuildCtx<T>): void | false;
   /** Edit the finished player build (max HP, pickup radius, shove, ...). Runs after every weapon, in `order`. */
@@ -157,16 +180,13 @@ export const HOOK_NAMES: readonly HookName[] = [
   'pattern:sweep', 'pattern:explode', 'pattern:zap', 'pattern:bounce', 'pattern:shotHit', 'pattern:shotMove', 'pattern:beam', 'pattern:fire', 'pattern:pulse', 'pattern:cone', 'pattern:puddleEnter', 'pattern:aura', 'pattern:look',
 ];
 
-type Handler = (event: never, ctx: never) => void;
 /**
  * `hooks` of a content file: the combat hooks of docs/item-hooks-refactor.md §4c, each `(event, ctx, c)` where `c` carries the
  * owner's tier and `tune()` (`HookCtx`). `order` positions all of this owner's hooks among the others (default 0, ties: registration
- * order: items, combos, sets). The run-lifecycle hooks of §4b (pure state, no `ctx`) are typed but not wired yet.
+ * order: items, combos, sets). There are no run-lifecycle hooks: what happens between aisles (Sourdough's rise, Jelly Beans' reroll, the
+ * Checkout interest) is in state/run.ts and reads the content tune.
  */
-export type RuntimeHooks<T extends Tune = Tune> = RuntimeHookMap<T> & {
-  order?: number;
-  onShopEnter?: Handler; onAisleEnd?: Handler; onMerge?: Handler;
-};
+export type RuntimeHooks<T extends Tune = Tune> = RuntimeHookMap<T> & { order?: number };
 
 // ---- text and rows ----------------------------------------------------------------------------------------------------
 
@@ -179,7 +199,7 @@ export interface SetText { name: string; bonus: readonly [string, string, string
 /** One row of the shop's per-level scaling table: the values at ★1/★2/★3 of `tune[key]`, formatted with `fmt` (default `n`). */
 export interface RowSpec<T extends Tune = Tune> { label: Localized<string>; key: keyof T & string; fmt?: string }
 
-/** The two scaling rows every weapon shows (labels as the old `rowDamage` / `rowCooldown`). Needs `damage` and `cooldown` tune entries ({@link weaponTiers}). */
+/** The two scaling rows every weapon shows (Damage / Interval). Needs `damage` and `cooldown` tune entries ({@link weaponTiers}). */
 export const WEAPON_ROWS: readonly RowSpec<{ damage: TierTriple; cooldown: TierTriple }>[] = [
   { label: { en: 'Damage', de: 'Schaden' }, key: 'damage' },
   { label: { en: 'Interval', de: 'Intervall' }, key: 'cooldown', fmt: 's' },
@@ -198,7 +218,7 @@ export interface ItemContent<T extends Tune = Tune> {
   kind: ItemDef['kind'];
   /** `[family, element?]`, as `ItemDef.family` / `ItemDef.element`. The `electrical` flag adds the Electric set. */
   sets: readonly [FamilyTag] | readonly [FamilyTag, ElementTag];
-  /** Static, or a function of the tier (Sourdough). The legacy def carries the ★1 footprint. */
+  /** Static, or a function of the tier (Sourdough). `ITEMS[id].cells` is the ★1 footprint. */
   shape: Shape | ((tier: number) => Shape);
   price: number;
   electrical?: boolean;
@@ -242,10 +262,8 @@ export interface ComboContent<T extends Tune = Tune> {
   cart?: boolean;
   /** Combos this one overrides on the same weapon (Ray Gun replaces Nailstorm). */
   replaces?: readonly RecipeId[];
-  /** Module buffs this combo switches off on its weapon (Mist Machine suppresses the Desk Fan). Typed; legacy still hard-codes it. */
-  suppresses?: readonly NonNullable<ItemDef['buff']>[];
-  /** Effects this combo replaces instead of adding to (Cold Storage, Brain Freeze override the Ice Pack slow). */
-  overrides?: readonly 'slow'[];
+  /** Module buffs this combo switches off on its weapon (Mist Machine suppresses the Desk Fan): `computeBuild` skips those modules there. */
+  suppresses?: readonly BuffId[];
   /** Scalars only (a combo has no tier). */
   tune?: T;
   text: Localized<ComboText>;
@@ -263,7 +281,7 @@ export interface SetContent<T extends Tune = Tune> {
   /**
    * Phase `set`, `post-combo` or `final`. `tier` = the set level; hooks only run when the level is above 0. `order` positions the hook
    * among the others of its phase (items first on ties): the set weapon hooks run kitchen 10, cleaning 20, tools 30, heat 40, blast 50,
-   * electric 60 in `set` (the legacy sequence), frost in `post-combo` after every item.
+   * electric 60 in `set`, frost in `post-combo` after every item.
    */
   build?: BuildSpec<T>;
   /** More hooks for other phases when a set needs two (Tools: `set` cooldown + `final` dash damage). */

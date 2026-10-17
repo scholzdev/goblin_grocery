@@ -14,15 +14,14 @@ afterEach(() => setLang('en'));
 // Pattern behaviour runs headless through the FakeArsenal (src/engine/patterns/fakeHost.ts): the cart's real build, the compiled hooks, a fake clock.
 
 describe('Frying Pan: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('pan')).toBe(pan);
     const def = ITEMS.pan;
-    expect(def).toMatchObject({ id: 'pan', family: 'kitchen', name: 'Frying Pan', kind: 'weapon', price: 10, electrical: false });
+    expect(def).toMatchObject({ id: 'pan', family: 'kitchen', kind: 'weapon', price: 10, electrical: false });
     expect(def.element).toBe('heat');
     expect(def.tags).toEqual(['melee']);
     expect(def.legendary).toBeUndefined();
     expect(def.cells).toEqual([{x: 0, y: 0}, {x: 0, y: 1}, {x: 0, y: 2}]);
-    expect(def.rules).toBe('Sweeps toward nearby enemies for {0} damage every {1}. 150 reach. Hits each enemy once per swing.');
     expect(def.weapon).toEqual({ pattern: 'sweep', damage: 9, cooldown: 1.15, range: 150, projectileSpeed: 0, count: 1, burstInterval: 0, arcDeg: 150, pull: 0, tick: 0, duration: 0, bounces: 0, chain: 0, aoe: 0 });
   });
 

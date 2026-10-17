@@ -1,14 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import pressurePoint from '../../../src/content/combos/pressurePoint';
-import { applyCombo, arena, bare, describeCombo, partsOf, at } from './helpers';
+import { arena, describeCombo, partsOf, at } from './helpers';
 
 describeCombo('pressurePoint', pressurePoint, ['Pressure Point', 'Druckpunkt']);
 
 describe('Pressure Point: build', () => {
-  it('only flags firePool (golden contract)', () => {
-    const base = bare('cooker'), w = applyCombo(pressurePoint, base);
-    expect(w.firePool).toBe(true);
-    expect({ ...w, firePool: false }).toEqual({ ...base, firePool: false });
+  it('changes no stats: the pool is the pattern:explode hook', () => {
+    expect(pressurePoint.build).toBeUndefined();
   });
 });
 

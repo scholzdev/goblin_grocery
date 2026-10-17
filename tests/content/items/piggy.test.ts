@@ -39,12 +39,11 @@ describe('Piggy Bank: build', () => {
 });
 
 describe('Piggy Bank: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('piggy')).toBe(piggy);
-    expect(ITEMS.piggy).toMatchObject({ id: 'piggy', family: 'checkout', name: 'Piggy Bank', kind: 'passive', price: 10, electrical: false });
+    expect(ITEMS.piggy).toMatchObject({ id: 'piggy', family: 'checkout', kind: 'passive', price: 10, electrical: false });
     expect(ITEMS.piggy.element).toBeUndefined();
     expect(ITEMS.piggy.cells).toEqual([{ x: 0, y: 0 }]);
-    expect(ITEMS.piggy.rules).toBe('Groceries drop {0} coins (does not stack).');
     expect(ITEMS.piggy.legendary).toBeUndefined();
   });
 

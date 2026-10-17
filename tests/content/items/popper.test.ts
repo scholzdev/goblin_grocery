@@ -54,12 +54,11 @@ describe('Party Popper: build', () => {
 });
 
 describe('Party Popper: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('popper')).toBe(popper);
     const def = ITEMS.popper;
-    expect(def).toMatchObject({ id: 'popper', family: 'snacks', element: 'blast', name: 'Party Popper', kind: 'module', price: 10, electrical: false, buff: 'popper' });
+    expect(def).toMatchObject({ id: 'popper', family: 'snacks', element: 'blast', kind: 'module', price: 10, electrical: false, buff: 'popper' });
     expect(def.cells).toEqual([{ x: 0, y: 0 }]);
-    expect(def.rules).toBe('Enemies killed by adjacent weapons explode in confetti: {0} damage within 70. Popper explosions never chain.');
     expect(def.legendary).toBeUndefined();
     expect(def.weapon).toBeUndefined();
   });

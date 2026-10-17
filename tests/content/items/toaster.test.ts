@@ -15,15 +15,14 @@ afterEach(() => setLang('en'));
 // Pattern behaviour runs headless through the FakeArsenal (src/engine/patterns/fakeHost.ts): the cart's real build, the compiled hooks, a fake clock.
 
 describe('Toaster: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('toaster')).toBe(toaster);
     const def = ITEMS.toaster;
-    expect(def).toMatchObject({ id: 'toaster', family: 'kitchen', name: 'Toaster', kind: 'weapon', price: 12, electrical: true });
+    expect(def).toMatchObject({ id: 'toaster', family: 'kitchen', kind: 'weapon', price: 12, electrical: true });
     expect(def.element).toBe('heat');
     expect(def.tags).toEqual(['ranged']);
     expect(def.legendary).toBeUndefined();
     expect(def.cells).toEqual([{x: 0, y: 0}, {x: 1, y: 0}]);
-    expect(def.rules).toBe('Fires toast for {0} damage every {1}. 455 range. Each toast hits one enemy.');
     expect(def.weapon).toEqual({ pattern: 'toast', damage: 9, cooldown: 1, range: 455, projectileSpeed: 540, count: 1, burstInterval: 0, arcDeg: 0, pull: 0, tick: 0, duration: 0, bounces: 0, chain: 0, aoe: 0 });
   });
 

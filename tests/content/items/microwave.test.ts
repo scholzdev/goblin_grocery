@@ -14,15 +14,14 @@ afterEach(() => setLang('en'));
 // Pattern behaviour runs headless through the FakeArsenal (src/engine/patterns/fakeHost.ts): the cart's real build, the compiled hooks, a fake clock.
 
 describe('Microwave: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('microwave')).toBe(microwave);
     const def = ITEMS.microwave;
-    expect(def).toMatchObject({ id: 'microwave', family: 'kitchen', name: 'Microwave', kind: 'weapon', price: 20, electrical: true });
+    expect(def).toMatchObject({ id: 'microwave', family: 'kitchen', kind: 'weapon', price: 20, electrical: true });
     expect(def.element).toBe('heat');
     expect(def.tags).toEqual(['area']);
     expect(def.legendary).toBeUndefined();
     expect(def.cells).toEqual([{x: 1, y: 0}, {x: 2, y: 0}, {x: 0, y: 1}, {x: 1, y: 1}]);
-    expect(def.rules).toBe('Every {1} zaps the toughest enemy within 380 (Elites first, then most HP) for {0} damage, splashing everything within 70. Electrical.');
     expect(def.weapon).toEqual({ pattern: 'zap', damage: 24, cooldown: 2.4, range: 380, projectileSpeed: 0, count: 1, burstInterval: 0, arcDeg: 0, pull: 0, tick: 0, duration: 0, bounces: 0, chain: 0, aoe: 70 });
   });
 

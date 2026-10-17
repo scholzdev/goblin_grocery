@@ -14,15 +14,14 @@ afterEach(() => setLang('en'));
 // Pattern behaviour runs headless through the FakeArsenal (src/engine/patterns/fakeHost.ts): the cart's real build, the compiled hooks, a fake clock.
 
 describe('Vacuum: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('vacuum')).toBe(vacuum);
     const def = ITEMS.vacuum;
-    expect(def).toMatchObject({ id: 'vacuum', family: 'cleaning', name: 'Vacuum', kind: 'weapon', price: 18, electrical: true });
+    expect(def).toMatchObject({ id: 'vacuum', family: 'cleaning', kind: 'weapon', price: 18, electrical: true });
     expect(def.element).toBeUndefined();
     expect(def.tags).toEqual(['area']);
     expect(def.legendary).toBeUndefined();
     expect(def.cells).toEqual([{x: 0, y: 0}, {x: 1, y: 0}, {x: 2, y: 0}, {x: 1, y: 1}]);
-    expect(def.rules).toBe('Constantly pulls nearby enemies toward the cart. Every {1}, enemies in range take {0} damage. +60 coin pickup radius.');
     expect(def.weapon).toEqual({ pattern: 'pulse', damage: 2, cooldown: 0.65, range: 150, projectileSpeed: 0, count: 1, burstInterval: 0, arcDeg: 0, pull: 70, tick: 0, duration: 0, bounces: 0, chain: 0, aoe: 0 });
   });
 

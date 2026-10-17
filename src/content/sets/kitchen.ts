@@ -23,7 +23,7 @@ export default defineSet({
     },
   },
   build: {
-    // `set` phase, first of the weapon bonuses (kitchen 10, cleaning 20, tools 30, heat 40, blast 50, electric 60 = the legacy sequence).
+    // `set` phase, first of the weapon bonuses (kitchen 10, cleaning 20, tools 30, heat 40, blast 50, electric 60).
     phase: 'set', order: 10,
     weapon(w, c) { if (c.def(w.type).family === 'kitchen') w.damage *= c.tune().damageMult; },
   },

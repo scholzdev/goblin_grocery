@@ -1,6 +1,6 @@
 import { defineCombo } from '../../engine/define';
 
-// Spray Bottle + Desk Fan: a huge misting cone. It replaces the Fan bonus (fan.ts skips itself when this combo matches), so the arc is set
+// Spray Bottle + Desk Fan: a huge misting cone. It replaces the Fan bonus (`suppresses`: the Desk Fan buff is skipped on this weapon), so the arc is set
 // to `arcDeg` plus whatever Duct Tape added.
 export default defineCombo({
   id: 'mistMachine', requires: ['spray', 'fan'],

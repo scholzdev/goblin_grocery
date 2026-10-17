@@ -22,10 +22,4 @@ describe('Fortune Cookie / Free Sample', () => {
     expect(computeBuild(inv([['toaster', 0, 0], ['piggy', 3, 3]])).killCoinMult).toBeCloseTo(1.15);
     expect(computeBuild(inv([['toaster', 0, 0], ['piggy', 3, 3, 3]])).killCoinMult).toBeCloseTo(1.3);
   });
-
-  it('free sample sets the heal per crit and scales with tier', () => {
-    expect(computeBuild(inv([['toaster', 0, 0]])).critHeal).toBe(0);
-    expect(computeBuild(inv([['toaster', 0, 0], ['sample', 3, 3]])).critHeal).toBe(contentTune('sample', 1).heal);
-    expect(computeBuild(inv([['toaster', 0, 0], ['sample', 3, 3, 3]])).critHeal).toBe(contentTune('sample', 1).heal * 2);
-  });
 });

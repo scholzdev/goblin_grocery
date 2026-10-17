@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { ITEMS, TIER } from '../../../src/data/items';
 import jellybeans from '../../../src/content/items/jellybeans';
-import { flavorOf, setsOf } from '../../../src/data/sets';
+import { setsOf } from '../../../src/data/sets';
+import { flavorOf } from '../../../src/engine/define';
 import { FLAVORS } from '../../../src/engine/define';
 import { contentItem, contentSetTune, contentTune } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
@@ -220,13 +221,12 @@ describe('Jelly Beans: flavor reroll (state/run.ts)', () => {
 });
 
 describe('Jelly Beans: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('jellybeans')).toBe(jellybeans);
-    expect(ITEMS.jellybeans).toMatchObject({ id: 'jellybeans', family: 'snacks', name: 'Jelly Beans', kind: 'module', price: 10, electrical: false });
+    expect(ITEMS.jellybeans).toMatchObject({ id: 'jellybeans', family: 'snacks', kind: 'module', price: 10, electrical: false });
     expect(ITEMS.jellybeans.cells).toEqual([{ x: 0, y: 0 }]);
     expect(ITEMS.jellybeans.legendary).toBeUndefined();
     expect(ITEMS.jellybeans.buff).toBeUndefined();
-    expect(ITEMS.jellybeans.rules).toBe('The flavor changes every shop visit: Heat (Fuel Can burn), Frost (Ice Pack slow) or Blast (Party Popper blast). Adjacent weapons get that effect at {0} strength, and the beans count toward that flavor\'s set.');
   });
 
   it('keeps its tune in one place (the row is the base strength x TIER.mult)', () => {

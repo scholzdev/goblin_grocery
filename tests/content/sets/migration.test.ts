@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ITEMS } from '../../../src/data/items';
-import { SET_ORDER, setLevels, setsOf } from '../../../src/data/sets';
+import { setLevels, setsOf } from '../../../src/data/sets';
+import { SET_ORDER } from '../../../src/engine/define';
 import { contentItem } from '../../../src/engine/registry';
 import { at, far, full } from '../helpers';
 
@@ -15,11 +16,11 @@ describe('no set tuning or set branches outside the content files', () => {
     expect(bad).toEqual([]);
   });
 
-  it('computeBuild, the scenes and the engine modules do not read set levels by name any more (except the two documented readers)', () => {
+  it('computeBuild, the scenes and the engine modules do not read set levels by name any more (except the Checkout interest in run.ts)', () => {
     const byName = /\bsets\.(kitchen|cleaning|tools|snacks|checkout|heat|frost|blast|electric)\b/;
     const hits = Object.entries(sources).filter(([f, src]) => !f.includes('/data/sets.ts') && byName.test(src)).map(([f]) => f.replace('../../../src/', ''));
-    // run.ts pays the Checkout interest; the puddle pattern reads the Frost level for the soap slip (phase 7 moved it there from weapons.ts).
-    expect(hits.sort()).toEqual(['engine/patterns/puddle.ts', 'state/run.ts']);
+    // run.ts pays the Checkout interest (the one by-name reader left: there is no run-lifecycle hook).
+    expect(hits.sort()).toEqual(['state/run.ts']);
   });
 
   it('the arena applies the knockback multiplier the Cleaning hook left on the hit, and nothing reads build.shoveStun or build.regen of a set', () => {

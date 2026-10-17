@@ -1,30 +1,13 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { ITEMS, TIER } from '../../../src/data/items';
+import { ITEMS } from '../../../src/data/items';
 import bumper from '../../../src/content/items/bumper';
 import { contentItem, contentTune } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { tierScaling } from '../../../src/systems/synergies';
-import { around, arena, at, corner, far, full, gilded } from '../helpers';
+import { around, arena, at, corner, far, gilded } from '../helpers';
 
 afterEach(() => setLang('en'));
-
-// Legacy: the dash landing deals 8 damage (x TIER.mult) within 90 of the goblin, with knockback 200 away from the landing point.
-describe('Slam Bumper: build field', () => {
-  it('sets dashSlam to 8 / 12 / 16 at ★1 / ★2 / ★3, 0 without the item', () => {
-    expect(full([at('toaster')]).dashSlam).toBe(0);
-    expect([1, 2, 3].map((t) => full([at('toaster'), far('bumper', t)]).dashSlam)).toEqual([8, 12, 16]);
-  });
-
-  it('matches the legacy formula 8 x TIER.mult to the bit, also at Gold Star\'s effective ★4 (20)', () => {
-    for (const t of [1, 2, 3]) expect(full([at('toaster'), far('bumper', t)]).dashSlam).toBe(8 * TIER.mult(t));
-    expect(full([at('toaster'), corner('bumper', 3), gilded(1)]).dashSlam).toBe(20);
-  });
-
-  it('does not stack: the best copy counts once', () => {
-    expect(full([at('toaster'), far('bumper', 1), far('bumper', 3)]).dashSlam).toBe(16);
-  });
-});
 
 // The landing blast is an `onDashEnd` hook. Legacy order inside dashLanding: sound, ring, one damageEnemy per enemy in range, then Pot Slam.
 describe('Slam Bumper: runtime', () => {
@@ -105,11 +88,10 @@ describe('Slam Bumper: runtime', () => {
 });
 
 describe('Slam Bumper: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('bumper')).toBe(bumper);
-    expect(ITEMS.bumper).toMatchObject({ id: 'bumper', family: 'tools', element: 'blast', name: 'Slam Bumper', kind: 'passive', price: 11, electrical: false });
+    expect(ITEMS.bumper).toMatchObject({ id: 'bumper', family: 'tools', element: 'blast', kind: 'passive', price: 11, electrical: false });
     expect(ITEMS.bumper.cells).toEqual([{ x: 0, y: 0 }]);
-    expect(ITEMS.bumper.rules).toBe('The Space dash ends in a shockwave: {0} damage within 90 and knockback (does not stack). Enables Pot Slam next to a Pressure Cooker.');
   });
 
   it('keeps its tune in one place', () => {

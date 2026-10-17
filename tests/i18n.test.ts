@@ -20,10 +20,14 @@ afterEach(() => setLang('en'));
 describe('German data', () => {
   it('covers every id with non-empty fields', () => {
     const tables: [Record<string, unknown>, Record<string, Record<string, string>>][] = [
-      [ITEMS, DATA_DE.items], [RECIPES, DATA_DE.recipes], [ENEMIES, DATA_DE.enemies], [DEPARTMENTS, DATA_DE.departments],
+      [ENEMIES, DATA_DE.enemies], [DEPARTMENTS, DATA_DE.departments],
       [PLAYER.starters, DATA_DE.starters], [GOBLIN_SKINS, DATA_DE.goblinSkins], [CART_SKINS, DATA_DE.cartSkins],
     ];
     for (const [en, de] of tables) for (const id of Object.keys(en)) { expect(de[id], id).toBeDefined(); expect(nonEmpty(de[id]), id).toBe(true); }
+    // Items and combos are content files: both languages are read through itemT / recipeT.
+    setLang('de');
+    for (const id of Object.keys(ITEMS) as (keyof typeof ITEMS)[]) expect(nonEmpty({ ...itemT(id) }), id).toBe(true);
+    for (const id of Object.keys(RECIPES) as (keyof typeof RECIPES)[]) expect(nonEmpty({ ...recipeT(id) }), id).toBe(true);
     expect(DATA_DE.shifts).toHaveLength(SHIFTS.length);
     DATA_DE.shifts.forEach((s) => expect(nonEmpty(s)).toBe(true));
     for (const u of UNLOCKS) expect(DATA_DE.unlocks[u.id], u.id).toBeTruthy();
@@ -32,10 +36,8 @@ describe('German data', () => {
     for (const t of ['electric', 'kitchen', 'cleaning', 'tools', 'snacks', 'checkout', 'heat', 'frost', 'blast']) expect(DATA_DE.tags[t], t).toBeUndefined();
   });
 
-  it('fills item rule placeholders for every level, EN and DE, with the same set', () => {
-    const ph = (x: string) => (x.match(/\{\d\}/g) ?? []).sort().join();
+  it('fills item rule placeholders for every level, EN and DE', () => {
     for (const id of Object.keys(ITEMS) as (keyof typeof ITEMS)[]) {
-      expect(ph(DATA_DE.items[id].rules), id).toBe(ph(ITEMS[id].rules));
       for (const l of ['en', 'de'] as const) {
         setLang(l);
         for (const tier of [1, 2, 3]) expect(itemRules(id, tier), `${id} ${l} ★${tier}`).not.toMatch(/[{}]/);
@@ -48,8 +50,10 @@ describe('German data', () => {
 
   it('keeps every number from the English item rules', () => {
     for (const id of Object.keys(ITEMS) as (keyof typeof ITEMS)[]) {
-      const de = nums(DATA_DE.items[id].rules);
-      for (const n of nums(ITEMS[id].rules)) expect(de, `${id}: ${n}`).toContain(n);
+      setLang('de');
+      const de = nums(itemRules(id, 1));
+      setLang('en');
+      for (const n of nums(itemRules(id, 1))) expect(de, `${id}: ${n}`).toContain(n);
     }
   });
 

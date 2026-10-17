@@ -1,6 +1,6 @@
 import { defineItem } from '../../engine/define';
 
-// Kill coin chance per ★ (the legacy 30% base x TIER.mult; `0.3 * 1.5` on purpose, the exact legacy float), capped at `cap`
+// Kill coin chance per ★ (30% base x TIER.mult; `0.3 * 1.5` on purpose, the exact float of the ★2 formula), capped at `cap`
 // (only Gold Star's effective ★4 would reach 75%, still below it). Used by the build field and the runtime roll alike.
 const chanceOf = (t: { chance: number; cap: number }): number => Math.min(t.cap, t.chance);
 
@@ -12,12 +12,6 @@ export default defineItem({
     de: { name: 'Couponheft', blurb: 'Extra Ersparnis bei jedem Abschuss.', rules: 'Abschüsse lassen mit {chance|pct} Chance +1 Münze fallen (stapelt sich nicht). Combo: Räumungsverkauf mit Sprudelkanone + Preisauszeichner.' },
   },
   rows: [{ label: { en: 'Coin chance', de: 'Münzchance' }, key: 'chance', fmt: 'pct' }],
-  build: {
-    // `Build.coinChance` is no longer read by the arena (the hook below rolls from the tune); it stays in the build because the golden
-    // snapshots serialize it. Runs once with the best copy in the cart, so "does not stack" needs no code.
-    phase: 'final',
-    player(b, c) { b.coinChance += chanceOf(c.tune()); },
-  },
   hooks: {
     // Credited kills only (the emit is in killEnemy right after the regular coins and bread, before the Pickpocket loot: the single
     // `rng()` roll keeps the draw position it had when this lived in killEnemy).

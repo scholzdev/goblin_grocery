@@ -2,31 +2,22 @@
 import type { DoorId, ModifierId } from './data/modifiers';
 import type { EventKind } from './data/events';
 import type { ZoneId } from './data/zones';
+import type { BUFF_ORDER, ELEMENTS, FAMILIES, ITEM_ORDER, RECIPE_ORDER, SET_ORDER } from './engine/define';
 
-export type ItemTypeId =
-  | 'toaster' | 'pan' | 'nailgun' | 'vacuum'
-  | 'fan' | 'fuel' | 'battery' | 'magnet' | 'ice' | 'hotsauce' | 'lunchbox' | 'bell' | 'boot'
-  | 'microwave' | 'blender' | 'fizz' | 'mop'
-  | 'pricegun' | 'tape' | 'coupon' | 'bubblewrap' | 'energy'
-  | 'powerstrip' | 'goldstar' | 'laser' | 'snackbag'
-  | 'cooker' | 'spray' | 'popper' | 'doublebag' | 'multipack'
-  | 'fortune' | 'sample' | 'piggy' | 'expiredmilk' | 'tinfoilhat' | 'jellybeans' | 'leafblower' | 'sourdough'
-  | 'bumper' | 'sparewheel' | 'tipjar' | 'flag';
+/** The id unions are derived from the order lists of engine/define.ts (which the registry checks against the content files). */
+export type ItemTypeId = (typeof ITEM_ORDER)[number];
 
 export type WeaponPattern = 'toast' | 'sweep' | 'burst' | 'pulse' | 'zap' | 'aura' | 'ricochet' | 'puddle' | 'laser' | 'mortar' | 'cone';
 export type ItemKind = 'weapon' | 'module' | 'passive';
 export type Rotation = 0 | 1 | 2 | 3;
-export type RecipeId = 'toastMode' | 'nailstorm' | 'coldStorage' | 'expressCheckout' | 'brainFreeze' | 'tvDinner' | 'clearanceSale' | 'greaseFire' | 'pressurePoint' | 'mistMachine'
-  | 'fiveAlarm' | 'sizzlingSkillet' | 'chickenDinner' | 'frostbiteNails' | 'staticCling' | 'reheat' | 'smoothieShield'
-  | 'confettiCannon' | 'blackIce' | 'shrapnel' | 'pressureWasher' | 'powerSurge' | 'priceCheck' | 'potSlam'
-  | 'sugarRush' | 'smashBank' | 'bagIt' | 'sourMist' | 'sparksFly' | 'rayGun' | 'tailwind';
-/** Set-bonus tags: one family per item, optional element; 'electric' = the `electrical` flag. See data/sets.ts. */
-export type FamilyTag = 'kitchen' | 'cleaning' | 'tools' | 'snacks' | 'checkout';
-export type ElementTag = 'heat' | 'frost' | 'blast';
-export type SetId = FamilyTag | ElementTag | 'electric';
+export type RecipeId = (typeof RECIPE_ORDER)[number];
+/** Set-bonus tags: one family per item, optional element; 'electric' = the `electrical` flag. See engine/define.ts (the lists) and data/sets.ts (the counting). */
+export type FamilyTag = (typeof FAMILIES)[number];
+export type ElementTag = (typeof ELEMENTS)[number];
+export type SetId = (typeof SET_ORDER)[number];
 /** Weapon role tags (shown on cards; Electric is the separate `electrical` flag). */
 export type WeaponTag = 'ranged' | 'melee' | 'area';
-export type BuffId = 'fan' | 'fuel' | 'battery' | 'ice' | 'hotsauce' | 'pricegun' | 'tape' | 'popper' | 'echo' | 'multipack';
+export type BuffId = (typeof BUFF_ORDER)[number];
 export type EnemyId = 'milk' | 'banana' | 'soda' | 'spitter' | 'baguette' | 'egg' | 'melon' | 'slice' | 'turkey' | 'beans' | 'cereal' | 'honey' | 'giftcard' | 'expired' | 'gum' | 'boss' | 'boss_frozen' | 'boss_bakery' | 'boss_electronics' | 'boss_checkout';
 
 export interface Cell { x: number; y: number }
@@ -52,7 +43,6 @@ export interface WeaponBase {
 
 export interface ItemDef {
   id: ItemTypeId;
-  name: string;
   kind: ItemKind;
   /** Base footprint, pre-rotation, as integer cells relative to origin (0,0). */
   cells: Cell[];
@@ -60,10 +50,6 @@ export interface ItemDef {
   electrical: boolean;
   family: FamilyTag;
   element?: ElementTag;
-  /** Short one-line description for cards. */
-  blurb: string;
-  /** Longer rules text for tooltips. */
-  rules: string;
   weapon?: WeaponBase;
   /** Weapons only: role tag(s). */
   tags?: WeaponTag[];
@@ -124,16 +110,12 @@ export interface WeaponStats {
   aoe: number;
   tier: number;
   critChance: number;      // 0..1, crits deal CRIT.mult damage (direct hits only)
-  critCoin: boolean;       // clearanceSale flag. Not read at runtime (the combo's onCrit hook owns the coin); kept for the golden build snapshots, delete in phase 8
   bundle: number;          // distinct item types touching this weapon (Bundle Deal damage bonus)
   /** Party Popper: kills by this weapon explode (never chains from popper kills). */
   popper: { damage: number; radius: number } | null;
   /** Double Bag: each direct hit strikes again after the `delay` tune (src/content/items/doublebag.ts) for this fraction of the damage (0 = none). */
   echo: number;
-  /** Pressure Point flag (mortar blasts leave a burning pool). Not read at runtime (the combo's pattern:explode hook spawns the pool); kept for the golden build snapshots, delete in phase 8. */
-  firePool: boolean;
   pierce: number;          // extra enemies a projectile may pass through (0 = hits one)
-  homing: boolean;         // Nailstorm flag. Not read at runtime (the combo's pattern:shotHit / pattern:shotMove hooks steer the nails); kept for the golden build snapshots, delete in phase 8
   burn: BurnEffect | null;
   /** Heat L2: chance to set a non-burning weapon's hit on fire. */
   ignite: { chance: number; burn: BurnEffect } | null;
@@ -142,8 +124,6 @@ export interface WeaponStats {
   chainJumps: number;
   slow: SlowEffect | null;
   frostRing: boolean;
-  expressSweep: boolean;   // Express Checkout flag. Not read at runtime (the combo's onDashEnd hook sweeps); kept for the golden snapshots, delete in phase 8
-  dashBlast: boolean;      // Pot Slam flag. Not read at runtime (the combo's onDashEnd hook blasts); kept for the golden snapshots, delete in phase 8
   buffs: BuffId[];         // distinct buffs applied (each at most once)
   /** Active combos on this weapon (a weapon can have several possible combos; all matching ones are active). */
   recipes: RecipeId[];
@@ -180,39 +160,27 @@ export interface Build {
   shoveDistMult: number;   // running boot: dash distance multiplier
   shoveDamage: number;     // dash hit damage (running boot adds)
   moveSpeedMult: number;   // energy drink
-  /** Tin Foil Hat: damage multiplier of reflected enemy shots while dashing (0 = no hat). */
-  reflectMult: number;
   stinkDps: number;        // expired milk: poison dps of the toxic aura around the cart (0 = off)
-  coinChance: number;      // coupon: chance of +1 coin per kill
-  armor: number;           // bubble wrap: flat damage reduction (min 1 damage taken)
-  invulnBonus: number;     // bubble wrap: extra seconds of post-hit invulnerability
   regen: number;           // HP per second during combat (snack bag)
-  critHeal: number;        // free sample: HP healed per crit (capped per second)
   killCoinMult: number;    // piggy bank: multiplier on regular kill coins
   recipes: ActiveRecipe[];
   /** Set-bonus level per set (0/1/2), counted over distinct placed types. */
   sets: Record<SetId, 0 | 1 | 2 | 3>;
   priceMult: number;       // checkout L1: shop price multiplier
-  shoveStun: number;       // tools L2: seconds the dash stuns (0 = off)
-  dashSlam: number;        // slam bumper: landing shockwave damage (0 = off)
-  dashChain: number;       // spare wheel: seconds after a dash in which one more dash is free (0 = off)
-  dashCoinChance: number;  // tip jar: chance per enemy hit by the dash to drop a coin
-  dashMark: number;        // sale flag: seconds the dash marks enemies it hits (0 = off)
   /** Deduplicated adjacent pairs, uid order a < b. */
   adjacency: [string, string][];
 }
 
+/** What the game needs of a combo besides its text (`recipeT`): which items it takes. Derived from the content file by data/recipes. */
 export interface RecipeDef {
   id: RecipeId;
-  name: string;
   /** Omitted for cart combos: active when every other support touches the first one. */
   weapon?: ItemTypeId;
   supports: ItemTypeId[];
   /** Recipes this one overrides on the same weapon (they never apply while this one is active). */
   replaces?: RecipeId[];
-  short: string;     // one-line effect for compact combo cards
-  summary: string;   // badge hover text
-  detail: string;    // full shop explanation
+  /** Module buffs this combo switches off on its weapon. */
+  suppresses?: BuffId[];
 }
 
 export type EnemyBehavior = 'chase' | 'charger' | 'tank' | 'spitter' | 'swiper' | 'exploder' | 'splitter' | 'healer' | 'thief' | 'teleporter' | 'boss';

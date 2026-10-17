@@ -16,15 +16,14 @@ afterEach(() => setLang('en'));
 // Pattern behaviour runs headless through the FakeArsenal (src/engine/patterns/fakeHost.ts): the cart's real build, the compiled hooks, a fake clock.
 
 describe('Pressure Cooker: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('cooker')).toBe(cooker);
     const def = ITEMS.cooker;
-    expect(def).toMatchObject({ id: 'cooker', family: 'kitchen', name: 'Pressure Cooker', kind: 'weapon', price: 18, electrical: false });
+    expect(def).toMatchObject({ id: 'cooker', family: 'kitchen', kind: 'weapon', price: 18, electrical: false });
     expect(def.element).toBe('heat');
     expect(def.tags).toEqual(['area']);
     expect(def.legendary).toBeUndefined();
     expect(def.cells).toEqual([{x: 0, y: 0}, {x: 1, y: 0}, {x: 1, y: 1}, {x: 2, y: 1}]);
-    expect(def.rules).toBe('Every {1} lobs a pot at the densest group within 420. It explodes for {0} damage to everything within 90, with knockback.');
     expect(def.weapon).toEqual({ pattern: 'mortar', damage: 16, cooldown: 2.6, range: 420, projectileSpeed: 380, count: 1, burstInterval: 0, arcDeg: 0, pull: 0, tick: 0, duration: 0, bounces: 0, chain: 0, aoe: 90 });
   });
 

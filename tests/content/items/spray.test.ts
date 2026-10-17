@@ -14,15 +14,14 @@ afterEach(() => setLang('en'));
 // Pattern behaviour runs headless through the FakeArsenal (src/engine/patterns/fakeHost.ts): the cart's real build, the compiled hooks, a fake clock.
 
 describe('Spray Bottle: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('spray')).toBe(spray);
     const def = ITEMS.spray;
-    expect(def).toMatchObject({ id: 'spray', family: 'cleaning', name: 'Spray Bottle', kind: 'weapon', price: 12, electrical: false });
+    expect(def).toMatchObject({ id: 'spray', family: 'cleaning', kind: 'weapon', price: 12, electrical: false });
     expect(def.element).toBe('frost');
     expect(def.tags).toEqual(['melee']);
     expect(def.legendary).toBeUndefined();
     expect(def.cells).toEqual([{x: 0, y: 0}, {x: 0, y: 1}]);
-    expect(def.rules).toBe('Every {1} sprays a 70° cone (170 reach) for {0} damage to every enemy inside (each once per spray).');
     expect(def.weapon).toEqual({ pattern: 'cone', damage: 3, cooldown: 0.55, range: 170, projectileSpeed: 0, count: 1, burstInterval: 0, arcDeg: 70, pull: 0, tick: 0, duration: 0, bounces: 0, chain: 0, aoe: 0 });
   });
 

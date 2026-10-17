@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { ITEM_IDS } from '../../src/data/items';
 import { RECIPES } from '../../src/data/recipes';
-import { BUILD_PHASES, HOOK_NAMES, SET_ORDER, SET_THRESHOLDS, defineCombo, defineItem, defineSet } from '../../src/engine/define';
-import { ContentError, SET_IDS, assertRegistry, contentCombos, contentItem, contentItems, contentSet, contentSetTune, contentSets, createRegistry, validateContent } from '../../src/engine/registry';
+import { BUFF_ORDER, BUILD_PHASES, HOOK_NAMES, ITEM_ORDER, RECIPE_ORDER, SET_ORDER, SET_THRESHOLDS, defineCombo, defineItem, defineSet } from '../../src/engine/define';
+import { ContentError, SET_IDS, contentCombos, contentItem, contentItems, contentSet, contentSetTune, contentSets, createRegistry, validateContent } from '../../src/engine/registry';
 import { renderText } from '../../src/engine/text';
-import { BUFF_ORDER } from '../../src/systems/synergies';
 import type { ItemTypeId, RecipeId } from '../../src/types';
 
 // Fixture content (inline, not files in src/content). Ids are real union members; the registry never looks at src/content here.
@@ -90,10 +89,6 @@ describe('validateContent', () => {
     expect(errors({ sets: { 'sets/kitchen.ts': set({ tune: { damageMult: [1, 2] } }) } })).toMatch(/exactly 3/);
   });
 
-  it('requires a row for every per-tier placeholder in the rules (legacy {0}, {1} form)', () => {
-    expect(errors({ items: { 'items/fuel.ts': item({ rows: undefined }) } })).toMatch(/per-tier placeholder \{dps\|ps\}.*has no matching row/);
-  });
-
   it('checks rows, build phases and module requirements', () => {
     expect(errors({ items: { 'items/fuel.ts': item({ rows: [{ label: { en: 'x', de: 'x' }, key: 'nope' }] }) } })).toMatch(/rows: no tune key "nope"/);
     expect(errors({ items: { 'items/fuel.ts': item({ build: { phase: 'combo', weapon() {} } }) } })).toMatch(/build\.phase "combo" is not valid for item content/);
@@ -177,10 +172,18 @@ describe('createRegistry', () => {
 });
 
 describe('the real registry', () => {
-  it('loads and validates src/content against the legacy tables', () => {
-    expect(() => assertRegistry({ knownItemIds: ITEM_IDS, knownComboIds: Object.keys(RECIPES) })).not.toThrow();
-    for (const c of contentItems()) expect(ITEM_IDS, c.id).toContain(c.id);
-    for (const c of contentCombos()) expect(Object.keys(RECIPES), c.id).toContain(c.id);
+  it('loads src/content: one file per id of ITEM_ORDER and RECIPE_ORDER, nothing else', () => {
+    expect(contentItems().map((c) => c.id).sort()).toEqual([...ITEM_ORDER].sort());
+    expect(contentCombos().map((c) => c.id).sort()).toEqual([...RECIPE_ORDER].sort());
+    expect(ITEM_IDS).toEqual([...ITEM_ORDER]);
+    expect(Object.keys(RECIPES)).toEqual([...RECIPE_ORDER]);
+  });
+  it('fails when a content file is missing from an order list, or a listed id has no file', () => {
+    const files = { items: { 'items/fuel.ts': item() }, combos: { 'combos/greaseFire.ts': combo({ requires: ['mop', 'fuel'] }) } };
+    expect(errors(files, { itemOrder: ['fuel'], comboOrder: ['greaseFire'] })).toBe('');
+    expect(errors(files, { itemOrder: ['fuel', 'mop'] })).toMatch(/ITEM_ORDER lists "mop", which has no content file/);
+    expect(errors(files, { itemOrder: [] })).toMatch(/"fuel" is missing from ITEM_ORDER/);
+    expect(errors(files, { comboOrder: [] })).toMatch(/"greaseFire" is missing from RECIPE_ORDER/);
   });
   it('has one content file per set, the nine of SET_ORDER, each id equal to its filename', () => {
     expect(contentSets().map((c) => c.id).sort()).toEqual([...SET_ORDER].sort());
@@ -198,12 +201,12 @@ describe('the real registry', () => {
       expect(contentSetTune(c.id, 3)).toBeDefined();
     }
   });
-  it('set hook names are all real hooks, and only afterHit / afterKill / onDashHit are used so far', () => {
+  it('set hook names are all real hooks, and only afterHit / afterKill / onDashHit / pattern:puddleEnter are used', () => {
     const used = new Set<string>();
     for (const c of contentSets()) for (const k of Object.keys(c.hooks ?? {})) { if (k !== 'order') { expect(HOOK_NAMES, `${c.id}.${k}`).toContain(k); used.add(k); } }
-    expect([...used].sort()).toEqual(['afterHit', 'afterKill', 'onDashHit']);
+    expect([...used].sort()).toEqual(['afterHit', 'afterKill', 'onDashHit', 'pattern:puddleEnter']);
   });
-  it('the set weapon bonuses keep the legacy sequence: kitchen 10, cleaning 20, tools 30, heat 40, blast 50, electric 60 (set phase), frost last in post-combo', () => {
+  it('the set weapon bonuses run in this sequence: kitchen 10, cleaning 20, tools 30, heat 40, blast 50, electric 60 (set phase), frost last in post-combo', () => {
     const orders = Object.fromEntries(contentSets().filter((c) => c.build?.weapon).map((c) => [c.id, `${c.build!.phase}:${c.build!.order}`]));
     expect(orders).toEqual({ kitchen: 'set:10', cleaning: 'set:20', tools: 'set:30', heat: 'set:40', blast: 'set:50', electric: 'set:60', frost: 'post-combo:1000' });
   });

@@ -44,12 +44,11 @@ describe('Magnet: build', () => {
 });
 
 describe('Magnet: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('magnet')).toBe(magnet);
-    expect(ITEMS.magnet).toMatchObject({ id: 'magnet', family: 'tools', name: 'Magnet', kind: 'passive', price: 7, electrical: false });
+    expect(ITEMS.magnet).toMatchObject({ id: 'magnet', family: 'tools', kind: 'passive', price: 7, electrical: false });
     expect(ITEMS.magnet.element).toBeUndefined();
     expect(ITEMS.magnet.cells).toEqual([{ x: 0, y: 0 }]);
-    expect(ITEMS.magnet.rules).toBe('{0} coin pickup radius (does not stack). Combo: Nailstorm with Nail Gun + Battery.');
     expect(ITEMS.magnet.legendary).toBeUndefined();
     expect(ITEMS.magnet.buff).toBeUndefined();
   });

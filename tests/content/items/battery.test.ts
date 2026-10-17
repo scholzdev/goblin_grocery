@@ -54,13 +54,12 @@ describe('Battery: build', () => {
 });
 
 describe('Battery: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('battery')).toBe(battery);
     const def = ITEMS.battery;
-    expect(def).toMatchObject({ id: 'battery', family: 'tools', name: 'Battery', kind: 'module', price: 8, electrical: true, buff: 'battery' });
+    expect(def).toMatchObject({ id: 'battery', family: 'tools', kind: 'module', price: 8, electrical: true, buff: 'battery' });
     expect(def.element).toBeUndefined();
     expect(def.cells).toEqual([{ x: 0, y: 0 }]);
-    expect(def.rules).toBe('Any adjacent weapon gets {0} attack speed; Electric weapons {1}.');
     expect(def.legendary).toBeUndefined();
     expect(def.weapon).toBeUndefined();
   });

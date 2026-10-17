@@ -84,13 +84,12 @@ describe('Power Strip: build', () => {
 });
 
 describe('Power Strip: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('powerstrip')).toBe(powerstrip);
-    expect(ITEMS.powerstrip).toMatchObject({ id: 'powerstrip', family: 'tools', name: 'Power Strip', kind: 'module', price: 32, electrical: true, legendary: true });
+    expect(ITEMS.powerstrip).toMatchObject({ id: 'powerstrip', family: 'tools', kind: 'module', price: 32, electrical: true, legendary: true });
     expect(ITEMS.powerstrip.element).toBeUndefined();
     expect(ITEMS.powerstrip.buff).toBeUndefined();
     expect(ITEMS.powerstrip.cells).toEqual([{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 2, y: 0 }]);
-    expect(ITEMS.powerstrip.rules).toBe('Every electrical weapon in the cart gains +20% attack rate; electrical weapons touching it gain +40% instead.');
   });
 
   it('keeps its tune in one place: the text gains match the divisors (1 + gain = divisor)', () => {

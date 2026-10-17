@@ -14,15 +14,14 @@ afterEach(() => setLang('en'));
 // Pattern behaviour runs headless through the FakeArsenal (src/engine/patterns/fakeHost.ts): the cart's real build, the compiled hooks, a fake clock.
 
 describe('Fizz Cannon: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('fizz')).toBe(fizz);
     const def = ITEMS.fizz;
-    expect(def).toMatchObject({ id: 'fizz', family: 'snacks', name: 'Fizz Cannon', kind: 'weapon', price: 14, electrical: false });
+    expect(def).toMatchObject({ id: 'fizz', family: 'snacks', kind: 'weapon', price: 14, electrical: false });
     expect(def.element).toBe('frost');
     expect(def.tags).toEqual(['ranged']);
     expect(def.legendary).toBeUndefined();
     expect(def.cells).toEqual([{x: 0, y: 0}, {x: 1, y: 0}]);
-    expect(def.rules).toBe('Fires a bottle cap for {0} damage every {1} that bounces to 2 more enemies (never the same one twice). 420 range.');
     expect(def.weapon).toEqual({ pattern: 'ricochet', damage: 6, cooldown: 1, range: 420, projectileSpeed: 620, count: 1, burstInterval: 0, arcDeg: 0, pull: 0, tick: 0, duration: 0, bounces: 2, chain: 0, aoe: 0 });
   });
 

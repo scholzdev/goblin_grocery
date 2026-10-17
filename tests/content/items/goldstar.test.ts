@@ -137,11 +137,10 @@ describe('Gold Star Sticker: content', () => {
   it('is the registered content file with the tierBoost declaration', () => {
     expect(contentItem('goldstar')).toBe(goldstar);
     expect(goldstar.tierBoost).toEqual({ key: 'tiers', excludes: ['weapon', 'legendary'] });
-    expect(ITEMS.goldstar).toMatchObject({ id: 'goldstar', family: 'checkout', name: 'Gold Star Sticker', kind: 'module', price: 28, electrical: false, legendary: true });
+    expect(ITEMS.goldstar).toMatchObject({ id: 'goldstar', family: 'checkout', kind: 'module', price: 28, electrical: false, legendary: true });
     expect(ITEMS.goldstar.element).toBeUndefined();
     expect(ITEMS.goldstar.buff).toBeUndefined();
     expect(ITEMS.goldstar.cells).toEqual([{ x: 0, y: 0 }]);
-    expect(ITEMS.goldstar.rules).toBe('Modules and passives touching it work one tier higher (up to ★4 strength). Weapons touching it get +1 Bundle Deal item.');
   });
 
   it('keeps its tune in one place (scalars: a legendary has one tier)', () => {

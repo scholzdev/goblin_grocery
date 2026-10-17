@@ -17,7 +17,8 @@ import { pickNext, type Dir } from '../input/pad-core';
 import { icons, setIcon } from './icons';
 import { t, fmtNum } from '../i18n';
 import { itemRules, itemT, recipeT, setBonusT, tagT } from '../i18n/data';
-import { SET_ORDER, SET_THRESHOLDS, flavorOf, lvOf, setCount as setCountOf, setGains, setsOf } from '../data/sets';
+import { lvOf, setCount as setCountOf, setGains, setsOf } from '../data/sets';
+import { SET_ORDER, SET_THRESHOLDS, flavorOf } from '../engine/define';
 import type { Build, ItemInstance, ItemTypeId, RecipeId, Rotation, RunState, SetId } from '../types';
 
 // Cell pitch in design pixels (cell + 4px gap). 92 for the 4×4 and 5×4 carts; shrinks so bigger carts fit the same 460×368 area.

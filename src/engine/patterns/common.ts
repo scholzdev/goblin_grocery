@@ -1,8 +1,6 @@
-import { ITEMS } from '../../data/items';
 import type { WeaponStats } from '../../types';
-import { resolveTune } from '../define';
+import { resolveTune, type ItemContent } from '../define';
 import type { HookTable, WeaponLook } from '../hooks';
-import { contentItem } from '../registry';
 import type { PatternHost, Sprite, WeaponRt } from './types';
 
 // Helpers every pattern shares.
@@ -34,13 +32,13 @@ export function emitFire(h: PatternHost, st: WeaponStats, x: number, y: number, 
   return ev.handled;
 }
 
-/** The runtime of the cart's `index`th weapon: its cooldown starts staggered (0.4 s + 0.17 s per weapon), its pattern parameters are resolved at its tier. */
-export function weaponRt(stats: WeaponStats, index: number, blades: Sprite | null): WeaponRt {
+/** The runtime of the cart's `index`th weapon (`item` is its content file): its cooldown starts staggered (0.4 s + 0.17 s per weapon), its pattern parameters are resolved at its tier. */
+export function weaponRt(stats: WeaponStats, index: number, blades: Sprite | null, item: ItemContent): WeaponRt {
   return {
     stats, cd: 0.4 + index * 0.17, burstLeft: 0, burstT: 0, blades,
-    base: ITEMS[stats.type].weapon!,
-    tune: resolveTune(contentItem(stats.type)?.tune, stats.tier),
-    electrical: !!ITEMS[stats.type].electrical,
+    base: item.weapon!,
+    tune: resolveTune(item.tune, stats.tier),
+    electrical: !!item.electrical,
   };
 }
 

@@ -45,7 +45,6 @@ describe('Shopping Bell: build', () => {
   it('is independent of the tools set (its L2 stuns and doubles dash damage, but leaves the cooldown to the Bell)', () => {
     const tools = full([at('nailgun'), far('tape'), far('boot'), far('bell')], NIGHT); // nailgun + tape + boot = Tools L2
     expect(tools.sets.tools).toBe(2);
-    expect(tools.shoveStun).toBe(0.3);
     expect(tools.shoveCooldown).toBe(BASE - 0.5 - 1);
     expect(tools.shoveCooldown).toBe(full([at('toaster'), far('bell')], NIGHT).shoveCooldown);
   });
@@ -53,18 +52,16 @@ describe('Shopping Bell: build', () => {
   it('keeps Express Checkout (its combo with a Frying Pan) working', () => {
     const b = full([at('pan'), at('bell', 1, { near: [0] })]);
     expect(b.recipes.map((r) => r.id)).toEqual(['expressCheckout']);
-    expect(b.weapons[0].expressSweep).toBe(true);
     expect(b.shoveCooldown).toBe(2.5);
   });
 });
 
 describe('Shopping Bell: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('bell')).toBe(bell);
-    expect(ITEMS.bell).toMatchObject({ id: 'bell', family: 'checkout', name: 'Shopping Bell', kind: 'passive', price: 7, electrical: false });
+    expect(ITEMS.bell).toMatchObject({ id: 'bell', family: 'checkout', kind: 'passive', price: 7, electrical: false });
     expect(ITEMS.bell.element).toBeUndefined();
     expect(ITEMS.bell.cells).toEqual([{ x: 0, y: 0 }]);
-    expect(ITEMS.bell.rules).toBe('Dash cooldown {0} (does not stack). Enables Express Checkout next to a Frying Pan.');
     expect(ITEMS.bell.legendary).toBeUndefined();
   });
 

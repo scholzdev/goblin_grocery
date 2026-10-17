@@ -1,17 +1,19 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { ITEM_IDS } from '../../src/data/items';
 import { RECIPES } from '../../src/data/recipes';
+import { contentItem } from '../../src/engine/registry';
 import { itemRules, itemT, recipeT, tagT } from '../../src/i18n/data';
 import { LANGS, setLang, type Lang } from '../../src/i18n/lang';
 import { computeBuild, describeBuffs, tierScaling } from '../../src/systems/synergies';
 import type { SetId } from '../../src/types';
 import { goldenCarts } from './carts';
+import { legacyRules } from './legacyRules';
 import { stable } from './serialize';
 
 /**
  * Golden snapshot of all player-facing item/combo/set text in EN and DE, rendered through the real functions
- * (itemT, itemRules, tierScaling, recipeT, setBonus, describeBuffs). A diff in __snapshots__/text.json means text changed:
- * during the item-hooks refactor only the explicitly planned fixes (docs/item-hooks-refactor.md §1) may appear.
+ * (itemT, itemRules, tierScaling, recipeT, setBonus, describeBuffs). A diff in __snapshots__/text.json means text changed.
+ * `rules` is the item's template with `{0}`/`{1}` for the scaling rows (./legacyRules): it is what the snapshot has always held.
  */
 const SET_IDS: SetId[] = ['kitchen', 'cleaning', 'tools', 'snacks', 'checkout', 'heat', 'frost', 'blast', 'electric'];
 
@@ -32,7 +34,7 @@ describe('golden: text', () => {
     for (const l of LANGS) {
       inLang(l, () => {
         for (const id of ITEM_IDS) {
-          const { name, blurb, rules } = itemT(id);
+          const { name, blurb } = itemT(id), c = contentItem(id)!, rules = legacyRules(c.text[l].rules, c, l);
           out[`items.${id}.${l}`] = {
             name, blurb, rules,
             rulesByTier: { 1: itemRules(id, 1), 2: itemRules(id, 2), 3: itemRules(id, 3) },

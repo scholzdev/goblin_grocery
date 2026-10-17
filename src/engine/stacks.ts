@@ -1,5 +1,4 @@
-// Pure helpers for timed stacks (Sugar Rush). No imports: content files may use this module next to `engine/define`, and the
-// engine gates (`systems/combat` re-exports `tailwindFeedsSugar` for the old tests).
+// Pure helpers for timed stacks (Sugar Rush). No imports: content files may use this module next to `engine/define`.
 
 /** The stacks still running at `now` (a list of expiry times, in seconds). */
 export const liveStacks = (list: readonly number[], now: number): number[] => list.filter((t) => t > now);

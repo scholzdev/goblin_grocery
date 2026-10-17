@@ -117,11 +117,10 @@ describe('Expired Milk: runtime', () => {
 });
 
 describe('Expired Milk: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('expiredmilk')).toBe(expiredmilk);
-    expect(ITEMS.expiredmilk).toMatchObject({ id: 'expiredmilk', family: 'snacks', name: 'Expired Milk', kind: 'passive', price: 7, electrical: false });
+    expect(ITEMS.expiredmilk).toMatchObject({ id: 'expiredmilk', family: 'snacks', kind: 'passive', price: 7, electrical: false });
     expect(ITEMS.expiredmilk.cells).toEqual([{ x: 0, y: 0 }, { x: 0, y: 1 }]);
-    expect(ITEMS.expiredmilk.rules).toBe('Cursed: poisons enemies within 110 of the cart: {0} poison damage (refreshes every 0.5 s, does not stack). Your max HP is reduced by 10%. Combo: Sour Mist with Spray Bottle + Desk Fan.');
   });
 
   it('keeps its tune in one place', () => {

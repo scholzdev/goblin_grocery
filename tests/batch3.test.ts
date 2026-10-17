@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { computeBuild, tierScaling } from '../src/systems/synergies';
-import { tailwindFeedsSugar } from '../src/systems/combat';
+import { tailwindFeedsSugar } from '../src/engine/stacks';
 import { createRun, mergeItems, moveItem, openShop, upgradeItem } from '../src/state/run';
 import { footprint } from '../src/systems/inventory';
 import { mulberry32 } from '../src/systems/rng';

@@ -2,7 +2,7 @@ import { defineItem } from '../../engine/define';
 
 export default defineItem({
   id: 'expiredmilk', kind: 'passive', sets: ['snacks'], shape: '1x2', price: 7,
-  // Poison dps per ★ (the legacy 3 x TIER.mult); the aura geometry is flat. `hpCut` is the curse: max HP x (1 - hpCut), applied to the
+  // Poison dps per ★ (3 x TIER.mult); the aura geometry is flat. `hpCut` is the curse: max HP x (1 - hpCut), applied to the
   // finished total (the player hook has a high `order`; the rounding stays in computeBuild).
   tune: { dps: [3, 3 * 1.5, 3 * 2], radius: 110, interval: 0.5, duration: 1, hpCut: 0.1 },
   text: {

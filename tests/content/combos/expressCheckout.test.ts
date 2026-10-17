@@ -1,14 +1,20 @@
 import { describe, expect, it } from 'vitest';
 import expressCheckout from '../../../src/content/combos/expressCheckout';
-import { applyCombo, arena, at, bare, describeCombo, partsOf } from './helpers';
+import { arena, at, describeCombo, partsOf } from './helpers';
 
 describeCombo('expressCheckout', expressCheckout, ['Express Checkout', 'Schnellkasse']);
 
+describe('Express Checkout: text', () => {
+  it('spells the cooldown as a literal (the s formatter would print "1 s"), so it must follow tune.icd', () => {
+    const icd = expressCheckout.tune!.icd as number;
+    expect(expressCheckout.text.en.detail).toContain(`(${icd.toFixed(1)} s internal cooldown)`);
+    expect(expressCheckout.text.de.detail).toContain(`(${icd.toFixed(1).replace('.', ',')} s interne Abklingzeit)`);
+  });
+});
+
 describe('Express Checkout: build', () => {
-  it('only flags expressSweep (golden contract); nothing else on the pan changes', () => {
-    const base = bare('pan'), w = applyCombo(expressCheckout, base);
-    expect(w.expressSweep).toBe(true);
-    expect({ ...w, expressSweep: false }).toEqual({ ...base, expressSweep: false });
+  it('changes no stats: the bonus sweep is the onDashEnd hook', () => {
+    expect(expressCheckout.build).toBeUndefined();
   });
 });
 

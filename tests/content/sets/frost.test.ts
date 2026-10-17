@@ -179,3 +179,19 @@ describe('Frost set: draw order next to the Electric chain', () => {
     expect(c.fake.rng()).toBe(draws(chainOnly, 4)[3]);
   });
 });
+
+describe('Frost set: puddle slow (pattern:puddleEnter)', () => {
+  const enter = (c: ReturnType<typeof arena>, pct: number) => {
+    const ev = { stats: c.stats, enemy: c.fake.spawnEnemy(), first: false, puddle: { x: 0, y: 0, r: 60 }, slow: { pct, duration: 0.5 } };
+    c.fake.hooks.emit('pattern:puddleEnter', ev as never);
+    return ev.slow;
+  };
+  it('adds the set bonus to the puddle slow at L1+, capped, duration unchanged', () => {
+    const t = contentSetTune('frost', 1);
+    expect(enter(arena(cart(0)), 0.25)).toEqual({ pct: 0.25 + t.slowBonus, duration: 0.5 });
+    expect(enter(arena(cart(0)), 0.58).pct).toBe(t.slowCap);
+  });
+  it('does nothing below the threshold', () => {
+    expect(enter(arena([at('mop')]), 0.25)).toEqual({ pct: 0.25, duration: 0.5 });
+  });
+});

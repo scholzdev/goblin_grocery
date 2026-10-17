@@ -11,10 +11,9 @@ afterEach(() => vi.restoreAllMocks());
 describeCombo('nailstorm', nailstorm, ['Nailstorm', 'Nagelsturm']);
 
 describe('Nailstorm: build', () => {
-  it('adds one pierce and turns on homing', () => {
+  it('adds one pierce (the homing is the shot hooks)', () => {
     const base = bare('nailgun'), w = applyCombo(nailstorm, base);
     expect(w.pierce).toBe(base.pierce + 1);
-    expect(w.homing).toBe(true);
     expect(w.damage).toBe(base.damage);
   });
   it('tune carries the homing numbers the weapon code reads (turn 7 rad/s, range 200)', () => {
@@ -25,11 +24,11 @@ describe('Nailstorm: build', () => {
     expect(activeIn(partsOf(nailstorm))).toContain('nailstorm');
     expect(activeIn(ray)).toContain('rayGun');
     expect(activeIn(ray)).not.toContain('nailstorm');
-    expect(computeBuild(build(ray, 8, 6)).weapons[0].homing).toBeFalsy();
+    expect(computeBuild(build(ray, 8, 6)).weapons[0].recipes).not.toContain('nailstorm');
   });
   it('a second Nail Gun without the parts is untouched', () => {
     const b = computeBuild(build([...partsOf(nailstorm), far('nailgun')], 8, 6));
-    expect(b.weapons.find((w) => w.uid === 'u3')?.homing).toBeFalsy();
+    expect(b.weapons.find((w) => w.uid === 'u3')?.recipes).toEqual([]);
   });
 });
 

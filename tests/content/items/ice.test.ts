@@ -65,12 +65,11 @@ describe('Ice Pack: build', () => {
 });
 
 describe('Ice Pack: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('ice')).toBe(ice);
     const def = ITEMS.ice;
-    expect(def).toMatchObject({ id: 'ice', family: 'kitchen', element: 'frost', name: 'Ice Pack', kind: 'module', price: 8, electrical: false, buff: 'ice' });
+    expect(def).toMatchObject({ id: 'ice', family: 'kitchen', element: 'frost', kind: 'module', price: 8, electrical: false, buff: 'ice' });
     expect(def.cells).toEqual([{ x: 0, y: 0 }, { x: 0, y: 1 }]);
-    expect(def.rules).toBe('Adjacent weapon hits slow enemies by {0} for 1 s. Repeated hits refresh.');
     expect(def.legendary).toBeUndefined();
     expect(def.weapon).toBeUndefined();
   });

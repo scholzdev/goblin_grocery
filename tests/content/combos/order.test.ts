@@ -8,7 +8,7 @@ import potSlam from '../../../src/content/combos/potSlam';
 import toastMode from '../../../src/content/combos/toastMode';
 import fiveAlarm from '../../../src/content/combos/fiveAlarm';
 import { computeBuild } from '../../../src/systems/synergies';
-import { RECIPE_ORDER } from '../../../src/data/recipes';
+import { RECIPE_ORDER } from '../../../src/engine/define';
 import { build } from '../../golden/carts';
 
 // Order guards for the combos: where a combo's effect sits relative to other effects is observable (damage, rng draws, stats), so each

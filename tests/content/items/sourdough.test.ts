@@ -143,13 +143,12 @@ describe('Sourdough Starter: growth reads the tune', () => {
 });
 
 describe('Sourdough Starter: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('sourdough')).toBe(sourdough);
-    expect(ITEMS.sourdough).toMatchObject({ id: 'sourdough', family: 'kitchen', name: 'Sourdough Starter', kind: 'passive', price: 6, electrical: false });
+    expect(ITEMS.sourdough).toMatchObject({ id: 'sourdough', family: 'kitchen', kind: 'passive', price: 6, electrical: false });
     expect(ITEMS.sourdough.element).toBeUndefined();
     expect(ITEMS.sourdough.legendary).toBeUndefined();
     expect(ITEMS.sourdough.buff).toBeUndefined();
-    expect(ITEMS.sourdough.rules).toBe('Weapons touching it gain {0} damage. Grows one level every 2 aisles (needs room to rise): 2 cells at ★2, 3 cells at ★3.');
   });
 
   it('keeps its tune in one place (the per-tier damage column is perStar x tier)', () => {

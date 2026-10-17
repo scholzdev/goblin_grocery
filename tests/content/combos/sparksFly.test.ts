@@ -1,8 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import sparksFly from '../../../src/content/combos/sparksFly';
+import tvDinner from '../../../src/content/combos/tvDinner';
 import { applyCombo, arena, bare, describeCombo, draws, partsOf } from './helpers';
 
 describeCombo('sparksFly', sparksFly, ['Sparks Fly', 'Funkenflug']);
+
+describe('Sparks Fly: text', () => {
+  it('names TV Dinner by its own name in each language (the DE name is Fertiggericht)', () => {
+    expect(tvDinner.text.de.name).toBe('Fertiggericht');
+    expect(sparksFly.text.en.detail).toContain(tvDinner.text.en.name);
+    expect(sparksFly.text.de.detail).toContain(tvDinner.text.de.name);
+    expect(sparksFly.text.de.detail).not.toContain('TV-Dinner');
+  });
+});
 
 describe('Sparks Fly: build', () => {
   it('adds two chain links', () => {

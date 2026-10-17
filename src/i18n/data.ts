@@ -1,35 +1,32 @@
 import { lang } from './lang';
 import { DATA_DE } from './data-de';
-import { ITEMS, PLAYER } from '../data/items';
+import { PLAYER } from '../data/items';
 import { ENEMIES } from '../data/enemies';
 import { DEPARTMENTS } from '../data/departments';
 import { ZONES, type ZoneId } from '../data/zones';
 import { SHIFTS } from '../data/waves';
 import { CART_SKINS, GOBLIN_SKINS, UNLOCKS } from '../data/unlocks';
-import { tierScaling } from '../systems/synergies';
-import { recipeTextOf } from '../engine/legacy';
 import { contentCombo, contentItem, contentSet } from '../engine/registry';
-import { renderText } from '../engine/text';
+import { renderAll, renderText } from '../engine/text';
 import type { CartSkin, GoblinSkin } from '../data/unlocks';
 import type { DepartmentId, EnemyId, ItemTypeId, RecipeId, SetId, StarterId } from '../types';
 
 const de = () => lang() === 'de';
 
+/** An item's name and blurb in the current language (the blurb's placeholders filled at ★1). */
 export const itemT = (id: ItemTypeId) => {
-  const { name, blurb, rules } = de() ? DATA_DE.items[id] : ITEMS[id];
-  return { name, blurb, rules };
+  const c = contentItem(id)!, { name, blurb } = c.text[lang()];
+  return { name, blurb: renderText(blurb, c.tune, 1, lang()) };
 };
-/** Item rules text with the per-level numbers ({0}, {1}, …: the tierScaling rows) filled in for `tier`. */
+/** Item rules text with the numbers of `tier` filled in from the content tune (★1 for the per-tier values by default). */
 export const itemRules = (id: ItemTypeId, tier = 1): string => {
-  const c = contentItem(id);
-  if (c) return renderText(c.text[lang()].rules, c.tune, tier, lang()); // content items render straight from their tune
-  const rows = tierScaling(id);
-  return itemT(id).rules.replace(/\{(\d)\}/g, (_, i) => rows[+i]?.values[tier - 1] ?? '');
+  const c = contentItem(id)!;
+  return renderText(c.text[lang()].rules, c.tune, tier, lang());
 };
+/** A combo's name and texts in the current language, the placeholders filled from its tune. */
 export const recipeT = (id: RecipeId) => {
-  const c = contentCombo(id);
-  if (!c) throw new Error(`combo "${id}" has no content file`);
-  return recipeTextOf(c, lang());
+  const c = contentCombo(id)!;
+  return renderAll(c.text[lang()], c.tune, lang());
 };
 export const enemyT = (id: EnemyId) => {
   const { name, blurb } = de() ? DATA_DE.enemies[id] : ENEMIES[id];

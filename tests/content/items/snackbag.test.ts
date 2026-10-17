@@ -70,12 +70,11 @@ describe('Family-Size Snack Bag: build', () => {
 });
 
 describe('Family-Size Snack Bag: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('snackbag')).toBe(snackbag);
-    expect(ITEMS.snackbag).toMatchObject({ id: 'snackbag', family: 'snacks', name: 'Family-Size Snack Bag', kind: 'passive', price: 30, electrical: false, legendary: true });
+    expect(ITEMS.snackbag).toMatchObject({ id: 'snackbag', family: 'snacks', kind: 'passive', price: 30, electrical: false, legendary: true });
     expect(ITEMS.snackbag.element).toBeUndefined();
     expect(ITEMS.snackbag.cells).toEqual([{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }]);
-    expect(ITEMS.snackbag.rules).toBe('+20 max HP and regenerate 1 HP every 4 s during combat (does not stack).');
   });
 
   it('keeps its tune in one place (scalars: legendaries have one tier)', () => {

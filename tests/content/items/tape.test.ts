@@ -74,13 +74,12 @@ describe('Duct Tape: Gold Star (effective ★4)', () => {
 });
 
 describe('Duct Tape: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('tape')).toBe(tape);
     const def = ITEMS.tape;
-    expect(def).toMatchObject({ id: 'tape', family: 'tools', name: 'Duct Tape', kind: 'module', price: 9, electrical: false, buff: 'tape' });
+    expect(def).toMatchObject({ id: 'tape', family: 'tools', kind: 'module', price: 9, electrical: false, buff: 'tape' });
     expect(def.element).toBeUndefined();
     expect(def.cells).toEqual([{ x: 0, y: 0 }]);
-    expect(def.rules).toBe('Any adjacent weapon: projectiles pierce {0}, sweeps and cones {1} arc, areas {2} radius, beams {2} length.');
     expect(def.legendary).toBeUndefined();
     expect(def.weapon).toBeUndefined();
   });

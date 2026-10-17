@@ -12,10 +12,8 @@ describe('Cold Storage: build', () => {
     expect(w.damage).toBe(base.damage * 2.5);
     expect(w.range).toBe(base.range * 1.2);
   });
-  it('replaces the Ice Pack slow instead of adding to it (overrides slow)', () => {
-    expect(coldStorage.overrides).toEqual(['slow']);
-    const w = weaponOf(partsOf(coldStorage));
-    expect(w.slow).toEqual({ pct: 0.5, duration: 1.5 });
+  it('replaces the Ice Pack slow instead of adding to it', () => {
+    expect(weaponOf(partsOf(coldStorage)).slow).toEqual({ pct: 0.5, duration: 1.5 });
   });
   it('order guard: the Frost set bonus (post-combo, order 1000) lands after the combo slow: 0.5 -> 0.6 at Frost L1', () => {
     const w = weaponOf([...partsOf(coldStorage), far('fizz')]);

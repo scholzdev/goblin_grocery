@@ -1,42 +1,14 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { ITEMS, TIER } from '../../../src/data/items';
+import { ITEMS } from '../../../src/data/items';
 import coupon from '../../../src/content/items/coupon';
 import { contentItem, contentTune } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { combatRng } from '../../../src/systems/rng';
 import { tierScaling } from '../../../src/systems/synergies';
-import { around, arena, at, corner, far, full, gilded } from '../helpers';
+import { around, arena, at, far } from '../helpers';
 
 afterEach(() => setLang('en'));
-
-// Legacy: +1 coin per kill with 30% chance at ★1 (x TIER.mult, max 90%), the best copy in the cart counts once.
-describe('Coupon Book: build field', () => {
-  it('sets coinChance to 0.3 / 0.45 / 0.6 at ★1 / ★2 / ★3, nothing otherwise', () => {
-    expect(full([at('toaster')]).coinChance).toBe(0);
-    [0.3, 0.45, 0.6].forEach((c, i) => expect(full([at('toaster'), far('coupon', i + 1)]).coinChance).toBeCloseTo(c, 12));
-  });
-
-  it('matches the legacy formula min(0.9, 0.3 x TIER.mult) to the bit', () => {
-    for (const t of [1, 2, 3]) expect(full([at('toaster'), far('coupon', t)]).coinChance).toBe(Math.min(0.9, 0.3 * TIER.mult(t)));
-  });
-
-  it('changes nothing but coinChance', () => {
-    const plain = full([at('toaster')]), withCoupon = full([at('toaster'), far('coupon', 3)]);
-    expect(withCoupon.weapons).toEqual(plain.weapons);
-    expect({ ...withCoupon, coinChance: 0 }).toEqual({ ...plain, coinChance: 0 });
-  });
-
-  it('does not stack: the best copy counts once, wherever it sits', () => {
-    expect(full([at('toaster'), far('coupon', 1), far('coupon', 3)]).coinChance).toBeCloseTo(0.6, 12);
-    expect(full([at('toaster'), far('coupon', 2), at('coupon', 1, { near: [0] })]).coinChance).toBeCloseTo(0.45, 12);
-  });
-
-  it('Gold Star lifts it one tier (★3 -> effective ★4: 75%, below the 90% cap)', () => {
-    expect(Math.min(0.9, 0.3 * TIER.mult(4))).toBe(0.75);
-    expect(full([at('toaster'), corner('coupon', 3), gilded(1)]).coinChance).toBeCloseTo(0.75, 12);
-  });
-});
 
 // The roll is a runtime hook: `onKill` in the content file. One combat-rng draw per credited kill, then a coin with the Coupon Book label.
 describe('Coupon Book: runtime', () => {
@@ -108,11 +80,10 @@ describe('Coupon Book: runtime', () => {
 });
 
 describe('Coupon Book: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('coupon')).toBe(coupon);
-    expect(ITEMS.coupon).toMatchObject({ id: 'coupon', family: 'checkout', name: 'Coupon Book', kind: 'passive', price: 8, electrical: false });
+    expect(ITEMS.coupon).toMatchObject({ id: 'coupon', family: 'checkout', kind: 'passive', price: 8, electrical: false });
     expect(ITEMS.coupon.cells).toEqual([{ x: 0, y: 0 }]);
-    expect(ITEMS.coupon.rules).toBe('Kills have a {0} chance to drop +1 coin (does not stack). Combo: Clearance Sale with Fizz Cannon + Price Gun.');
   });
 
   it('keeps its tune in one place', () => {

@@ -1,32 +1,15 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { ITEMS, TIER } from '../../../src/data/items';
+import { ITEMS } from '../../../src/data/items';
 import sparewheel from '../../../src/content/items/sparewheel';
 import { contentItem, contentTune } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { tierScaling } from '../../../src/systems/synergies';
-import { around, arena, at, corner, far, full, gilded } from '../helpers';
+import { around, arena, at, corner, far, gilded } from '../helpers';
 
 afterEach(() => setLang('en'));
 
 const arenaSource = (Object.values(import.meta.glob('../../../src/scenes/ArenaScene.ts', { query: '?raw', import: 'default', eager: true }))[0] as string);
-
-// Legacy: after a normal dash the next dash is free for 1 s (x TIER.mult); a dash taken inside the window is "chained" and uses it up.
-describe('Spare Wheel: build field', () => {
-  it('sets dashChain to 1 / 1.5 / 2 s at ★1 / ★2 / ★3, 0 without the item', () => {
-    expect(full([at('toaster')]).dashChain).toBe(0);
-    expect([1, 2, 3].map((t) => full([at('toaster'), far('sparewheel', t)]).dashChain)).toEqual([1, 1.5, 2]);
-  });
-
-  it('matches the legacy formula 1 x TIER.mult to the bit, also at Gold Star\'s effective ★4 (2.5 s)', () => {
-    for (const t of [1, 2, 3]) expect(full([at('toaster'), far('sparewheel', t)]).dashChain).toBe(1 * TIER.mult(t));
-    expect(full([at('toaster'), corner('sparewheel', 3), gilded(1)]).dashChain).toBe(2.5);
-  });
-
-  it('does not stack: the best copy counts once', () => {
-    expect(full([at('toaster'), far('sparewheel', 1), far('sparewheel', 2)]).dashChain).toBe(1.5);
-  });
-});
 
 // The window is an `onDashStart` hook: the scene resets chainT to 0 on every dash and emits; a normal dash opens the window again.
 describe('Spare Wheel: runtime', () => {
@@ -84,12 +67,11 @@ describe('Spare Wheel: runtime', () => {
 });
 
 describe('Spare Wheel: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('sparewheel')).toBe(sparewheel);
-    expect(ITEMS.sparewheel).toMatchObject({ id: 'sparewheel', family: 'tools', name: 'Spare Wheel', kind: 'passive', price: 10, electrical: false });
+    expect(ITEMS.sparewheel).toMatchObject({ id: 'sparewheel', family: 'tools', kind: 'passive', price: 10, electrical: false });
     expect(ITEMS.sparewheel.element).toBeUndefined();
     expect(ITEMS.sparewheel.cells).toEqual([{ x: 0, y: 0 }]);
-    expect(ITEMS.sparewheel.rules).toBe('After a dash, one more dash within {0} is free: it skips the cooldown (does not stack).');
   });
 
   it('keeps its tune in one place', () => {

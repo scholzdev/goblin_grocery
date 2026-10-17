@@ -5,7 +5,7 @@ import { contentItem, contentTune } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { tierScaling } from '../../../src/systems/synergies';
-import { around, arena, at, far, full, gilded } from '../helpers';
+import { around, arena, at, far, gilded } from '../helpers';
 
 /** The 3x1 wrap in the bottom-right corner (a Gold Star can sit against it without touching the weapon). */
 const wrapCorner = (tier: number) => at('bubblewrap', tier, { near: [], apart: [0], at: [5, 4] });
@@ -14,23 +14,6 @@ afterEach(() => setLang('en'));
 
 const scenes = import.meta.glob(['../../../src/scenes/ArenaScene.ts', '../../../src/state/run.ts'], { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
 const source = (file: string): string => Object.entries(scenes).find(([k]) => k.endsWith(`/${file}`))![1];
-
-// Legacy: take (tier) less damage from every hit, never below 1, and +0.25 s of invulnerability after a hit; the best copy counts once.
-describe('Bubble Wrap: build fields', () => {
-  it('sets armor to the tier (1 / 2 / 3) and invulnBonus to 0.25, both 0 without the item', () => {
-    const plain = full([at('toaster')]);
-    expect([plain.armor, plain.invulnBonus]).toEqual([0, 0]);
-    [1, 2, 3].forEach((t) => {
-      const b = full([at('toaster'), far('bubblewrap', t)]);
-      expect([b.armor, b.invulnBonus]).toEqual([t, 0.25]);
-    });
-  });
-
-  it('Gold Star lifts the armor to the effective ★4 (4), the best copy counts once', () => {
-    expect(full([at('toaster'), wrapCorner(3), gilded(1)]).armor).toBe(4);
-    expect(full([at('toaster'), far('bubblewrap', 1), far('bubblewrap', 2)]).armor).toBe(2);
-  });
-});
 
 // The armor is an `onPlayerHit` hook now (it used to be applied in run.damagePlayer, the i-frame bonus in hurtPlayer). FakeCtx.hurt mirrors hurtPlayer.
 describe('Bubble Wrap: runtime', () => {
@@ -99,11 +82,10 @@ describe('Bubble Wrap: the legacy reads are gone', () => {
 });
 
 describe('Bubble Wrap: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('bubblewrap')).toBe(bubblewrap);
-    expect(ITEMS.bubblewrap).toMatchObject({ id: 'bubblewrap', family: 'checkout', name: 'Bubble Wrap', kind: 'passive', price: 10, electrical: false });
+    expect(ITEMS.bubblewrap).toMatchObject({ id: 'bubblewrap', family: 'checkout', kind: 'passive', price: 10, electrical: false });
     expect(ITEMS.bubblewrap.cells).toEqual([{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 2, y: 0 }]);
-    expect(ITEMS.bubblewrap.rules).toBe('Take {0} less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack).');
   });
 
   it('keeps its tune in one place', () => {

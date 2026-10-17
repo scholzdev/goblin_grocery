@@ -1,15 +1,15 @@
-import { BUNDLE, ITEMS, PLAYER, PROJECTILE_PATTERNS, TIER } from '../data/items';
+import { BUNDLE, ITEMS, PLAYER, TIER } from '../data/items';
 import { RECIPES } from '../data/recipes';
 import { setLevels } from '../data/sets';
 import type { ActiveRecipe, BuffId, Build, Inventory, ItemInstance, ItemTypeId, Perk, WeaponStats } from '../types';
 import { adjacentPairs, neighbors } from './inventory';
 import { fmtNum, lang, t } from '../i18n';
 import { itemT, recipeT } from '../i18n/data';
+import { BUFF_ORDER, PROJECTILE_PATTERNS } from '../engine/define';
 import { runCombo, runModule, runPhase, runPlayerHooks, tierBoostOf, type BuildEnv, type WeaponEnv } from '../engine/build';
 import { contentItem, contentTune } from '../engine/registry';
 import { tierRows } from '../engine/text';
 
-export const BUFF_ORDER: BuffId[] = ['fan', 'fuel', 'battery', 'ice', 'hotsauce', 'pricegun', 'tape', 'popper', 'echo', 'multipack'];
 const tierOf = (i: ItemInstance) => i.tier ?? 1;
 
 export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
@@ -33,8 +33,8 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
       uid: w.uid, type: w.type, pattern: b.pattern, damage: b.damage * TIER.weaponDamage(tier), cooldown: b.cooldown * TIER.weaponCooldown(tier),
       range: b.range, projectileSpeed: b.projectileSpeed, count: b.count, burstInterval: b.burstInterval, spreadDeg: 0,
       arcDeg: b.arcDeg, pull: b.pull, tick: b.tick, duration: b.duration, bounces: b.bounces, chain: b.chain, aoe: b.aoe,
-      popper: null, echo: 0, firePool: false, tier, bundle: 0, critChance: 0, critCoin: false, pierce: 0, homing: false, burn: null, ignite: null, chainChance: 0, chainJumps: 0, slow: null,
-      frostRing: false, expressSweep: false, dashBlast: false, buffs: [], recipes: [],
+      popper: null, echo: 0, tier, bundle: 0, critChance: 0, pierce: 0, burn: null, ignite: null, chainChance: 0, chainJumps: 0, slow: null,
+      frostRing: false, buffs: [], recipes: [],
     };
     const near = neighbors(placed, w.uid);
     const nearTypes = new Set(near.map((n) => n.type));
@@ -45,12 +45,13 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
       const id = ITEMS[n.type].buff;
       if (id) buffTier.set(id, Math.max(buffTier.get(id) ?? 0, eff(n)));
     }
-    const we: WeaponEnv = { env, near, uid: w.uid, matching: matching.map((r) => r.id), tapeArc: 0 };
+    const we: WeaponEnv = { env, near, uid: w.uid, tapeArc: 0 };
     runPhase('base', s, we);
+    const suppressed = new Set(matching.flatMap((r) => r.suppresses ?? [])); // Mist Machine switches the Desk Fan off on its spray
     for (const id of BUFF_ORDER) {
       const mt = buffTier.get(id);
-      if (!mt) continue;
-      if (runModule(id, s, we, mt) === false) continue; // the hook skipped it (e.g. Double Bag on an aura): the buff is not recorded
+      if (!mt || suppressed.has(id)) continue;
+      if (!runModule(id, s, we, mt)) continue; // the hook skipped it (e.g. Double Bag on an aura): the buff is not recorded
       s.buffs.push(id);
     }
     runPhase('flavor', s, we);
@@ -62,7 +63,7 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
     for (const r of matching) {
       if (matching.some((o) => o.replaces?.includes(r.id))) continue; // e.g. Ray Gun replaces Nailstorm
       const sup = near.filter((n) => r.supports.includes(n.type));
-      runCombo(r.id, s, we); // the combo's `combo`-phase build hook, if it has stat effects (RECIPE_ORDER)
+      runCombo(r.id, s, we); // the combo's `combo`-phase build hook, if it has stat effects
       s.recipes.push(r.id);
       recipes.push({ id: r.id, weaponUid: w.uid, supportUids: sup.map((n) => n.uid).sort() });
     }
@@ -88,24 +89,14 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
     weapons, recipes, adjacency: adjacentPairs(placed),
     // Unrounded here: player hooks add to it, then the Expired Milk curse and the rounding below finish it.
     maxHp: PLAYER.maxHp + (perk.maxHp ?? 0),
-    reflectMult: 0,
     stinkDps: 0,
     regen: 0, // the Snacks set (L2) and Snack Bag add in their player hooks
-    critHeal: 0,
     killCoinMult: 1,
     pickupRadius: PLAYER.pickupRadius + (perk.pickupRadius ?? 0), // the Vacuum and Magnet add in their player hooks
     shoveCooldown: PLAYER.shove.cooldown + (perk.shoveCooldown ?? 0),
     shoveDistMult: 1,
     shoveDamage: PLAYER.shove.damage + (perk.shoveDamage ?? 0), // Boot adds in its player hook, then the Tools set (L2, order 200) multiplies the total
-    shoveStun: 0,
-    dashSlam: 0,
-    dashChain: 0,
-    dashCoinChance: 0,
-    dashMark: 0,
     moveSpeedMult: perk.moveSpeedMult ?? 1,
-    coinChance: 0,
-    armor: 0,
-    invulnBonus: 0,
     sets, priceMult: 1, // the Checkout set sets it in its player hook
   };
   runPlayerHooks(build, env);

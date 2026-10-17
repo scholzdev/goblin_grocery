@@ -7,7 +7,8 @@ import { ITEMS, WEAPON_IDS } from '../../src/data/items';
 import { footprint } from '../../src/systems/inventory';
 import { BOSS_WAVE } from '../../src/data/waves';
 import { mulberry32 } from '../../src/systems/rng';
-import { RECIPES, RECIPE_ORDER } from '../../src/data/recipes';
+import { RECIPES } from '../../src/data/recipes';
+import { RECIPE_ORDER } from '../../src/engine/define';
 import type { ItemTypeId, RecipeId, SetId } from '../../src/types';
 
 const sim = (id: string): SimDef => simRegistry.get(id)!;

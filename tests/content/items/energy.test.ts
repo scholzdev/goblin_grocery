@@ -46,12 +46,11 @@ describe('Energy Drink: build', () => {
 });
 
 describe('Energy Drink: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('energy')).toBe(energy);
-    expect(ITEMS.energy).toMatchObject({ id: 'energy', family: 'snacks', name: 'Energy Drink', kind: 'passive', price: 8, electrical: false });
+    expect(ITEMS.energy).toMatchObject({ id: 'energy', family: 'snacks', kind: 'passive', price: 8, electrical: false });
     expect(ITEMS.energy.element).toBeUndefined();
     expect(ITEMS.energy.cells).toEqual([{ x: 0, y: 0 }]);
-    expect(ITEMS.energy.rules).toBe('{0} movement speed (does not stack).');
     expect(ITEMS.energy.legendary).toBeUndefined();
   });
 

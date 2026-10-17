@@ -1,7 +1,6 @@
 import { DEPTH } from '../../data/depth';
 import { applyBurn, applySlow } from '../../systems/combat';
-import type { SlowEffect, WeaponStats } from '../../types';
-import { contentSetTune } from '../registry';
+import type { WeaponStats } from '../../types';
 import type { Pattern, PatternHost, Puddle } from './types';
 
 export function removePuddle(h: PatternHost, pd: Puddle): void {
@@ -15,13 +14,6 @@ export function spawnFirePool(h: PatternHost, x: number, y: number, r: number, t
   if (h.puddles.length >= 14) removePuddle(h, h.puddles[0]);
   const img = h.sc.add.image(x, y, 'fx_puddle_fire').setDepth(DEPTH.decal).setDisplaySize(r * 1.8, r * 1.1).setAlpha(0.9);
   h.puddles.push({ img, x, y, r: r * 0.9, until: h.time + time, nextTick: h.time, stats: st, burnOnly: true, burn: { dps: Math.max(tune.dps, st.burn.dps), duration: Math.max(tune.duration, st.burn.duration), tick: tune.tick } });
-}
-
-/** The soap slip, stronger with the Frost set (cap and bonus from its tune). */
-function slowFor(base: SlowEffect, frostLv: number): SlowEffect {
-  if (frostLv <= 0) return base;
-  const f = contentSetTune('frost', frostLv);
-  return { ...base, pct: Math.min(f.slowCap, base.pct + f.slowBonus) };
 }
 
 function dropPuddle(h: PatternHost, w: { stats: WeaponStats; tune: Readonly<Record<string, number>> }): void {
@@ -59,12 +51,15 @@ export const puddle: Pattern = {
         const dx = (e.x - pd.x) / pd.r, dy = (e.y - pd.y) / (pd.r * 0.62);
         if (dx * dx + dy * dy > 1) continue;
         if (pd.burnOnly) { if (pd.burn) applyBurn(e.status, sc.aisleEvent.burn(pd.burn), now); continue; }
+        let slow = pd.slow!;
         if (sc.hooks['pattern:puddleEnter'].length) {
           const seen = (pd.seen ??= new Set()), first = !seen.has(e.id);
           seen.add(e.id);
-          sc.hooks.emit('pattern:puddleEnter', { stats: pd.stats, enemy: e, puddle: pd, first });
+          const ev = { stats: pd.stats, enemy: e, puddle: pd, first, slow };
+          sc.hooks.emit('pattern:puddleEnter', ev);
+          slow = ev.slow; // the Frost set strengthens it
         }
-        applySlow(e.status, slowFor(pd.slow!, h.build.sets.frost), now);
+        applySlow(e.status, slow, now);
         sc.damageEnemy(e, pd.stats.damage, pd.stats, { quiet: true });
       }
     }

@@ -2,8 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { computeBuild } from '../src/systems/synergies';
 import { createRun, labAddItem, openShop } from '../src/state/run';
 import { mulberry32 } from '../src/systems/rng';
-import { TIER } from '../src/data/items';
-import { contentComboTune, contentTune } from '../src/engine/registry';
+import { contentComboTune } from '../src/engine/registry';
 import { cart } from './cart';
 import type { Inventory, ItemInstance, ItemTypeId, ElementTag } from '../src/types';
 
@@ -21,15 +20,13 @@ describe('batch 2 weapon combos', () => {
     for (let i = 0; i < sup.length; i++) expect(computeBuild(cart(weapon, sup.filter((_, j) => j !== i))).weapons[0].recipes).not.toContain(id);
   });
 
-  it('Ray Gun replaces Nailstorm: no nailstorm recipe, pierce or homing (control keeps them)', () => {
+  it('Ray Gun replaces Nailstorm: no nailstorm recipe or pierce (control keeps them)', () => {
     const ray = computeBuild(cart('nailgun', ['battery', 'tinfoilhat', 'magnet']));
     expect(ray.weapons[0].recipes).not.toContain('nailstorm');
     expect(ray.recipes.map((r) => r.id)).not.toContain('nailstorm');
     expect(ray.weapons[0].pierce).toBe(0);
-    expect(ray.weapons[0].homing).toBe(false);
     const storm = computeBuild(cart('nailgun', ['battery', 'magnet'])).weapons[0];
     expect(storm.recipes).toContain('nailstorm');
-    expect(storm.homing).toBe(true);
     expect(storm.pierce).toBe(contentComboTune('nailstorm').extraPierce);
   });
 
@@ -39,15 +36,6 @@ describe('batch 2 weapon combos', () => {
     const both = computeBuild(cart('microwave', ['tinfoilhat', 'battery', 'lunchbox'])).weapons[0];
     expect(both.recipes).toEqual(expect.arrayContaining(['sparksFly', 'tvDinner']));
     expect(both.chain).toBe(3);
-  });
-});
-
-describe('Tin Foil Hat', () => {
-  it('reflect multiplier scales by tier and is 0 without the hat', () => {
-    expect(computeBuild(inv([['toaster', 0, 0]])).reflectMult).toBe(0);
-    for (const tier of [1, 2, 3]) {
-      expect(computeBuild(inv([['toaster', 0, 0], ['tinfoilhat', 3, 3, { tier }]])).reflectMult).toBeCloseTo(contentTune('tinfoilhat', 1).mult * TIER.mult(tier));
-    }
   });
 });
 

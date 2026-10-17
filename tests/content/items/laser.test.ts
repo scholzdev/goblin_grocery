@@ -14,15 +14,14 @@ afterEach(() => setLang('en'));
 // Pattern behaviour runs headless through the FakeArsenal (src/engine/patterns/fakeHost.ts): the cart's real build, the compiled hooks, a fake clock.
 
 describe('Self-Checkout Laser: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('laser')).toBe(laser);
     const def = ITEMS.laser;
-    expect(def).toMatchObject({ id: 'laser', family: 'checkout', name: 'Self-Checkout Laser', kind: 'weapon', price: 40, electrical: true });
+    expect(def).toMatchObject({ id: 'laser', family: 'checkout', kind: 'weapon', price: 40, electrical: true });
     expect(def.element).toBeUndefined();
     expect(def.tags).toEqual(['ranged']);
     expect(def.legendary).toBe(true);
     expect(def.cells).toEqual([{x: 1, y: 0}, {x: 0, y: 1}, {x: 1, y: 1}, {x: 2, y: 1}, {x: 1, y: 2}]);
-    expect(def.rules).toBe('Every 1.6 s fires a barcode beam (620 long) that hits every enemy in the line once for 20 damage. Electrical.');
     expect(def.weapon).toEqual({ pattern: 'laser', damage: 20, cooldown: 1.6, range: 620, projectileSpeed: 0, count: 1, burstInterval: 0, arcDeg: 0, pull: 0, tick: 0, duration: 0, bounces: 0, chain: 0, aoe: 0 });
   });
 

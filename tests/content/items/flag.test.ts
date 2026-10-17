@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { ITEMS, TIER } from '../../../src/data/items';
+import { ITEMS } from '../../../src/data/items';
 import flag from '../../../src/content/items/flag';
 import { contentComboTune, contentCombo, contentItem, contentTune } from '../../../src/engine/registry';
 import { MARK_MULT } from '../../../src/engine/marks';
@@ -7,29 +7,12 @@ import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { combatRng } from '../../../src/systems/rng';
 import { tierScaling } from '../../../src/systems/synergies';
-import { around, arena, at, corner, far, full, gilded } from '../helpers';
+import { around, arena, at, corner, far, gilded } from '../helpers';
 
 afterEach(() => setLang('en'));
 
 const scenes = import.meta.glob('../../../src/scenes/*.ts', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
 const sceneSource = (file: string): string => Object.entries(scenes).find(([k]) => k.endsWith(`/${file}`))![1];
-
-// Legacy: enemies hit by the dash are marked for 2 s (x TIER.mult); the best copy counts once.
-describe('Sale Flag: build field', () => {
-  it('sets dashMark to 2 / 3 / 4 s at ★1 / ★2 / ★3, 0 without the item', () => {
-    expect(full([at('toaster')]).dashMark).toBe(0);
-    expect([1, 2, 3].map((t) => full([at('toaster'), far('flag', t)]).dashMark)).toEqual([2, 3, 4]);
-  });
-
-  it('matches the legacy formula 2 x TIER.mult to the bit, also at Gold Star\'s effective ★4 (5 s)', () => {
-    for (const t of [1, 2, 3]) expect(full([at('toaster'), far('flag', t)]).dashMark).toBe(2 * TIER.mult(t));
-    expect(full([at('toaster'), corner('flag', 3), gilded(1)]).dashMark).toBe(5);
-  });
-
-  it('does not stack: the best copy counts once', () => {
-    expect(full([at('toaster'), far('flag', 1), far('flag', 3)]).dashMark).toBe(4);
-  });
-});
 
 // The mark is applied by an `onDashHit` hook (no rng). The x1.2 on marked enemies is NOT a Flag hook: Price Check marks too.
 describe('Sale Flag: runtime', () => {
@@ -104,11 +87,10 @@ describe('Sale Flag: the mark multiplier stays in the pipeline', () => {
 });
 
 describe('Sale Flag: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('flag')).toBe(flag);
-    expect(ITEMS.flag).toMatchObject({ id: 'flag', family: 'checkout', name: 'Sale Flag', kind: 'passive', price: 10, electrical: false });
+    expect(ITEMS.flag).toMatchObject({ id: 'flag', family: 'checkout', kind: 'passive', price: 10, electrical: false });
     expect(ITEMS.flag.cells).toEqual([{ x: 0, y: 0 }]);
-    expect(ITEMS.flag.rules).toBe('Groceries hit by the Space dash are marked for {0}: they take +20% damage from everything (does not stack).');
   });
 
   it('keeps its tune in one place', () => {

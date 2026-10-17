@@ -28,15 +28,12 @@ export default defineSet({
     weapon(w, c) { w.cooldown /= c.tune().cooldownDiv; },
   },
   extraBuild: [{
-    // The dash multiplier multiplies the finished total, Running Boot's bonus included (the legacy `(6 + boot + perk) * mult`): a final
-    // player hook with an `order` above every item's (Boot 0, Expired Milk 100). `shoveStun` is the golden-snapshot field; the arena
-    // reads the stun from the `onDashHit` hook below, not from the build.
+    // The dash multiplier multiplies the finished total, Running Boot's bonus included (`(6 + boot + perk) * mult`): a final
+    // player hook with an `order` above every item's (Boot 0, Expired Milk 100). The stun is the `onDashHit` hook below.
     phase: 'final', order: 200,
     player(b, c) {
       if (c.tier < 2) return;
-      const t = c.tune();
-      b.shoveStun = t.shoveStun;
-      b.shoveDamage *= t.shoveDamageMult;
+      b.shoveDamage *= c.tune().shoveDamageMult;
     },
   }],
   hooks: {

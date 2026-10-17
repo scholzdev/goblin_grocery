@@ -5,31 +5,9 @@ import { contentItem, contentTune } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { tierScaling } from '../../../src/systems/synergies';
-import { around, arena, at, corner, far, full, gilded } from '../helpers';
+import { around, arena, at, far } from '../helpers';
 
 afterEach(() => setLang('en'));
-
-// Legacy: every crit heals 1 HP at ★1 (x TIER.mult), at most 2 HP per whole second, the best copy in the cart counts once.
-describe('Free Sample: build field', () => {
-  it('sets critHeal to 1 / 1.5 / 2 at ★1 / ★2 / ★3, nothing otherwise', () => {
-    expect(full([at('toaster')]).critHeal).toBe(0);
-    [1, 1.5, 2].forEach((h, i) => expect(full([at('toaster'), far('sample', i + 1)]).critHeal).toBe(h));
-  });
-
-  it('changes nothing but critHeal', () => {
-    const plain = full([at('nailgun')]), withSample = full([at('nailgun'), far('sample', 3)]); // a non-kitchen weapon: the Kitchen set stays at 0
-    expect(withSample.weapons).toEqual(plain.weapons);
-    expect({ ...withSample, critHeal: 0 }).toEqual({ ...plain, critHeal: 0 });
-  });
-
-  it('does not stack: the best copy counts once', () => {
-    expect(full([at('toaster'), far('sample', 1), far('sample', 3)]).critHeal).toBe(2);
-  });
-
-  it('Gold Star lifts it one tier (★3 -> effective ★4: 2.5 HP)', () => {
-    expect(full([at('toaster'), corner('sample', 3), gilded(1)]).critHeal).toBe(2.5);
-  });
-});
 
 // The heal is a runtime hook: `onCrit` in the content file, capped per whole second through `c.state`.
 describe('Free Sample: runtime', () => {
@@ -124,11 +102,10 @@ describe('Free Sample: runtime', () => {
 });
 
 describe('Free Sample: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('sample')).toBe(sample);
-    expect(ITEMS.sample).toMatchObject({ id: 'sample', family: 'kitchen', name: 'Free Sample', kind: 'passive', price: 10, electrical: false });
+    expect(ITEMS.sample).toMatchObject({ id: 'sample', family: 'kitchen', kind: 'passive', price: 10, electrical: false });
     expect(ITEMS.sample.cells).toEqual([{ x: 0, y: 0 }]);
-    expect(ITEMS.sample.rules).toBe('Every crit heals {0} HP, at most 2 HP per second (does not stack). Needs a crit source like the Price Gun or Fortune Cookie.');
   });
 
   it('keeps its tune in one place', () => {

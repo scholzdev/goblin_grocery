@@ -17,11 +17,6 @@ export default defineCombo({
       detail: 'Ein Dash, der einen Gegner trifft, löst einen zusätzlichen Pfannenschwung aus (1,0 s interne Abklingzeit). Die Dash-Abklingzeit-Senkung der Klingel gilt weiterhin.',
     },
   },
-  build: {
-    // `expressSweep` stays on the weapon stats for the golden snapshots; nothing reads it, the hook below owns the behavior.
-    phase: 'combo',
-    weapon(w) { w.expressSweep = true; },
-  },
   hooks: {
     order: 10,
     // The dash ended after connecting with something: each pan with this combo sweeps once more along the dash, unless it swept less than

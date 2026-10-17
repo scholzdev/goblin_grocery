@@ -1,7 +1,7 @@
 import type { WeaponStats } from '../types';
 import { newHitTracker } from '../systems/combat';
 import { DEPTH } from '../data/depth';
-import { contentTune } from '../engine/registry';
+import { contentItem, contentTune } from '../engine/registry';
 import type { WeaponLook } from '../engine/hooks';
 import { collectLooks, removePuddle, stepArsenal, weaponRt } from '../engine/patterns';
 import type { PatternHost, PatternScene, Pot, Puddle, Shot, WeaponRt } from '../engine/patterns';
@@ -11,9 +11,6 @@ import type { ArenaScene } from './ArenaScene';
 
 // The arena's side of the weapons: the pooled projectile sprites, the blade ring, the enemy projectiles. What a weapon DOES each frame is
 // the pattern code in src/engine/patterns (the weapon's content file picks the pattern); this class is its `PatternHost`.
-
-/** Multipack: gap between the repeats of a sweep/cone/mortar (s). Flat across tiers, so the ★1 tune is the value. */
-const MULTIPACK_REPEAT_DELAY = contentTune('multipack', 1).repeatDelay;
 
 export type { Shot, WeaponRt };
 type AudioName = Parameters<typeof play>[0];
@@ -29,7 +26,8 @@ export class Arsenal implements PatternHost {
   pots: Pot[] = [];
   time = 0;
   readonly looks = new Map<string, WeaponLook>();
-  readonly repeatDelay = MULTIPACK_REPEAT_DELAY;
+  /** Multipack: gap between the repeats of a sweep/cone/mortar (s). Flat across tiers, so the ★1 tune is the value. */
+  readonly repeatDelay = contentTune('multipack', 1).repeatDelay;
 
   constructor(private scene: ArenaScene) {
     for (let i = 0; i < SHOT_POOL; i++) this.shots.push(this.makeShot('proj_toast'));
@@ -58,6 +56,7 @@ export class Arsenal implements PatternHost {
       stats.pattern === 'aura'
         ? this.scene.add.image(0, 0, 'fx_blades').setDisplaySize(stats.range * 2.1, stats.range * 2.1 * 0.62).setAlpha(0.85).setDepth(DEPTH.decal + 1)
         : null,
+      contentItem(stats.type)!,
     ));
   }
 
@@ -123,7 +122,7 @@ export class Arsenal implements PatternHost {
     const base = this.weapons[0]?.stats;
     if (!base) return;
     // Plain stats: no burn/slow/recipes; damage is booked under the hat's own label.
-    const stats: WeaponStats = { ...base, uid: 'Tin Foil Hat', recipes: [], burn: null, ignite: null, slow: null, popper: null, echo: 0, critChance: 0, critCoin: false, chainChance: 0, pierce: 0, homing: false, buffs: [] };
+    const stats: WeaponStats = { ...base, uid: 'Tin Foil Hat', recipes: [], burn: null, ignite: null, slow: null, popper: null, echo: 0, critChance: 0, chainChance: 0, pierce: 0, buffs: [] };
     const r = this.spawn(s.img.texture.key, s.x, s.y, Math.atan2(-s.vy, -s.vx), Math.hypot(s.vx, s.vy), 1.6, s.damage * mult, stats, 1);
     if (r) r.spin = 0;
     sc.fx.spark(s.x, s.y - 22, 6, 0xdfe6f0);

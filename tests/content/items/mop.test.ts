@@ -7,7 +7,7 @@ import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { tierScaling } from '../../../src/systems/synergies';
 import { contentSetTune } from '../../../src/engine/registry';
-import { around, arsenal, at, stats } from '../helpers';
+import { around, arsenal, at, far, stats } from '../helpers';
 
 afterEach(() => setLang('en'));
 
@@ -15,15 +15,14 @@ afterEach(() => setLang('en'));
 // Pattern behaviour runs headless through the FakeArsenal (src/engine/patterns/fakeHost.ts): the cart's real build, the compiled hooks, a fake clock.
 
 describe('Mop: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('mop')).toBe(mop);
     const def = ITEMS.mop;
-    expect(def).toMatchObject({ id: 'mop', family: 'cleaning', name: 'Mop', kind: 'weapon', price: 11, electrical: false });
+    expect(def).toMatchObject({ id: 'mop', family: 'cleaning', kind: 'weapon', price: 11, electrical: false });
     expect(def.element).toBe('frost');
     expect(def.tags).toEqual(['area']);
     expect(def.legendary).toBeUndefined();
     expect(def.cells).toEqual([{x: 0, y: 0}, {x: 0, y: 1}, {x: 0, y: 2}, {x: 1, y: 2}]);
-    expect(def.rules).toBe('Every {1} drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip: 25% slow and {0} damage every 0.5 s.');
     expect(def.weapon).toEqual({ pattern: 'puddle', damage: 3, cooldown: 1.6, range: 60, projectileSpeed: 0, count: 1, burstInterval: 0, arcDeg: 0, pull: 0, tick: 0.5, duration: 3, bounces: 0, chain: 0, aoe: 0 });
   });
 
@@ -124,11 +123,11 @@ describe('Mop: pattern puddle', () => {
   });
 
   it('Frost sets make the slip stronger: base + bonus, up to the cap (from the Frost set tune)', () => {
-    const { a, fake } = arsenal([at('mop', 3)]);
-    (a.build.sets as Record<string, number>).frost = 2;
+    const { a, fake, b } = arsenal([at('mop', 3), far('ice')]); // mop + ice pack: Frost L1
+    expect(b.sets.frost).toBe(1);
     const e = fake.spawnEnemy({ x: -40, y: 4, hp: 100000 });
     a.run(15, 0.05);
-    const f = contentSetTune('frost', 2);
+    const f = contentSetTune('frost', 1);
     expect(e.status.slowPct).toBe(Math.min(f.slowCap, 0.25 + f.slowBonus));
     expect(e.status.slowPct).toBeGreaterThan(0.25);
   });

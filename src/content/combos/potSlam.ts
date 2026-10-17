@@ -16,11 +16,6 @@ export default defineCombo({
       detail: 'Jeder Dash endet mit einer vollen Schnellkochtopf-Explosion am Landepunkt (Schaden, Radius und Rückstoß des Topfs). Löst bei jedem Dash aus, unabhängig vom Topf-Timer.',
     },
   },
-  build: {
-    phase: 'combo',
-    // `dashBlast` stays on the weapon stats for the golden snapshots; nothing reads it, the hook below owns the behavior.
-    weapon(w) { w.dashBlast = true; },
-  },
   hooks: {
     onDashEnd(ev, ctx, c) {
       for (const w of ctx.build.weapons) if (c.touches(w.uid)) ctx.explode(w.uid, ev.x, ev.y);

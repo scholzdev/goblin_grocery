@@ -17,7 +17,6 @@ export default defineCombo({
       detail: 'Klingenradius +{radiusMult|pctup}% und jeder Tick verlangsamt um {pct|pct} für {duration|s}. Ersetzt die Kühlakku-Verlangsamung für diese Waffe (nie addiert).',
     },
   },
-  overrides: ['slow'],
   build: {
     phase: 'combo',
     weapon(w, c) {

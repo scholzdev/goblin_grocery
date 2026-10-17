@@ -3,6 +3,7 @@ import { computeBuild } from '../src/systems/synergies';
 import { cart } from './cart';
 import { RECIPES } from '../src/data/recipes';
 import { contentComboTune } from '../src/engine/registry';
+import { recipeT } from '../src/i18n/data';
 import { ITEMS, PLAYER } from '../src/data/items';
 import type { ItemTypeId, RecipeId, WeaponStats } from '../src/types';
 
@@ -17,14 +18,14 @@ export function comboDps(w: WeaponStats, shoveCd: number): { single: number; cro
   let single = 0, crowd = 0, burnS = 0, burnC = 0;
   switch (w.pattern) {
     case 'toast': burnS = burn; burnC = burn * Math.min(5, w.count); single = per * (1 + (w.count - 1) * 0.3) * r + burnS; crowd = per * Math.min(5, w.count * (1 + w.pierce)) * r + burnC; break;
-    case 'burst': single = per * w.count * r; crowd = per * w.count * Math.min(3, 1 + w.pierce) * r + (w.homing ? per * w.count * r * 0.5 : 0); break;
+    case 'burst': single = per * w.count * r; crowd = per * w.count * Math.min(3, 1 + w.pierce) * r + (w.recipes.includes('nailstorm') ? per * w.count * r * 0.5 : 0); break;
     case 'sweep': single = per * w.count * r; crowd = per * w.count * 3 * r; break;
     case 'pulse': case 'aura': single = per * r; crowd = per * 5 * r; break;
     case 'zap': single = per * r; crowd = (per * 3 + per * 0.6 * w.chain) * r; break;
     case 'ricochet': single = per * w.count * r; crowd = per * w.count * Math.min(5, 1 + w.bounces + w.pierce) * r; break;
     case 'puddle': single = (w.damage / w.tick) * (1 + w.critChance) + burn; crowd = single * 3; break;
     case 'cone': single = per * w.count * r; crowd = per * w.count * (w.arcDeg >= 110 ? 5 : 3) * r; break;
-    case 'mortar': single = per * w.count * r + burn; crowd = per * w.count * 4 * r + (w.firePool ? burn * 3 : 0); break;
+    case 'mortar': single = per * w.count * r + burn; crowd = per * w.count * 4 * r + (w.recipes.includes('pressurePoint') ? burn * 3 : 0); break;
     case 'laser': single = per * r; crowd = per * 3 * r; break;
   }
   if (w.recipes.includes('expressCheckout')) {
@@ -67,7 +68,7 @@ test('no combo is far stronger or weaker than the rest', async () => {
     expect(full.recipes.map((x) => x.id)).toContain(id);
     expect(cart(r.weapon, r.supports).placed.map((p) => p.type).sort()).toEqual([r.weapon, ...r.supports].sort());
     const b = comboDps(base.weapons[0], PLAYER.shove.cooldown), f = comboDps(full.weapons[0], full.shoveCooldown);
-    return { combo: r.name, items: [r.weapon, ...r.supports].join('+'), single: +f.single.toFixed(1), crowd: +f.crowd.toFixed(1), crowdGain: `${Math.round((f.crowd / b.crowd - 1) * 100)}%` };
+    return { combo: recipeT(id).name, items: [r.weapon, ...r.supports].join('+'), single: +f.single.toFixed(1), crowd: +f.crowd.toFixed(1), crowdGain: `${Math.round((f.crowd / b.crowd - 1) * 100)}%` };
   }).sort((a, b) => b.crowd - a.crowd);
   // Runtime-only lookups: the project ships no Node typings.
   const out = (globalThis as unknown as { process?: { env: Record<string, string | undefined> } }).process?.env.BALANCE_OUT;

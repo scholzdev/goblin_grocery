@@ -3,7 +3,7 @@ import { defineItem } from '../../engine/define';
 export default defineItem({
   id: 'bell', kind: 'passive', sets: ['checkout'], shape: '1x1', price: 7,
   unlock: 'starting',
-  tune: { cooldown: [0.5, 0.75, 1] }, // seconds off the dash (shove) cooldown per ★ (the legacy 0.5 base x TIER.mult)
+  tune: { cooldown: [0.5, 0.75, 1] }, // seconds off the dash (shove) cooldown per ★ (0.5 base x TIER.mult)
   text: {
     en: { name: 'Shopping Bell', blurb: 'Ding! Dash more often.', rules: 'Dash cooldown {cooldown|−s} (does not stack). Enables Express Checkout next to a Frying Pan.' },
     de: { name: 'Einkaufsklingel', blurb: 'Kling! Öfter dashen.', rules: 'Dash-Abklingzeit {cooldown|−s} (stapelt sich nicht). Schaltet Schnellkasse neben einer Bratpfanne frei.' },

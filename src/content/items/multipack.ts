@@ -1,7 +1,7 @@
 import { defineItem, PROJECTILE_PATTERNS, resolveTune } from '../../engine/define';
 
 // extra projectiles are +1 / +1 / +2 per ★ (not linear: Gold Star's effective ★4 stays at `maxExtra`), melee damage scales linearly
-// (the legacy 20% base x TIER.mult). `repeats` = extra attacks for sweeps/cones/mortars; `repeatDelay` (s) is read by the arsenal.
+// (20% base x TIER.mult). `repeats` = extra attacks for sweeps/cones/mortars; `repeatDelay` (s) is read by the arsenal.
 const TUNE = { extra: [1, 1, 2], maxExtra: 2, damage: [0.2, 0.3, 0.4], repeats: 1, repeatDelay: 0.18 } as const;
 
 /** Patterns whose attack can repeat. Everything that is neither a projectile nor one of these gets +damage instead. */

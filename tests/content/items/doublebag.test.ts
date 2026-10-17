@@ -58,12 +58,11 @@ describe('Double Bag: build', () => {
 });
 
 describe('Double Bag: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('doublebag')).toBe(doublebag);
     const def = ITEMS.doublebag;
-    expect(def).toMatchObject({ id: 'doublebag', family: 'checkout', element: 'blast', name: 'Double Bag', kind: 'module', price: 12, electrical: false, buff: 'echo' });
+    expect(def).toMatchObject({ id: 'doublebag', family: 'checkout', element: 'blast', kind: 'module', price: 12, electrical: false, buff: 'echo' });
     expect(def.cells).toEqual([{ x: 0, y: 0 }, { x: 1, y: 0 }]);
-    expect(def.rules).toBe('Direct hits from adjacent weapons strike a second time 0.12 s later for {0} damage.');
     expect(def.legendary).toBeUndefined();
     expect(def.weapon).toBeUndefined();
   });

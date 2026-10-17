@@ -14,15 +14,14 @@ afterEach(() => setLang('en'));
 // Pattern behaviour runs headless through the FakeArsenal (src/engine/patterns/fakeHost.ts): the cart's real build, the compiled hooks, a fake clock.
 
 describe('Leaf Blower: content', () => {
-  it('is the registered content file and the legacy lookups return its converted def', () => {
+  it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('leafblower')).toBe(leafblower);
     const def = ITEMS.leafblower;
-    expect(def).toMatchObject({ id: 'leafblower', family: 'cleaning', name: 'Leaf Blower', kind: 'weapon', price: 14, electrical: false });
+    expect(def).toMatchObject({ id: 'leafblower', family: 'cleaning', kind: 'weapon', price: 14, electrical: false });
     expect(def.element).toBeUndefined();
     expect(def.tags).toEqual(['area']);
     expect(def.legendary).toBeUndefined();
     expect(def.cells).toEqual([{x: 0, y: 0}, {x: 1, y: 0}]);
-    expect(def.rules).toBe('Every {1} blasts a 50° cone (220 reach) for {0} damage and a heavy push. Blown groceries that hit a wall or prop take 8 slam damage (scales with level).');
     expect(def.weapon).toEqual({ pattern: 'cone', damage: 3, cooldown: 0.9, range: 220, projectileSpeed: 0, count: 1, burstInterval: 0, arcDeg: 50, pull: 0, tick: 0, duration: 0, bounces: 0, chain: 0, aoe: 0, knockback: 300, fx: 'fx_gust' });
   });
 

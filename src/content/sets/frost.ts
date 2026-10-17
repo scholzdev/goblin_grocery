@@ -1,7 +1,7 @@
 import { defineSet } from '../../engine/define';
 
 // Frost set: every slow gets stronger up to a cap (L1); L2 lets direct hits on well-slowed enemies freeze them briefly. Arrays are L1/L2/L3.
-// The freeze skips aura and puddle ticks (0.3-0.5 s apart: too many rolls). `slowCap` also caps the puddle slow (weapons.ts reads it through `contentSetTune`).
+// The freeze skips aura and puddle ticks (0.3-0.5 s apart: too many rolls). The Mop's puddle slow gets the same bonus and cap (`pattern:puddleEnter`).
 export default defineSet({
   id: 'frost',
   tune: { slowBonus: [0.1, 0.1, 0.15], slowCap: [0.6, 0.6, 0.7], stunMinSlow: 0.35, stunChance: [0.1, 0.1, 0.2], stun: [0.5, 0.5, 0.7] },
@@ -33,8 +33,13 @@ export default defineSet({
     },
   },
   hooks: {
-    // Needs the slow of this very hit, so it runs after the engine applied it (afterHit). One rng draw, only when every condition holds.
     order: 20,
+    // The soap puddle's slow is not a weapon stat (the pattern applies it per tick), so it takes the bonus here.
+    'pattern:puddleEnter'(ev, _ctx, c) {
+      const t = c.tune();
+      ev.slow = { ...ev.slow, pct: Math.min(t.slowCap, ev.slow.pct + t.slowBonus) };
+    },
+    // Needs the slow of this very hit, so it runs after the engine applied it (afterHit). One rng draw, only when every condition holds.
     afterHit(hit, ctx, c) {
       const { stats, opts: o, enemy: e, now } = hit;
       if (!stats || c.tier < 2 || o.isDot || stats.pattern === 'aura' || stats.pattern === 'puddle') return;
