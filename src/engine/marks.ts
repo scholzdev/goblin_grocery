@@ -9,5 +9,8 @@ import { contentComboTune } from './registry';
 /** Damage multiplier of a marked enemy (Price Check's `damageMult`; Sale Flag's text shows `1 + bonus` and a test pins them equal). */
 export const MARK_MULT = contentComboTune('priceCheck').damageMult;
 
+/** Mark `e` for `seconds` from `now`. A re-mark only extends: a shorter one (Price Check 3 s) never cuts a longer one (Sale Flag up to 4 s), like `applyBurn` / `applyPoison`. */
+export const applyMark = (e: { markedUntil?: number }, now: number, seconds: number): void => { e.markedUntil = Math.max(e.markedUntil ?? 0, now + seconds); };
+
 /** `dmg` after the mark: ×`mult` (default `MARK_MULT`; callers pass `markMult(e.def)`) while `markedUntil` is in the future, untouched otherwise. */
 export const markedDamage = (dmg: number, markedUntil: number | undefined, now: number, mult: number = MARK_MULT): number => ((markedUntil ?? 0) > now ? dmg * mult : dmg);

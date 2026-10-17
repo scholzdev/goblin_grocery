@@ -22,7 +22,7 @@ export interface HitOpts {
   /** Burn/poison tick: no crit, no armor, no onHit side effects. */
   isDot?: boolean;
   label?: string;
-  /** Area tick (aura, puddle, pulse): no flash, no armor. */
+  /** Area tick (aura, puddle, cone, Ray Gun splash): no flash, no armor. The vacuum pulse is not quiet: its hits are armored. */
   quiet?: boolean;
   /** The second strike of Double Bag. */
   echo?: boolean;

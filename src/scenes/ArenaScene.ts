@@ -660,7 +660,7 @@ export class ArenaScene extends Phaser.Scene {
       hit.crit = true; hit.dmg = dmg;
       if (H.hit) { H.emit('onCrit', hit); dmg = hit.dmg; }
     }
-    // Armor (Canned Beans): direct hits only; burn, puddles, auras and pulses (isDot/quiet) pass through.
+    // Armor (Canned Beans): direct hits only; burn, puddles, auras and cones (isDot/quiet) pass through; the vacuum pulse is armored.
     let armored = false;
     if (e.def.armor && !o.isDot && !o.quiet) {
       const soaked = armorDamage(dmg, e.def.armor);

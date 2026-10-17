@@ -8,6 +8,7 @@ import type { CombatEnemy, CombatShot, PoolSpec, PlayerView, RuntimeCtx, ShotSpe
 import type { HitOpts } from '../engine/hooks';
 import type { AffinityTag } from '../engine/define';
 import { burnFor, poisonTimeFor, slowFor } from '../engine/affinity';
+import { applyMark } from '../engine/marks';
 import type { ArenaScene } from './ArenaScene';
 import type { Enemy } from './enemies';
 import { beamOnce, boltFx, explodeAt, spawnFirePool, sweepOnce } from '../engine/patterns';
@@ -56,7 +57,7 @@ export class PhaserCtx implements RuntimeCtx {
   ignite(e: CombatEnemy, burn: BurnEffect): void { applyBurn(e.status, burnFor(e.def, this.sc.aisleEvent.burn(burn)), this.now()); }
   slow(e: CombatEnemy, slow: SlowEffect): void { applySlow(e.status, slowFor(e.def, slow), this.now()); }
   poison(e: CombatEnemy, dps: number, duration: number): void { applyPoison(e.status, dps, poisonTimeFor(e.def, duration), this.now()); }
-  mark(e: CombatEnemy, seconds: number): void { e.markedUntil = this.now() + seconds; }
+  mark(e: CombatEnemy, seconds: number): void { applyMark(e, this.now(), seconds); }
 
   get player(): PlayerView { return this.sc.player; }
   playerNear(x: number, y: number): { x: number; y: number; d: number } { return this.sc.playerNear(x, y); }

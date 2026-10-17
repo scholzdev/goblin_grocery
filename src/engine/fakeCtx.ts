@@ -7,7 +7,7 @@ import type { AudioKey } from '../data/assets';
 import type { Build, BurnEffect, SlowEffect, WeaponStats } from '../types';
 import { FX_METHODS, type AisleView, type CombatEnemy, type CombatShot, type FxApi, type PlayerView, type PoolSpec, type RuntimeCtx, type ShotSpec } from './ctx';
 import { EMPTY_HOOKS, type HitEvent, type HitOpts, type HookTable } from './hooks';
-import { markedDamage } from './marks';
+import { applyMark, markedDamage } from './marks';
 import { affinityMult, burnFor, markMult, poisonTimeFor, slowFor, statusDurationMult, tryStagger } from './affinity';
 import { AFFINITY, type AffinityTag } from './define';
 import { hitTags } from './hitTags';
@@ -245,7 +245,7 @@ export class FakeCtx implements RuntimeCtx {
   }
   mark(e: CombatEnemy, seconds: number): void {
     this.log({ kind: 'mark', enemy: e.id, seconds });
-    e.markedUntil = this.time + seconds;
+    applyMark(e, this.time, seconds);
   }
 
   playerNear(x: number, y: number): { x: number; y: number; d: number } {

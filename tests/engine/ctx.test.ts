@@ -63,6 +63,20 @@ describe('FakeCtx recording', () => {
     expect(c.calls.map((x) => x.kind)).toEqual(['ignite', 'slow', 'poison', 'mark', 'stun']);
   });
 
+  it('a re-mark only extends: a shorter one never cuts a longer one, a longer one extends it', () => {
+    const c = new FakeCtx();
+    const e = c.spawnEnemy({ hp: 100 });
+    c.mark(e, 4); // Sale Flag
+    c.advance(1);
+    c.mark(e, 3); // Price Check at t=1 would end at 4: not earlier than the flag's 4
+    expect(e.markedUntil).toBe(4);
+    c.advance(1);
+    c.mark(e, 3); // t=2 -> 5, longer than 4
+    expect(e.markedUntil).toBe(5);
+    c.mark(e, 1); // 3 < 5
+    expect(e.markedUntil).toBe(5);
+  });
+
   it('records coins, heals (capped), hurt, sounds and every fx method', () => {
     const c = new FakeCtx({ hp: 90, maxHp: 100, money: 5 });
     c.dropCoin({ x: 1, y: 2 }, 'tip');

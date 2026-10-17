@@ -3,6 +3,7 @@ import { EVENTS, SET_EVENT, SET_EVENTS, type SetEventKind } from '../data/events
 import { ROOMS } from '../data/modifiers';
 import type { EventRoll } from '../systems/events';
 import { applySlow } from '../systems/combat';
+import { slowFor } from '../engine/affinity';
 import { segmentHitsRect } from '../systems/obstacles';
 import { settings } from '../state/settings';
 import { store } from '../state/store';
@@ -213,7 +214,7 @@ export class AisleEvents {
     const now = sc.time.now / 1000;
     for (const e of sc.enemies) {
       if (!e.alive || e.state === 'spawn') continue;
-      if (this.spots.some((sp) => sp.puddle && Math.hypot(e.x - sp.x, e.y - sp.y) < R)) applySlow(e.status, { pct: WET.enemySlow, duration: 0.3 }, now);
+      if (this.spots.some((sp) => sp.puddle && Math.hypot(e.x - sp.x, e.y - sp.y) < R)) applySlow(e.status, slowFor(e.def, { pct: WET.enemySlow, duration: 0.3 }), now); // frost affinity scales the duration, like the mop puddle
     }
     this.splashCd -= dt;
     if (this.playerWet && this.splashCd <= 0 && Math.hypot(p.vx, p.vy) > 10) {

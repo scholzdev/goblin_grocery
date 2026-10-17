@@ -546,6 +546,7 @@ describe('wiring (source guards)', () => {
     const pud = src('engine/patterns/puddle.ts');
     expect(pud).toContain('burnFor(e.def, sc.aisleEvent.burn(pd.burn))');
     expect(pud).toContain('slowFor(e.def, slow)');
+    expect(src('scenes/events.ts')).toContain('slowFor(e.def, { pct: WET.enemySlow, duration: 0.3 })'); // the wet-floor event goes through the same path
   });
 
   it('the element-tagged stuns and hits name their tag at the call site', () => {
