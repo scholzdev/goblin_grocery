@@ -1,9 +1,10 @@
 import { defineCombo } from '../../engine/define';
+import { Combo, Item } from '../../engine/ids';
 
 // Frying Pan + Shopping Bell: a dash that hits an enemy triggers one extra pan sweep, at most once per `icd` seconds per pan. The text
 // keeps the literal "1.0 s" (the `s` formatter prints "1 s"). Runs after Pot Slam's blast (order 10 vs 0), as the dash code did.
 export default defineCombo({
-  id: 'expressCheckout', requires: ['pan', 'bell'],
+  id: Combo.expressCheckout, requires: [Item.pan, Item.bell],
   tune: { icd: 1.0 },
   text: {
     en: {

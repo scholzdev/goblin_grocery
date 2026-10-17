@@ -1,8 +1,9 @@
 import { AFFINITY, defineEnemy } from '../../engine/define';
+import { Enemy } from '../../engine/ids';
 
 // Armor never soaks more than 70% of a hit: the damage after armor is at least `minShare` of it.
 export default defineEnemy({
-  id: 'beans', behavior: 'chase', scale: 0.78, hpBar: true,
+  id: Enemy.beans, behavior: 'chase', scale: 0.78, hpBar: true,
   stats: {
     hp: 40, speed: 52, contactDamage: 5, coins: 2, radius: 20,
     armor: 3, knockbackResist: 0.4,

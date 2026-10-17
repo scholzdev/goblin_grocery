@@ -1,8 +1,9 @@
 import { defineItem } from '../../engine/define';
+import { Buff, Item, Set, Tag } from '../../engine/ids';
 
 export default defineItem({
-  id: 'ice', kind: 'module', sets: ['kitchen', 'frost'], shape: '1x2', price: 8, buff: 'ice',
-  elements: ['frost'], // its slow
+  id: Item.ice, kind: 'module', sets: [Set.kitchen, Set.frost], shape: '1x2', price: 8, buff: Buff.ice,
+  elements: [Tag.frost], // its slow
   unlock: 'starting',
   // slow per ★ (25% base x TIER.mult), capped at `cap`: the cap only bites for Gold Star's effective ★4 (62.5%) and
   // for Jelly Beans, which reads this tune at ★1

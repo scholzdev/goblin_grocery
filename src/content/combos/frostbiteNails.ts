@@ -1,9 +1,10 @@
 import { defineCombo } from '../../engine/define';
+import { Combo, Item, Tag } from '../../engine/ids';
 
 // Nail Gun + Ice Pack: nails pierce one more enemy, and every `every`th nail that hits the same enemy freezes it. The count is
 // `enemy.nailHits` (shared by every nail gun, as before); the ordinal suffix in the text ("3rd") is literal.
 export default defineCombo({
-  id: 'frostbiteNails', requires: ['nailgun', 'ice'],
+  id: Combo.frostbiteNails, requires: [Item.nailgun, Item.ice],
   tune: { every: 3, freeze: 0.7, extraPierce: 1 },
   text: {
     en: {
@@ -27,7 +28,7 @@ export default defineCombo({
       if (!c.touches(ev.stats.uid) || ev.stats.pattern !== 'burst' || !e.alive) return;
       const t = c.tune();
       e.nailHits = (e.nailHits ?? 0) + 1;
-      if (e.nailHits % t.every === 0) { ctx.stun(e, t.freeze, 'frost'); ctx.fx.frostBurst(e.x, e.y - 20, 6); }
+      if (e.nailHits % t.every === 0) { ctx.stun(e, t.freeze, Tag.frost); ctx.fx.frostBurst(e.x, e.y - 20, 6); }
     },
   },
 });

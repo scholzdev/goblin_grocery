@@ -1,8 +1,9 @@
 import { defineSet } from '../../engine/define';
+import { Set } from '../../engine/ids';
 
 // Blast set: bigger blasts (L1: Party Popper radius, area weapons); L2 makes weapon kills sometimes pop. Arrays are L1/L2/L3.
 export default defineSet({
-  id: 'blast',
+  id: Set.blast,
   tune: { radiusMult: [1.15, 1.15, 1.25], killChance: [0.1, 0.1, 0.2], damage: [6, 6, 10], radius: [60, 60, 75] },
   text: {
     en: {

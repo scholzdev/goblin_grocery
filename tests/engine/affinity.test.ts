@@ -549,14 +549,14 @@ describe('wiring (source guards)', () => {
   });
 
   it('the element-tagged stuns and hits name their tag at the call site', () => {
-    expect(src('content/sets/frost.ts')).toContain("ctx.stun(e, t.stun, 'frost')");
-    expect(src('content/combos/blackIce.ts')).toContain("'frost')");
-    expect(src('content/combos/frostbiteNails.ts')).toContain("t.freeze, 'frost')");
-    expect(src('content/combos/sparksFly.ts')).toContain("t.stun, 'electric')");
+    expect(src('content/sets/frost.ts')).toContain('ctx.stun(e, t.stun, Tag.frost)');
+    expect(src('content/combos/blackIce.ts')).toContain('Tag.frost)');
+    expect(src('content/combos/frostbiteNails.ts')).toContain('t.freeze, Tag.frost)');
+    expect(src('content/combos/sparksFly.ts')).toContain('t.stun, Tag.electric)');
     expect(src('scenes/hazards.ts')).toContain("sc.stunEnemy(e, T.stun, 'electric')");
     expect(src('scenes/hazards.ts')).toContain("label: 'Live cable', tags: ['electric']");
     expect(src('scenes/hazards.ts')).toContain("label: 'Oven vent', tags: ['heat']");
-    expect(src('content/combos/bagIt.ts')).toContain("label: 'Bag It', tags: ['blast']");
+    expect(src('content/combos/bagIt.ts')).toContain("label: 'Bag It', tags: [Tag.blast]");
     expect(src('engine/patterns/mortar.ts')).toContain('tags: BLAST');
     expect(arena_).toContain("label: 'Slam', tags: ['cleaning']");
     expect(arena_).toContain("label: 'Egg Carton', tags: ['blast']");

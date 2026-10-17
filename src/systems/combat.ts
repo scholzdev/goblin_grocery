@@ -1,5 +1,6 @@
 import type { BurnEffect, SlowEffect } from '../types';
 import { ENEMIES } from '../data/enemies';
+import { Enemy } from '../engine/ids';
 
 export interface HitTracker { maxHits: number; hits: Set<number> }
 export const newHitTracker = (maxHits: number): HitTracker => ({ maxHits, hits: new Set() });
@@ -96,7 +97,7 @@ interface Healable { x: number; y: number; hp: number; maxHp: number; alive: boo
 export function healTargets<T extends Healable>(healer: T, all: T[], radius = ENEMIES.honey.tune.radius, pct = ENEMIES.honey.tune.pct): { target: T; amount: number }[] {
   const out: { target: T; amount: number }[] = [];
   for (const o of all) {
-    if (o === healer || !o.alive || o.def.id === 'boss' || o.def.behavior === 'boss' || o.def.id === 'honey' || o.hp >= o.maxHp) continue;
+    if (o === healer || !o.alive || o.def.id === Enemy.boss || o.def.behavior === 'boss' || o.def.id === Enemy.honey || o.hp >= o.maxHp) continue;
     if (Math.hypot(o.x - healer.x, o.y - healer.y) > radius) continue;
     out.push({ target: o, amount: Math.min(o.maxHp - o.hp, o.maxHp * pct) });
   }

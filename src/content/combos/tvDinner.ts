@@ -1,9 +1,10 @@
 import { defineCombo } from '../../engine/define';
+import { Combo, Item } from '../../engine/ids';
 
 // Microwave + Lunchbox + Battery: the zap arcs to one more enemy and the Microwave fires faster. Chain links deal `chainMult` (the zap code
 // starts every link at 1; Sparks Fly's hook, order 10, then overrides the links that are its own).
 export default defineCombo({
-  id: 'tvDinner', requires: ['microwave', 'lunchbox', 'battery'],
+  id: Combo.tvDinner, requires: [Item.microwave, Item.lunchbox, Item.battery],
   tune: { chain: 1, cooldownMult: 0.92, chainMult: 0.6 },
   text: {
     en: {

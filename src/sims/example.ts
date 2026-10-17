@@ -1,4 +1,5 @@
 import { defineSim } from './_sim';
+import { Enemy, Item, Tag } from '../engine/ids';
 
 // Reference sim: every field is used once. Copy it to start a new sim (and rename the file and the id).
 // Run it with `npm run sim` or http://localhost:5173/?sim=example. Editors autocomplete ids, departments, door mods, events and affixes.
@@ -25,20 +26,20 @@ export default defineSim({
 
   // ── the cart: exactly these items, the starter weapon is not added ──
   cart: [
-    { id: 'toaster', tier: 2, at: [0, 0] }, //          tier 1..3; `at` is the top-left cell of the footprint
-    { id: 'fan', at: [2, 0], rot: 0 }, //                 modules only buff ADJACENT weapons: the fan sits next to the toaster
-    { id: 'jellybeans', at: [0, 1], flavor: 'frost' }, // flavor: heat | frost | blast (re-rolls when you open the cart editor)
-    { id: 'pan' }, //                                     no `at`: goes to the first spot that fits (all rotations tried)
+    { id: Item.toaster, tier: 2, at: [0, 0] }, //          tier 1..3; `at` is the top-left cell of the footprint
+    { id: Item.fan, at: [2, 0], rot: 0 }, //                 modules only buff ADJACENT weapons: the fan sits next to the toaster
+    { id: Item.jellybeans, at: [0, 1], flavor: Tag.frost }, // flavor: heat | frost | blast (re-rolls when you open the cart editor)
+    { id: Item.pan }, //                                     no `at`: goes to the first spot that fits (all rotations tried)
   ],
   // Items waiting on the shelf; they do not count for the build.
-  shelf: [{ id: 'bell' }, { id: 'battery', tier: 2 }],
+  shelf: [{ id: Item.bell }, { id: Item.battery, tier: 2 }],
 
   // ── dummies (only with waves: false) ──
   enemies: [
-    { id: 'milk', count: 3, spread: 'cluster' }, //                 one tight bunch of three. spread: random (default) | cluster | ring
-    { id: 'cereal', count: 4, spread: 'ring', still: true }, //     a ring around you, standing still (default still: false)
-    { id: 'banana', affix: 'swift' }, //                            an elite: swift | tough | splitter | pickpocket, or 'elite' for a random one
-    { id: 'soda', at: [900, 360], immortal: false }, //             exact spot in the arena (x 78..1202, y 196..758); it can die (default immortal: true)
-    { id: 'melon', mini: 0 }, //                                    mid-shift boss variant 0
+    { id: Enemy.milk, count: 3, spread: 'cluster' }, //                 one tight bunch of three. spread: random (default) | cluster | ring
+    { id: Enemy.cereal, count: 4, spread: 'ring', still: true }, //     a ring around you, standing still (default still: false)
+    { id: Enemy.banana, affix: 'swift' }, //                            an elite: swift | tough | splitter | pickpocket, or 'elite' for a random one
+    { id: Enemy.soda, at: [900, 360], immortal: false }, //             exact spot in the arena (x 78..1202, y 196..758); it can die (default immortal: true)
+    { id: Enemy.melon, mini: 0 }, //                                    mid-shift boss variant 0
   ],
 });

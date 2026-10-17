@@ -1,9 +1,10 @@
 import { defineCombo } from '../../engine/define';
+import { Combo, Item } from '../../engine/ids';
 
 // Pressure Cooker + Duct Tape: every explosion (lobbed, or Pot Slam's) fires `count` fragments in a ring. One rng draw per fragment (the
 // ring's jitter), in order.
 export default defineCombo({
-  id: 'shrapnel', requires: ['cooker', 'tape'],
+  id: Combo.shrapnel, requires: [Item.cooker, Item.tape],
   tune: { count: 6, damageMult: 0.4, speed: 520, range: 260, pierce: 1 },
   text: {
     en: {

@@ -1,8 +1,9 @@
 import { AFFINITY, defineEnemy } from '../../engine/define';
+import { Enemy } from '../../engine/ids';
 
 // tune = the conveyor: shoves the player toward the boss at `speed` px/s for `time` s.
 export default defineEnemy({
-  id: 'boss_checkout', behavior: 'boss', scale: 0.95,
+  id: Enemy.boss_checkout, behavior: 'boss', scale: 0.95,
   stats: {
     hp: 1550, speed: 50, contactDamage: 14, coins: 30, radius: 46,
     knockbackResist: 1, tell: 0.8, attackCooldown: 2.3, attackDamage: 9, projectileSpeed: 195, projectileLife: 5, lungeSpeed: 560, lungeTime: 0.7,
@@ -16,6 +17,6 @@ export default defineEnemy({
   },
   boss: {
     theme: 'checkout',
-    kit: { cycle: ['special', 'charge', 'volley', 'summon', 'charge', 'special'], shot: 'proj_receipt', special: 'belt', moves: { volleyCount: 7, volleySpreadDeg: 70, summonCount: 4, summonTypes: ['gum', 'giftcard'] } },
+    kit: { cycle: ['special', 'charge', 'volley', 'summon', 'charge', 'special'], shot: 'proj_receipt', special: 'belt', moves: { volleyCount: 7, volleySpreadDeg: 70, summonCount: 4, summonTypes: [Enemy.gum, Enemy.giftcard] } },
   },
 });

@@ -1,8 +1,9 @@
 import { defineCombo } from '../../engine/define';
+import { Combo, Item } from '../../engine/ids';
 
 // Blender + Bubble Wrap: enemy projectiles inside the blade ring are shredded on every blender tick.
 export default defineCombo({
-  id: 'smoothieShield', requires: ['blender', 'bubblewrap'],
+  id: Combo.smoothieShield, requires: [Item.blender, Item.bubblewrap],
   text: {
     en: {
       name: 'Smoothie Shield', short: 'Blades eat bullets',

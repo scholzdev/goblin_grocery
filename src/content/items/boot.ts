@@ -1,9 +1,10 @@
 import { defineItem } from '../../engine/define';
+import { Item, Set } from '../../engine/ids';
 
 // No runtime hook, on purpose: the dash itself reads the two build fields below (`shoveDistMult` for reach and speed, `shoveDamage` for
 // the dash hit), so Boot is a `player` hook plus its text. The fields are the contract with the dash code (like `burn` for Fuel).
 export default defineItem({
-  id: 'boot', kind: 'passive', sets: ['tools'], shape: '1x1', price: 9,
+  id: Item.boot, kind: 'passive', sets: [Set.tools], shape: '1x1', price: 9,
   // Dash reach (+35% per ★ step, 0.35 x TIER.mult) and dash hit damage (6 x TIER.mult), both linear in the tier.
   tune: { distance: [0.35, 0.35 * 1.5, 0.35 * 2], damage: [6, 9, 12] },
   text: {

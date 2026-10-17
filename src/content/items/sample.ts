@@ -1,7 +1,8 @@
 import { defineItem } from '../../engine/define';
+import { Item, Set } from '../../engine/ids';
 
 export default defineItem({
-  id: 'sample', kind: 'passive', sets: ['kitchen'], shape: '1x1', price: 10,
+  id: Item.sample, kind: 'passive', sets: [Set.kitchen], shape: '1x1', price: 10,
   unlock: 'starting',
   tune: { heal: [1, 1.5, 2], cap: 2 }, // HP healed per crit per ★ (1 base x TIER.mult); `cap` = HP per (whole) second, flat
   text: {

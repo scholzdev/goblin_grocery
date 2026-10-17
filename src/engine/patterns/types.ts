@@ -1,6 +1,7 @@
 import type Phaser from 'phaser';
 import type { Build, BurnEffect, SlowEffect, WeaponBase, WeaponPattern, WeaponStats } from '../../types';
 import type { HitTracker } from '../../systems/combat';
+import type { AudioKey } from '../../data/assets';
 import type { CombatEnemy, FxApi, PlayerView } from '../ctx';
 import type { HitOpts, HookTable, WeaponLook } from '../hooks';
 
@@ -105,7 +106,7 @@ export interface PatternHost {
   readonly build: Build;
   spawn(key: string, x: number, y: number, a: number, speed: number, life: number, damage: number, stats: WeaponStats | null, maxHits: number): Shot | null;
   kill(s: Shot): void;
-  sound(name: string, opts?: { rate?: number; volume?: number }): void;
+  sound(name: AudioKey, opts?: { rate?: number; volume?: number }): void;
 }
 
 /**

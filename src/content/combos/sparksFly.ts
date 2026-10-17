@@ -1,10 +1,11 @@
 import { defineCombo } from '../../engine/define';
+import { Combo, Item, Tag } from '../../engine/ids';
 
 // Microwave + Tin Foil Hat + Battery: the zap arcs to `chain` more enemies. The last `chain` links deal `chainMult` (after TV Dinner's
 // links: this hook has order 10 and overrides its `damageMult`), and every enemy a chain link damages rolls a stun (`hit` stage of
 // `pattern:zap`, so the draws stay between the enemies' own).
 export default defineCombo({
-  id: 'sparksFly', requires: ['microwave', 'tinfoilhat', 'battery'],
+  id: Combo.sparksFly, requires: [Item.microwave, Item.tinfoilhat, Item.battery],
   tune: { chain: 2, chainMult: 0.5, stunChance: 0.25, stun: 0.3 },
   text: {
     en: {
@@ -28,7 +29,7 @@ export default defineCombo({
       if (ev.link < 1 || !c.touches(ev.stats.uid)) return;
       const t = c.tune();
       if (ev.stage === 'before') { if (ev.link > ev.stats.chain - t.chain) ev.damageMult = t.chainMult; }
-      else if (ev.stage === 'hit' && ev.enemy!.alive && ctx.rng() < t.stunChance) ctx.stun(ev.enemy!, t.stun, 'electric');
+      else if (ev.stage === 'hit' && ev.enemy!.alive && ctx.rng() < t.stunChance) ctx.stun(ev.enemy!, t.stun, Tag.electric);
     },
   },
 });

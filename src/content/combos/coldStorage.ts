@@ -1,9 +1,10 @@
 import { defineCombo } from '../../engine/define';
+import { Combo, Item } from '../../engine/ids';
 
 // Vacuum + Ice Pack: freezing suction. Replaces the Ice Pack slow (it assigns `slow`; Frost's post-combo clamp at order 1000 runs after
 // it). The frost-blue look is drawn from `frostRing`.
 export default defineCombo({
-  id: 'coldStorage', requires: ['vacuum', 'ice'],
+  id: Combo.coldStorage, requires: [Item.vacuum, Item.ice],
   tune: { pct: 0.5, duration: 1.5, damageMult: 2.5, radiusMult: 1.2 },
   text: {
     en: {

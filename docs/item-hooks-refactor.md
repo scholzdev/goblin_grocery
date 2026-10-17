@@ -10,6 +10,7 @@ src/content/combos/<id>.ts   one per combo, cart combos included (31)
 src/content/sets/<id>.ts     kitchen, cleaning, tools, snacks, checkout, heat, frost, blast, electric (9)
 src/content/enemies/<id>.ts  one per enemy: the 15 regular groceries and the 5 bosses (20)
 src/engine/define.ts         defineItem / defineCombo / defineSet / defineEnemy, all content types, the order lists, tier and shape helpers
+src/engine/ids.ts            typed id constants: Item, Combo, Enemy, Set, Buff, Tag (see "Ids")
 src/engine/registry.ts       import.meta.glob collects the files, validates them (throws at load), contentItem / contentCombo / contentSet / contentEnemy / contentTune / contentSetTune / contentEnemyTune
 src/engine/build.ts          runs build hooks in phase order for systems/synergies.ts (computeBuild)
 src/engine/hooks.ts          runtime hook types; compiles the cart's handlers once per build
@@ -27,6 +28,38 @@ src/sims/                    playtest scenarios, see docs/sims.md
 ## The order lists
 
 `ITEM_ORDER`, `RECIPE_ORDER`, `BUFF_ORDER` and `ENEMY_ORDER` in `engine/define.ts` are the one place order lives. They are explicit on purpose: the shop rolls iterate `ITEM_ORDER` (reordering it changes every seeded run), and combos are matched in `RECIPE_ORDER`. `SET_ORDER` is `[...FAMILIES, ...ELEMENTS, 'electric']`. The id unions (`ItemTypeId`, `RecipeId`, `SetId`, `BuffId`, `EnemyId`, `FamilyTag`, `ElementTag`) in `types.ts` are derived from these lists. The registry fails at load if a content file is missing from its list or a listed id has no file. Hook registration order (and so same-`order` ties) is items, then combos, then sets, each in file-path order.
+
+## Ids
+
+Content and sims never write an item, combo, enemy, set, buff or affinity-tag id as a bare string. `src/engine/ids.ts` (a leaf next to `define.ts`: it imports only `define.ts`, never `data/*` or the registry) exports one frozen object per id kind, derived from the order lists, so `Item.pan` is the string `'pan'` typed as the literal `'pan'`:
+
+```ts
+import { Combo, Enemy, Item, Set, Tag } from '../../engine/ids';
+id: Item.fuel, sets: [Set.tools, Set.heat]           // an item
+id: Combo.greaseFire, requires: [Item.mop, Item.fuel] // a combo
+summonTypes: [Enemy.expired, Enemy.milk]              // an enemy list
+c.tuneOf(Item.fuel, 1); c.stateOf(Combo.sugarRush); c.tuneOf(Set.blast)  // another owner's tune / state
+elements: [Tag.heat]; ctx.stun(e, t, Tag.frost)  // affinity tags (hit tags, flavors)
+```
+
+| Constant | From | Examples |
+|---|---|---|
+| `Item` | `ITEM_ORDER` | `Item.pan`, `Item.hotsauce` |
+| `Combo` | `RECIPE_ORDER` | `Combo.potSlam` |
+| `Enemy` | `ENEMY_ORDER` | `Enemy.milk`, `Enemy.boss_frozen` |
+| `Set` | `SET_ORDER` | `Set.kitchen`, `Set.heat`, `Set.electric` |
+| `Buff` | `BUFF_ORDER` | `Buff.fan`, `Buff.echo` |
+| `Tag` | `AFFINITY_TAGS` | `Tag.heat`, `Tag.mark` |
+
+- A new id is still one entry in its order list; the constant appears by itself. A typo is a compile error, "find usages" and rename work on ids.
+- Some words are ids of two kinds. Pick the kind of the field: `requires: [Item.fan]` but `buff: Buff.fan`; `sets: [Set.heat]` (the set) but `elements: [Tag.heat]` and `ctx.stun(e, t, Tag.heat)` (the hit tag). `FamilyTag` comparisons (`def.family === Set.kitchen`) use `Set`.
+- `Set` shadows the global `Set`. A file that also needs `new Set(...)` imports it under an alias: `import { Set as S } from '../../engine/ids'` (`content/sets/electric.ts`, `content/items/multipack.ts`).
+- Object KEYS stay plain (`weak: { heat: AFFINITY.weak }`, `mix: { milk: 1 }`): the `Partial<Record<AffinityTag, number>>` / `Record<EnemyId, ...>` type rejects an unknown key, so they are already checked and a computed `[Tag.heat]` key would only be noise.
+- Not ids: `pattern: 'laser'`, `behavior: 'boss'`, `character: 'toaster'`, `department` / `theme` strings, the audio names (`ctx.sound('frost')`) and the tune-row `key: 'electric'` merely look the same.
+
+**The lint** (`tests/content/ids-lint.test.ts`) scans the source text of `src/content/**` and `src/sims/**` and fails with `file:line` for a *bare id*: a string literal whose whole content equals a known id (`'mop'`, `"frost"`). Prose can never match (a text that contains the word is not a whole-literal match; comment lines, trailing `// comments` and template literals are skipped). Allowed: the value of a key that holds something else with the same spelling (`pattern`, `behavior`, `theme`, `department`, `character`, `key`, `kind`, `special`, `shot`, `label`, `name`, `blurb`, `summary`, `detail`, `rules`), the audio name in `sound('...')`, a sim's own top-level `id: '<file name>'` (a sim may be called `boss` or `blast`), and any line carrying `// ids-ok` (say why). The test also checks the heuristic on fixture strings (a planted `requires: ['mop']` is caught) and that each constant's keys equal its order list.
+
+Typed signatures that go with it: `HookCtx.tuneOf` / `stateOf` take an `OwnerId` (`ItemTypeId | RecipeId | SetId`), `CombatEnemy.def.id` is an `EnemyId`, `RuntimeCtx.sound` takes an `AudioKey`. The id-like lists that used to be written twice are single sources in `define.ts` (`THEME_ORDER` -> `ThemeId` / `DepartmentId`, `STARTER_ORDER` -> `StarterId`, `ENEMY_BEHAVIORS` -> `EnemyBehavior`; `THEMES` and the registry's boss themes derive from `THEME_ORDER`).
 
 ## Add or change content
 
@@ -183,8 +216,9 @@ src/engine/
 
 ```ts
 // src/content/items/fuel.ts
+import { Item, Set } from '../../engine/ids';
 export default defineItem({
-  id: 'fuel', kind: 'module', sets: ['tools', 'heat'], shape: '1x2', price: 11,
+  id: Item.fuel, kind: 'module', sets: [Set.tools, Set.heat], shape: '1x2', price: 11,
   unlock: 'starting',
   tune: { dps: [2.5, 3.75, 5], duration: 3, tick: 0.5 },   // arrays = per tier
   text: {
@@ -201,8 +235,9 @@ export default defineItem({
 
 ```ts
 // src/content/combos/greaseFire.ts
+import { Combo, Item } from '../../engine/ids';
 export default defineCombo({
-  id: 'greaseFire', requires: ['mop', 'fuel'],
+  id: Combo.greaseFire, requires: [Item.mop, Item.fuel],
   tune: { radiusMult: 1.4, burnMult: 2 },
   text: { en: { name: 'Grease Fire', short: 'Huge burning slicks',
                 detail: 'Puddles get {radiusMult|pct} bigger and burn ×{burnMult}.' }, de: {…} },
@@ -740,3 +775,10 @@ Done on top of phase 8 and the enemy content files. `weak` / `resist` (declared 
 - `ctx.stun` got an optional element tag and now returns the applied seconds, and the pipeline order tests (`order.test.ts`, `flag.test.ts`, `onHitStatuses.test.ts`) pin `affinityMult` between `modifyDamage` and the mark. `markedDamage` takes the multiplier (`markMult(e.def)`).
 - The Manager's weak mark is a scale on the mark bonus, not a damage tag, so it is `markMult` and a `weakTag(..., marked)` match for the stagger.
 - Electric narrowing (follow-up): the `electrical` flag no longer adds the `electric` tag (it made Toaster, Microwave, Nail Gun, Vacuum, Blender and Laser all electric). Electric sources now: the Laser and Blender (declared `elements: ['electric']`), the Electric-set arc and Ray Gun splash (`chained`), the cable hazard, and the Sparks Fly stun (tagged `electric`). Toaster, Microwave, Nail Gun and Vacuum are not electric. The Electric set's membership is still the `electrical` flag.
+
+## Typed id constants (history)
+
+Done after the element soft counters: `src/engine/ids.ts` (`Item`, `Combo`, `Enemy`, `Set`, `Buff`, `Tag`, built by `idEnum` from the order lists) replaced the bare id strings in `src/content/**` and `src/sims/**` (about 640 places: `id:`, `requires`, `replaces`, `suppresses`, `sets`, `buff`, `elements`, `summonTypes`, `tuneOf` / `stateOf` / `setLine`, `stun` and hit `tags`, flavor and family / element comparisons). See "Ids" above for the rules and the lint (`tests/content/ids-lint.test.ts`).
+- Behavior did not change: `tests/golden` is byte-identical and nothing was regenerated. The migration was a mechanical rewrite that tsc and the existing tests checked; only `tests/engine/affinity.test.ts`, which pins a few call sites as source text (`ctx.stun(e, t.stun, Tag.frost)`), was updated to the constant spelling.
+- `Set` as the export name works: only `content/sets/electric.ts` and `content/items/multipack.ts` use `new Set` and import it as `S`. No file needed a different name, so the export stays `Set`.
+- Weak spots closed on the way: `HookCtx.tuneOf` / `stateOf` take `OwnerId`, `CombatEnemy.def.id` is an `EnemyId` (the `=== 'boss'` / `'honey'` / `'giftcard'` / `'melon'` checks in `ArenaScene` and `systems/combat.ts` use `Enemy.x`), `sound(name)` takes an `AudioKey` through `RuntimeCtx`, `PatternHost` and `FakeCtx` (the `as AudioName` casts are gone), the `as EnemyId[]` casts on literal lists became typed declarations (`BossTuning`, `BASICS`, `STRESS_ENEMIES`), and `THEMES`, the registry's `BOSS_THEMES`, `SimDepartment`, `StarterId` and `EnemyBehavior` are derived from one list each. The `Object.keys(...) as Id[]` casts of the UI and the profile are left: a cast is the honest type of `Object.keys`.

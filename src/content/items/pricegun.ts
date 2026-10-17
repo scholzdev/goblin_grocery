@@ -1,7 +1,8 @@
 import { cells, defineItem } from '../../engine/define';
+import { Buff, Item, Set } from '../../engine/ids';
 
 export default defineItem({
-  id: 'pricegun', kind: 'module', sets: ['checkout'], shape: cells('##', '#.'), price: 12, buff: 'pricegun',
+  id: Item.pricegun, kind: 'module', sets: [Set.checkout], shape: cells('##', '#.'), price: 12, buff: Buff.pricegun,
   // crit chance per ★ (15% base x TIER.mult). ★2 is written as the product on purpose: 0.15 * 1.5 is 0.22499999999999998,
   // which the shop has always shown as 22% (a literal 0.225 would round to 23%).
   tune: { crit: [0.15, 0.15 * 1.5, 0.3] },

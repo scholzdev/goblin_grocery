@@ -1,8 +1,9 @@
 import { defineSet } from '../../engine/define';
+import { Set } from '../../engine/ids';
 
 // Snacks set: more max HP (L1), combat regen on top (L2). Arrays are L1/L2/L3.
 export default defineSet({
-  id: 'snacks',
+  id: Set.snacks,
   tune: { maxHp: [10, 10, 20], regen: [0.3, 0.3, 0.6] },
   text: {
     en: {

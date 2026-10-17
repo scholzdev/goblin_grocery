@@ -24,6 +24,7 @@ import { affinityMult, markMult, resistTag, statusDurationMult, tryStagger, weak
 import { AFFINITY, type AffinityTag } from '../engine/define';
 import { hitTags } from '../engine/hitTags';
 import { contentSetTune } from '../engine/registry';
+import { Enemy as EnemyIds } from '../engine/ids';
 import { PhaserCtx } from './phaserCtx';
 import { createEnemy, drawTelegraph, updateEnemy, type Enemy } from './enemies';
 import { Arsenal } from './weapons';
@@ -73,6 +74,9 @@ interface Player {
 interface Coin { bread: boolean; img: Phaser.GameObjects.Image; active: boolean; x: number; y: number; z: number; vx: number; vy: number; vz: number; label: string; pull: boolean }
 
 interface SpawnGroup { at: number; ids: EnemyId[]; entry: number; told: boolean; done: boolean }
+
+/** The mix `devStress` spawns. */
+const STRESS_ENEMIES: EnemyId[] = [EnemyIds.milk, EnemyIds.banana, EnemyIds.soda, EnemyIds.spitter, EnemyIds.baguette];
 
 export class ArenaScene extends Phaser.Scene {
   player!: Player;
@@ -519,7 +523,7 @@ export class ArenaScene extends Phaser.Scene {
   bossBark(move: BossMove, e: Enemy): void {
     const id = e.def.id;
     const key: UIKey = e.mini ? { volley: 'miniVolley', charge: 'miniCharge', summon: 'miniSummon', special: 'miniSummon' }[move] as UIKey
-      : id === 'boss' ? { volley: 'bossVolley', charge: 'bossCharge', summon: 'bossSummon', special: 'bossSummon' }[move] as UIKey
+      : id === EnemyIds.boss ? { volley: 'bossVolley', charge: 'bossCharge', summon: 'bossSummon', special: 'bossSummon' }[move] as UIKey
       : `bk_${id}_${move}` as UIKey; // per-boss lines (i18n bk_<boss id>_<move>)
     hud.bark(t(key));
   }
@@ -597,7 +601,7 @@ export class ArenaScene extends Phaser.Scene {
       if (!e.alive || e.state === 'spawn' || exclude?.has(e.id)) continue;
       const d = (e.x - x) ** 2 + (e.y - y) ** 2;
       if (d >= range * range) continue;
-      const k = e.def.id === 'honey' ? d * 0.25 : d; // Honey Jars are priority targets
+      const k = e.def.id === EnemyIds.honey ? d * 0.25 : d; // Honey Jars are priority targets
       if (k < bd) { bd = k; best = e; }
     }
     return best;
@@ -779,7 +783,7 @@ export class ArenaScene extends Phaser.Scene {
     const s = store.state;
     s.stats.kills++;
     noteEnemy(s, e.def.id, { elite: e.elite });
-    const thief = e.def.id === 'giftcard';
+    const thief = e.def.id === EnemyIds.giftcard;
     const mults = { dept: this.dept.coinMult, modifier: MODIFIERS[s.modifier].coinMult, shift: SHIFTS[store.state.shift].coinMult, event: this.aisleEvent.coinMult(), kill: s.build.killCoinMult };
     const coins = thief ? giftcardCoins(e.def.coins, ENEMIES.giftcard.tune.coinMult, mults) : e === this.boss
       ? bossTuning(store.state.shift).coins
@@ -805,7 +809,7 @@ export class ArenaScene extends Phaser.Scene {
         this.enemies.push(sp);
       }
     }
-    if (e.def.id === 'melon') {
+    if (e.def.id === EnemyIds.melon) {
       for (let i = 0; i < ENEMIES.melon.tune.slices; i++) {
         const a = (i / ENEMIES.melon.tune.slices) * Math.PI * 2 + this.rng();
         noteEnemy(store.state, 'slice');
@@ -956,7 +960,7 @@ export class ArenaScene extends Phaser.Scene {
       if (this.wave.boss && !s.labSandbox && !this.enraged && this.waveTime > bossTuning(store.state.shift).enrageAfter + 1.6) {
         this.enraged = true;
         const bid = this.boss?.def.id;
-        showBanner(!bid || bid === 'boss' ? t('bossFurious') : t('bossFuriousN', { name: enemyT(bid).name.toUpperCase() }), t('bossFuriousSub'));
+        showBanner(!bid || bid === EnemyIds.boss ? t('bossFurious') : t('bossFuriousN', { name: enemyT(bid).name.toUpperCase() }), t('bossFuriousSub'));
       }
       if (this.mini && !this.enraged && this.waveTime > MINI_BOSS.at + MINI_BOSS.enrageAfter) {
         this.enraged = true; // `enraged` speeds up every boss-behavior enemy; only the giant is one here
@@ -1269,7 +1273,7 @@ export class ArenaScene extends Phaser.Scene {
     this.gum.clear();
     this.ending = 'victory';
     const bid = this.boss!.def.id;
-    showBanner(bid === 'boss' ? t('bossDefeated') : t('bossDefeatedN', { name: enemyT(bid).name.toUpperCase() }), t('bossDefeatedSub'));
+    showBanner(bid === EnemyIds.boss ? t('bossDefeated') : t('bossDefeatedN', { name: enemyT(bid).name.toUpperCase() }), t('bossDefeatedSub'));
     this.fx.shake(0.012, 400);
     if (!settings.reducedMotion) {
       this.tweens.timeScale = 0.35;
@@ -1396,7 +1400,7 @@ export class ArenaScene extends Phaser.Scene {
   /** DEV: spawn N enemies + fire many projectiles for perf measurement. */
   devStress(n = 70, shots = 150): void {
     for (let i = 0; i < n; i++) {
-      const id = (['milk', 'banana', 'soda', 'spitter', 'baguette'] as EnemyId[])[i % 5];
+      const id = STRESS_ENEMIES[i % STRESS_ENEMIES.length];
       const e = createEnemy(this, id, Phaser.Math.Between(ARENA.left + 40, ARENA.right - 40), Phaser.Math.Between(ARENA.top + 20, ARENA.bottom - 20), 50, 0.2);
       this.enemies.push(e);
     }

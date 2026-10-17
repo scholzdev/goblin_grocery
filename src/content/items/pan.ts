@@ -1,11 +1,12 @@
 import { defineItem, weaponBase, weaponTiers, WEAPON_ROWS } from '../../engine/define';
+import { Item, Set } from '../../engine/ids';
 
 // Pattern `sweep` (engine/patterns/sweep.ts): a 150° arc toward the nearest enemy, `range` reach. Sweep combos (Chicken Dinner, Sizzling Skillet, Smash the Bank,
 // Express Checkout) hook `pattern:sweep`.
 const W = weaponBase({ pattern: 'sweep', damage: 9, cooldown: 1.15, range: 150, arcDeg: 150 });
 
 export default defineItem({
-  id: 'pan', kind: 'weapon', sets: ['kitchen', 'heat'], shape: '1x3', price: 10, tags: ['melee'],
+  id: Item.pan, kind: 'weapon', sets: [Set.kitchen, Set.heat], shape: '1x3', price: 10, tags: ['melee'],
   weapon: W,
   // damage and interval per ★ for the text and the shop rows (the stats themselves come from `weapon`)
   tune: { ...weaponTiers(W), range: W.range },

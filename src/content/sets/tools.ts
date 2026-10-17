@@ -1,9 +1,10 @@
 import { defineSet } from '../../engine/define';
+import { Set } from '../../engine/ids';
 
 // Tools set: every weapon attacks faster (L1); L2 makes the dash hit harder and stun. Arrays are L1/L2/L3.
 // `cooldownDiv` is a divisor (1.08 = +8% attack rate); the text shows `pctup` of it.
 export default defineSet({
-  id: 'tools',
+  id: Set.tools,
   tune: { cooldownDiv: [1.08, 1.08, 1.15], shoveDamageMult: [2, 2, 3], shoveStun: [0.3, 0.3, 0.45] },
   text: {
     en: {

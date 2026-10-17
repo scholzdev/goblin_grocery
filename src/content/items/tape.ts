@@ -1,7 +1,8 @@
 import { defineItem, PROJECTILE_PATTERNS } from '../../engine/define';
+import { Buff, Item, Set } from '../../engine/ids';
 
 export default defineItem({
-  id: 'tape', kind: 'module', sets: ['tools'], shape: '1x1', price: 9, buff: 'tape',
+  id: Item.tape, kind: 'module', sets: [Set.tools], shape: '1x1', price: 9, buff: Buff.tape,
   // pierce is +1 / +1 / +2 per ★ (not linear: Gold Star's effective ★4 stays at `maxPierce`), arc degrees and radius scale linearly
   // (30° / 20% base x TIER.mult)
   tune: { pierce: [1, 1, 2], maxPierce: 2, arc: [30, 45, 60], radius: [0.2, 0.3, 0.4] },

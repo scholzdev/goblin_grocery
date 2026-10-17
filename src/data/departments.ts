@@ -1,3 +1,5 @@
+import { THEME_ORDER } from '../engine/define';
+import { Enemy } from '../engine/ids';
 import type { DepartmentDef, DepartmentId, EnemyId } from '../types';
 
 // Departments: run themes (+ hazard, roster). See docs/departments.md.
@@ -50,11 +52,12 @@ export const DEPARTMENTS: Record<DepartmentId, DepartmentDef> = {
 };
 
 /** Run themes the player can pick on the start screen. */
-export const THEMES: DepartmentId[] = ['main', 'frozen', 'bakery', 'electronics', 'checkout'];
+export const THEMES: DepartmentId[] = [...THEME_ORDER];
+const BASICS: EnemyId[] = [Enemy.milk, Enemy.banana, Enemy.giftcard];
 export const DEPT_TUNING = {
   /** Off-theme enemies spawn at this weight; basics stay at 1. */
   offTheme: 0.35,
-  basics: ['milk', 'banana', 'giftcard'] as EnemyId[],
+  basics: BASICS,
   biasWeight: 2.5,
   clearanceFromShop: 3,
   clearanceChance: 0.25,

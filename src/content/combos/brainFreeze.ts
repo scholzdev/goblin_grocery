@@ -1,9 +1,10 @@
 import { defineCombo } from '../../engine/define';
+import { Combo, Item } from '../../engine/ids';
 
 // Blender + Ice Pack: a wider, chilling blade storm. Replaces the Ice Pack slow for this weapon. The slower, pale spinning blades are this
 // combo's `pattern:look` (cosmetic only).
 export default defineCombo({
-  id: 'brainFreeze', requires: ['blender', 'ice'],
+  id: Combo.brainFreeze, requires: [Item.blender, Item.ice],
   tune: { radiusMult: 1.25, pct: 0.4, duration: 0.6 },
   text: {
     en: {

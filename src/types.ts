@@ -2,7 +2,7 @@
 import type { DoorId, ModifierId } from './data/modifiers';
 import type { EventKind } from './data/events';
 import type { ZoneId } from './data/zones';
-import type { AffinityMap, AffinityTag, BUFF_ORDER, ELEMENTS, ENEMY_ORDER, FAMILIES, ITEM_ORDER, RECIPE_ORDER, SET_ORDER } from './engine/define';
+import type { AffinityMap, AffinityTag, BUFF_ORDER, ELEMENTS, ENEMY_BEHAVIORS, ENEMY_ORDER, FAMILIES, ITEM_ORDER, RECIPE_ORDER, SET_ORDER, STARTER_ORDER, THEME_ORDER } from './engine/define';
 
 /** The id unions are derived from the order lists of engine/define.ts (which the registry checks against the content files). */
 export type ItemTypeId = (typeof ITEM_ORDER)[number];
@@ -138,7 +138,7 @@ export interface ActiveRecipe {
   supportUids: string[];
 }
 
-export type StarterId = 'toaster' | 'pan' | 'coupon' | 'night';
+export type StarterId = (typeof STARTER_ORDER)[number];
 /** Starting weapons selectable independently of the character. */
 export type StarterWeapon = 'toaster' | 'pan' | 'nailgun';
 
@@ -185,7 +185,7 @@ export interface RecipeDef {
   suppresses?: BuffId[];
 }
 
-export type EnemyBehavior = 'chase' | 'charger' | 'tank' | 'spitter' | 'swiper' | 'exploder' | 'splitter' | 'healer' | 'thief' | 'teleporter' | 'boss';
+export type EnemyBehavior = (typeof ENEMY_BEHAVIORS)[number];
 
 export interface EnemyDef {
   id: EnemyId;
@@ -266,7 +266,9 @@ export interface ShopState {
 
 export type Phase = 'title' | 'combat' | 'checkout' | 'shop' | 'route' | 'victory' | 'defeat';
 
-export type DepartmentId = 'main' | 'frozen' | 'bakery' | 'electronics' | 'checkout' | 'boss';
+/** The run themes (derived from `THEME_ORDER`); a department is a theme or the Manager's own `'boss'` one. */
+export type ThemeId = (typeof THEME_ORDER)[number];
+export type DepartmentId = ThemeId | 'boss';
 export type HazardKind = 'none' | 'ice' | 'vents' | 'cables' | 'conveyor';
 
 export interface DepartmentDef {

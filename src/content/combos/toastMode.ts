@@ -1,9 +1,10 @@
 import { defineCombo } from '../../engine/define';
+import { Combo, Item } from '../../engine/ids';
 
 // Toaster + Desk Fan + Fuel Can: three flaming toasts per shot. The Fuel burn comes from the module phase; this only reshapes the volley.
 // The flame trail, the amber hit sparks and the lower pop are this combo's `pattern:look` (cosmetic only; the toast pattern and damageEnemy read the look).
 export default defineCombo({
-  id: 'toastMode', requires: ['toaster', 'fan', 'fuel'],
+  id: Combo.toastMode, requires: [Item.toaster, Item.fan, Item.fuel],
   tune: { count: 3, damageMult: 0.75, spreadDeg: 22 },
   text: {
     en: {

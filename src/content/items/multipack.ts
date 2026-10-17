@@ -1,4 +1,5 @@
 import { defineItem, PROJECTILE_PATTERNS, resolveTune } from '../../engine/define';
+import { Buff, Item, Set as S } from '../../engine/ids';
 
 // extra projectiles are +1 / +1 / +2 per ★ (not linear: Gold Star's effective ★4 stays at `maxExtra`), melee damage scales linearly
 // (20% base x TIER.mult). `repeats` = extra attacks for sweeps/cones/mortars; `repeatDelay` (s) is read by the arsenal.
@@ -8,7 +9,7 @@ const TUNE = { extra: [1, 1, 2], maxExtra: 2, damage: [0.2, 0.3, 0.4], repeats: 
 const REPEATING: ReadonlySet<string> = new Set(['sweep', 'cone', 'mortar']);
 
 export default defineItem({
-  id: 'multipack', kind: 'module', sets: ['snacks', 'blast'], shape: '1x1', price: 13, buff: 'multipack',
+  id: Item.multipack, kind: 'module', sets: [S.snacks, S.blast], shape: '1x1', price: 13, buff: Buff.multipack,
   tune: TUNE,
   text: {
     en: { name: 'Multipack', blurb: 'Buy one, fire two.', rules: 'Any adjacent weapon: projectiles {extra|+int}, sweeps/cones/mortars attack one extra time, other weapons {damage|+pct} damage.' },
@@ -37,7 +38,7 @@ export default defineItem({
       // Post-combo hooks get the tier of the best copy in the whole cart; the count is decided by the best copy *touching* this weapon.
       const t = resolveTune(TUNE, Math.max(...touching.map((n) => n.tier)));
       w.count += projectile ? Math.min(t.extra, t.maxExtra) : t.repeats;
-      w.buffs.push('multipack');
+      w.buffs.push(Buff.multipack);
     },
   }],
 });

@@ -1,9 +1,10 @@
 import { defineCombo } from '../../engine/define';
+import { Combo, Item } from '../../engine/ids';
 
 // Frying Pan + Lunchbox: every `every`th sweep (all of this combo's pans share the count, bonus sweeps included) is bigger. The count is
 // `c.state.sweeps`, fresh per aisle like the arsenal's old counter. The ordinal suffix in the text ("4th") is literal.
 export default defineCombo({
-  id: 'chickenDinner', requires: ['pan', 'lunchbox'],
+  id: Combo.chickenDinner, requires: [Item.pan, Item.lunchbox],
   tune: { every: 4, rangeMult: 1.4, damageMult: 2.5 },
   text: {
     en: {

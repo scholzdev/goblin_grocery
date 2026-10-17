@@ -1,11 +1,12 @@
 import { defineItem } from '../../engine/define';
+import { Item, Set } from '../../engine/ids';
 
 // Coin chance per enemy the dash hits (40% x TIER.mult, `0.4 * 1.5` on purpose), capped at `cap`: only Gold Star's
 // effective ★4 reaches it. Used by the build field and the runtime roll alike.
 const chanceOf = (t: { chance: number; cap: number }): number => Math.min(t.cap, t.chance);
 
 export default defineItem({
-  id: 'tipjar', kind: 'passive', sets: ['checkout'], shape: '1x1', price: 9,
+  id: Item.tipjar, kind: 'passive', sets: [Set.checkout], shape: '1x1', price: 9,
   tune: { chance: [0.4, 0.4 * 1.5, 0.4 * 2], cap: 1 },
   text: {
     en: { name: 'Tip Jar', blurb: 'Bump them. They tip.', rules: 'Each grocery the Space dash hits has a {chance|pct} chance to drop a coin (does not stack).' },

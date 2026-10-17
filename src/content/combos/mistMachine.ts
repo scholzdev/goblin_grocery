@@ -1,9 +1,10 @@
 import { defineCombo } from '../../engine/define';
+import { Buff, Combo, Item } from '../../engine/ids';
 
 // Spray Bottle + Desk Fan: a huge misting cone. It replaces the Fan bonus (`suppresses`: the Desk Fan buff is skipped on this weapon), so the arc is set
 // to `arcDeg` plus whatever Duct Tape added.
 export default defineCombo({
-  id: 'mistMachine', requires: ['spray', 'fan'],
+  id: Combo.mistMachine, requires: [Item.spray, Item.fan],
   tune: { arcDeg: 120, rangeMult: 1.4 },
   text: {
     en: {
@@ -17,7 +18,7 @@ export default defineCombo({
       detail: 'Der Sprühkegel wird {arcDeg|deg} breit und reicht {rangeMult|pctup}% weiter. (Der Ventilator-Bonus auf Tempo/Reichweite gilt nicht für Sprühstöße, dies ersetzt ihn.)',
     },
   },
-  suppresses: ['fan'],
+  suppresses: [Buff.fan],
   build: {
     phase: 'combo',
     weapon(w, c) {

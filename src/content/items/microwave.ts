@@ -1,10 +1,11 @@
 import { cells, defineItem, weaponBase, weaponTiers, WEAPON_ROWS } from '../../engine/define';
+import { Item, Set } from '../../engine/ids';
 
 // Pattern `zap` (engine/patterns/zap.ts): the toughest enemy in `range`, `aoe` splash, then `chain` more links. TV Dinner, Sparks Fly and Reheat hook `pattern:zap`.
 const W = weaponBase({ pattern: 'zap', damage: 24, cooldown: 2.4, range: 380, aoe: 70 });
 
 export default defineItem({
-  id: 'microwave', kind: 'weapon', sets: ['kitchen', 'heat'], shape: cells('.##', '##.'), price: 20, tags: ['area'], electrical: true,
+  id: Item.microwave, kind: 'weapon', sets: [Set.kitchen, Set.heat], shape: cells('.##', '##.'), price: 20, tags: ['area'], electrical: true,
   weapon: W,
   // damage and interval per ★ for the text and the shop rows (the stats themselves come from `weapon`)
   tune: { ...weaponTiers(W), range: W.range, aoe: W.aoe },

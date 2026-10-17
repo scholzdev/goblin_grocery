@@ -1,8 +1,9 @@
 import { defineSet } from '../../engine/define';
+import { Set } from '../../engine/ids';
 
 // Cleaning set: cleaning weapons reach further (L1); L2 adds knockback and longer puddles. Arrays are L1/L2/L3.
 export default defineSet({
-  id: 'cleaning',
+  id: Set.cleaning,
   tune: { rangeMult: [1.15, 1.15, 1.25], aoeMult: [1.15, 1.15, 1.25], knockbackMult: [1.4, 1.4, 1.8], puddleExtra: [1, 1, 2] },
   text: {
     en: {
@@ -26,7 +27,7 @@ export default defineSet({
     phase: 'set', order: 20,
     weapon(w, c) {
       const def = c.def(w.type);
-      if (def.family !== 'cleaning') return;
+      if (def.family !== Set.cleaning) return;
       const t = c.tune();
       w.range *= t.rangeMult; w.aoe *= t.aoeMult;
       if (c.tier >= 2 && def.weapon!.pattern === 'puddle') w.duration += t.puddleExtra;
@@ -38,7 +39,7 @@ export default defineSet({
     order: 30,
     afterHit(hit, ctx, c) {
       const stats = hit.stats;
-      if (!stats || c.tier < 2 || c.def(stats.type).family !== 'cleaning') return;
+      if (!stats || c.tier < 2 || c.def(stats.type).family !== Set.cleaning) return;
       hit.kbMult *= c.tune().knockbackMult;
       const o = hit.opts;
       if (o.kb && !o.isDot && stats.pattern !== 'aura' && stats.pattern !== 'puddle') ctx.fx.spark(hit.enemy.x, hit.enemy.y - 30, 3, 0x3fb7a6);

@@ -1,10 +1,11 @@
 import { defineCombo } from '../../engine/define';
+import { Combo, Item } from '../../engine/ids';
 
 // Self-Checkout Laser + Price Gun: the beam marks every enemy it is about to hit (`before`, so the beam itself already hits harder). The
 // multiplier is engine behavior shared with Sale Flag (engine/marks.ts reads `damageMult` from this tune); Sale Flag's text shows `1 +
 // bonus` and a test pins them equal.
 export default defineCombo({
-  id: 'priceCheck', requires: ['laser', 'pricegun'],
+  id: Combo.priceCheck, requires: [Item.laser, Item.pricegun],
   tune: { duration: 3, damageMult: 1.2 },
   text: {
     en: {

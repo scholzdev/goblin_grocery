@@ -204,15 +204,18 @@ export interface HookCtx<T extends Tune = Tune> {
    * Another content owner's tune: an item at tier `level`, a combo (scalars), or a set at level `level` (default 1). Empty for an id that is
    * not content. Confetti Cannon reads the Blast set's radius, Tailwind the Sugar Rush stack numbers.
    */
-  tuneOf(id: string, level?: number): Readonly<Record<string, number>>;
+  tuneOf(id: OwnerId, level?: number): Readonly<Record<string, number>>;
   /**
    * The scratch state of another owner active in this cart (undefined when it is not): Tailwind adds to Sugar Rush's stacks. Fresh per
    * aisle like `state`; the owner creates its own fields lazily, so a reader must tolerate an empty object.
    */
-  stateOf(id: string): Record<string, any> | undefined; // eslint-disable-line @typescript-eslint/no-explicit-any
+  stateOf(id: OwnerId): Record<string, any> | undefined; // eslint-disable-line @typescript-eslint/no-explicit-any
   /** Scratch state, fresh for every aisle (counters, timers). Shared by all hooks of the same owner. */
   state: Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
+
+/** What another owner's tune / state is looked up by: an item, a combo or a set (the three kinds of content that own hooks). */
+export type OwnerId = ItemTypeId | RecipeId | SetId;
 
 export type HookFn<K extends HookName, T extends Tune = Tune> = (ev: HookEvents[K], ctx: RuntimeCtx, c: HookCtx<T>) => void;
 /** The combat part of a content file's `hooks`. */
@@ -244,7 +247,7 @@ export interface HookSource {
 }
 
 /** `HookCtx.tuneOf`: items by tier, combos (scalars) and sets by level, whichever owns the id. */
-function otherTune(id: string, level = 1): Readonly<Record<string, number>> {
+function otherTune(id: OwnerId, level = 1): Readonly<Record<string, number>> {
   return contentItems().some((c) => c.id === id) ? contentTune(id as ItemTypeId, level)
     : contentCombos().some((c) => c.id === id) ? contentComboTune(id as RecipeId)
       : contentSetTune(id as SetId, level);
@@ -258,7 +261,7 @@ export function compileHooks(sources: readonly HookSource[], ctx: RuntimeCtx, ow
   const staged: { name: HookName; h: Handler; seq: number }[] = [];
   const states = new Map<string, Record<string, any>>(); // eslint-disable-line @typescript-eslint/no-explicit-any
   for (const s of sources) states.set(s.id, {});
-  const stateOf = (id: string) => states.get(id);
+  const stateOf = (id: OwnerId) => states.get(id);
   for (const s of sources) {
     const tune = Object.freeze(resolveTune(s.tune, s.tier));
     const c: HookCtx = { id: s.id, kind: s.kind, tier: s.tier, tune: () => tune, touches: (uid) => !s.weapons || s.weapons.has(uid), owned, def: (id) => ITEMS[id], tuneOf: otherTune, stateOf, state: states.get(s.id)! };

@@ -1,9 +1,10 @@
 import { defineCombo } from '../../engine/define';
+import { Combo, Item, Tag } from '../../engine/ids';
 
 // Vacuum + Double Bag + Running Boots: vacuum kills charge a garbage bag (`c.state.bag`, shown as "BAG xN"); the next dash drops it and it
 // explodes after `fuse` s for `dmgPerCharge` per charge. The label of the blast is the literal "Bag It".
 export default defineCombo({
-  id: 'bagIt', requires: ['vacuum', 'doublebag', 'boot'],
+  id: Combo.bagIt, requires: [Item.vacuum, Item.doublebag, Item.boot],
   tune: { perKill: 1, max: 10, fuse: 0.4, radius: 120, dmgPerCharge: 6 },
   text: {
     en: {
@@ -24,7 +25,7 @@ export default defineCombo({
       if (!s || !c.touches(s.uid)) return;
       const t = c.tune();
       c.state.bag = Math.min(t.max, (c.state.bag ?? 0) + t.perKill);
-      ctx.setLine('bagIt', `BAG x${c.state.bag}`, 1);
+      ctx.setLine(Combo.bagIt, `BAG x${c.state.bag}`, 1);
     },
     // Dashing with charges drops the bag where the goblin stands; the charges reset.
     onDashStart(_ev, ctx, c) {
@@ -32,7 +33,7 @@ export default defineCombo({
       if (n <= 0) return;
       const t = c.tune(), { x, y } = ctx.player;
       c.state.bag = 0;
-      ctx.setLine('bagIt', null);
+      ctx.setLine(Combo.bagIt, null);
       ctx.fx.garbageBag(x, y, t.fuse);
       ctx.delay(t.fuse, () => {
         if (!ctx.combatActive()) return;
@@ -42,7 +43,7 @@ export default defineCombo({
         ctx.sound('boom');
         for (const e of ctx.inRadius({ x, y }, t.radius)) {
           const dx = e.x - x, dy = e.y - y, d = Math.hypot(dx, dy);
-          ctx.damage(e, t.dmgPerCharge * n, null, { kb: 220, kbX: dx / (d || 1), kbY: dy / (d || 1), label: 'Bag It', tags: ['blast'] });
+          ctx.damage(e, t.dmgPerCharge * n, null, { kb: 220, kbX: dx / (d || 1), kbY: dy / (d || 1), label: 'Bag It', tags: [Tag.blast] });
         }
       });
     },

@@ -5,18 +5,18 @@ import { SET_EVENT_KINDS, type EventKind } from '../data/events';
 import { MODIFIERS, type ModifierId } from '../data/modifiers';
 import { SHIFTS, SHOP_LEVELS } from '../data/waves';
 import { ARENA } from '../data/arena';
-import { FLAVORS } from '../engine/define';
+import { FLAVORS, STARTER_ORDER } from '../engine/define';
 import { canPlace, normalizeRotation } from '../systems/inventory';
 import type { SpreadKind } from '../systems/spread';
 import type { LabDummy } from '../lab';
-import type { DepartmentId, ElementTag, EnemyId, Inventory, ItemTypeId, Rotation, StarterId } from '../types';
+import type { ElementTag, EnemyId, Inventory, ItemTypeId, Rotation, StarterId, ThemeId } from '../types';
 
 // A sim is a Test Lab scenario in one file: src/sims/<id>.ts with `export default defineSim({...})`.
 // This file holds the shape, the defaults and the validation (pure: no Phaser, no DOM). The registry is `_registry.ts`,
 // the run builder is `state/sim.ts`. Files starting with `_` are helpers, not sims. See docs/sims.md.
 
 /** Departments a sim can pick (the five themes; the boss aisle is `aisle: 8` with `waves: true`). */
-export type SimDepartment = Extract<DepartmentId, 'main' | 'frozen' | 'bakery' | 'electronics' | 'checkout'>;
+export type SimDepartment = ThemeId;
 export type SimEvent = 'none' | 'random' | EventKind;
 export type SimTier = 1 | 2 | 3;
 
@@ -151,7 +151,7 @@ export function validateSim(sim: SimDef, fileId?: string): string[] {
   const bad = (msg: string): void => { errs.push(msg); };
   if (typeof sim.id !== 'string' || !/^[a-z0-9][a-z0-9-]*$/.test(sim.id)) bad(`id "${sim.id}" must be lowercase letters, digits and dashes`);
   if (fileId !== undefined && sim.id !== fileId) bad(`id "${sim.id}" must equal the file name "${fileId}"`);
-  if (sim.character !== undefined && !(['toaster', 'pan', 'coupon', 'night'] as StarterId[]).includes(sim.character)) bad(`unknown character "${sim.character}"`);
+  if (sim.character !== undefined && !STARTER_ORDER.includes(sim.character)) bad(`unknown character "${sim.character}"`);
   const aisle = sim.aisle ?? SIM_DEFAULTS.aisle;
   if (!isInt(aisle) || aisle < 1 || aisle > 15) bad(`aisle ${aisle} must be a whole number 1..15`);
   if (sim.department !== undefined && !THEMES.includes(sim.department)) bad(`unknown department "${sim.department}" (one of ${THEMES.join(', ')})`);

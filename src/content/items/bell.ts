@@ -1,7 +1,8 @@
 import { defineItem } from '../../engine/define';
+import { Item, Set } from '../../engine/ids';
 
 export default defineItem({
-  id: 'bell', kind: 'passive', sets: ['checkout'], shape: '1x1', price: 7,
+  id: Item.bell, kind: 'passive', sets: [Set.checkout], shape: '1x1', price: 7,
   unlock: 'starting',
   tune: { cooldown: [0.5, 0.75, 1] }, // seconds off the dash (shove) cooldown per ★ (0.5 base x TIER.mult)
   text: {

@@ -1,7 +1,8 @@
 import { defineItem } from '../../engine/define';
+import { Buff, Item, Set } from '../../engine/ids';
 
 export default defineItem({
-  id: 'battery', kind: 'module', sets: ['tools'], shape: '1x1', price: 8, electrical: true, buff: 'battery',
+  id: Item.battery, kind: 'module', sets: [Set.tools], shape: '1x1', price: 8, electrical: true, buff: Buff.battery,
   unlock: 'starting',
   // attack speed bonus per ★ (1.12 base x TIER.mult); electric weapons get 1.5x of it
   tune: { rate: [0.12, 0.18, 0.24], electric: [0.18, 0.27, 0.36] },

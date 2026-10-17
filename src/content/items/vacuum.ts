@@ -1,11 +1,12 @@
 import { cells, defineItem, weaponBase, weaponTiers, WEAPON_ROWS } from '../../engine/define';
+import { Item, Set } from '../../engine/ids';
 
 // Pattern `pulse` (engine/patterns/pulse.ts): constant suction (`pull`) plus a damage pulse every cooldown. The coin pickup radius is this item's own `player` hook
 // (it used to be `BUFFS.vacuumPickup` in `computeBuild`).
 const W = weaponBase({ pattern: 'pulse', damage: 2, cooldown: 0.65, range: 150, pull: 70 });
 
 export default defineItem({
-  id: 'vacuum', kind: 'weapon', sets: ['cleaning'], shape: cells('###', '.#.'), price: 18, tags: ['area'], electrical: true,
+  id: Item.vacuum, kind: 'weapon', sets: [Set.cleaning], shape: cells('###', '.#.'), price: 18, tags: ['area'], electrical: true,
   weapon: W,
   // damage and interval per ★ for the text and the shop rows (the stats themselves come from `weapon`)
   tune: { ...weaponTiers(W), pickup: 60 },

@@ -1,7 +1,8 @@
 import { defineItem, PROJECTILE_PATTERNS } from '../../engine/define';
+import { Buff, Item, Set } from '../../engine/ids';
 
 export default defineItem({
-  id: 'fan', kind: 'module', sets: ['cleaning'], shape: '1x2', price: 9, buff: 'fan',
+  id: Item.fan, kind: 'module', sets: [Set.cleaning], shape: '1x2', price: 9, buff: Buff.fan,
   unlock: 'starting',
   tune: { range: [0.3, 0.45, 0.6], speed: [0.3, 0.45, 0.6] }, // bonus range/reach and projectile speed per ★ (1.3 base x TIER.mult)
   text: {

@@ -1,11 +1,12 @@
 import { defineItem, weaponBase, weaponTiers, WEAPON_ROWS } from '../../engine/define';
+import { Item, Set } from '../../engine/ids';
 
 // Pattern `ricochet` (engine/patterns/ricochet.ts): caps that bounce to `bounces` more enemies (the bounce is in engine/patterns/projectile.ts). Confetti Cannon and
 // Clearance Sale hook `pattern:bounce`.
 const W = weaponBase({ pattern: 'ricochet', damage: 6, cooldown: 1.0, range: 420, projectileSpeed: 620, bounces: 2 });
 
 export default defineItem({
-  id: 'fizz', kind: 'weapon', sets: ['snacks', 'frost'], shape: '2x1', price: 14, tags: ['ranged'],
+  id: Item.fizz, kind: 'weapon', sets: [Set.snacks, Set.frost], shape: '2x1', price: 14, tags: ['ranged'],
   weapon: W,
   // damage and interval per ★ for the text and the shop rows (the stats themselves come from `weapon`)
   tune: { ...weaponTiers(W), range: W.range, bounces: W.bounces },

@@ -1,4 +1,5 @@
 import { defineCombo } from '../../engine/define';
+import { Combo, Item } from '../../engine/ids';
 
 // Nail Gun + Battery + Tin Foil Hat + Magnet (replaces Nailstorm): nails become energy bolts that never pierce and splash on impact; every
 // `every`th shot is the big red one. No stat changes (the Nailstorm pierce and homing are simply not applied). `pattern:fire` takes the
@@ -6,7 +7,7 @@ import { defineCombo } from '../../engine/define';
 // (the red bolt splashes for 120%); the text calls the red bolt's extra "+20% splash damage" (kept as it was). The ordinal suffix in the
 // text ("3rd") is literal.
 export default defineCombo({
-  id: 'rayGun', requires: ['nailgun', 'battery', 'tinfoilhat', 'magnet'],
+  id: Combo.rayGun, requires: [Item.nailgun, Item.battery, Item.tinfoilhat, Item.magnet],
   tune: { splashR: 60, splashMult: 0.6, every: 3, bigR: 120, bigMult: 1.2 },
   text: {
     en: {
@@ -20,7 +21,7 @@ export default defineCombo({
       detail: 'Nägel werden zu grünen Energiestrahlen (ohne Durchschlag), die {splashMult|pct} Schaden auf Gegner im Umkreis von {splashR} verteilen. Jeder {every}. Schuss ist ein roter Überladungsstrahl: Splash-Radius {bigR} und +{bigMult|pctup}% Splash-Schaden. Ersetzt Nagelsturm.',
     },
   },
-  replaces: ['nailstorm'],
+  replaces: [Combo.nailstorm],
   hooks: {
     'pattern:fire'(ev, ctx, c) {
       if (!c.touches(ev.stats.uid)) return;

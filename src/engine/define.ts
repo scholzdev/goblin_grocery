@@ -57,6 +57,10 @@ export const FAMILIES = ['kitchen', 'cleaning', 'tools', 'snacks', 'checkout'] a
 export const ELEMENTS = ['heat', 'frost', 'blast'] as const;
 /** Every set, in the order the shop lists them and `setLevels` reports them. */
 export const SET_ORDER = [...FAMILIES, ...ELEMENTS, 'electric'] as const;
+/** The departments a run can be themed after (the boss aisle's own `'boss'` department is not a theme). `ThemeId` / `DepartmentId` of types.ts are derived from this. */
+export const THEME_ORDER = ['main', 'frozen', 'bakery', 'electronics', 'checkout'] as const;
+/** The starter goblins (`StarterId` of types.ts is derived from this). */
+export const STARTER_ORDER = ['toaster', 'pan', 'coupon', 'night'] as const;
 /** Pure math the pattern code shares with content (Phaser's `Angle.Wrap`, to the bit: content may not import Phaser). Wraps to [-PI, PI). */
 export const wrapAngle = (a: number): number => {
   const min = -Math.PI, range = Math.PI - min;
@@ -346,7 +350,8 @@ export const AFFINITY = {
   stagger: { time: 0.25, cooldown: 4 },
 } as const;
 
-export const ENEMY_BEHAVIORS: readonly EnemyBehavior[] = ['chase', 'charger', 'tank', 'spitter', 'swiper', 'exploder', 'splitter', 'healer', 'thief', 'teleporter', 'boss'];
+/** The enemy behaviors (`EnemyBehavior` of types.ts is derived from this list). */
+export const ENEMY_BEHAVIORS = ['chase', 'charger', 'tank', 'spitter', 'swiper', 'exploder', 'splitter', 'healer', 'thief', 'teleporter', 'boss'] as const;
 
 /** Boss move loop entries. 'special' runs the kit's signature move (BossKit.special). */
 export type BossMove = 'volley' | 'charge' | 'summon' | 'special';

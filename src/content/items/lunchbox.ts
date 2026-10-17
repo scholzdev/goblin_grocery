@@ -1,7 +1,8 @@
 import { defineItem } from '../../engine/define';
+import { Item, Set } from '../../engine/ids';
 
 export default defineItem({
-  id: 'lunchbox', kind: 'passive', sets: ['snacks'], shape: '2x1', price: 9,
+  id: Item.lunchbox, kind: 'passive', sets: [Set.snacks], shape: '2x1', price: 9,
   unlock: 'starting',
   // max HP per ★ (15 base x TIER.mult). ★2 is 22.5: it is rounded in the hook (to 23) and in the text and row.
   tune: { hp: [15, 22.5, 30] },

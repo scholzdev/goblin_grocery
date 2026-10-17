@@ -1,8 +1,9 @@
 import { defineItem } from '../../engine/define';
+import { Buff, Item, Set, Tag } from '../../engine/ids';
 
 export default defineItem({
-  id: 'popper', kind: 'module', sets: ['snacks', 'blast'], shape: '1x1', price: 10, buff: 'popper',
-  elements: ['blast'], // the pop of its kills
+  id: Item.popper, kind: 'module', sets: [Set.snacks, Set.blast], shape: '1x1', price: 10, buff: Buff.popper,
+  elements: [Tag.blast], // the pop of its kills
   tune: { damage: [6, 9, 12], radius: 70 }, // confetti damage per ★ (6 base x TIER.mult); the radius is flat
   text: {
     en: { name: 'Party Popper', blurb: 'Every kill is a celebration.', rules: 'Enemies killed by adjacent weapons explode in confetti: {damage} damage within {radius}. Popper explosions never chain.' },

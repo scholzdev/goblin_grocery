@@ -1,7 +1,8 @@
 import { defineItem } from '../../engine/define';
+import { Item, Set } from '../../engine/ids';
 
 export default defineItem({
-  id: 'energy', kind: 'passive', sets: ['snacks'], shape: '1x1', price: 8,
+  id: Item.energy, kind: 'passive', sets: [Set.snacks], shape: '1x1', price: 8,
   tune: { speed: [0.12, 0.18, 0.24] }, // movement speed bonus per ★ (12% base x TIER.mult)
   text: {
     en: { name: 'Energy Drink', blurb: 'Zoom zoom. Faster cart.', rules: '{speed|+pct} movement speed (does not stack).' },

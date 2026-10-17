@@ -2,6 +2,7 @@ import { defineCombo } from '../../engine/define';
 import type { RuntimeCtx } from '../../engine/ctx';
 import type { HookCtx } from '../../engine/hooks';
 import { countStacks, pushStack } from '../../engine/stacks';
+import { Combo, Item } from '../../engine/ids';
 
 // Energy Drink next to Running Boots (a cart combo: no weapon): every dash adds a stack, +`perStack` move speed for `duration` s each, up
 // to `max` (at the cap the oldest stack is refreshed). The stacks are `c.state.stacks` (expiry times; Tailwind adds to them through
@@ -11,11 +12,11 @@ const show = (ctx: RuntimeCtx, c: HookCtx): void => {
   const mods = ctx.player.speedMods;
   mods.sugarRush ??= (now) => 1 + c.tune().perStack * countStacks(c.state.stacks ?? [], now);
   const n = countStacks(c.state.stacks ?? [], ctx.now()), text = n ? `SUGAR ${'#'.repeat(n)}` : null;
-  if (text !== (c.state.text ?? null)) { c.state.text = text; ctx.setLine('sugarRush', text, 0); }
+  if (text !== (c.state.text ?? null)) { c.state.text = text; ctx.setLine(Combo.sugarRush, text, 0); }
 };
 
 export default defineCombo({
-  id: 'sugarRush', requires: ['energy', 'boot'], cart: true,
+  id: Combo.sugarRush, requires: [Item.energy, Item.boot], cart: true,
   tune: { perStack: 0.08, duration: 3, max: 5 },
   text: {
     en: {

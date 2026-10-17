@@ -1,11 +1,12 @@
 import { defineItem } from '../../engine/define';
+import { Item, Set } from '../../engine/ids';
 
 // Legendary (★1 only, never lifted by Gold Star): every electrical weapon in the cart attacks faster; the ones touching it even more.
 // The code divides the cooldown by `all` / `adjacent`; the text shows the matching gains (`all - 1`, `adjacent - 1`).
 const ALL = 1.2, ADJACENT = 1.4;
 
 export default defineItem({
-  id: 'powerstrip', kind: 'module', sets: ['tools'], shape: '3x1', price: 32, electrical: true, legendary: true,
+  id: Item.powerstrip, kind: 'module', sets: [Set.tools], shape: '3x1', price: 32, electrical: true, legendary: true,
   tune: { all: ALL, adjacent: ADJACENT, allGain: ALL - 1, adjacentGain: ADJACENT - 1 },
   text: {
     en: { name: 'Power Strip', blurb: 'Plugs the whole cart in at once.', rules: 'Every electrical weapon in the cart gains {allGain|+pct} attack rate; electrical weapons touching it gain {adjacentGain|+pct} instead.' },

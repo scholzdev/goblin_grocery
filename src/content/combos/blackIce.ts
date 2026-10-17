@@ -1,9 +1,10 @@
 import { defineCombo } from '../../engine/define';
+import { Combo, Item, Tag } from '../../engine/ids';
 
 // Mop + Ice Pack: the first time an enemy steps into a puddle it freezes (`first` of `pattern:puddleEnter`, before the puddle's slow and
 // damage).
 export default defineCombo({
-  id: 'blackIce', requires: ['mop', 'ice'],
+  id: Combo.blackIce, requires: [Item.mop, Item.ice],
   tune: { freeze: 0.8 },
   text: {
     en: {
@@ -20,7 +21,7 @@ export default defineCombo({
   hooks: {
     'pattern:puddleEnter'(ev, ctx, c) {
       if (!ev.first || !c.touches(ev.stats.uid)) return;
-      ctx.stun(ev.enemy, c.tune().freeze, 'frost');
+      ctx.stun(ev.enemy, c.tune().freeze, Tag.frost);
       ctx.fx.frostBurst(ev.enemy.x, ev.enemy.y - 20, 4);
     },
   },

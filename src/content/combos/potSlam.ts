@@ -1,9 +1,10 @@
 import { defineCombo } from '../../engine/define';
+import { Combo, Item } from '../../engine/ids';
 
 // Pressure Cooker + Slam Bumper: every dash ends in a full pot explosion at the landing spot (`pattern:explode` fires, so Pressure Point
 // and Shrapnel follow). Runs right after the Bumper's shockwave and before Express Checkout (order 0 vs 10), as the dash code did.
 export default defineCombo({
-  id: 'potSlam', requires: ['cooker', 'bumper'],
+  id: Combo.potSlam, requires: [Item.cooker, Item.bumper],
   text: {
     en: {
       name: 'Pot Slam', short: 'Dash landing = pot blast',

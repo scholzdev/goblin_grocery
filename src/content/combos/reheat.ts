@@ -1,9 +1,10 @@
 import { defineCombo } from '../../engine/define';
+import { Combo, Item } from '../../engine/ids';
 
 // Microwave + Fuel Can: the first target of every zap keeps burning (a fire pool at its spot, before the zap's damage). Only burns when the
 // microwave has a Fuel burn.
 export default defineCombo({
-  id: 'reheat', requires: ['microwave', 'fuel'],
+  id: Combo.reheat, requires: [Item.microwave, Item.fuel],
   tune: { dps: 3, duration: 2, tick: 0.5, poolTime: 2.5 },
   text: {
     en: {

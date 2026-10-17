@@ -1,11 +1,12 @@
 import { defineCombo } from '../../engine/define';
+import { Combo, Item } from '../../engine/ids';
 
 const DEG = Math.PI / 180;
 
 // Frying Pan + Fuel Can: every sweep (also Express Checkout's) leaves `pools` fire pools along the arc. They only burn when the pan has a
 // Fuel burn.
 export default defineCombo({
-  id: 'sizzlingSkillet', requires: ['pan', 'fuel'],
+  id: Combo.sizzlingSkillet, requires: [Item.pan, Item.fuel],
   tune: { dps: 4, duration: 2, tick: 0.5, poolTime: 2, pools: 3 },
   text: {
     en: {

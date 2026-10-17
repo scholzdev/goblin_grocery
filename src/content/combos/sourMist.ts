@@ -1,9 +1,10 @@
 import { defineCombo } from '../../engine/define';
+import { Combo, Item } from '../../engine/ids';
 
 // Spray Bottle + Expired Milk + Desk Fan: every enemy a spray hits is poisoned (refreshes, never stacks). Applied from the cone's `hits`
 // after the spray's damage.
 export default defineCombo({
-  id: 'sourMist', requires: ['spray', 'expiredmilk', 'fan'],
+  id: Combo.sourMist, requires: [Item.spray, Item.expiredmilk, Item.fan],
   tune: { dps: 4, duration: 3 },
   text: {
     en: {

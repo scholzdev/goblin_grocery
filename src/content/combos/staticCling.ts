@@ -1,9 +1,10 @@
 import { defineCombo } from '../../engine/define';
+import { Combo, Item } from '../../engine/ids';
 
 // Vacuum + Battery: each damage tick also zaps up to `targets` random enemies inside the suction. Rng: one draw per comparator call of the
 // shuffle, exactly the old `sort(() => rng() - 0.5)` over the same list.
 export default defineCombo({
-  id: 'staticCling', requires: ['vacuum', 'battery'],
+  id: Combo.staticCling, requires: [Item.vacuum, Item.battery],
   tune: { targets: 3, damageMult: 1.5 },
   text: {
     en: {

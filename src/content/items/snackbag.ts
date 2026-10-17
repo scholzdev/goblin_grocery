@@ -1,7 +1,8 @@
 import { defineItem } from '../../engine/define';
+import { Item, Set } from '../../engine/ids';
 
 export default defineItem({
-  id: 'snackbag', kind: 'passive', sets: ['snacks'], shape: '2x2', price: 30, legendary: true,
+  id: Item.snackbag, kind: 'passive', sets: [Set.snacks], shape: '2x2', price: 30, legendary: true,
   // Legendary: ★1 only, so every value is a scalar. Regeneration is `regenHp` every `interval` seconds (0.25 HP/s).
   tune: { hp: 20, regenHp: 1, interval: 4 },
   text: {

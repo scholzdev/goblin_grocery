@@ -1,7 +1,8 @@
 import { defineItem } from '../../engine/define';
+import { Item, Set } from '../../engine/ids';
 
 export default defineItem({
-  id: 'bumper', kind: 'passive', sets: ['tools', 'blast'], shape: '1x1', price: 11,
+  id: Item.bumper, kind: 'passive', sets: [Set.tools, Set.blast], shape: '1x1', price: 11,
   tune: { slam: [8, 8 * 1.5, 8 * 2], radius: 90 }, // landing blast damage per ★ (8 x TIER.mult); radius is flat
   text: {
     en: { name: 'Slam Bumper', blurb: 'Land the dash with a bang.', rules: 'The Space dash ends in a shockwave: {slam} damage within {radius} and knockback (does not stack). Enables Pot Slam next to a Pressure Cooker.' },

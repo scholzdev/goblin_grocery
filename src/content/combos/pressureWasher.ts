@@ -1,9 +1,10 @@
 import { defineCombo } from '../../engine/define';
+import { Combo, Item } from '../../engine/ids';
 
 // Spray Bottle + Battery: a narrow jet. The arc is `arcDeg` plus the arc Duct Tape added before the combos (`c.tapeArc`, a snapshot, so
 // Mist Machine's arc does not leak in).
 export default defineCombo({
-  id: 'pressureWasher', requires: ['spray', 'battery'],
+  id: Combo.pressureWasher, requires: [Item.spray, Item.battery],
   tune: { arcDeg: 25, rangeMult: 2, damageMult: 2.5 },
   text: {
     en: {

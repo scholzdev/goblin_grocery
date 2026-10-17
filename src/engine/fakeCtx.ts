@@ -3,6 +3,7 @@ import { combatRng, type Rng } from '../systems/rng';
 import { CRIT, PLAYER } from '../data/items';
 import { ENEMIES } from '../data/enemies';
 import { t, type UIKey } from '../i18n';
+import type { AudioKey } from '../data/assets';
 import type { Build, BurnEffect, SlowEffect, WeaponStats } from '../types';
 import { FX_METHODS, type AisleView, type CombatEnemy, type CombatShot, type FxApi, type PlayerView, type PoolSpec, type RuntimeCtx, type ShotSpec } from './ctx';
 import { EMPTY_HOOKS, type HitEvent, type HitOpts, type HookTable } from './hooks';
@@ -44,7 +45,7 @@ export type Call = { at: number } & (
   | { kind: 'dropCoin'; x: number; y: number; label: string }
   | { kind: 'addCoins'; n: number; label: string }
   | { kind: 'fx'; method: string; args: unknown[] }
-  | { kind: 'sound'; name: string; opts?: { rate?: number; volume?: number } }
+  | { kind: 'sound'; name: AudioKey; opts?: { rate?: number; volume?: number } }
   | { kind: 'tween'; props: Record<string, number>; ms: number }
   | { kind: 'delay'; seconds: number }
   | { kind: 'sweep'; weapon: string; angle: number; bonus: boolean }
@@ -294,7 +295,7 @@ export class FakeCtx implements RuntimeCtx {
   arcFx(points: readonly { x: number; y: number }[]): void { this.log({ kind: 'fx', method: 'arc', args: [points] }); }
   boltFx(x: number, y: number, small: boolean): void { this.log({ kind: 'boltFx', x, y, small }); }
   setLine(id: string, text: string | null, order = 0): void { this.log({ kind: 'line', id, text, order }); this.lines.set(id, text === null ? null : { text, order }); }
-  sound(name: string, opts?: { rate?: number; volume?: number }): void { this.log({ kind: 'sound', name, opts }); }
+  sound(name: AudioKey, opts?: { rate?: number; volume?: number }): void { this.log({ kind: 'sound', name, opts }); }
   /** Recorded; the end values are applied to the target when the clock reaches `ms`. */
   tween(target: object, props: Record<string, number>, ms: number): void {
     this.log({ kind: 'tween', props, ms });

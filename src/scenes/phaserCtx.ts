@@ -86,7 +86,7 @@ export class PhaserCtx implements RuntimeCtx {
   boltFx(x: number, y: number, small: boolean): void { boltFx(this.sc.arsenal, x, y, small); }
   setLine(id: string, text: string | null, order = 0): void { this.sc.overlay.setLine(id, text, order); }
   t(key: UIKey, vars?: Record<string, string | number>): string { return t(key, vars); }
-  sound(name: string, opts?: { rate?: number; volume?: number }): void { play(name as AudioName, opts); }
+  sound(name: AudioName, opts?: { rate?: number; volume?: number }): void { play(name, opts); }
   tween(target: object, props: Record<string, number>, ms: number): void { this.sc.tweens.add({ targets: target, ...props, duration: ms }); }
   delay(seconds: number, fn: () => void): void { this.sc.time.delayedCall(seconds * 1000, fn); }
 }

@@ -1,11 +1,12 @@
 import { cells, defineItem, weaponBase } from '../../engine/define';
+import { Item, Set, Tag } from '../../engine/ids';
 
 // Pattern `laser` (engine/patterns/laser.ts): one beam down the line that crosses the most groceries. Legendary: one tier, scalar tune, no shop rows. Price Check and Power
 // Surge hook `pattern:beam`.
 const W = weaponBase({ pattern: 'laser', damage: 20, cooldown: 1.6, range: 620 });
 
 export default defineItem({
-  id: 'laser', kind: 'weapon', sets: ['checkout'], shape: cells('.#.', '###', '.#.'), price: 40, tags: ['ranged'], electrical: true, elements: ['electric'], legendary: true,
+  id: Item.laser, kind: 'weapon', sets: [Set.checkout], shape: cells('.#.', '###', '.#.'), price: 40, tags: ['ranged'], electrical: true, elements: [Tag.electric], legendary: true,
   weapon: W,
   tune: { damage: W.damage, cooldown: W.cooldown, range: W.range },
   text: {

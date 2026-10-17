@@ -1,5 +1,6 @@
 import type { DepartmentId, EnemyDef, EnemyId } from '../types';
 import { ENEMY_ORDER, enemyTextTune, resolveTune, type AffinityTag, type BossKit, type BossMove, type BossSpecial, type EnemyContent } from '../engine/define';
+import { Enemy } from '../engine/ids';
 import { contentEnemy } from '../engine/registry';
 import { renderText } from '../engine/text';
 
@@ -57,7 +58,12 @@ export const THEME_SUMMONS: Partial<Record<DepartmentId, EnemyId[]>> = {
   main: ['cereal', 'beans'], frozen: ['expired', 'milk'], bakery: ['baguette', 'banana'], electronics: ['spitter', 'beans'], checkout: ['gum', 'banana'],
 };
 
-export const BOSS = {
+/** The Store Manager's tuning; a shift overrides some of it (`ShiftDef.boss`). */
+export interface BossTuning {
+  coins: number; enrageAfter: number; enrageCooldownMult: number; halfHpCooldownMult: number;
+  volleyCount: number; volleySpreadDeg: number; summonCount: number; summonTypes: EnemyId[];
+}
+export const BOSS: BossTuning = {
   /** Coins dropped by the Manager (shift coin cuts don't apply: harder shifts pay more). */
   coins: 30,
   enrageAfter: 60,
@@ -66,7 +72,7 @@ export const BOSS = {
   volleyCount: 7,
   volleySpreadDeg: 70,
   summonCount: 4,
-  summonTypes: ['milk', 'banana'] as EnemyId[],
+  summonTypes: [Enemy.milk, Enemy.banana],
 };
 
 /**

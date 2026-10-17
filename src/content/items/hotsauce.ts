@@ -1,7 +1,8 @@
 import { defineItem } from '../../engine/define';
+import { Buff, Item, Set } from '../../engine/ids';
 
 export default defineItem({
-  id: 'hotsauce', kind: 'module', sets: ['kitchen', 'heat'], shape: '1x1', price: 7, buff: 'hotsauce',
+  id: Item.hotsauce, kind: 'module', sets: [Set.kitchen, Set.heat], shape: '1x1', price: 7, buff: Buff.hotsauce,
   unlock: 'starting',
   tune: { damage: [0.25, 0.375, 0.5] }, // bonus hit damage per ★ (1.25 base x TIER.mult)
   text: {

@@ -1,4 +1,5 @@
 import { defineItem, flavorOf, tierMult } from '../../engine/define';
+import { Item, Set, Tag } from '../../engine/ids';
 
 // Each instance carries a flavor (`instance.flavor`, rerolled every shop visit by state/run.ts `rollFlavors`; a missing one is heat).
 // It adds that flavor's real module effect (Fuel Can burn, Ice Pack slow, Party Popper blast) at `base` x the tier multiplier of its own
@@ -8,7 +9,7 @@ import { defineItem, flavorOf, tierMult } from '../../engine/define';
 const BASE = 0.7;
 
 export default defineItem({
-  id: 'jellybeans', kind: 'module', sets: ['snacks'], flavored: true, shape: '1x1', price: 10,
+  id: Item.jellybeans, kind: 'module', sets: [Set.snacks], flavored: true, shape: '1x1', price: 10,
   tune: { base: BASE, strength: [BASE * tierMult(1), BASE * tierMult(2), BASE * tierMult(3)] },
   text: {
     en: { name: 'Jelly Beans', blurb: 'Every shop visit, a new flavor.', rules: 'The flavor changes every shop visit: Heat (Fuel Can burn), Frost (Ice Pack slow) or Blast (Party Popper blast). Adjacent weapons get that effect at {strength|pct} strength, and the beans count toward that flavor\'s set.' },
@@ -20,12 +21,12 @@ export default defineItem({
     weapon(w, c) {
       const { base } = c.tune();
       // The full-strength modules at ★1: the beans scale them by `m`.
-      const fuel = c.tuneOf('fuel', 1), ice = c.tuneOf('ice', 1), popper = c.tuneOf('popper', 1);
+      const fuel = c.tuneOf(Item.fuel, 1), ice = c.tuneOf(Item.ice, 1), popper = c.tuneOf(Item.popper, 1);
       for (const { instance, tier } of c.touching(w)) {
         const m = tierMult(tier) * base, f = flavorOf(instance);
-        if (f === 'heat' && (w.burn?.dps ?? 0) < fuel.dps * m) w.burn = { dps: fuel.dps * m, duration: fuel.duration, tick: fuel.tick };
-        else if (f === 'frost') w.slow = { pct: Math.max(w.slow?.pct ?? 0, Math.min(ice.cap, ice.pct * m)), duration: ice.duration };
-        else if (f === 'blast' && (w.popper?.damage ?? 0) < popper.damage * m) w.popper = { damage: popper.damage * m, radius: popper.radius };
+        if (f === Tag.heat && (w.burn?.dps ?? 0) < fuel.dps * m) w.burn = { dps: fuel.dps * m, duration: fuel.duration, tick: fuel.tick };
+        else if (f === Tag.frost) w.slow = { pct: Math.max(w.slow?.pct ?? 0, Math.min(ice.cap, ice.pct * m)), duration: ice.duration };
+        else if (f === Tag.blast && (w.popper?.damage ?? 0) < popper.damage * m) w.popper = { damage: popper.damage * m, radius: popper.radius };
       }
     },
   },

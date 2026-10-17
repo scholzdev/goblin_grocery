@@ -1,9 +1,10 @@
 import { defineCombo } from '../../engine/define';
+import { Combo, Item } from '../../engine/ids';
 
 // Pressure Cooker + Fuel Can: every explosion (lobbed, or Pot Slam's) leaves a fire pool. The pool only burns when the cooker has a Fuel
 // burn (`spawnPool` ignores it otherwise), at least `dps` hard.
 export default defineCombo({
-  id: 'pressurePoint', requires: ['cooker', 'fuel'],
+  id: Combo.pressurePoint, requires: [Item.cooker, Item.fuel],
   tune: { dps: 3, duration: 2, tick: 0.5, poolTime: 2.5 },
   text: {
     en: {

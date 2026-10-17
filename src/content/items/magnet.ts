@@ -1,7 +1,8 @@
 import { defineItem } from '../../engine/define';
+import { Item, Set } from '../../engine/ids';
 
 export default defineItem({
-  id: 'magnet', kind: 'passive', sets: ['tools'], shape: '1x1', price: 7,
+  id: Item.magnet, kind: 'passive', sets: [Set.tools], shape: '1x1', price: 7,
   unlock: 'starting',
   tune: { pickup: [60, 90, 120] }, // coin pickup radius bonus per ★ (60 base x TIER.mult), rounded in the hook
   text: {

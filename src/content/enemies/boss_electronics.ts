@@ -1,8 +1,9 @@
 import { AFFINITY, defineEnemy } from '../../engine/define';
+import { Enemy } from '../../engine/ids';
 
 // tune = the cable lanes: `count` telegraphed strips (2 more below half HP), `gap` apart around the player, `width` wide.
 export default defineEnemy({
-  id: 'boss_electronics', behavior: 'boss', scale: 0.95,
+  id: Enemy.boss_electronics, behavior: 'boss', scale: 0.95,
   stats: {
     hp: 1500, speed: 34, contactDamage: 12, coins: 30, radius: 50,
     knockbackResist: 1, tell: 0.8, attackCooldown: 2.3, attackDamage: 9, projectileSpeed: 240, projectileLife: 4, lungeSpeed: 500, lungeTime: 0.7,
@@ -16,6 +17,6 @@ export default defineEnemy({
   },
   boss: {
     theme: 'electronics',
-    kit: { cycle: ['special', 'volley', 'summon', 'special', 'charge', 'volley'], shot: 'proj_cap', special: 'lanes', moves: { volleyCount: 9, volleySpreadDeg: 100, summonCount: 3, summonTypes: ['spitter', 'beans'] } },
+    kit: { cycle: ['special', 'volley', 'summon', 'special', 'charge', 'volley'], shot: 'proj_cap', special: 'lanes', moves: { volleyCount: 9, volleySpreadDeg: 100, summonCount: 3, summonTypes: [Enemy.spitter, Enemy.beans] } },
   },
 });

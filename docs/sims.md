@@ -70,14 +70,15 @@ Enemy entry: `{ id, count?, affix?, still?, immortal?, mini?, at?, spread? }`.
 
    ```ts
    import { defineSim } from './_sim';
+   import { Enemy, Item } from '../engine/ids'; // item and enemy ids are typed constants, never bare strings (tests/content/ids-lint.test.ts)
 
    export default defineSim({
      id: 'my-sim', // same as the file name
      cart: [
-       { id: 'toaster', at: [0, 0] },
-       { id: 'fan', at: [2, 0] },
+       { id: Item.toaster, at: [0, 0] },
+       { id: Item.fan, at: [2, 0] },
      ],
-     enemies: [{ id: 'milk', count: 6, spread: 'cluster' }],
+     enemies: [{ id: Enemy.milk, count: 6, spread: 'cluster' }],
    });
    ```
 

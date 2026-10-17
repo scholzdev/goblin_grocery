@@ -1,7 +1,8 @@
 import { AFFINITY, defineEnemy } from '../../engine/define';
+import { Enemy } from '../../engine/ids';
 
 export default defineEnemy({
-  id: 'baguette', behavior: 'swiper', scale: 0.8, hpBar: true,
+  id: Enemy.baguette, behavior: 'swiper', scale: 0.8, hpBar: true,
   stats: {
     hp: 34, speed: 68, contactDamage: 5, coins: 2, radius: 19,
     tell: 0.55, attackCooldown: 2.2, attackRange: 92, attackDamage: 7, arcDeg: 110, knockbackResist: 0.3,

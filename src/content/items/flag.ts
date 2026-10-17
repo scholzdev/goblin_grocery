@@ -1,7 +1,8 @@
 import { defineItem } from '../../engine/define';
+import { Item, Set } from '../../engine/ids';
 
 export default defineItem({
-  id: 'flag', kind: 'passive', sets: ['checkout'], shape: '1x1', price: 10,
+  id: Item.flag, kind: 'passive', sets: [Set.checkout], shape: '1x1', price: 10,
   // Mark time per ★ (2 s x TIER.mult). `bonus` only feeds the text: the damage bonus itself is the shared mark rule in
   // damageEnemy (`engine/marks.ts`, Price Check's `damageMult`, 1 + bonus), because Price Check marks enemies too.
   tune: { duration: [2, 3, 4], bonus: 0.2 },

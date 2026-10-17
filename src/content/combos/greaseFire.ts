@@ -1,9 +1,10 @@
 import { defineCombo } from '../../engine/define';
+import { Combo, Item } from '../../engine/ids';
 
 // Mop + Fuel Can: bigger puddles whose burn is doubled (it multiplies the Fuel Can burn the module phase left, no stacking). The flaming
 // puddle sprite and the flame particles are this combo's `pattern:look` (cosmetic only).
 export default defineCombo({
-  id: 'greaseFire', requires: ['mop', 'fuel'],
+  id: Combo.greaseFire, requires: [Item.mop, Item.fuel],
   tune: { radiusMult: 1.4, burnMult: 2 },
   text: {
     en: {

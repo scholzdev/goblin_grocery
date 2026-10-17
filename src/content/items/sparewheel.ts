@@ -1,7 +1,8 @@
 import { defineItem } from '../../engine/define';
+import { Item, Set } from '../../engine/ids';
 
 export default defineItem({
-  id: 'sparewheel', kind: 'passive', sets: ['tools'], shape: '1x1', price: 10,
+  id: Item.sparewheel, kind: 'passive', sets: [Set.tools], shape: '1x1', price: 10,
   tune: { window: [1, 1.5, 2] }, // seconds after a normal dash in which one more dash is free (1 s x TIER.mult)
   text: {
     en: { name: 'Spare Wheel', blurb: 'Two dashes for the price of one.', rules: 'After a dash, one more dash within {window|s} is free: it skips the cooldown (does not stack).' },

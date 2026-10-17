@@ -1,11 +1,12 @@
 import { cells, defineItem, weaponBase, weaponTiers, WEAPON_ROWS } from '../../engine/define';
+import { Item, Set } from '../../engine/ids';
 
 // Pattern `mortar` (engine/patterns/mortar.ts): a pot lobbed at the densest cluster in `range`, exploding for `aoe`. Pressure Point and Shrapnel hook
 // `pattern:explode`; Pot Slam calls the same explosion from a dash.
 const W = weaponBase({ pattern: 'mortar', damage: 16, cooldown: 2.6, range: 420, aoe: 90, projectileSpeed: 380 });
 
 export default defineItem({
-  id: 'cooker', kind: 'weapon', sets: ['kitchen', 'heat'], shape: cells('##.', '.##'), price: 18, tags: ['area'],
+  id: Item.cooker, kind: 'weapon', sets: [Set.kitchen, Set.heat], shape: cells('##.', '.##'), price: 18, tags: ['area'],
   weapon: W,
   // damage and interval per ★ for the text and the shop rows (the stats themselves come from `weapon`)
   tune: { ...weaponTiers(W), range: W.range, aoe: W.aoe },

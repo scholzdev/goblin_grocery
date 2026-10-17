@@ -1,7 +1,8 @@
 import { defineItem } from '../../engine/define';
+import { Item, Set } from '../../engine/ids';
 
 export default defineItem({
-  id: 'tinfoilhat', kind: 'passive', sets: ['tools'], shape: '1x1', price: 9,
+  id: Item.tinfoilhat, kind: 'passive', sets: [Set.tools], shape: '1x1', price: 9,
   tune: { mult: [1.5, 1.5 * 1.5, 1.5 * 2], grace: 0.1 }, // reflected damage x per ★ (1.5 x TIER.mult); the post-dash grace in seconds is flat
   text: {
     en: { name: 'Tin Foil Hat', blurb: 'Blocks the signal. And the soda.', rules: 'While dashing (and {grace|s} after), enemy shots that touch you are reflected back at the groceries for {mult|x} of their damage instead of hurting you. Combos: Sparks Fly with Microwave + Battery; Ray Gun with Nail Gun + Battery + Magnet.' },

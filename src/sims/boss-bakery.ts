@@ -1,4 +1,5 @@
 import { defineSim } from './_sim';
+import { Item } from '../engine/ids';
 
 // Boss: boss_bakery. A real aisle 8 in its department (waves, director, the boss) with the same strong cart as the 'boss' sim, god mode on.
 export default defineSim({
@@ -8,14 +9,14 @@ export default defineSim({
   aisle: 8,
   department: 'bakery',
   cart: [
-    { id: 'toaster', tier: 3, at: [0, 0] },
-    { id: 'hotsauce', tier: 3, at: [0, 1] },
-    { id: 'fan', tier: 3, at: [2, 0] },
-    { id: 'pan', tier: 3, at: [3, 0] },
-    { id: 'fuel', tier: 3, at: [4, 0] },
-    { id: 'microwave', tier: 2, at: [4, 1] },
-    { id: 'battery', tier: 2, at: [6, 2] },
-    { id: 'magnet' },
-    { id: 'boot' },
+    { id: Item.toaster, tier: 3, at: [0, 0] },
+    { id: Item.hotsauce, tier: 3, at: [0, 1] },
+    { id: Item.fan, tier: 3, at: [2, 0] },
+    { id: Item.pan, tier: 3, at: [3, 0] },
+    { id: Item.fuel, tier: 3, at: [4, 0] },
+    { id: Item.microwave, tier: 2, at: [4, 1] },
+    { id: Item.battery, tier: 2, at: [6, 2] },
+    { id: Item.magnet },
+    { id: Item.boot },
   ],
 });

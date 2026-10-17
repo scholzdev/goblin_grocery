@@ -1,8 +1,9 @@
 import { AFFINITY, defineEnemy } from '../../engine/define';
+import { Enemy } from '../../engine/ids';
 
 // Heals allies within `radius` every `interval` s for `pct` of their max HP; keeps `keepAway` px from the player.
 export default defineEnemy({
-  id: 'honey', behavior: 'healer', scale: 0.76, hpBar: true,
+  id: Enemy.honey, behavior: 'healer', scale: 0.76, hpBar: true,
   stats: {
     hp: 35, speed: 56, contactDamage: 3, coins: 3, radius: 18,
     preferredDistance: 220,

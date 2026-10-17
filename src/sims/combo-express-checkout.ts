@@ -1,12 +1,13 @@
 import { defineSim } from './_sim';
+import { Enemy, Item } from '../engine/ids';
 
 // Combo: expressCheckout. The parts are placed explicitly so every adjacency the recipe needs is met.
 export default defineSim({
   id: 'combo-express-checkout',
   notes: 'Express Checkout: a dash that connects makes the pan sweep once more along the dash (Space into the milk; 1 s cooldown per pan).',
   cart: [
-    { id: 'pan', at: [2, 1] },
-    { id: 'bell', at: [2, 0] },
+    { id: Item.pan, at: [2, 1] },
+    { id: Item.bell, at: [2, 0] },
   ],
-  enemies: [{ id: 'milk', count: 10, spread: 'cluster' }],
+  enemies: [{ id: Enemy.milk, count: 10, spread: 'cluster' }],
 });

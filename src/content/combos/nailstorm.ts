@@ -1,9 +1,10 @@
 import { defineCombo, wrapAngle } from '../../engine/define';
+import { Combo, Item } from '../../engine/ids';
 
 // Nail Gun + Magnet + Battery: piercing, curving nails. The first hit arms a nail (`pattern:shotHit` sets `shot.homing`), and from then on
 // `pattern:shotMove` lets this combo steer it every frame; the teal spark trail is its `pattern:look`. Ray Gun replaces it.
 export default defineCombo({
-  id: 'nailstorm', requires: ['nailgun', 'magnet', 'battery'],
+  id: Combo.nailstorm, requires: [Item.nailgun, Item.magnet, Item.battery],
   tune: { extraPierce: 1, homingTurn: 7 /* rad/s */, homingRange: 200 },
   text: {
     en: {

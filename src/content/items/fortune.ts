@@ -1,7 +1,8 @@
 import { defineItem } from '../../engine/define';
+import { Item, Set } from '../../engine/ids';
 
 export default defineItem({
-  id: 'fortune', kind: 'passive', sets: ['snacks'], shape: '1x1', price: 8,
+  id: Item.fortune, kind: 'passive', sets: [Set.snacks], shape: '1x1', price: 8,
   unlock: 'starting',
   tune: { crit: [0.05, 0.075, 0.1] }, // crit chance added to every weapon per ★ (5% base x TIER.mult)
   text: {

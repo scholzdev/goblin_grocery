@@ -1,9 +1,10 @@
 import { defineSet } from '../../engine/define';
+import { Set, Tag } from '../../engine/ids';
 
 // Frost set: every slow gets stronger up to a cap (L1); L2 lets direct hits on well-slowed enemies freeze them briefly. Arrays are L1/L2/L3.
 // The freeze skips aura and puddle ticks (0.3-0.5 s apart: too many rolls). The Mop's puddle slow gets the same bonus and cap (`pattern:puddleEnter`).
 export default defineSet({
-  id: 'frost',
+  id: Set.frost,
   tune: { slowBonus: [0.1, 0.1, 0.15], slowCap: [0.6, 0.6, 0.7], stunMinSlow: 0.35, stunChance: [0.1, 0.1, 0.2], stun: [0.5, 0.5, 0.7] },
   text: {
     en: {
@@ -45,7 +46,7 @@ export default defineSet({
       if (!stats || c.tier < 2 || o.isDot || stats.pattern === 'aura' || stats.pattern === 'puddle') return;
       const t = c.tune();
       if (!(e.status.slowUntil > now && e.status.slowPct >= t.stunMinSlow && ctx.rng() < t.stunChance)) return;
-      const frozen = ctx.stun(e, t.stun, 'frost'); // the time scales with the enemy's frost affinity; bosses are immune (0)
+      const frozen = ctx.stun(e, t.stun, Tag.frost); // the time scales with the enemy's frost affinity; bosses are immune (0)
       if (e.alive && frozen > 0) { e.frozenT = frozen; ctx.sound('frost', { rate: 1.3, volume: 0.5 }); } // the ice block is drawn from frozenT
     },
   },

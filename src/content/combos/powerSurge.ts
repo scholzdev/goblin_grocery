@@ -1,9 +1,10 @@
 import { defineCombo } from '../../engine/define';
+import { Combo, Item } from '../../engine/ids';
 
 // Self-Checkout Laser + Power Strip: every beam fires an aftershock `delay` s later (re-aimed at the same target, or the nearest if it
 // died) for `damageMult` damage. Both halves are `pattern:beam` `before`: the first beam schedules the echo, the echo sets its own damage.
 export default defineCombo({
-  id: 'powerSurge', requires: ['laser', 'powerstrip'],
+  id: Combo.powerSurge, requires: [Item.laser, Item.powerstrip],
   tune: { delay: 0.25, damageMult: 0.25 },
   text: {
     en: {

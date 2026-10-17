@@ -1,5 +1,6 @@
 import type { WeaponStats, Build } from '../../types';
 import { newHitTracker } from '../../systems/combat';
+import type { AudioKey } from '../../data/assets';
 import type { FakeCtx } from '../fakeCtx';
 import type { HookTable, WeaponLook } from '../hooks';
 import { contentItem } from '../registry';
@@ -119,7 +120,7 @@ export class FakeArsenal implements PatternHost {
 
   kill(s: Shot): void { s.active = false; }
 
-  sound(name: string, opts?: { rate?: number; volume?: number }): void { this.fake.sound(name, opts); }
+  sound(name: AudioKey, opts?: { rate?: number; volume?: number }): void { this.fake.sound(name, opts); }
 
   /** The sounds played, as `name` or `name@rate`. */
   get sounds(): string[] { return this.fake.callsOf('sound').map((c) => (c.opts?.rate !== undefined ? `${c.name}@${c.opts.rate}` : c.name)); }

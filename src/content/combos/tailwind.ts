@@ -1,11 +1,12 @@
 import { defineCombo } from '../../engine/define';
 import { pushStack, tailwindFeedsSugar } from '../../engine/stacks';
+import { Combo, Item } from '../../engine/ids';
 
 // Leaf Blower + Desk Fan + Running Boots: each blast pushes the cart (+`boost` move speed for `boostTime` s, only while moving; the
 // `speedMods` entry reads `c.state.windUntil`). With Sugar Rush active a blast also adds one of its stacks (`c.stateOf`), at most once per
 // `sugarIcd` s.
 export default defineCombo({
-  id: 'tailwind', requires: ['leafblower', 'fan', 'boot'],
+  id: Combo.tailwind, requires: [Item.leafblower, Item.fan, Item.boot],
   tune: { boost: 0.3, boostTime: 0.4, sugarIcd: 1.5 },
   text: {
     en: {
@@ -25,9 +26,9 @@ export default defineCombo({
       const t = c.tune(), now = ctx.now(), p = ctx.player;
       ctx.player.speedMods.tailwind ??= (at) => (at < (c.state.windUntil ?? 0) ? 1 + c.tune().boost : 1);
       if (Math.hypot(p.vx, p.vy) > 1) c.state.windUntil = now + t.boostTime; // no push while standing still
-      const sugar = c.stateOf('sugarRush');
+      const sugar = c.stateOf(Combo.sugarRush);
       if (sugar && tailwindFeedsSugar(true, now, c.state.fed ?? -Infinity, t.sugarIcd)) {
-        const s = c.tuneOf('sugarRush');
+        const s = c.tuneOf(Combo.sugarRush);
         pushStack(sugar.stacks ??= [], now, s.duration, s.max);
         c.state.fed = now;
       }

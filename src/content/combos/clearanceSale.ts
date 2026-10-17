@@ -1,9 +1,10 @@
 import { defineCombo } from '../../engine/define';
+import { Combo, Item } from '../../engine/ids';
 
 // Fizz Cannon + Price Gun + Coupon Book: more bounces, and crits knock a bonus coin loose (once per enemy). The coin is the `onCrit` hook;
 // it runs after Free Sample's heal (items register first) and after the crit roll, so the coin's three rng draws keep their place.
 export default defineCombo({
-  id: 'clearanceSale', requires: ['fizz', 'pricegun', 'coupon'],
+  id: Combo.clearanceSale, requires: [Item.fizz, Item.pricegun, Item.coupon],
   tune: { extraBounces: 2 },
   text: {
     en: {

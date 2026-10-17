@@ -1,9 +1,10 @@
 import { AFFINITY, defineEnemy } from '../../engine/define';
+import { Enemy } from '../../engine/ids';
 
 // Shots whose reversed path is within `halfAngleDeg` of its facing (toward the player) are blocked,
 // until the cardboard has soaked up `blocks` shots (x `eliteMult` on Elites); then it goes soggy and everything hits.
 export default defineEnemy({
-  id: 'cereal', behavior: 'chase', scale: 0.82, hpBar: true,
+  id: Enemy.cereal, behavior: 'chase', scale: 0.82, hpBar: true,
   stats: {
     hp: 45, speed: 58, contactDamage: 5, coins: 3, radius: 23,
     shield: true, knockbackResist: 0.3,

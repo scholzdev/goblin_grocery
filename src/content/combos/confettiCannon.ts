@@ -1,9 +1,10 @@
 import { defineCombo } from '../../engine/define';
+import { Combo, Item, Set } from '../../engine/ids';
 
 // Fizz Cannon + Party Popper: every cap bounce goes off like a popper blast (never chains). With the Blast set the radius is multiplied by
 // the set's level-1 `radiusMult` (the old behavior: the L3 radius is ignored here).
 export default defineCombo({
-  id: 'confettiCannon', requires: ['fizz', 'popper'],
+  id: Combo.confettiCannon, requires: [Item.fizz, Item.popper],
   tune: { damageMult: 0.5, radius: 60 },
   text: {
     en: {
@@ -20,7 +21,7 @@ export default defineCombo({
   hooks: {
     'pattern:bounce'(ev, ctx, c) {
       if (!c.touches(ev.stats.uid)) return;
-      const t = c.tune(), blast = ctx.build.sets.blast ? c.tuneOf('blast').radiusMult : 1;
+      const t = c.tune(), blast = ctx.build.sets.blast ? c.tuneOf(Set.blast).radiusMult : 1;
       ctx.popperBlast(ev, { damage: ev.shot.damage * t.damageMult, radius: t.radius * blast });
     },
   },

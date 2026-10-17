@@ -1,7 +1,8 @@
 import { defineItem } from '../../engine/define';
+import { Buff, Item, Set } from '../../engine/ids';
 
 export default defineItem({
-  id: 'doublebag', kind: 'module', sets: ['checkout', 'blast'], shape: '2x1', price: 12, buff: 'echo', // the buff id is `echo`
+  id: Item.doublebag, kind: 'module', sets: [Set.checkout, Set.blast], shape: '2x1', price: 12, buff: Buff.echo, // the buff id is `echo`
   tune: { fraction: [0.5, 0.75, 1], delay: 0.12 }, // second strike's share of the hit per ★ (50% base x TIER.mult); the delay is flat
   text: {
     en: { name: 'Double Bag', blurb: 'Twice the bag, twice the whack.', rules: 'Direct hits from adjacent weapons strike a second time {delay|s} later for {fraction|pct} damage.' },

@@ -1,8 +1,9 @@
 import { AFFINITY, defineEnemy } from '../../engine/define';
+import { Enemy } from '../../engine/ids';
 
 // Death: `slices` Melon Slices.
 export default defineEnemy({
-  id: 'melon', behavior: 'splitter', scale: 0.9, hpBar: true,
+  id: Enemy.melon, behavior: 'splitter', scale: 0.9, hpBar: true,
   stats: {
     hp: 60, speed: 50, contactDamage: 6, coins: 3, radius: 30,
     knockbackResist: 0.5,

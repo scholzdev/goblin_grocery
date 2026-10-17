@@ -1,9 +1,10 @@
 import { defineCombo } from '../../engine/define';
+import { Combo, Item } from '../../engine/ids';
 
 // Toaster + Hot Sauce + Fuel Can: toast hits burning enemies for x`vsBurning`. A `modifyDamage` hook, so it multiplies before the engine's
 // mark rule and the crit roll (Five-Alarm, then mark, then crit; `order` 10 is the slot docs/item-hooks-refactor.md §4c reserved).
 export default defineCombo({
-  id: 'fiveAlarm', requires: ['toaster', 'hotsauce', 'fuel'],
+  id: Combo.fiveAlarm, requires: [Item.toaster, Item.hotsauce, Item.fuel],
   tune: { vsBurning: 1.8 },
   text: {
     en: {

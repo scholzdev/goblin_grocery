@@ -1,7 +1,8 @@
 import { AFFINITY, defineEnemy } from '../../engine/define';
+import { Enemy } from '../../engine/ids';
 
 export default defineEnemy({
-  id: 'soda', behavior: 'tank', scale: 0.72, hpBar: true,
+  id: Enemy.soda, behavior: 'tank', scale: 0.72, hpBar: true,
   stats: {
     hp: 48, speed: 46, contactDamage: 6, coins: 2, radius: 25,
     knockbackResist: 0.8,

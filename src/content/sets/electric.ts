@@ -1,10 +1,11 @@
 import { defineSet } from '../../engine/define';
+import { Set as S } from '../../engine/ids';
 
 // Electric set: electrical weapons (except the Microwave, which already chains) arc to nearby enemies. Arrays are L1/L2/L3: the chance and
 // the number of jumps grow with the level. `range` and `damageMult` (a share of the hit's incoming damage) are flat. Aura and puddle ticks
 // never arc (too many rolls), and chained hits never arc again.
 export default defineSet({
-  id: 'electric',
+  id: S.electric,
   tune: { chance: [0.1, 0.2, 0.3], jumps: [1, 2, 3], range: 120, damageMult: 0.5 },
   text: {
     en: {

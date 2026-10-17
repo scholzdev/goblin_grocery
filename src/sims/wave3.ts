@@ -1,4 +1,5 @@
 import { defineSim } from './_sim';
+import { Item } from '../engine/ids';
 
 // A real aisle 3 (main department) with a decent mid-game cart, to reproduce the suspected wave-3 stall. Fixed seed, aisle event rolled normally.
 export default defineSim({
@@ -9,14 +10,14 @@ export default defineSim({
   department: 'main',
   event: 'random',
   cart: [
-    { id: 'toaster', tier: 2, at: [0, 0] },
-    { id: 'fan', at: [2, 0] },
-    { id: 'hotsauce', at: [0, 1] },
-    { id: 'pan', tier: 2, at: [3, 0] },
-    { id: 'fuel', at: [4, 0] },
-    { id: 'nailgun', at: [0, 2] },
-    { id: 'battery', at: [2, 2] },
-    { id: 'boot' },
-    { id: 'bell' },
+    { id: Item.toaster, tier: 2, at: [0, 0] },
+    { id: Item.fan, at: [2, 0] },
+    { id: Item.hotsauce, at: [0, 1] },
+    { id: Item.pan, tier: 2, at: [3, 0] },
+    { id: Item.fuel, at: [4, 0] },
+    { id: Item.nailgun, at: [0, 2] },
+    { id: Item.battery, at: [2, 2] },
+    { id: Item.boot },
+    { id: Item.bell },
   ],
 });

@@ -36,7 +36,7 @@ export class Arsenal implements PatternHost {
 
   get sc(): PatternScene { return this.scene; }
   get build() { return store.state.build; }
-  sound(name: string, opts?: { rate?: number; volume?: number }): void { play(name as AudioName, opts); }
+  sound(name: AudioName, opts?: { rate?: number; volume?: number }): void { play(name, opts); }
 
   private makeShot(key: string): Shot {
     const img = this.scene.add.image(0, 0, key).setVisible(false);

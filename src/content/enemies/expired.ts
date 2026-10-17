@@ -1,8 +1,9 @@
 import { AFFINITY, defineEnemy } from '../../engine/define';
+import { Enemy } from '../../engine/ids';
 
 // Blink cadence, the landing ring distance from the player and its clearance from props.
 export default defineEnemy({
-  id: 'expired', behavior: 'teleporter', scale: 0.78, hpBar: true,
+  id: Enemy.expired, behavior: 'teleporter', scale: 0.78, hpBar: true,
   stats: {
     hp: 28, speed: 66, contactDamage: 6, coins: 2, radius: 17,
     tell: 0.6,

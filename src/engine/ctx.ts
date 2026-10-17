@@ -1,6 +1,7 @@
-import type { BurnEffect, Build, SlowEffect, WeaponStats } from '../types';
+import type { BurnEffect, Build, EnemyId, SlowEffect, WeaponStats } from '../types';
 import type { StatusFx } from '../systems/combat';
 import type { UIKey } from '../i18n';
+import type { AudioKey } from '../data/assets';
 import type { HitOpts } from './hooks';
 import type { AffinityMap, AffinityTag } from './define';
 
@@ -29,7 +30,7 @@ export interface CombatEnemy {
   stateT?: number;
   /** Scene clock (s) of this boss's last weakness stagger (`engine/affinity.ts` `tryStagger`). */
   staggerAt?: number;
-  def: { id: string; radius: number; behavior: string; knockbackResist: number; armor?: number; weak?: AffinityMap; resist?: AffinityMap };
+  def: { id: EnemyId; radius: number; behavior: string; knockbackResist: number; armor?: number; weak?: AffinityMap; resist?: AffinityMap };
 }
 
 /** The part of a `Shot` (scenes/weapons.ts) hooks may read or write. `stats === null`: an enemy projectile. */
@@ -188,7 +189,7 @@ export interface RuntimeCtx {
    * first appeared; `null` removes the line. Drawn only while the goblin is fighting.
    */
   setLine(id: string, text: string | null, order?: number): void;
-  sound(name: string, opts?: { rate?: number; volume?: number }): void;
+  sound(name: AudioKey, opts?: { rate?: number; volume?: number }): void;
   tween(target: object, props: Record<string, number>, ms: number): void;
   delay(seconds: number, fn: () => void): void;
 }

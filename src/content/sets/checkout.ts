@@ -1,9 +1,10 @@
 import { defineSet } from '../../engine/define';
+import { Set } from '../../engine/ids';
 
 // Checkout set: cheaper new offers (L1), interest at the end of an aisle (L2: +1 coin per `interestPer` held, capped). Arrays are L1/L2/L3.
 // The interest itself is paid by state/run.ts (`endAisle`), which reads this tune through `contentSetTune('checkout', level)`.
 export default defineSet({
-  id: 'checkout',
+  id: Set.checkout,
   tune: { priceMult: [0.92, 0.92, 0.85], interestPer: 10, interestCap: [5, 5, 8] },
   text: {
     en: {

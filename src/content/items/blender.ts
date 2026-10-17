@@ -1,11 +1,12 @@
 import { defineItem, weaponBase, weaponTiers, WEAPON_ROWS } from '../../engine/define';
+import { Item, Set, Tag } from '../../engine/ids';
 
 // Pattern `aura` (engine/patterns/aura.ts): everything within `range` takes a tick of damage; the blade ring spins while fighting. Smoothie Shield hooks `pattern:aura`,
 // Brain Freeze's pale, slower blades are its `pattern:look`.
 const W = weaponBase({ pattern: 'aura', damage: 2, cooldown: 0.3, range: 85 });
 
 export default defineItem({
-  id: 'blender', kind: 'weapon', sets: ['kitchen'], shape: '1x2', price: 15, tags: ['melee', 'area'], electrical: true, elements: ['electric'],
+  id: Item.blender, kind: 'weapon', sets: [Set.kitchen], shape: '1x2', price: 15, tags: ['melee', 'area'], electrical: true, elements: [Tag.electric],
   weapon: W,
   // damage and interval per ★ for the text and the shop rows (the stats themselves come from `weapon`)
   tune: { ...weaponTiers(W), range: W.range },

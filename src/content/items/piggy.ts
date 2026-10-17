@@ -1,7 +1,8 @@
 import { defineItem } from '../../engine/define';
+import { Item, Set } from '../../engine/ids';
 
 export default defineItem({
-  id: 'piggy', kind: 'passive', sets: ['checkout'], shape: '1x1', price: 10,
+  id: Item.piggy, kind: 'passive', sets: [Set.checkout], shape: '1x1', price: 10,
   unlock: 'starting',
   tune: { coins: [0.15, 0.225, 0.3] }, // extra kill coins per ★ (15% base x TIER.mult)
   text: {

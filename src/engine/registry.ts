@@ -1,5 +1,5 @@
-import type { EnemyId, ItemTypeId, RecipeId, SetId } from '../types';
-import { AFFINITY_TAGS, BOSS_MOVES, BOSS_SPECIAL_KEYS, BUILD_PHASES, ELEMENTS, ENEMY_BEHAVIORS, ENEMY_ORDER, ENEMY_STAT_KEYS, FAMILIES, HOOK_NAMES, ITEM_ORDER, RECIPE_ORDER, SET_ORDER, enemyTextTune, resolveShape, resolveTune, type AffinityMap, type BuildPhase, type BuildSpec, type ComboContent, type EnemyContent, type ItemContent, type RuntimeHooks, type SetContent, type Tune } from './define';
+import type { DepartmentId, EnemyId, ItemTypeId, RecipeId, SetId } from '../types';
+import { AFFINITY_TAGS, BOSS_MOVES, BOSS_SPECIAL_KEYS, BUILD_PHASES, ELEMENTS, ENEMY_BEHAVIORS, ENEMY_ORDER, ENEMY_STAT_KEYS, FAMILIES, HOOK_NAMES, ITEM_ORDER, RECIPE_ORDER, SET_ORDER, THEME_ORDER, enemyTextTune, resolveShape, resolveTune, type AffinityMap, type BuildPhase, type BuildSpec, type ComboContent, type EnemyContent, type ItemContent, type RuntimeHooks, type SetContent, type Tune } from './define';
 import { isFormatter, placeholders, renderText } from './text';
 
 // Collects every content file (src/content/{items,combos,sets,enemies}/<id>.ts, default export) and validates them.
@@ -31,7 +31,7 @@ export const SET_IDS: readonly SetId[] = SET_ORDER;
 const baseName = (path: string): string => (path.split('/').pop() ?? path).replace(/\.[^.]+$/, '');
 const isTriple = (v: unknown): boolean => Array.isArray(v) && v.length === 3 && v.every((n) => typeof n === 'number' && Number.isFinite(n));
 /** The boss themes (the departments a run can be themed after). */
-const BOSS_THEMES: readonly string[] = ['main', 'frozen', 'bakery', 'electronics', 'checkout'];
+const BOSS_THEMES: readonly DepartmentId[] = THEME_ORDER;
 const phasesFor: Record<'item' | 'combo' | 'set', readonly BuildPhase[]> = { item: BUILD_PHASES.filter((p) => p !== 'combo'), combo: ['combo'], set: ['set', 'post-combo', 'final'] };
 
 /** Every problem found in the given files (empty = valid). Does not throw. */
