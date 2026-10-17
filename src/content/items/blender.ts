@@ -5,7 +5,7 @@ import { defineItem, weaponBase, weaponTiers, WEAPON_ROWS } from '../../engine/d
 const W = weaponBase({ pattern: 'aura', damage: 2, cooldown: 0.3, range: 85 });
 
 export default defineItem({
-  id: 'blender', kind: 'weapon', sets: ['kitchen'], shape: '1x2', price: 15, tags: ['melee', 'area'], electrical: true,
+  id: 'blender', kind: 'weapon', sets: ['kitchen'], shape: '1x2', price: 15, tags: ['melee', 'area'], electrical: true, elements: ['electric'],
   weapon: W,
   // damage and interval per ★ for the text and the shop rows (the stats themselves come from `weapon`)
   tune: { ...weaponTiers(W), range: W.range },

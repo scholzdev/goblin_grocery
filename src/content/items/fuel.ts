@@ -2,6 +2,7 @@ import { defineItem } from '../../engine/define';
 
 export default defineItem({
   id: 'fuel', kind: 'module', sets: ['tools', 'heat'], shape: '1x2', price: 11, buff: 'fuel',
+  elements: ['heat'], // its burn
   unlock: 'starting',
   tune: { dps: [2.5, 3.75, 5], duration: 2, tick: 0.5 }, // burn damage per second per ★ (2.5 base x TIER.mult); duration and tick are flat
   text: {

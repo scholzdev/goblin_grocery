@@ -114,6 +114,13 @@ export function validateContent(files: Partial<ContentFiles>, opts: ValidateOpti
     }
     checkBuild(path, c.build, 'item');
     checkHooks(path, c.hooks);
+    if (c.elements !== undefined) {
+      if (c.kind === 'passive') err(path, '`elements` is for weapons and modules only (a passive has no effect to tag)');
+      if (!Array.isArray(c.elements) || c.elements.length === 0) err(path, '`elements` must be a non-empty list');
+      else for (const tag of c.elements) if (!(AFFINITY_TAGS as readonly string[]).includes(tag) || tag === 'mark') err(path, `elements: "${tag}" is not a hit tag (${AFFINITY_TAGS.filter((x) => x !== 'mark').join(', ')})`);
+      if (new Set(c.elements).size !== c.elements?.length) err(path, '`elements` lists a tag twice');
+      else if (c.kind === 'weapon' && Array.isArray(c.elements)) for (const tag of c.elements) if (c.sets?.includes(tag as never)) err(path, `elements: "${tag}" is already one of the sets (its own element)`);
+    }
     if (c.flavored && c.sets?.length !== 1) err(path, 'flavored items take their element from the instance: sets must be just the family');
     if (c.tierBoost) {
       const v = c.tune?.[c.tierBoost.key];

@@ -5,7 +5,7 @@ import { cells, defineItem, weaponBase } from '../../engine/define';
 const W = weaponBase({ pattern: 'laser', damage: 20, cooldown: 1.6, range: 620 });
 
 export default defineItem({
-  id: 'laser', kind: 'weapon', sets: ['checkout'], shape: cells('.#.', '###', '.#.'), price: 40, tags: ['ranged'], electrical: true, legendary: true,
+  id: 'laser', kind: 'weapon', sets: ['checkout'], shape: cells('.#.', '###', '.#.'), price: 40, tags: ['ranged'], electrical: true, elements: ['electric'], legendary: true,
   weapon: W,
   tune: { damage: W.damage, cooldown: W.cooldown, range: W.range },
   text: {

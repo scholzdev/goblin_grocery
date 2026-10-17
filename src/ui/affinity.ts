@@ -1,7 +1,7 @@
 import type { AffinityTag } from '../engine/define';
 import type { EnemyId, ItemTypeId } from '../types';
 import { ENEMIES, enemiesWeakTo, enemyFrame, isBossId } from '../data/enemies';
-import { weaponTags } from '../engine/hitTags';
+import { itemTags } from '../engine/hitTags';
 import { t } from '../i18n';
 import { enemyT, tagT } from '../i18n/data';
 import { setIcon } from './icons';
@@ -29,9 +29,9 @@ export function affinityRowsHtml(id: EnemyId): string {
   return row('weak', t('weakTo'), d.weak) + row('resist', t('resistsLabel'), d.resist);
 }
 
-/** The shop card strip "Strong vs: [icons]" of a weapon: the enemies weak to the weapon's hit tags, groceries first, bosses ringed. '' for none. */
+/** The shop card strip "Strong vs: [icons]" of a weapon or module: the enemies weak to its elements (`itemTags`), groceries first, bosses ringed. '' for none (passives, element-less modules). */
 export function strongVsHtml(type: ItemTypeId): string {
-  const ids = enemiesWeakTo(weaponTags(type));
+  const ids = enemiesWeakTo(itemTags(type));
   if (!ids.length) return '';
   const imgs = ids.map((id) => { const n = esc(enemyT(id).name); return `<img class="${isBossId(id) ? 'boss' : ''}" src="${svg(enemyFrame(id))}" alt="${n}" title="${n}">`; }).join('');
   return `<div class="strongvs"><b>${esc(t('strongVs'))}</b>${imgs}</div>`;

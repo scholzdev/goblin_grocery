@@ -3,6 +3,8 @@ import { CODEX_ENEMIES, ENEMIES } from '../src/data/enemies';
 import { setLang } from '../src/i18n';
 import { enemyT } from '../src/i18n/data';
 import { UI } from '../src/i18n/ui';
+import { ITEMS } from '../src/data/items';
+import { itemTags, weaponTags } from '../src/engine/hitTags';
 import { affinityName, affinityRowsHtml, strongVsHtml } from '../src/ui/affinity';
 
 // The codex's weak / resist rows and the shop card's "Strong vs" strip: derived from the enemy files and the item's sets, in both languages.
@@ -55,8 +57,11 @@ describe('shop card: "Strong vs"', () => {
     expect(html.match(/class="boss"/g)).toHaveLength(1); // only the boss is ringed
   });
 
-  it('merges the elements of a weapon with two (Toaster: heat + electric; Mop: cleaning + frost)', () => {
-    expect(alts(strongVsHtml('toaster'))).toEqual(['giftcard', 'soda', 'beans', 'turkey', 'cereal', 'baguette', 'boss_frozen', 'boss_checkout'].map((id) => enemyT(id as never).name));
+  it('merges the elements of a weapon with two (Mop: cleaning + frost); an electrical weapon is not electric (Toaster = heat only)', () => {
+    expect(alts(strongVsHtml('toaster'))).toEqual(['turkey', 'cereal', 'baguette', 'boss_frozen'].map((id) => enemyT(id as never).name));
+    for (const w of ['microwave', 'nailgun', 'vacuum'] as const) expect(alts(strongVsHtml(w)), w).not.toContain(enemyT('soda').name); // soda is weak to electric only
+    expect(alts(strongVsHtml('laser'))).toContain(enemyT('soda').name);
+    expect(alts(strongVsHtml('blender'))).toEqual(alts(strongVsHtml('laser')));
     expect(alts(strongVsHtml('mop'))).toEqual(['banana', 'gum', 'spitter', 'expired', 'honey', 'boss_bakery', 'boss_electronics'].map((id) => enemyT(id as never).name));
   });
 
@@ -68,9 +73,42 @@ describe('shop card: "Strong vs"', () => {
     expect(alts(html)[0]).toBe('Gefrorener Truthahn');
   });
 
-  it('is empty for an item with no element (Kitchen Sourdough...) and covers all five elements through weapons', () => {
+  it('is empty for an item with no element (Kitchen Sourdough) and covers all five elements through weapons', () => {
     expect(strongVsHtml('sourdough')).toBe('');
-    for (const w of ['pan', 'fizz', 'toaster', 'nailgun', 'leafblower'] as const) expect(strongVsHtml(w), w).not.toBe('');
+    for (const w of ['pan', 'fizz', 'laser', 'nailgun', 'leafblower'] as const) expect(strongVsHtml(w), w).not.toBe('');
+  });
+});
+
+describe('module card: "Strong vs" from the module\'s own elements', () => {
+  const names = (ids: string[]) => ids.map((id) => enemyT(id as never).name);
+  it('Fuel Can = heat, Ice Pack = frost, Party Popper = blast (English)', () => {
+    for (const id of ['fuel', 'ice', 'popper'] as const) expect(strongVsHtml(id), id).toContain('Strong vs');
+    expect(alts(strongVsHtml('fuel'))).toEqual(names(['turkey', 'cereal', 'baguette', 'boss_frozen']));
+    expect(alts(strongVsHtml('ice')).length).toBeGreaterThan(0);
+    expect(alts(strongVsHtml('ice'))).toEqual(alts(strongVsHtml('fizz'))); // frost, like the Fizz
+    expect(alts(strongVsHtml('popper'))).toEqual(alts(strongVsHtml('nailgun'))); // blast, like the Nail Gun
+  });
+
+  it('is German in German', () => {
+    setLang('de');
+    for (const id of ['fuel', 'ice', 'popper'] as const) expect(strongVsHtml(id), id).toContain('Stark gegen');
+    expect(alts(strongVsHtml('fuel'))).toEqual(names(['turkey', 'cereal', 'baguette', 'boss_frozen']));
+    expect(alts(strongVsHtml('fuel'))[0]).toBe('Gefrorener Truthahn');
+  });
+
+  it('passives and modules without an element of their own get no strip (Battery, Hot Sauce, Fan, Multipack, Double Bag)', () => {
+    for (const id of ['battery', 'hotsauce', 'fan', 'multipack', 'doublebag', 'sourdough'] as const) expect(strongVsHtml(id), id).toBe('');
+  });
+
+  it('the strips come from the data: ItemDef.elements, on weapons and modules, declared on exactly Fuel Can, Ice Pack, Party Popper, Laser and Blender', () => {
+    const declared = Object.values(ITEMS).filter((d) => d.elements).map((d) => d.id).sort();
+    expect(declared).toEqual(['blender', 'fuel', 'ice', 'laser', 'popper']);
+    for (const d of Object.values(ITEMS)) if (d.elements) expect(d.kind, d.id).not.toBe('passive');
+    expect(itemTags('laser')).toEqual(['electric']);
+    expect(itemTags('fuel')).toEqual(['heat']);
+    expect(itemTags('ice')).toEqual(['frost']);
+    expect(itemTags('popper')).toEqual(['blast']);
+    expect(itemTags('pan')).toBe(weaponTags('pan')); // weapons still use their sets
   });
 });
 

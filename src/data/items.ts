@@ -13,6 +13,7 @@ const itemDefOf = (c: ItemContent): ItemDef => {
   if (c.legendary) def.legendary = true;
   if (c.buff) def.buff = c.buff;
   if (c.flavored) def.flavored = true;
+  if (c.elements) def.elements = [...c.elements];
   return def;
 };
 

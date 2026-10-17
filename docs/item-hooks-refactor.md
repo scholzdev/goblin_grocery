@@ -98,15 +98,15 @@ Enemies are weak to some elements and resist others (`weak` / `resist` in the en
 
 | Source | Tags |
 |---|---|
-| a weapon hit (any pattern, echo, puddle tick) | the weapon item's `setsOf`: its element (`heat`, `frost`, `blast`), `cleaning` when its family is Cleaning, `electric` when `electrical` |
+| a weapon hit (any pattern, echo, puddle tick) | the weapon's `weaponTags`: its element (`heat`, `frost`, `blast`), `cleaning` when its family is Cleaning, and its declared `elements`. **`electric` is declared, not derived**: the `electrical` flag adds no tag, only Laser and Blender list `elements: ['electric']`. Toaster / Microwave are heat, Nail Gun blast, Vacuum cleaning |
 | burn tick (`isDot`) | `heat` |
 | poison tick (`isDot` + `poison`) | `poison` |
-| Electric-set arc, Ray Gun splash (`chained`) | `electric` |
+| Electric-set arc, Ray Gun splash (`chained`) | `electric` (the arc of any weapon, at half damage) |
 | Party Popper, Blast-set pop, Confetti Cannon (`fromPopper`) | `blast` |
 | Pressure Cooker explosion (`explodeAt`, also Pot Slam) | `blast`, on top of the cooker's own `heat` |
 | Bag It bomb, Egg Carton blast | `blast` (`opts.tags`) |
 | Leaf Blower slam (`slamEnemy`) | `cleaning` (`opts.tags`) |
-| Oven vent / live cable hazards | `heat` / `electric` (`opts.tags`) |
+| Oven vent / live cable hazards | `heat` / `electric` (`opts.tags`; the cable's stun is electric too) |
 | dash, Can Pyramid, Slam Bumper, Sale Flag | none |
 
 A call site that fires a hit of a kind the weapon does not say adds `tags` to its `HitOpts`; the weapon's own tags are always merged in.
@@ -117,11 +117,13 @@ A call site that fires a hit of a kind the weapon does not say adds `tags` to it
 
 **Feedback.** A weak hit's damage number takes the element's colour and a size up, a resisted one is dim grey and a size down; a crit stays red. The stagger label and ring use the same colours (`AFFINITY_TINT` in `ArenaScene.ts`).
 
-**Display.** The codex enemy card shows "Weak to" / "Resists" chips (set icon and colour; poison and price marks have their own); the shop item card of a weapon shows "Strong vs": the icons of the enemies (groceries first, bosses ringed) whose `weak` matches one of the weapon's hit tags, derived with `enemiesWeakTo`. Both in `ui/affinity.ts`, strings `weakTo`, `resistsLabel`, `strongVs`, `affPoison`, `affMark`, `weakFlash` in `i18n/ui.ts`.
+**Display.** The codex enemy card shows "Weak to" / "Resists" chips (set icon and colour; poison and price marks have their own); the shop item card of a weapon or a module shows "Strong vs": the icons of the enemies (groceries first, bosses ringed) whose `weak` matches one of the item's tags (`itemTags` in `engine/hitTags.ts`), derived with `enemiesWeakTo`. A weapon's tags are its sets; a module's are its declarative `elements` field (see below). Passives and modules without an element get no strip. Both in `ui/affinity.ts`, strings `weakTo`, `resistsLabel`, `strongVs`, `affPoison`, `affMark`, `weakFlash` in `i18n/ui.ts`.
+
+**Item elements.** `ItemContent.elements` (weapons and modules, not passives; validated by the registry: non-empty, real hit tags, no `mark`, no duplicates, nothing already in a weapon's sets) lists the extra elements the item's own effect deals or applies. Modules: Fuel Can `['heat']` (its burn), Ice Pack `['frost']` (its slow), Party Popper `['blast']` (the pop of its kills); it is declared rather than derived from the module's sets because sets over-claim (Hot Sauce is Heat but only adds damage, Multipack and Double Bag are Blast but cause no blast hit, the Fan is Cleaning). Weapons: Laser and Blender `['electric']`, because the `electrical` flag only makes an item count toward the Electric set and says nothing about its hits. `weaponTags` folds it into every hit of the weapon and `itemTags` (the shop strip) reads it for weapons and modules alike, so one field drives the hit and the card. The Battery has none: nothing it does is electric.
 
 **How to give a new enemy or item an element.**
 - An enemy: add `weak: { <tag>: AFFINITY.weak }` and/or `resist: { <tag>: AFFINITY.resist }` (a boss: `AFFINITY.bossWeak`) to its file, update the table in `tests/content/enemies/registry.test.ts` and its own test. The codex, "Strong vs", numbers and stagger follow with no other change.
-- A weapon: its tags are its sets. Put it in an element set (`sets: ['kitchen', 'heat']`), the Cleaning family, or give it `electrical: true`; nothing else.
+- A weapon: its tags are its sets (element set, Cleaning family) plus `elements` for what its sets cannot say (`elements: ['electric']`). `electrical: true` is a gameplay flag (Electric set membership, Power Strip) and adds no tag. A module that applies an element: `elements: ['heat']`.
 - A new kind of hit (a hazard, a bomb): pass `tags: ['blast']` etc. in its `HitOpts`. A new status with an element: scale its duration with `statusDurationMult` (or `burnFor` / `slowFor` / `poisonTimeFor`) where it is applied, and pass the tag to `ctx.stun` for a stun.
 - A new tag: add it to `AFFINITY_TAGS` (`engine/define.ts`), `HIT_TAGS` follows, give it a colour (`AFFINITY_TINT`), an icon (`SET_ICON`) and a chip style.
 
@@ -132,7 +134,7 @@ A call site that fires a hit of a kind the weapon does not say adds `tags` to it
 - `describeCombo` / `expectSetText` pin the registered content and its EN and DE texts.
 - Golden snapshots in `tests/golden/__snapshots__/`: `build.json` (`computeBuild` output of about 344 carts) and `text.json` (rendered text, EN and DE). Both must stay byte-identical unless a change is intended; regenerate one with `npx vitest run tests/golden/<name>.golden.test.ts -u` and review the diff by key. Never run a blanket `-u`. The `rules` field in `text.json` is the older `{0}`/`{1}` template form, reproduced by the test-only helper `tests/golden/legacyRules.ts`.
 - Registry tests (`tests/engine/registry.test.ts`) validate the rules above on fixtures; the real registry validates itself at load.
-- `tests/engine/affinity.test.ts` (rules, hit tags, pipeline per tag source through `FakeCtx.spawnReal`, status times, stagger, mini-boss inheritance, wiring guards) and `tests/affinity-ui.test.ts` (codex rows, "Strong vs", EN and DE).
+- `tests/engine/affinity.test.ts` (rules, hit tags, pipeline per tag source through `FakeCtx.spawnReal`, status times, stagger, mini-boss inheritance, wiring guards) and `tests/affinity-ui.test.ts` (codex rows, "Strong vs" for weapons and modules, EN and DE).
 - Sims (`?sim=<id>`, docs/sims.md): launch an exact cart, department and enemies in the arena. Use them to look at a change; `tests/sims/sims.test.ts` checks that each combo, weapon, enemy and boss sim shows what it names.
 - `tools/botrun.mjs` plays real runs in a browser: a smoke test (page errors), not a golden test.
 
@@ -737,4 +739,4 @@ Done on top of phase 8 and the enemy content files. `weak` / `resist` (declared 
 - `hit.tags` is the one new field on `HitEvent`; call sites that fire an elemental hit the weapon does not describe (explosions, hazards, slam) add `HitOpts.tags`. `tests/content/sets/helpers.ts` `hitOf` computes them with `hitTags`.
 - `ctx.stun` got an optional element tag and now returns the applied seconds, and the pipeline order tests (`order.test.ts`, `flag.test.ts`, `onHitStatuses.test.ts`) pin `affinityMult` between `modifyDamage` and the mark. `markedDamage` takes the multiplier (`markMult(e.def)`).
 - The Manager's weak mark is a scale on the mark bonus, not a damage tag, so it is `markMult` and a `weakTag(..., marked)` match for the stagger.
-- Open balance question: the `electrical` flag makes many weapons electric (Toaster, Microwave, Nail Gun, Vacuum, Blender, Laser), so soda, beans, gift card and the checkout boss are weak to a big part of the arsenal.
+- Electric narrowing (follow-up): the `electrical` flag no longer adds the `electric` tag (it made Toaster, Microwave, Nail Gun, Vacuum, Blender and Laser all electric). Electric sources now: the Laser and Blender (declared `elements: ['electric']`), the Electric-set arc and Ray Gun splash (`chained`), the cable hazard, and the Sparks Fly stun (tagged `electric`). Toaster, Microwave, Nail Gun and Vacuum are not electric. The Electric set's membership is still the `electrical` flag.

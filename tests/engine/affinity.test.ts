@@ -126,26 +126,34 @@ describe('markMult: the mark-specific rule', () => {
 describe('hit tags', () => {
   const sets = (type: ItemTypeId) => [...weaponTags(type)].sort();
 
-  it('a weapon carries its element sets, the cleaning family and `electric` for an electrical one', () => {
+  it('a weapon carries its declared element, the Cleaning family and its declared `elements` (the electrical flag adds no tag)', () => {
     expect(sets('pan')).toEqual(['heat']);
     expect(sets('cooker')).toEqual(['heat']);
-    expect(sets('toaster')).toEqual(['electric', 'heat']);
-    expect(sets('microwave')).toEqual(['electric', 'heat']);
+    expect(sets('toaster')).toEqual(['heat']);
+    expect(sets('microwave')).toEqual(['heat']);
     expect(sets('fizz')).toEqual(['frost']);
     expect(sets('mop')).toEqual(['cleaning', 'frost']);
     expect(sets('spray')).toEqual(['cleaning', 'frost']);
     expect(sets('leafblower')).toEqual(['cleaning']);
-    expect(sets('vacuum')).toEqual(['cleaning', 'electric']);
-    expect(sets('nailgun')).toEqual(['blast', 'electric']);
-    expect(sets('blender')).toEqual(['electric']);
+    expect(sets('vacuum')).toEqual(['cleaning']);
+    expect(sets('nailgun')).toEqual(['blast']);
+    expect(sets('blender')).toEqual(['electric']); // declared `elements`
     expect(sets('laser')).toEqual(['electric']);
   });
 
-  it('is derived from the item data: every weapon\'s tags are its heat / frost / electric / blast / cleaning sets', () => {
+  it('electric on a weapon is declared, not derived from `electrical`: only the Laser and the Blender, not Toaster, Microwave, Nail Gun or Vacuum', () => {
+    for (const id of ['toaster', 'microwave', 'nailgun', 'vacuum', 'blender', 'laser'] as const) expect(ITEMS[id].electrical, id).toBe(true);
+    for (const id of ['laser', 'blender'] as const) { expect(ITEMS[id].elements, id).toEqual(['electric']); expect(weaponTags(id), id).toContain('electric'); }
+    for (const id of ['toaster', 'microwave', 'nailgun', 'vacuum'] as const) { expect(ITEMS[id].elements, id).toBeUndefined(); expect(weaponTags(id), id).not.toContain('electric'); }
+    const electric = (Object.keys(ITEMS) as ItemTypeId[]).filter((id) => weaponTags(id).includes('electric')).sort();
+    expect(electric).toEqual(['blender', 'laser']);
+  });
+
+  it('is derived from the item data: every weapon\'s tags are its declared element, its Cleaning family and its `elements`', () => {
     for (const id of Object.keys(ITEMS) as ItemTypeId[]) {
       const d = ITEMS[id];
-      const expected = [d.family, d.element, d.electrical ? 'electric' : undefined].filter((s): s is AffinityTag => !!s && ['heat', 'frost', 'electric', 'blast', 'cleaning'].includes(s));
-      expect(sets(id), id).toEqual([...expected].sort());
+      const expected = [d.family, d.element, ...(d.elements ?? [])].filter((s): s is typeof s & AffinityTag => !!s && ['heat', 'frost', 'electric', 'blast', 'cleaning'].includes(s));
+      expect(sets(id), id).toEqual([...new Set(expected)].sort());
     }
   });
 
@@ -162,7 +170,9 @@ describe('hit tags', () => {
     const cooker = { type: 'cooker' as ItemTypeId };
     expect(hitTags(cooker, {})).toBe(weaponTags('cooker'));
     expect([...hitTags(cooker, { tags: ['blast'] })].sort()).toEqual(['blast', 'heat']);
-    expect(hitTags({ type: 'nailgun' }, { chained: true })).toBe(weaponTags('nailgun')); // already electric: nothing to add
+    expect([...hitTags({ type: 'nailgun' }, { chained: true })].sort()).toEqual(['blast', 'electric']); // an arc adds electric to the nail gun's own blast
+    expect(hitTags({ type: 'nailgun' }, { fromPopper: true })).toBe(weaponTags('nailgun')); // already blast: nothing to add
+    expect(hitTags({ type: 'laser' }, { chained: true })).toBe(weaponTags('laser')); // already electric: nothing to add
     expect(hitTags({ type: 'pan' }, { chained: true, fromPopper: true }).length).toBe(3);
   });
 });
@@ -180,11 +190,27 @@ describe('damage through the pipeline, per tag source', () => {
     expect(1000 - milk.hp).toBe(10);
   });
 
-  it('weapon: electrical weapons are electric (Toaster vs soda x1.3 and vs turkey x1.3 via heat), cleaning ones cleaning (Mop vs expired)', () => {
+  it('weapon: Laser and Blender hits are electric (vs soda +30%), a Toaster hit is not (x1)', () => {
+    for (const id of ['laser', 'blender', 'toaster'] as const) {
+      const a = arena([at(id)]);
+      const soda = a.fake.spawnReal('soda', { hp: 1000 });
+      a.fake.hit(soda, 10, a.stats);
+      if (id === 'toaster') expect(1000 - soda.hp, id).toBe(10);
+      else expect(1000 - soda.hp, id).toBeCloseTo(13, 12);
+    }
+    for (const id of ['microwave', 'nailgun', 'vacuum'] as const) {
+      const a = arena([at(id)]);
+      const soda = a.fake.spawnReal('soda', { hp: 1000 });
+      a.fake.hit(soda, 10, a.stats);
+      expect(1000 - soda.hp, id).toBe(10);
+    }
+  });
+
+  it('weapon: an electrical weapon is not electric by itself (Toaster vs soda x1, vs turkey x1.3 via heat), cleaning ones are cleaning (Mop vs expired)', () => {
     const toaster = arena([at('toaster')]), mop = arena([at('mop')]);
     const soda = toaster.fake.spawnReal('soda', { hp: 1000 }), turkey = toaster.fake.spawnReal('turkey', { hp: 1000 });
     toaster.fake.hit(soda, 10, toaster.stats); toaster.fake.hit(turkey, 10, toaster.stats);
-    expect(1000 - soda.hp).toBeCloseTo(13, 12);
+    expect(1000 - soda.hp).toBe(10); // electrical flag, no electric tag
     expect(1000 - turkey.hp).toBeCloseTo(13, 12); // heat weak; the toaster is not frost, so no resist
     const expired = mop.fake.spawnReal('expired', { hp: 1000 }), turkey2 = mop.fake.spawnReal('turkey', { hp: 1000 });
     mop.fake.hit(expired, 10, mop.stats); mop.fake.hit(turkey2, 10, mop.stats);
@@ -210,6 +236,18 @@ describe('damage through the pipeline, per tag source', () => {
     expect(dealt('expired', 10, { isDot: true, poison: true })).toBeCloseTo(7, 12);
     expect(dealt('milk', 10, { isDot: true, poison: true })).toBe(10);
     expect(dealt('milk', 10, { isDot: true })).toBe(10);
+  });
+
+  it('a real Electric-set arc is the electric hit: the toaster hits a soda for x1, its arc to the next enemy is half damage x1.3 (soda) or x1 (banana)', () => {
+    const seed = (() => { for (let s = 1; s < 500; s++) { const f = new FakeCtx({ seed: s }); if (f.rng() < 0.3) return s; } throw new Error('seed'); })();
+    const a = arena([at('toaster'), at('battery'), far('vacuum'), far('laser')], { seed }); // toaster + battery + vacuum + laser: Electric L3
+    expect(a.b.sets.electric).toBe(3);
+    const hit = a.fake.spawnReal('soda', { x: 0, hp: 1000 }), next = a.fake.spawnReal('soda', { x: 60, hp: 1000 }), plain = a.fake.spawnReal('banana', { x: 110, hp: 1000 });
+    a.fake.hit(hit, 10, a.stats);
+    expect(1000 - hit.hp).toBe(10);
+    expect(1000 - next.hp).toBeCloseTo(5 * 1.3, 12);
+    expect(1000 - plain.hp).toBeCloseTo(5, 12);
+    expect(a.fake.callsOf('damage').every((c) => c.opts.chained)).toBe(true);
   });
 
   it('electric chain vs soda x1.3 (the chained flag is electric whatever fired it)', () => {

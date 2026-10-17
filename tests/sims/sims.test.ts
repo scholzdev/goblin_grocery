@@ -361,14 +361,21 @@ describe('affinity sims', () => {
       expect(s.waves ?? false, id).toBe(false);
       expect(s.god ?? true, id).toBe(true);
       expect(s.notes, id).toBeTruthy();
-      expect(run.build.weapons, id).toHaveLength(1);
+      // the electric sim is the one with several weapons: the arcs need an Electric set (L3), made of the Laser and the Blender (both declare `electric`)
+      if (id === 'affinity-electric') expect(run.build.weapons.map((w) => w.type)).toEqual(['laser', 'blender']);
+      else expect(run.build.weapons, id).toHaveLength(1);
       expect(run.build.recipes, id).toEqual([]);
     }
   });
 
   it('each cart carries its element, and its groups include enemies weak to it and a contrast', () => {
     for (const [id, tag] of Object.entries(AFFINITY_SIMS)) {
-      const w = createSimRun(sim(id)).build.weapons[0];
+      const run = createSimRun(sim(id)), w = run.build.weapons[0];
+      if (tag === 'electric') { // Electric L3 with its 30% chain, and every weapon of the cart is electric itself
+        expect(run.build.sets.electric, id).toBe(3);
+        expect(w.chainChance, id).toBeCloseTo(0.3, 12);
+        for (const x of run.build.weapons) expect([...weaponTags(x.type)], x.type).toContain('electric');
+      }
       expect([...weaponTags(w.type)], id).toContain(tag);
       const ids = groups(id) as (keyof typeof ENEMIES)[];
       const weak = ids.filter((e) => (ENEMIES[e].weak?.[tag] ?? 0) > 0), others = ids.filter((e) => affinityMult(ENEMIES[e], weaponTags(w.type)) <= 1);
@@ -399,7 +406,14 @@ describe('affinity sims', () => {
     };
     expectDamage('affinity-heat', 18);
     expectDamage('affinity-frost', 12.72); // 12 plus the 6% bundle bonus of the Ice Pack touching it
-    expectDamage('affinity-electric', 20);
+    // the electric sim: the Laser's own (electric) beam, x1.3 on the weak groups, and the arc at half damage (also electric)
+    const laser = createSimRun(sim('affinity-electric')).build.weapons[0];
+    expect(laser.type).toBe('laser');
+    expect(laser.damage).toBeCloseTo(22.4, 9);
+    expect(sim('affinity-electric').notes).toContain(`${near(laser.damage)}`);
+    expect(sim('affinity-electric').notes).toContain(`${near(laser.damage * (1 + AFFINITY.weak))}`);
+    expect(sim('affinity-electric').notes).toContain(`${near(laser.damage / 2)}`);
+    expect(sim('affinity-electric').notes).toContain(`${near((laser.damage / 2) * (1 + AFFINITY.weak))}`);
     expectDamage('affinity-blast', 6);
     expectDamage('affinity-cleaning', 6);
     expect(sim('affinity-heat').notes).toContain(`${near(18 * (1 - AFFINITY.resist))}`);

@@ -231,6 +231,13 @@ export interface ItemContent<T extends Tune = Tune> {
   shape: Shape | ((tier: number) => Shape);
   price: number;
   electrical?: boolean;
+  /**
+   * Weapons and modules: extra hit elements the item's own effect deals or applies, beyond its sets. A module's sets only say which set it counts
+   * toward (Hot Sauce is Heat but adds plain damage), so Fuel Can names its burn `heat`, Ice Pack its slow `frost`, Party Popper its pop `blast`.
+   * A weapon adds what its sets cannot say: Laser and Blender are `electric` (the `electrical` flag only makes an item count toward the Electric
+   * set, it adds no tag). Read by every hit's tags and the shop's "Strong vs" (`weaponTags` / `itemTags`, engine/hitTags.ts).
+   */
+  elements?: readonly AffinityTag[];
   legendary?: boolean;
   /** Weapons only. */
   tags?: ItemDef['tags'];

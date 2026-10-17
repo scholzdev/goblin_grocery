@@ -2,7 +2,7 @@
 import type { DoorId, ModifierId } from './data/modifiers';
 import type { EventKind } from './data/events';
 import type { ZoneId } from './data/zones';
-import type { AffinityMap, BUFF_ORDER, ELEMENTS, ENEMY_ORDER, FAMILIES, ITEM_ORDER, RECIPE_ORDER, SET_ORDER } from './engine/define';
+import type { AffinityMap, AffinityTag, BUFF_ORDER, ELEMENTS, ENEMY_ORDER, FAMILIES, ITEM_ORDER, RECIPE_ORDER, SET_ORDER } from './engine/define';
 
 /** The id unions are derived from the order lists of engine/define.ts (which the registry checks against the content files). */
 export type ItemTypeId = (typeof ITEM_ORDER)[number];
@@ -55,6 +55,8 @@ export interface ItemDef {
   tags?: WeaponTag[];
   /** Legendary: unique effect, gold border, rare in shops, cannot be upgraded or merged. */
   legendary?: boolean;
+  /** Modules only: the elements its effect deals or applies (see `ItemContent.elements`). */
+  elements?: readonly AffinityTag[];
   /** Buff this module grants to adjacent weapons (if any). */
   buff?: BuffId;
   /** Jelly Beans: the instance's flavor is its element for set counting (`setsOf`). */

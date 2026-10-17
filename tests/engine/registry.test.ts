@@ -153,6 +153,18 @@ describe('validateContent: sets', () => {
     expect(errors({ sets: { 'sets/kitchen.ts': set({ tune: { damageMult: NaN } }) } })).toMatch(/not a finite number/);
   });
 
+  it('`elements` (extra hit tags): weapons and modules, real non-mark tags, no duplicates, nothing already in the sets', () => {
+    const weapon = (over: Record<string, unknown> = {}) => item({ kind: 'weapon', sets: ['kitchen'], buff: undefined, build: undefined, weapon: { pattern: 'aura', damage: 2, cooldown: 0.3, range: 85 }, ...over });
+    expect(errors({ items: { 'items/fuel.ts': item({ elements: ['heat'] }) } })).toBe('');
+    expect(errors({ items: { 'items/fuel.ts': weapon({ elements: ['electric'] }) } })).toBe('');
+    expect(errors({ items: { 'items/fuel.ts': item({ kind: 'passive', buff: undefined, build: { phase: 'final', player() {} }, elements: ['heat'] }) } })).toMatch(/`elements` is for weapons and modules only/);
+    expect(errors({ items: { 'items/fuel.ts': item({ elements: [] }) } })).toMatch(/`elements` must be a non-empty list/);
+    expect(errors({ items: { 'items/fuel.ts': item({ elements: ['mark'] }) } })).toMatch(/elements: "mark" is not a hit tag/);
+    expect(errors({ items: { 'items/fuel.ts': item({ elements: ['fire'] }) } })).toMatch(/elements: "fire" is not a hit tag/);
+    expect(errors({ items: { 'items/fuel.ts': item({ elements: ['heat', 'heat'] }) } })).toMatch(/lists a tag twice/);
+    expect(errors({ items: { 'items/fuel.ts': weapon({ sets: ['kitchen', 'heat'], elements: ['heat'] }) } })).toMatch(/"heat" is already one of the sets/);
+  });
+
   it('flavored items (Jelly Beans) take their element from the instance: no static element allowed', () => {
     expect(errors({ items: { 'items/fuel.ts': item({ flavored: true, sets: ['tools'] }) } })).toBe('');
     expect(errors({ items: { 'items/fuel.ts': item({ flavored: true }) } })).toMatch(/flavored items take their element from the instance/);
