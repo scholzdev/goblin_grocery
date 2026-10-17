@@ -1,4 +1,4 @@
-import { applyBurn, applyPoison, applySlow, newStatus } from '../systems/combat';
+import { applyBurn, applyPoison, applyShred, applySlow, hitArmor, newStatus } from '../systems/combat';
 import { combatRng, type Rng } from '../systems/rng';
 import { CRIT, PLAYER } from '../data/items';
 import { ENEMIES } from '../data/enemies';
@@ -9,7 +9,7 @@ import { FX_METHODS, type AisleView, type CombatEnemy, type CombatShot, type FxA
 import { EMPTY_HOOKS, type HitEvent, type HitOpts, type HookTable } from './hooks';
 import { applyMark, markedDamage } from './marks';
 import { affinityMult, burnFor, markMult, poisonTimeFor, slowFor, statusDurationMult, tryStagger } from './affinity';
-import { AFFINITY, type AffinityTag } from './define';
+import { AFFINITY, SHRED, type AffinityTag } from './define';
 import { hitTags } from './hitTags';
 import { applyHitStatuses, scheduleEcho } from './onHitStatuses';
 import { applyKillEffects } from './onKillEffects';
@@ -22,7 +22,7 @@ import { applyKillEffects } from './onKillEffects';
 //   fake.hooks.emit('onDashHit', { ... })   any other emit point, with a payload the test builds
 // then assert on `fake.calls` / `fake.callsOf('stun')` and on the in-memory enemies/player.
 //
-// What the fake does NOT simulate is everything the scene still does outside hooks (armor, knockback, the pattern code that fires the hooks'
+// What the fake does NOT simulate is everything the scene still does outside hooks (knockback, the pattern code that fires the hooks'
 // events: a test emits `pattern:*` / `onDash*` events itself). When an item moves into a hook, its effect shows up here as a recorded call.
 
 /** One effect a hook asked for, stamped with the fake clock (`at`, seconds). */
@@ -34,6 +34,7 @@ export type Call = { at: number } & (
   | { kind: 'slow'; enemy: number; slow: SlowEffect }
   | { kind: 'poison'; enemy: number; dps: number; duration: number }
   | { kind: 'mark'; enemy: number; seconds: number }
+  | { kind: 'shred'; enemy: number; stacks: number; seconds: number }
   | { kind: 'hurt'; dmg: number }
   | { kind: 'heal'; hp: number }
   | { kind: 'healFx'; x: number; y: number }
@@ -247,6 +248,10 @@ export class FakeCtx implements RuntimeCtx {
     this.log({ kind: 'mark', enemy: e.id, seconds });
     applyMark(e, this.time, seconds);
   }
+  shred(e: CombatEnemy, stacks: number, seconds: number = SHRED.duration): void {
+    this.log({ kind: 'shred', enemy: e.id, stacks, seconds });
+    applyShred(e.status, stacks, seconds, this.time);
+  }
 
   playerNear(x: number, y: number): { x: number; y: number; d: number } {
     return { x: this.player.x, y: this.player.y, d: Math.hypot(x - this.player.x, y - this.player.y) };
@@ -314,7 +319,7 @@ export class FakeCtx implements RuntimeCtx {
   /**
    * The combat-rng part of `ArenaScene.damageEnemy` (see the pipeline comment there): modifyDamage, the element affinity, the mark, crit roll, onCrit, hp, onHit, the
    * stats-driven statuses (burn, ignite, slow), afterHit (the Frost freeze, Cleaning, Electric chain), echo, and on a lethal hit onKill +
-   * afterKill (Kitchen heal, Blast pop) + the popper blast, and the engine's mark multiplier. Not simulated: armor, knockback itself.
+   * afterKill (Kitchen heal, Blast pop) + the popper blast, and the engine's mark multiplier. The armor step (with Shred) is the shared `hitArmor`. Not simulated: knockback itself.
    */
   private runHit(e: CombatEnemy, dmg: number, stats: WeaponStats | null, o: HitOpts): void {
     if (!e.alive) return;
@@ -329,7 +334,8 @@ export class FakeCtx implements RuntimeCtx {
       dmg *= CRIT.mult;
       hit.crit = true; hit.dmg = dmg; H.emit('onCrit', hit); dmg = hit.dmg;
     }
-    hit.dmg = dmg;
+    dmg = hitArmor(e, dmg, o, now); // armor and shred (systems/combat), direct hits only, like the scene
+    hit.armored = dmg < hit.dmg * 0.5; hit.dmg = dmg;
     e.hp -= dmg;
     hit.killed = e.hp <= 0; H.emit('onHit', hit);
     applyHitStatuses(hit, this);

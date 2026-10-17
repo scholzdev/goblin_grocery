@@ -59,8 +59,11 @@ export function comboDps(w: WeaponStats, shoveCd: number): { single: number; cro
   return { single, crowd };
 }
 
+// Combos whose value is a status against armor (Shred), not a damage rate: the rate model above cannot score them (they change no weapon stat).
+const STATUS_ONLY: readonly RecipeId[] = ['crackOpen'];
+
 test('no combo is far stronger or weaker than the rest', async () => {
-  const rows = (Object.keys(RECIPES) as RecipeId[]).filter((id) => RECIPES[id].weapon).map((id) => {
+  const rows = (Object.keys(RECIPES) as RecipeId[]).filter((id) => RECIPES[id].weapon && !STATUS_ONLY.includes(id)).map((id) => {
     const r = RECIPES[id];
     if (!r.weapon) throw new Error('cart combo');
     const base = computeBuild(cart(r.weapon, []));

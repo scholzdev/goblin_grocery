@@ -15,7 +15,7 @@ export const ICON_IDS = [
   'powerstrip', 'goldstar', 'laser', 'snackbag',
   'cooker', 'spray', 'popper', 'doublebag', 'multipack',
   'fortune', 'sample', 'piggy', 'expiredmilk', 'tinfoilhat', 'jellybeans', 'leafblower', 'sourdough',
-  'bumper', 'sparewheel', 'tipjar', 'flag',
+  'bumper', 'sparewheel', 'tipjar', 'flag', 'canopener',
 ] as const;
 
 export interface SvgAsset { key: string; w: number; h: number; ax?: number; ay?: number }

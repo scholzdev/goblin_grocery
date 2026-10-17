@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { ITEMS, PLAYER, TIER } from '../../../src/data/items';
 import tools from '../../../src/content/sets/tools';
+import { SHRED } from '../../../src/engine/define';
+import { shredStacks } from '../../../src/systems/combat';
 import { contentItems, contentSet, contentSetTune, contentTune } from '../../../src/engine/registry';
 import { setLang } from '../../../src/i18n/lang';
 import { arena, at, far, full } from '../helpers';
@@ -76,9 +78,9 @@ describe('Tools set: dash damage ordering', () => {
 describe('Tools set: content', () => {
   it('is registered with its tune (arrays are L1/L2/L3)', () => {
     expect(contentSet('tools')).toBe(tools);
-    expect(contentSetTune('tools', 1)).toEqual({ cooldownDiv: 1.08, shoveDamageMult: 2, shoveStun: 0.3 });
-    expect(contentSetTune('tools', 2)).toEqual(contentSetTune('tools', 1));
-    expect(contentSetTune('tools', 3)).toEqual({ cooldownDiv: 1.15, shoveDamageMult: 3, shoveStun: 0.45 });
+    expect(contentSetTune('tools', 1)).toEqual({ cooldownDiv: 1.08, shoveDamageMult: 2, shoveStun: 0.3, shredStacks: 0 });
+    expect(contentSetTune('tools', 2)).toEqual({ cooldownDiv: 1.08, shoveDamageMult: 2, shoveStun: 0.3, shredStacks: 2 }); // L2 = L1 plus the dash's Shred
+    expect(contentSetTune('tools', 3)).toEqual({ cooldownDiv: 1.15, shoveDamageMult: 3, shoveStun: 0.45, shredStacks: 3 });
   });
 
   it('runs its weapon hook at set order 30', () => {
@@ -87,8 +89,8 @@ describe('Tools set: content', () => {
 
   it('renders EN and DE bonus lines from the tune', () => {
     expectSetText('tools', {
-      en: { name: 'Tools', bonus: ['All weapons +8% attack rate', 'Dash damage ×2, stuns 0.3 s', 'All weapons +15% attack rate; dash damage ×3, stuns 0.45 s'] },
-      de: { name: 'Werkzeug', bonus: ['Alle Waffen +8 % Angriffstempo', 'Dash-Schaden ×2, betäubt 0,3 s', 'Alle Waffen +15 % Angriffstempo; Dash-Schaden ×3, betäubt 0,45 s'] },
+      en: { name: 'Tools', bonus: ['All weapons +8% attack rate', 'Dash damage ×2, stuns 0.3 s, applies 2 Shred stacks', 'All weapons +15% attack rate; dash damage ×3, stuns 0.45 s, applies 3 Shred stacks'] },
+      de: { name: 'Werkzeug', bonus: ['Alle Waffen +8 % Angriffstempo', 'Dash-Schaden ×2, betäubt 0,3 s, fügt 2 Stapel Aufreißen hinzu', 'Alle Waffen +15 % Angriffstempo; Dash-Schaden ×3, betäubt 0,45 s, fügt 3 Stapel Aufreißen hinzu'] },
     });
   });
 });
@@ -117,6 +119,20 @@ describe('Tools set: dash stun', () => {
     }
     const { fake } = dash(cart(3));
     expect(fake.rng()).toBe(draws(1, 1)[0]);
+  });
+
+  it('shreds as well: 2 stacks at L2, 3 (the cap) at L3, after the stun, and an expired status starts over', () => {
+    for (const [n, stacks] of [[2, 2], [3, 3]] as const) {
+      const { fake, enemy } = dash(cart(n));
+      expect(fake.callsOf('shred')).toEqual([{ at: 0, kind: 'shred', enemy: enemy.id, stacks, seconds: SHRED.duration }]);
+      expect(fake.calls.map((c) => c.kind).filter((k) => k === 'stun' || k === 'shred')).toEqual(['stun', 'shred']);
+      expect(shredStacks(enemy.status, 0)).toBe(stacks);
+    }
+    const { fake, enemy } = dash(cart(2));
+    fake.advance(SHRED.duration + 0.1);
+    expect(shredStacks(enemy.status, fake.now())).toBe(0);
+    fake.hooks.emit('onDashHit', { enemy, dx: 1, dy: 0, dmg: 6 });
+    expect(shredStacks(enemy.status, fake.now())).toBe(2);
   });
 
   it('runs after the item hooks of the same dash hit: Tip Jar\'s coin first, then the stun', () => {

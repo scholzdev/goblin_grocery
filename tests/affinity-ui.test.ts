@@ -44,7 +44,8 @@ describe('codex: weak / resist rows', () => {
       const html = affinityRowsHtml(id), d = ENEMIES[id];
       expect(html.includes('aff-row weak'), id).toBe(Object.keys(d.weak ?? {}).length > 0);
       expect(html.includes('aff-row resist'), id).toBe(Object.keys(d.resist ?? {}).length > 0);
-      expect((html.match(/class="chip /g) ?? []).length, id).toBe(Object.keys(d.weak ?? {}).length + Object.keys(d.resist ?? {}).length);
+      expect(html.includes('aff-row armor'), id).toBe(!!d.armor);
+      expect((html.match(/class="chip /g) ?? []).length, id).toBe(Object.keys(d.weak ?? {}).length + Object.keys(d.resist ?? {}).length + (d.armor ? 1 : 0));
     }
   });
 });
@@ -119,5 +120,39 @@ describe('affinity strings', () => {
       expect(UI.de[k], k).toBeTruthy();
     }
     expect([UI.en.weakFlash, UI.de.weakFlash]).toEqual(['WEAK!', 'SCHWACH!']);
+  });
+});
+
+describe('armor and Shred on screen', () => {
+  it('the codex shows an armor chip (shield and number) for an armored enemy, in both languages, and none for the others', () => {
+    const beans = affinityRowsHtml('beans');
+    expect(beans).toContain('aff-row armor');
+    expect(beans).toMatch(/<b>Armor<\/b><span class="chip aff-armor">.*<svg.*<\/svg>3<\/span>/s);
+    expect(affinityRowsHtml('milk')).not.toContain('aff-armor');
+    expect(affinityRowsHtml('slice')).toBe('');
+    setLang('de');
+    expect(affinityRowsHtml('beans')).toContain('<b>Panzerung</b>');
+    for (const id of CODEX_ENEMIES) expect(affinityRowsHtml(id).includes('aff-armor'), id).toBe(!!ENEMIES[id].armor);
+  });
+
+  it('the armor chip sits after the weak / resist rows', () => {
+    const html = affinityRowsHtml('beans');
+    expect(html.indexOf('aff-row weak')).toBeLessThan(html.indexOf('aff-row armor'));
+  });
+
+  it('a shredding item shows "Strong vs: Armored" (Can Opener has no element: the chip alone), EN and DE', () => {
+    const html = strongVsHtml('canopener');
+    expect(html).toContain('Strong vs');
+    expect(html).toMatch(/class="chip aff-armor">.*<svg.*<\/svg>Armored<\/span>/s);
+    expect(alts(html)).toEqual([]);
+    setLang('de');
+    expect(strongVsHtml('canopener')).toContain('Stark gegen');
+    expect(strongVsHtml('canopener')).toContain('Gepanzert</span>');
+  });
+
+  it('items that do not shred get no armored chip, and an element item keeps its icons', () => {
+    for (const id of ['pan', 'fuel', 'sourdough', 'toaster'] as const) expect(strongVsHtml(id), id).not.toContain('aff-armor');
+    expect(ITEMS.canopener.shreds).toBe(true);
+    expect(Object.values(ITEMS).filter((d) => d.shreds).map((d) => d.id)).toEqual(['canopener']);
   });
 });

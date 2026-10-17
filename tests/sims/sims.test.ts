@@ -220,9 +220,9 @@ describe('combo sims', () => {
   const ACTIVE: Partial<Record<RecipeId, RecipeId[]>> = { tailwind: ['sugarRush', 'tailwind'], sourMist: ['mistMachine', 'sourMist'] };
 
   it('there is one sim for every combo', () => {
-    expect(RECIPE_ORDER).toHaveLength(31);
+    expect(RECIPE_ORDER).toHaveLength(32);
     for (const [id, simId] of Object.entries(COMBO_SIMS)) expect(simRegistry.get(simId), `${id} -> ${simId}`).toBeDefined();
-    expect(simRegistry.ids.filter((i) => i.startsWith('combo-'))).toHaveLength(31);
+    expect(simRegistry.ids.filter((i) => i.startsWith('combo-'))).toHaveLength(32);
   });
   it('each sim activates its combo, and exactly the combos listed in ACTIVE besides it', () => {
     for (const [id, simId] of Object.entries(COMBO_SIMS) as [RecipeId, string][]) {

@@ -143,6 +143,11 @@ export interface RuntimeCtx {
   poison(e: CombatEnemy, dps: number, duration: number): void;
   /** Price Check / Sale Flag mark: extra damage from every source for `seconds`. */
   mark(e: CombatEnemy, seconds: number): void;
+  /**
+   * Shred: `stacks` more stacks (capped at `SHRED.cap`), -1 armor each against direct hits, for `seconds` (default `SHRED.duration`). Bosses are not immune;
+   * no element, so affinity never scales it. Nothing here is rolled: a source that shreds only sometimes draws its own chance first.
+   */
+  shred(e: CombatEnemy, stacks: number, seconds?: number): void;
 
   // ---- player
   readonly player: PlayerView;

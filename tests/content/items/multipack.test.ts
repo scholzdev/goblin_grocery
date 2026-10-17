@@ -112,9 +112,9 @@ describe('Multipack: content', () => {
     expect(def.weapon).toBeUndefined();
   });
 
-  it('keeps its position in the item order (last)', () => {
+  it('keeps its position in the item order (last until the Can Opener was appended)', () => {
     expect(around('multipack', 1, 0)).toEqual(['doublebag', 'multipack']);
-    expect(Object.keys(ITEMS).at(-1)).toBe('multipack');
+    expect(Object.keys(ITEMS).at(-2)).toBe('multipack');
   });
 
   it('renders its text for every level, EN and DE', () => {

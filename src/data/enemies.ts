@@ -127,15 +127,19 @@ export const ELITE = { hpMult: 3.5, scale: 1.35, contactMult: 1.5, coinMult: 3, 
 export const ELITE_EXCLUDED: EnemyId[] = [...BOSS_IDS, 'slice', 'egg', 'giftcard'];
 
 /** Every Elite rolls one affix. Splitter skips types that already split or are tiny. */
-export type EliteAffix = 'swift' | 'tough' | 'splitter' | 'pickpocket';
-export const ELITE_AFFIXES: EliteAffix[] = ['swift', 'tough', 'splitter', 'pickpocket'];
+export type EliteAffix = 'swift' | 'tough' | 'splitter' | 'pickpocket' | 'plated';
+export const ELITE_AFFIXES: EliteAffix[] = ['swift', 'tough', 'splitter', 'pickpocket', 'plated'];
 export const SPLITTER_EXCLUDED: EnemyId[] = ['melon', 'slice', 'honey'];
 export const AFFIX = {
   swift: { speedMult: 1.4, color: 0x7cc4e8 },
   tough: { regenPct: 0.02, idle: 2, color: 0x8fcb57 },                     // % max HP per second after `idle` s without being hit
   splitter: { count: 2, scale: 0.4, hpMult: 0.4, color: 0xb08ae0 },         // copies at 40% scale / HP of the base type
   pickpocket: { radius: 170, absorbRadius: 26, color: 0xf45f52 }, // px
+  plated: { armor: 3, color: 0xaab2c2 },                                   // flat armor on top of the type's own (same rule as Canned Beans; Shred strips it)
 };
+
+/** The armor an elite with this affix has: its type's own, plus the Plated affix's (`AFFIX.plated.armor`). Every other affix leaves it as it is. */
+export const affixArmor = (armor: number | undefined, affix?: EliteAffix): number | undefined => (affix === 'plated' ? (armor ?? 0) + AFFIX.plated.armor : armor);
 
 /** Health bars appear on these enemies once damaged (never at full HP, to avoid clutter): the content files with `hpBar`. */
 export const SHOW_HP_BAR: EnemyId[] = ENEMY_ORDER.filter((id) => content(id).hpBar);

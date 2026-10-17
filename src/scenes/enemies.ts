@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { AFFIX, BOSS, BOSS_KITS, BOSS_SPECIAL, ELITE, MINI_BOSS, ELITE_AFFIXES, ENEMIES, SPLITTER_EXCLUDED, enemyFrame, isBossId, miniBossDef, type BossKit, type BossMove, type EliteAffix, type MiniVariant } from '../data/enemies';
+import { AFFIX, affixArmor, BOSS, BOSS_KITS, BOSS_SPECIAL, ELITE, MINI_BOSS, ELITE_AFFIXES, ENEMIES, SPLITTER_EXCLUDED, enemyFrame, isBossId, miniBossDef, type BossKit, type BossMove, type EliteAffix, type MiniVariant } from '../data/enemies';
 import { bossTuning } from '../data/waves';
 import { store } from '../state/store';
 import type { EnemyDef, EnemyId } from '../types';
@@ -93,11 +93,11 @@ export function createEnemy(scene: ArenaScene, id: EnemyId, x: number, y: number
   const base = ENEMIES[id];
   // Aisle damage scaling and elites get their own def copy so every e.def reader picks it up.
   const dm = dmgScale * (elite ? ELITE.contactMult : 1);
+  const affix = elite ? forceAffix ?? pickAffix(id, scene.rng) : undefined; // forceAffix: lab sims pin one
   const def = mini
     // Mid-shift boss: the themed grocery's look with Manager behavior (every boss check keys on behavior).
     ? miniBossDef(base, mini, dm)
-    : elite || dm !== 1 || small ? { ...base, radius: base.radius * (elite ? ELITE.scale : 1), contactDamage: Math.round(base.contactDamage * dm), attackDamage: Math.round(base.attackDamage * dm) } : base;
-  const affix = elite ? forceAffix ?? pickAffix(id, scene.rng) : undefined; // forceAffix: lab sims pin one
+    : elite || dm !== 1 || small ? { ...base, radius: base.radius * (elite ? ELITE.scale : 1), contactDamage: Math.round(base.contactDamage * dm), attackDamage: Math.round(base.attackDamage * dm), ...(affix === 'plated' ? { armor: affixArmor(base.armor, affix) } : {}) } : base;
   // `small` (Splitter copies): scale / HP of the base type; the def copy shrinks the hit radius too.
   const hp = mini ? Math.round(MINI_BOSS.hp * hpScale) : Math.max(1, Math.round(base.hp * hpScale * (elite ? ELITE.hpMult : 1) * (small ? AFFIX.splitter.hpMult : 1)));
   if (small) def.radius = base.radius * small;

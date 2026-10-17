@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ENEMIES, MINI_BOSS, enemiesWeakTo, miniBossDef } from '../../src/data/enemies';
 import { ITEMS } from '../../src/data/items';
+import { armorDamage } from '../../src/systems/combat';
 import { affinityMult, burnFor, markMult, poisonTimeFor, resistTag, slowFor, statusDurationMult, tryStagger, weakTag } from '../../src/engine/affinity';
 import { AFFINITY, type AffinityMap, type AffinityTag } from '../../src/engine/define';
 import { FakeCtx } from '../../src/engine/fakeCtx';
@@ -252,7 +253,7 @@ describe('damage through the pipeline, per tag source', () => {
 
   it('electric chain vs soda x1.3 (the chained flag is electric whatever fired it)', () => {
     expect(dealt('soda', 10, { chained: true })).toBeCloseTo(13, 12);
-    expect(dealt('beans', 10, { chained: true })).toBeCloseTo(13, 12); // before armor (the scene soaks it afterwards)
+    expect(dealt('beans', 10, { chained: true })).toBeCloseTo(armorDamage(13, 3), 12); // x1.3 first, then the armor step (FakeCtx runs the scene's `hitArmor`)
     expect(dealt('milk', 10, { chained: true })).toBe(10);
   });
 
@@ -282,8 +283,8 @@ describe('damage through the pipeline, per tag source', () => {
     expect(dealt('egg', 10, { label: 'Bag It', tags: ['blast'] })).toBeCloseTo(13, 12);
   });
 
-  it('raises the hit before armor (the scene\'s, not simulated here): the order is pinned in tests/content/combos/order.test.ts and the damageEnemy source-order test', () => {
-    expect(dealt('beans', 20, { chained: true })).toBeCloseTo(26, 12);
+  it('raises the hit before armor: the order is pinned in tests/content/combos/order.test.ts and the damageEnemy source-order test', () => {
+    expect(dealt('beans', 20, { chained: true })).toBeCloseTo(armorDamage(26, 3), 12);
   });
 
   it('the slice has no affinity: every tag is x1', () => {

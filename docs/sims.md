@@ -97,6 +97,7 @@ One sim per combo, `src/sims/combo-<id>.ts` with the combo id in kebab-case (`?s
 | `combo-tailwind` | Adds an Energy Drink so Sugar Rush is active too (Tailwind feeds it). Walk while the leaf blower fires. |
 | `combo-sour-mist` | The spray + fan is also Mist Machine, so both are active. |
 | `combo-ray-gun` | Ray Gun replaces Nailstorm on the same nail gun, so only Ray Gun is active. |
+| `combo-crack-open` | 8 immortal Canned Beans instead of milk (armor 3, so the Shred stacks change what lands). |
 
 `tests/sims/sims.test.ts` checks that every combo sim activates its combo through `createSimRun` and `computeBuild` (and exactly the extra combos listed above), so an item change that breaks an adjacency shows up as a failing test, not a silent sim.
 
@@ -152,6 +153,18 @@ The element soft counters (docs/item-hooks-refactor.md "Affinity"), one sim per 
 | `affinity-cleaning` | Leaf Blower ★3 (cleaning only) | expired milk (weak), milk (none) |
 
 `boss-stagger` is the boss weakness stagger: an immortal Walk-In Freezer dummy (weak to heat, so +40% and a 0.25 s stagger while it walks, once per 4 s) against a Frying Pan and a Pressure Cooker (heat). It is a sandbox, not a boss aisle, so it is not one of the five `boss-<department>` sims.
+
+## Shred sims
+
+Shred (docs/item-hooks-refactor.md "Shred"), one sim per source plus the Plated affix. Stacks show as orange diamonds left of the enemy's health bar; the numbers in the notes are damage per hit before rounding (the screen rounds). `tests/sims/shred-sims.test.ts` derives them from the real build and armor rule.
+
+| Sim | Cart | Enemies | Look for |
+|---|---|---|---|
+| `shred-basic` | Toaster ★1 + Can Opener ★3 (9.5 per toast with the bundle bonus) | 4 Beans, 4 Milk | Beans 6.5, 7.5, 8.5, 9.5 as stacks build; milk 10.5, 11.5, 12.5. The +1 per stack is capped at half the hit |
+| `shred-blast` | Pressure Cooker ★1 (16 per blast) | 4 still Beans, 4 still Banana | Every blast leaves 1 stack, no Can Opener: Beans 13, 14, 15, 16; Banana 16, 17, 18, 19 |
+| `shred-tools-dash` | Tools L3 (Nail Gun, Magnet, Boot, Tape) | 6 still Beans | Dash (Space): 0.45 s stun and 3 stacks on every enemy it hits (L2 would leave 2) |
+| `combo-crack-open` | Nail Gun + Can Opener ★1 | 8 Beans | Every 3rd nail on the same enemy adds 2 stacks to the Can Opener's 50% roll |
+| `elite-plated` | Toaster ★1 | 2 plated Milk, 2 plated Beans, 2 plain Beans | Plated milk takes 6 of 9, plated beans 3, plain beans 6. F8 and add a Can Opener to strip the plating |
 
 ## Where the code lives
 

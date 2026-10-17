@@ -14,6 +14,7 @@ const itemDefOf = (c: ItemContent): ItemDef => {
   if (c.buff) def.buff = c.buff;
   if (c.flavored) def.flavored = true;
   if (c.elements) def.elements = [...c.elements];
+  if (c.shreds) def.shreds = true;
   return def;
 };
 

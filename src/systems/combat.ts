@@ -1,5 +1,6 @@
 import type { BurnEffect, SlowEffect } from '../types';
 import { ENEMIES } from '../data/enemies';
+import { SHRED } from '../engine/define';
 import { Enemy } from '../engine/ids';
 
 export interface HitTracker { maxHits: number; hits: Set<number> }
@@ -11,8 +12,8 @@ export function tryHit(t: HitTracker, enemyId: number): boolean {
   return true;
 }
 
-export interface StatusFx { burnDps: number; burnUntil: number; burnTick: number; nextBurnAt: number; slowPct: number; slowUntil: number; poisonDps: number; poisonUntil: number; nextPoisonAt: number }
-export const newStatus = (): StatusFx => ({ burnDps: 0, burnUntil: 0, burnTick: 0.5, nextBurnAt: 0, slowPct: 0, slowUntil: 0, poisonDps: 0, poisonUntil: 0, nextPoisonAt: 0 });
+export interface StatusFx { burnDps: number; burnUntil: number; burnTick: number; nextBurnAt: number; slowPct: number; slowUntil: number; poisonDps: number; poisonUntil: number; nextPoisonAt: number; shredStacks: number; shredUntil: number }
+export const newStatus = (): StatusFx => ({ burnDps: 0, burnUntil: 0, burnTick: 0.5, nextBurnAt: 0, slowPct: 0, slowUntil: 0, poisonDps: 0, poisonUntil: 0, nextPoisonAt: 0, shredStacks: 0, shredUntil: 0 });
 
 const EPS = 1e-9;
 
@@ -54,6 +55,19 @@ export function applySlow(s: StatusFx, slow: SlowEffect, now: number): void {
   s.slowUntil = Math.max(active ? s.slowUntil : 0, now + slow.duration);
 }
 
+/**
+ * Shred: -1 armor per stack (docs/item-hooks-refactor.md "Shred"). Stacks add up to `SHRED.cap` and share one timer: a new application refreshes the end
+ * to the later of the two, and when the timer has run out the old stacks are gone before the new ones are added (they expire together, not one by one).
+ */
+export function applyShred(s: StatusFx, stacks: number, duration: number, now: number): void {
+  if (s.shredUntil <= now) s.shredStacks = 0;
+  s.shredStacks = Math.min(SHRED.cap, s.shredStacks + stacks);
+  s.shredUntil = Math.max(s.shredUntil, now + duration);
+}
+
+/** The stacks that count right now (0 once the timer ran out). */
+export const shredStacks = (s: StatusFx, now: number): number => (s.shredUntil > now ? s.shredStacks : 0);
+
 export const slowFactor = (s: StatusFx, now: number): number => (s.slowUntil > now ? 1 - s.slowPct : 1);
 
 export function pickRicochetTarget<T extends { id: number; x: number; y: number }>(from: { x: number; y: number }, candidates: T[], hit: Set<number>, range: number): T | null {
@@ -84,6 +98,25 @@ export function killCoins(base: number, coinMult: number, rng: () => number): nu
 
 /** Armor soaks flat damage off a direct hit but never more than 70% of it (min 30%, rounded up). */
 export const armorDamage = (dmg: number, armor: number): number => (armor > 0 ? Math.max(Math.ceil(dmg * ENEMIES.beans.tune.minShare), dmg - armor) : dmg);
+
+/**
+ * Armor with shred: effective armor = `armor - stacks`. Above 0 it is the plain armor rule; at 0 the hit is untouched; below 0 the enemy is exposed and
+ * the hit gains 1 per missing armor point, but at most `SHRED.bonusShare` of itself (rounded up). With no stacks it is exactly `armorDamage`.
+ */
+export function shreddedArmorDamage(dmg: number, armor: number, stacks: number): number {
+  const eff = armor - stacks;
+  if (eff > 0) return armorDamage(dmg, eff);
+  return eff < 0 ? dmg + Math.min(-eff, Math.ceil(dmg * SHRED.bonusShare)) : dmg;
+}
+
+/**
+ * The armor step of the damage pipeline, shared by `ArenaScene.damageEnemy` and `FakeCtx`: direct hits only (burn / poison ticks and quiet area ticks pass
+ * through untouched; the vacuum pulse is not quiet and is armored). Reads the enemy's armor and its live shred stacks.
+ */
+export function hitArmor(e: { def: { armor?: number }; status: StatusFx }, dmg: number, o: { isDot?: boolean; quiet?: boolean }, now: number): number {
+  if (o.isDot || o.quiet) return dmg;
+  return shreddedArmorDamage(dmg, e.def.armor ?? 0, shredStacks(e.status, now));
+}
 
 /** Cereal shield: blocks a shot when its reversed travel direction is within the half-angle of the facing vector. */
 export function shieldBlocks(shotVx: number, shotVy: number, faceX: number, faceY: number, halfDeg = ENEMIES.cereal.tune.halfAngleDeg): boolean {

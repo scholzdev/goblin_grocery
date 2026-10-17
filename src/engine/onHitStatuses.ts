@@ -1,5 +1,5 @@
 import type { RuntimeCtx } from './ctx';
-import type { HitEvent } from './hooks';
+import type { HitEvent, HitOpts } from './hooks';
 import { contentTune } from './registry';
 
 // Stats-driven on-hit behavior (docs/item-hooks-refactor.md). `WeaponStats.burn` / `slow` / `ignite` / `echo` are a contract
@@ -9,6 +9,8 @@ import { contentTune } from './registry';
 // knockback / flash / numbers (still in the scene), then `scheduleEcho`. Pure: everything goes through `RuntimeCtx`, so `FakeCtx` runs the
 // same code as the scene.
 //
+// Explosions (`isBlastHit`) also leave one Shred stack, before the weapon's own statuses (no draw).
+//
 // Rng: `applyHitStatuses` makes at most one draw (the Heat L2 ignite roll, only when its condition holds); the Frost freeze roll and the
 // Electric chain roll follow in the `afterHit` hooks, in that order. Do not reorder: combat is seeded per aisle. The ignite roll stays here
 // because `WeaponStats.ignite` is a plain stats contract (chance + burn) like `burn`; nothing in it reads a set.
@@ -16,8 +18,15 @@ import { contentTune } from './registry';
 /** Double Bag's second strike comes this long after the hit (its flat tune). */
 const ECHO_DELAY = contentTune('doublebag', 1).delay;
 
+/** Shred stacks an explosion leaves behind (docs/item-hooks-refactor.md "Shred"). */
+export const BLAST_SHRED_STACKS = 1;
+
+/** An explosion: a Party Popper / Blast-set pop, or a hit whose call site tagged it `blast` (Pressure Cooker and Pot Slam, Bag It, Egg Carton). A blast WEAPON's own hits (Nail Gun) are not. */
+export const isBlastHit = (o: HitOpts): boolean => !!o.fromPopper || !!o.tags?.includes('blast');
+
 export function applyHitStatuses(hit: HitEvent, ctx: RuntimeCtx): void {
   const { enemy: e, stats, opts: o } = hit;
+  if (isBlastHit(o)) ctx.shred(e, BLAST_SHRED_STACKS); // explosions crack armor open; no rng
   if (!stats) return;
   if (stats.burn) ctx.ignite(e, stats.burn); // refreshes, never stacks (applyBurn); the aisle's burn modifier is applied by ctx
   // Heat L2: direct hits without a burn of their own sometimes ignite (not DoT ticks).

@@ -137,6 +137,24 @@
       "weapon": "fizz"
     }
   ],
+  "buffs.combo.crackOpen.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Aufknacken"
+      ],
+      "weapon": "nailgun"
+    }
+  ],
+  "buffs.combo.crackOpen.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Crack Open"
+      ],
+      "weapon": "nailgun"
+    }
+  ],
   "buffs.combo.expressCheckout.de": [
     {
       "lines": [
@@ -2116,6 +2134,38 @@
     }
   ],
   "buffs.item.bumper.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.canopener.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.canopener.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.canopener.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.canopener.t3.on.toaster.en": [
     {
       "lines": [
         "Bundle Deal: 1 item → +6% damage"
@@ -6187,6 +6237,18 @@
     "short": "Bounces explode",
     "summary": "Fizz Cannon touching a Party Popper: every bounce is a party."
   },
+  "combos.crackOpen.de": {
+    "detail": "Jeder 3. Nagel, der denselben Gegner trifft, fügt 2 zusätzliche Stapel Aufreißen hinzu.",
+    "name": "Aufknacken",
+    "short": "3. Nagel: +2 Aufreißen",
+    "summary": "Nagelpistole berührt Dosenöffner: Nägel hebeln die Panzerung auf."
+  },
+  "combos.crackOpen.en": {
+    "detail": "Every 3rd nail that hits the same enemy applies 2 extra Shred stacks.",
+    "name": "Crack Open",
+    "short": "3rd nail: +2 Shred",
+    "summary": "Nail Gun touching a Can Opener: nails pry armor open."
+  },
   "combos.expressCheckout.de": {
     "detail": "Ein Dash, der einen Gegner trifft, löst einen zusätzlichen Pfannenschwung aus (1,0 s interne Abklingzeit). Die Dash-Abklingzeit-Senkung der Klingel gilt weiterhin.",
     "name": "Schnellkasse",
@@ -6759,6 +6821,46 @@
           "8",
           "12",
           "16"
+        ]
+      }
+    ]
+  },
+  "items.canopener.de": {
+    "blurb": "Panzerung ist nur ein Deckel.",
+    "name": "Dosenöffner",
+    "rules": "Direkte Treffer der angrenzenden Waffe reißen mit {0} Chance auf: Jeder Stapel nimmt 4 s lang einen Punkt Panzerung, bis zu 3 Stapel. Ohne Panzerung macht Aufreißen etwas Zusatzschaden.",
+    "rulesByTier": {
+      "1": "Direkte Treffer der angrenzenden Waffe reißen mit 50% Chance auf: Jeder Stapel nimmt 4 s lang einen Punkt Panzerung, bis zu 3 Stapel. Ohne Panzerung macht Aufreißen etwas Zusatzschaden.",
+      "2": "Direkte Treffer der angrenzenden Waffe reißen mit 75% Chance auf: Jeder Stapel nimmt 4 s lang einen Punkt Panzerung, bis zu 3 Stapel. Ohne Panzerung macht Aufreißen etwas Zusatzschaden.",
+      "3": "Direkte Treffer der angrenzenden Waffe reißen mit 100% Chance auf: Jeder Stapel nimmt 4 s lang einen Punkt Panzerung, bis zu 3 Stapel. Ohne Panzerung macht Aufreißen etwas Zusatzschaden."
+    },
+    "tierScaling": [
+      {
+        "label": "Aufreiß-Chance",
+        "values": [
+          "50%",
+          "75%",
+          "100%"
+        ]
+      }
+    ]
+  },
+  "items.canopener.en": {
+    "blurb": "Armor is just a lid.",
+    "name": "Can Opener",
+    "rules": "Direct hits of an adjacent weapon have a {0} chance to Shred: each stack strips a point of armor for 4 s, up to 3 stacks. With no armor left, Shred adds a little damage.",
+    "rulesByTier": {
+      "1": "Direct hits of an adjacent weapon have a 50% chance to Shred: each stack strips a point of armor for 4 s, up to 3 stacks. With no armor left, Shred adds a little damage.",
+      "2": "Direct hits of an adjacent weapon have a 75% chance to Shred: each stack strips a point of armor for 4 s, up to 3 stacks. With no armor left, Shred adds a little damage.",
+      "3": "Direct hits of an adjacent weapon have a 100% chance to Shred: each stack strips a point of armor for 4 s, up to 3 stacks. With no armor left, Shred adds a little damage."
+    },
+    "tierScaling": [
+      {
+        "label": "Shred chance",
+        "values": [
+          "50%",
+          "75%",
+          "100%"
         ]
       }
     ]
@@ -8493,14 +8595,14 @@
   },
   "sets.tools.de": {
     "L1": "Alle Waffen +8 % Angriffstempo",
-    "L2": "Dash-Schaden ×2, betäubt 0,3 s",
-    "L3": "Alle Waffen +15 % Angriffstempo; Dash-Schaden ×3, betäubt 0,45 s",
+    "L2": "Dash-Schaden ×2, betäubt 0,3 s, fügt 2 Stapel Aufreißen hinzu",
+    "L3": "Alle Waffen +15 % Angriffstempo; Dash-Schaden ×3, betäubt 0,45 s, fügt 3 Stapel Aufreißen hinzu",
     "name": "Werkzeug"
   },
   "sets.tools.en": {
     "L1": "All weapons +8% attack rate",
-    "L2": "Dash damage ×2, stuns 0.3 s",
-    "L3": "All weapons +15% attack rate; dash damage ×3, stuns 0.45 s",
+    "L2": "Dash damage ×2, stuns 0.3 s, applies 2 Shred stacks",
+    "L3": "All weapons +15% attack rate; dash damage ×3, stuns 0.45 s, applies 3 Shred stacks",
     "name": "Tools"
   }
 }

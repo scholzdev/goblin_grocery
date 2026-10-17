@@ -1059,6 +1059,21 @@ add('icon_flag', () => {
   return icon(s, 170);
 });
 
+add('icon_canopener', () => {
+  // a tin can with its lid half cut away, and a coral-handled opener clamped to the rim
+  let s = can(68, 84, 84, 74, C.chrome, C.chromeD, C.gold, { sw: SWi });
+  s += S5([[26, 84], [64, 96], [96, 84], [78, 70], [42, 72]], C.chromeL, C.chromeD, { dx: 0, dy: 3, sw: 4 });
+  s += shape([[96, 84], [112, 92], [104, 98], [92, 92]], C.chromeD, '#7C8599', { sw: 3.5, dx: 1.5, dy: 1.5 }); // the curled-back lid edge
+  // opener: two crossed levers, a cutting wheel at the rim
+  s += rot(S5(rect(104, 26, 20, 92), C.coral, C.coralD, { dx: 5, dy: 3 }), 24, 114, 96);
+  s += rot(S5(rect(128, 40, 18, 86), C.coral, C.coralD, { dx: 5, dy: 3 }), -14, 137, 100);
+  s += ell(112, 112, 22, 22, C.chrome, C.chromeD, { sw: SWi, dx: 3, dy: 3 });
+  s += shape(star(112, 112, 17, 11, 8), C.gold, C.goldD, { sw: 3.5, dx: 2, dy: 2 });
+  s += `<circle cx="112" cy="112" r="4.5" fill="${C.plum}"/>`;
+  s += flat([[110, 30], [118, 30], [124, 70], [118, 70]], C.coralL, 'opacity=".75"');
+  return icon(s, 170);
+});
+
 // =====================================================================================
 // ENVIRONMENT
 // =====================================================================================

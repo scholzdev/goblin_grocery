@@ -30,14 +30,14 @@ export const tierMult = (tier: number): number => 1 + 0.5 * (tier - 1);
 export const ITEM_ORDER = [
   'toaster', 'pan', 'nailgun', 'vacuum', 'fan', 'fuel', 'battery', 'magnet', 'ice', 'hotsauce', 'lunchbox', 'bell', 'boot', 'bumper', 'sparewheel', 'tipjar', 'flag',
   'microwave', 'blender', 'fizz', 'mop', 'pricegun', 'tape', 'coupon', 'bubblewrap', 'energy', 'fortune', 'sample', 'piggy', 'expiredmilk', 'tinfoilhat', 'jellybeans',
-  'leafblower', 'sourdough', 'powerstrip', 'goldstar', 'laser', 'snackbag', 'cooker', 'spray', 'popper', 'doublebag', 'multipack',
+  'leafblower', 'sourdough', 'powerstrip', 'goldstar', 'laser', 'snackbag', 'cooker', 'spray', 'popper', 'doublebag', 'multipack', 'canopener',
 ] as const;
 
 /** Every combo, in the order `computeBuild` applies the matching ones (it decides which combo hook runs first on a weapon) and the codex lists them. */
 export const RECIPE_ORDER = [
   'toastMode', 'nailstorm', 'coldStorage', 'expressCheckout', 'brainFreeze', 'tvDinner', 'clearanceSale', 'greaseFire', 'pressurePoint', 'mistMachine',
   'fiveAlarm', 'sizzlingSkillet', 'chickenDinner', 'frostbiteNails', 'staticCling', 'reheat', 'smoothieShield', 'confettiCannon', 'blackIce', 'shrapnel',
-  'pressureWasher', 'powerSurge', 'potSlam', 'priceCheck', 'sugarRush', 'smashBank', 'bagIt', 'sourMist', 'sparksFly', 'rayGun', 'tailwind',
+  'pressureWasher', 'powerSurge', 'potSlam', 'priceCheck', 'sugarRush', 'smashBank', 'bagIt', 'sourMist', 'sparksFly', 'rayGun', 'tailwind', 'crackOpen',
 ] as const;
 
 /**
@@ -242,6 +242,8 @@ export interface ItemContent<T extends Tune = Tune> {
    * set, it adds no tag). Read by every hit's tags and the shop's "Strong vs" (`weaponTags` / `itemTags`, engine/hitTags.ts).
    */
   elements?: readonly AffinityTag[];
+  /** Modules: the item's hits shred armor, so the shop card's "Strong vs" adds the armored chip (`ui/affinity.ts`). */
+  shreds?: boolean;
   legendary?: boolean;
   /** Weapons only. */
   tags?: ItemDef['tags'];
@@ -349,6 +351,13 @@ export const AFFINITY = {
   /** A boss or mini-boss hit on its weak tag may stagger: a short stun in its walk state only, at most once per `cooldown` seconds per boss. */
   stagger: { time: 0.25, cooldown: 4 },
 } as const;
+
+/**
+ * Shred (docs/item-hooks-refactor.md "Shred"): an enemy status that strips armor. Each stack is -1 armor against direct hits, so on an armored
+ * enemy it soaks less and on an unarmored one it ADDS damage, flat per stack but never more than `bonusShare` of the hit. Stacks add up to `cap`,
+ * share one timer (refreshed to the later end by every application) and expire together. No element tag: affinity does not touch it, bosses are not immune.
+ */
+export const SHRED = { cap: 3, duration: 4, bonusShare: 0.5 } as const;
 
 /** The enemy behaviors (`EnemyBehavior` of types.ts is derived from this list). */
 export const ENEMY_BEHAVIORS = ['chase', 'charger', 'tank', 'spitter', 'swiper', 'exploder', 'splitter', 'healer', 'thief', 'teleporter', 'boss'] as const;

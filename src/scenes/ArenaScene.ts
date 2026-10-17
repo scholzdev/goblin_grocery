@@ -7,7 +7,7 @@ import { SHOW_HP_BAR, ENEMIES, ELITE, THEME_SUMMONS, ELITE_EXCLUDED, AFFIX, MINI
 import { GumPuddles } from './gum';
 import { CRIT, PLAYER, STARTER_LOOKS } from '../data/items';
 import { addCoins, damagePlayer, takeStockroomItem } from '../state/run';
-import { armorDamage, newHitTracker, tryHit, type HitTracker } from '../systems/combat';
+import { hitArmor, newHitTracker, shredStacks, tryHit, type HitTracker } from '../systems/combat';
 import type { EnemyId, ShopOffer, WaveDef, WeaponStats } from '../types';
 import { play, setWheel } from '../audio/sfx';
 import { musicFor, playMusic } from '../audio/music';
@@ -660,13 +660,10 @@ export class ArenaScene extends Phaser.Scene {
       hit.crit = true; hit.dmg = dmg;
       if (H.hit) { H.emit('onCrit', hit); dmg = hit.dmg; }
     }
-    // Armor (Canned Beans): direct hits only; burn, puddles, auras and cones (isDot/quiet) pass through; the vacuum pulse is armored.
-    let armored = false;
-    if (e.def.armor && !o.isDot && !o.quiet) {
-      const soaked = armorDamage(dmg, e.def.armor);
-      armored = soaked < dmg * 0.5;
-      dmg = soaked;
-    }
+    // Armor (Canned Beans, plated elites) and Shred: direct hits only; burn, puddles, auras and cones (isDot/quiet) pass through; the vacuum pulse is armored.
+    // Shred stacks (engine/define SHRED) take armor off, and below zero they add damage (systems/combat shreddedArmorDamage).
+    const soaked = hitArmor(e, dmg, o, now), armored = soaked < dmg * 0.5;
+    dmg = soaked;
     hit.dmg = dmg; hit.armored = armored;
     e.hp -= dmg;
     if (!o.isDot) e.lastHitT = now;
@@ -1187,6 +1184,19 @@ export class ArenaScene extends Phaser.Scene {
       const x = e.x, y = e.y - e.sprite.displayHeight - 18;
       b.fillStyle(0xf45f52, 1).fillTriangle(x - 9, y, x + 9, y, x, y + 9);
       b.fillStyle(0xfff2d5, 1).fillCircle(x, y + 2, 2.5);
+    }
+    // Shred: one steel-and-orange diamond per stack beside the health bar's left end (stacks are -1 armor each, up to SHRED.cap).
+    for (const e of this.enemies) {
+      if (!e.alive) continue;
+      const n = shredStacks(e.status, t);
+      if (!n) continue;
+      const y = e.y - e.sprite.displayHeight - 6;
+      for (let i = 0; i < n; i++) {
+        const x = e.x - 20 - 9 - i * 9;
+        const pts = [{ x, y: y - 5 }, { x: x + 5, y }, { x, y: y + 5 }, { x: x - 5, y }];
+        b.fillStyle(0xf5a13d, 1).fillPoints(pts, true);
+        b.lineStyle(1.5, 0x30203f, 1).strokePoints(pts, true);
+      }
     }
   }
 

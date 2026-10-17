@@ -5,8 +5,8 @@ Every item, weapon, set, combo and enemy is one file under `src/content/`: its n
 ## Layout
 
 ```
-src/content/items/<id>.ts    one file per item, weapons included (43)
-src/content/combos/<id>.ts   one per combo, cart combos included (31)
+src/content/items/<id>.ts    one file per item, weapons included (44)
+src/content/combos/<id>.ts   one per combo, cart combos included (32)
 src/content/sets/<id>.ts     kitchen, cleaning, tools, snacks, checkout, heat, frost, blast, electric (9)
 src/content/enemies/<id>.ts  one per enemy: the 15 regular groceries and the 5 bosses (20)
 src/engine/define.ts         defineItem / defineCombo / defineSet / defineEnemy, all content types, the order lists, tier and shape helpers
@@ -160,6 +160,29 @@ A call site that fires a hit of a kind the weapon does not say adds `tags` to it
 - A new kind of hit (a hazard, a bomb): pass `tags: ['blast']` etc. in its `HitOpts`. A new status with an element: scale its duration with `statusDurationMult` (or `burnFor` / `slowFor` / `poisonTimeFor`) where it is applied, and pass the tag to `ctx.stun` for a stun.
 - A new tag: add it to `AFFINITY_TAGS` (`engine/define.ts`), `HIT_TAGS` follows, give it a colour (`AFFINITY_TINT`), an icon (`SET_ICON`) and a chip style.
 
+## Shred: an armor-stripping status
+
+Armor (Canned Beans 3, and the Plated elite affix +3) soaks flat damage off a direct hit. Shred is the enemy status that takes it away: each stack is -1 armor, so armor soaks less, and with none left the hit gains a little damage instead. All numbers are the one const `SHRED` in `engine/define.ts`: `{ cap: 3, duration: 4, bonusShare: 0.5 }`.
+
+**Status.** `StatusFx.shredStacks` / `shredUntil` (`systems/combat.ts`). `applyShred(status, stacks, duration, now)`: when the timer has run out the old stacks are dropped first, then `stacks = min(cap, stacks + n)` and `until = max(until, now + duration)`. The stacks share one timer and expire together. `shredStacks(status, now)` is what counts right now. No affinity tag, so `statusDurationMult` never touches it, and bosses are not immune. Hooks call `ctx.shred(e, stacks, seconds?)` (default `SHRED.duration`; `PhaserCtx` and `FakeCtx`, which logs a `shred` call like `mark`). It draws no rng: a source that shreds only sometimes rolls first.
+
+**Armor math.** One pure function, `shreddedArmorDamage(dmg, armor, stacks)`, with effective armor `eff = armor - stacks`: `eff > 0` is the old `armorDamage(dmg, eff)` (min 30% of the hit), `eff = 0` leaves the hit alone, `eff < 0` gives `dmg + min(-eff, ceil(dmg * bonusShare))` (+1 per missing point, never more than half the hit). With no stacks it equals the old formula exactly. `hitArmor(enemy, dmg, opts, now)` is the pipeline step both `ArenaScene.damageEnemy` and `FakeCtx.runHit` call (so the FakeCtx now applies armor too): direct hits only, burn and poison ticks and quiet area ticks (`isDot` / `quiet`) pass through. The `armored` flag (the "-armor" label) still means "soaked below 50%". The step sits after the crit and before the hp, and the shred a hit applies lands in `onHit` / `applyHitStatuses`, after it, so the hit that opens an enemy is still soaked.
+
+**Sources.**
+
+| Source | Where | What |
+|---|---|---|
+| Can Opener (module, Tools family) | `content/items/canopener.ts`, `onHit` hook | a direct hit (`hit.direct`, not quiet) of an adjacent weapon rolls 50 / 75 / 100% (★1 / ★2 / ★3) for 1 stack. One combat-rng draw per eligible hit, at every tier. `shreds: true` puts the "Armored" chip on its "Strong vs" |
+| Explosions | `engine/onHitStatuses.ts` `applyHitStatuses` (`isBlastHit`) | a Party Popper / Blast-set pop (`fromPopper`) and every hit a call site tagged `blast` (Pressure Cooker and Pot Slam, Bag It, Egg Carton) leave 1 stack. A blast WEAPON's own hits (Nail Gun) do not: the weapon tag is not the explosion |
+| Tools set L2 / L3 | `content/sets/tools.ts` `onDashHit`, tune `shredStacks: [0, 2, 3]` | each dash hit, after the stun |
+| Crack Open (Nail Gun + Can Opener) | `content/combos/crackOpen.ts`, `pattern:shotHit` | every 3rd nail that hits the same enemy adds 2 more stacks. Own per-enemy count in `c.state.hits` (not `nailHits`, which is Frostbite Nails'), no rng |
+
+**Plated.** The fifth elite affix (`ELITE_AFFIXES`, `AFFIX.plated`, name `affix_plated`): +3 armor on the elite's `def` copy (`affixArmor`, `data/enemies.ts`), so a plated Beans has 6. It rides the same armor path, so Shred strips it. It is rolled with the others (`pickAffix` draws once, as before; the pool is now five, so a given seed can roll a different affix than before).
+
+**Display.** Orange diamonds, one per stack, left of the enemy's health bar (`ArenaScene.drawOverlays`, beside the mark marker). The codex shows an "Armor" row with a shield chip and the number next to the weak / resist rows, and a shredding item's shop card ends its "Strong vs" with an "Armored" chip (`ui/affinity.ts`, `ITEMS[id].shreds`). The Can Opener icon is `icon_canopener` in `tools/gen-assets.mjs`.
+
+**Goldens.** The Can Opener, Crack Open and the Tools L2 / L3 dash-Shred text were added with a deliberate golden update (`build.json` and `text.json` only gained those entries; no existing line changed).
+
 ## Testing
 
 - `tests/content/items|combos|sets|enemies/<id>.test.ts`: one file per content file. The enemy tests hardcode the pre-refactor stats, tune and EN/DE text (`tests/content/enemies/registry.test.ts` covers the registry and its validation). Build asserts go through `full(cart)` / `stats(cart)` (`tests/content/helpers.ts`, carts from `at('fan', 2)`, `far('ice')`, `gilded(i)`).
@@ -167,6 +190,7 @@ A call site that fires a hit of a kind the weapon does not say adds `tags` to it
 - `describeCombo` / `expectSetText` pin the registered content and its EN and DE texts.
 - Golden snapshots in `tests/golden/__snapshots__/`: `build.json` (`computeBuild` output of about 344 carts) and `text.json` (rendered text, EN and DE). Both must stay byte-identical unless a change is intended; regenerate one with `npx vitest run tests/golden/<name>.golden.test.ts -u` and review the diff by key. Never run a blanket `-u`. The `rules` field in `text.json` is the older `{0}`/`{1}` template form, reproduced by the test-only helper `tests/golden/legacyRules.ts`.
 - Registry tests (`tests/engine/registry.test.ts`) validate the rules above on fixtures; the real registry validates itself at load.
+- `tests/shred.test.ts` (the status, the armor table, the explosion source, plated), `tests/content/items/canopener.test.ts`, `tests/content/combos/crackOpen.test.ts`, the dash cases in `tests/content/sets/tools.test.ts`, `tests/sims/shred-sims.test.ts`.
 - `tests/engine/affinity.test.ts` (rules, hit tags, pipeline per tag source through `FakeCtx.spawnReal`, status times, stagger, mini-boss inheritance, wiring guards) and `tests/affinity-ui.test.ts` (codex rows, "Strong vs" for weapons and modules, EN and DE).
 - Sims (`?sim=<id>`, docs/sims.md): launch an exact cart, department and enemies in the arena. Use them to look at a change; `tests/sims/sims.test.ts` checks that each combo, weapon, enemy and boss sim shows what it names.
 - `tools/botrun.mjs` plays real runs in a browser: a smoke test (page errors), not a golden test.

@@ -356,7 +356,7 @@ describe('ArenaScene.damageEnemy keeps its pipeline', () => {
   const at_ = (needle: string): number => { const i = body.indexOf(needle); expect(i, needle).toBeGreaterThan(-1); return i; };
   it('runs the steps in order', () => {
     const order = [
-      "H.emit('modifyDamage'", 'affinityMult(e.def, tags)', 'markedDamage(dmg, e.markedUntil, now, markMult(e.def))', 'this.rng() < stats.critChance', "H.emit('onCrit'", 'armorDamage(',
+      "H.emit('modifyDamage'", 'affinityMult(e.def, tags)', 'markedDamage(dmg, e.markedUntil, now, markMult(e.def))', 'this.rng() < stats.critChance', "H.emit('onCrit'", 'hitArmor(',
       'e.hp -= dmg', "H.emit('onHit'", 'applyHitStatuses(hit', "H.emit('afterHit'", 'tryStagger(e, tags', 'if (o.kb) {', 'e.kx += ', "this.fx.spark(e.x, e.y - 30, 3, armored", 'this.fx.number(', 'scheduleEcho(hit',
       'this.killEnemy(e, true, hit)', "H.emit('afterKill'", 'applyKillEffects(hit',
     ].map(at_);

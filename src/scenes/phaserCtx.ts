@@ -1,12 +1,12 @@
 import type { BurnEffect, SlowEffect, WeaponStats } from '../types';
-import { applyBurn, applySlow, applyPoison, pickRicochetTarget } from '../systems/combat';
+import { applyBurn, applySlow, applyPoison, applyShred, pickRicochetTarget } from '../systems/combat';
 import { addCoins } from '../state/run';
 import { store } from '../state/store';
 import { play } from '../audio/sfx';
 import { t, type UIKey } from '../i18n';
 import type { CombatEnemy, CombatShot, PoolSpec, PlayerView, RuntimeCtx, ShotSpec } from '../engine/ctx';
 import type { HitOpts } from '../engine/hooks';
-import type { AffinityTag } from '../engine/define';
+import { SHRED, type AffinityTag } from '../engine/define';
 import { burnFor, poisonTimeFor, slowFor } from '../engine/affinity';
 import { applyMark } from '../engine/marks';
 import type { ArenaScene } from './ArenaScene';
@@ -58,6 +58,7 @@ export class PhaserCtx implements RuntimeCtx {
   slow(e: CombatEnemy, slow: SlowEffect): void { applySlow(e.status, slowFor(e.def, slow), this.now()); }
   poison(e: CombatEnemy, dps: number, duration: number): void { applyPoison(e.status, dps, poisonTimeFor(e.def, duration), this.now()); }
   mark(e: CombatEnemy, seconds: number): void { applyMark(e, this.now(), seconds); }
+  shred(e: CombatEnemy, stacks: number, seconds: number = SHRED.duration): void { applyShred(e.status, stacks, seconds, this.now()); }
 
   get player(): PlayerView { return this.sc.player; }
   playerNear(x: number, y: number): { x: number; y: number; d: number } { return this.sc.playerNear(x, y); }

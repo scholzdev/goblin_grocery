@@ -57,6 +57,8 @@ export interface ItemDef {
   legendary?: boolean;
   /** Modules only: the elements its effect deals or applies (see `ItemContent.elements`). */
   elements?: readonly AffinityTag[];
+  /** The item's hits shred armor (see `ItemContent.shreds`). */
+  shreds?: boolean;
   /** Buff this module grants to adjacent weapons (if any). */
   buff?: BuffId;
   /** Jelly Beans: the instance's flavor is its element for set counting (`setsOf`). */

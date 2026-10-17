@@ -35,6 +35,8 @@ const SET_ICON: Record<string, string> = {
   // Affinity-only tags (not sets): the poison bubbles and the price flag of a mark.
   poison: '<circle cx="9" cy="15" r="5"/><circle cx="16.5" cy="10" r="3.4"/><circle cx="11" cy="5.5" r="2.2"/>',
   mark: '<path d="M5 2.5h2v19H5z"/><path d="M8 4h12l-3.2 4.6L20 13H8z"/>',
+  // The armor chip of an armored enemy and the "Armored" entry of a shredding item's "Strong vs".
+  armor: '<path d="M12 2.5 20 6v6c0 5-3.5 8.5-8 9.5C7.5 20.5 4 17 4 12V6z"/>',
 };
 /** Bold single-colour set icon (inline SVG, tints with the surrounding `color`). */
 export const setIcon = (id: string, size = 14): string => `<svg class="sico" width="${size}" height="${size}" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${SET_ICON[id] ?? ''}</svg>`;
