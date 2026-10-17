@@ -14,7 +14,8 @@ import { DEPARTMENTS, DEPT_TUNING, THEMES } from '../src/data/departments';
 import { DOOR_POOL, MODIFIERS, ROOM_DOORS } from '../src/data/modifiers';
 import { BOSS_WAVE, ECONOMY, OVERTIME, SHIFTS, SHOP_LEVELS, WAVES, waveDef, bossTuning, eliteChance, enemyAppears } from '../src/data/waves';
 import { BOSS, THEME_SUMMONS, CODEX_ENEMIES, ELITE, ELITE_EXCLUDED, ENEMIES } from '../src/data/enemies';
-import { DATA_DE } from '../src/i18n/data-de';
+import { enemyT } from '../src/i18n/data';
+import { setLang } from '../src/i18n/lang';
 import { ITEMS, PLAYER, STARTER_WEAPONS, TIER } from '../src/data/items';
 import { contentTune } from '../src/engine/registry';
 import { UNLOCKS } from '../src/data/unlocks';
@@ -1274,13 +1275,13 @@ describe('aisle obstacles', () => {
     }
   });
 
-  it('clearance and boss have layouts that stay clear of start, entries, hazards and each other (themes: see zones.test.ts)', () => {
-    for (const id of ['clearance', 'boss'] as const) {
+  it('the boss aisle has layouts that stay clear of start, entries, hazards and each other (themes: see zones.test.ts)', () => {
+    for (const id of ['boss'] as const) {
       const layouts = OBSTACLES[id]!;
-      expect(layouts.length, id).toBeGreaterThanOrEqual(id === 'boss' ? 1 : 2);
+      expect(layouts.length, id).toBeGreaterThanOrEqual(1);
       for (const lay of layouts) {
-        expect(lay.length, id).toBeGreaterThanOrEqual(id === 'boss' ? 1 : 2);
-        expect(lay.length, id).toBeLessThanOrEqual(id === 'boss' ? 2 : 4);
+        expect(lay.length, id).toBeGreaterThanOrEqual(1);
+        expect(lay.length, id).toBeLessThanOrEqual(2);
         lay.forEach((a, i) => {
           const tag = `${id}:${a.kind}@${a.x},${a.y}`;
           expect(dist(a, { ...PLAYER_START, w: 0, h: 0 }), tag + ' start').toBeGreaterThanOrEqual(140);
@@ -1341,8 +1342,8 @@ describe('aisle events', () => {
     expect(r.startAt).toBeLessThanOrEqual(EVENTS.outage.startAt[1]);
   });
   it('is deterministic for a seed', () => {
-    const a = Array.from({ length: 20 }, (_, i) => rollEvent('clearance', 4, 1, mulberry32(i), false));
-    const b = Array.from({ length: 20 }, (_, i) => rollEvent('clearance', 4, 1, mulberry32(i), false));
+    const a = Array.from({ length: 20 }, (_, i) => rollEvent('main', 4, 1, mulberry32(i), false));
+    const b = Array.from({ length: 20 }, (_, i) => rollEvent('main', 4, 1, mulberry32(i), false));
     expect(a).toEqual(b);
     expect(a.some((x) => x) && a.some((x) => !x)).toBe(true);
   });
@@ -1396,7 +1397,9 @@ describe('armored / shield / healer / thief enemies', () => {
     for (const id of NEW) {
       expect(ENEMIES[id]).toBeDefined();
       expect(CODEX_ENEMIES).toContain(id);
-      expect(DATA_DE.enemies[id].name.length).toBeGreaterThan(2);
+      setLang('de');
+      expect(enemyT(id).name.length).toBeGreaterThan(2);
+      setLang('en');
       expect(WAVES.some((w) => (w.mix[id] ?? 0) > 0)).toBe(true);
       expect(enemyAppears(id).first).toBeGreaterThanOrEqual(2);
     }

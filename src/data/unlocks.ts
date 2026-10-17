@@ -34,7 +34,7 @@ export interface ProfileStats {
   combos: number;          // distinct combos discovered
   bestShift: Partial<Record<string, number>>; // starter id -> highest shift index won
   bestOvertime: number;    // most aisles survived past the boss
-  deptClears: Partial<Record<DepartmentId, number>>;
+  deptClears: Partial<Record<DepartmentId | 'clearance', number>>; // 'clearance' = cleared Clearance Sale aisles (the door modifier, not a department)
 }
 
 export type Unlock =
@@ -44,7 +44,7 @@ export type Unlock =
   | { id: string; kind: 'cart'; skin: CartSkin; need: string; check: (s: ProfileStats) => boolean; progress: (s: ProfileStats) => [number, number] };
 
 const at = (n: number) => (v: number) => [Math.min(v, n), n] as [number, number];
-const dept = (s: ProfileStats, d: DepartmentId) => s.deptClears[d] ?? 0;
+const dept = (s: ProfileStats, d: DepartmentId | 'clearance') => s.deptClears[d] ?? 0;
 
 /** Ordered roughly by how soon a typical player earns them. */
 export const UNLOCKS: Unlock[] = [

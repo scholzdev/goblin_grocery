@@ -43,12 +43,8 @@ export const PROP_TUNING = {
 
 export const o = (kind: ObstacleKind, x: number, y: number): Obstacle => ({ kind, x, y, w: OBSTACLE_KINDS[kind].w, h: OBSTACLE_KINDS[kind].h });
 
-/** Layouts of the non-themed aisles (clearance, boss); one is picked per wave. Themed aisles use their zone's layouts (data/zones.ts). Tests keep them clear of the start, entries, hazards and each other. */
+/** Layouts of the non-themed aisle (the boss aisle); one is picked per wave. Themed aisles use their zone's layouts (data/zones.ts). Tests keep them clear of the start, entries, hazards and each other. */
 export const OBSTACLES: Partial<Record<DepartmentId, Obstacle[][]>> = {
-  clearance: [
-    [o('bargain_bin', 300, 330), o('bargain_bin', 980, 330), o('bargain_bin', 300, 620), o('bargain_bin', 980, 620)],
-    [o('bargain_bin', 430, 410), o('bargain_bin', 850, 590), o('bargain_bin', 1000, 330), o('spring_mat', 360, 630)],
-  ],
   boss: [
     [o('manager_desk', 400, 450), o('manager_desk', 880, 550)],
     [o('manager_desk', 300, 600), o('manager_desk', 980, 400)],

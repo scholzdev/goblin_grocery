@@ -1,6 +1,6 @@
 # Content system: how it works
 
-Every item, weapon, set and combo is one file under `src/content/`: its numbers (`tune`), its EN and DE text, its build effect and its combat hooks. The engine only runs hooks; it holds no item-specific code. To change an effect you edit one file and its test. The rest of this document is the history of the refactor that got here (plan, per-phase learnings); the part below is the reference.
+Every item, weapon, set, combo and enemy is one file under `src/content/`: its numbers (`tune`), its EN and DE text, and for items, sets and combos their build effect and combat hooks (an enemy's behavior is the AI in `scenes/enemies.ts`, parameterised by its stats and `tune`). The engine only runs hooks; it holds no item-specific code. To change an effect you edit one file and its test. The rest of this document is the history of the refactor that got here (plan, per-phase learnings); the part below is the reference.
 
 ## Layout
 
@@ -8,14 +8,15 @@ Every item, weapon, set and combo is one file under `src/content/`: its numbers 
 src/content/items/<id>.ts    one file per item, weapons included (43)
 src/content/combos/<id>.ts   one per combo, cart combos included (31)
 src/content/sets/<id>.ts     kitchen, cleaning, tools, snacks, checkout, heat, frost, blast, electric (9)
-src/engine/define.ts         defineItem / defineCombo / defineSet, all content types, the order lists, tier and shape helpers
-src/engine/registry.ts       import.meta.glob collects the files, validates them (throws at load), contentItem / contentCombo / contentSet / contentTune / contentSetTune
+src/content/enemies/<id>.ts  one per enemy: the 15 regular groceries and the 5 bosses (20)
+src/engine/define.ts         defineItem / defineCombo / defineSet / defineEnemy, all content types, the order lists, tier and shape helpers
+src/engine/registry.ts       import.meta.glob collects the files, validates them (throws at load), contentItem / contentCombo / contentSet / contentEnemy / contentTune / contentSetTune / contentEnemyTune
 src/engine/build.ts          runs build hooks in phase order for systems/synergies.ts (computeBuild)
 src/engine/hooks.ts          runtime hook types; compiles the cart's handlers once per build
 src/engine/ctx.ts            the narrow runtime API (`ctx`) hooks use; PhaserCtx lives in scenes/, FakeCtx in engine/fakeCtx.ts
 src/engine/text.ts           renders `{key|fmt}` placeholders from the tune
 src/engine/patterns/         weapon behavior (toast, sweep, burst, pulse, zap, aura, ricochet, puddle, laser, mortar, cone + projectile.ts, common.ts)
-src/data/items.ts, recipes.ts, sets.ts   plain tables derived from the content (ITEMS, RECIPES, counting), no content of their own
+src/data/items.ts, recipes.ts, sets.ts, enemies.ts   plain tables derived from the content (ITEMS, RECIPES, counting, ENEMIES, BOSS_KITS ...); enemies.ts also keeps the shared rules that have no single owner (below)
 src/sims/                    playtest scenarios, see docs/sims.md
 ```
 
@@ -23,7 +24,7 @@ src/sims/                    playtest scenarios, see docs/sims.md
 
 ## The order lists
 
-`ITEM_ORDER`, `RECIPE_ORDER` and `BUFF_ORDER` in `engine/define.ts` are the one place order lives. They are explicit on purpose: the shop rolls iterate `ITEM_ORDER` (reordering it changes every seeded run), and combos are matched in `RECIPE_ORDER`. `SET_ORDER` is `[...FAMILIES, ...ELEMENTS, 'electric']`. The id unions (`ItemTypeId`, `RecipeId`, `SetId`, `BuffId`, `FamilyTag`, `ElementTag`) in `types.ts` are derived from these lists. The registry fails at load if a content file is missing from its list or a listed id has no file. Hook registration order (and so same-`order` ties) is items, then combos, then sets, each in file-path order.
+`ITEM_ORDER`, `RECIPE_ORDER`, `BUFF_ORDER` and `ENEMY_ORDER` in `engine/define.ts` are the one place order lives. They are explicit on purpose: the shop rolls iterate `ITEM_ORDER` (reordering it changes every seeded run), and combos are matched in `RECIPE_ORDER`. `SET_ORDER` is `[...FAMILIES, ...ELEMENTS, 'electric']`. The id unions (`ItemTypeId`, `RecipeId`, `SetId`, `BuffId`, `EnemyId`, `FamilyTag`, `ElementTag`) in `types.ts` are derived from these lists. The registry fails at load if a content file is missing from its list or a listed id has no file. Hook registration order (and so same-`order` ties) is items, then combos, then sets, each in file-path order.
 
 ## Add or change content
 
@@ -34,6 +35,20 @@ src/sims/                    playtest scenarios, see docs/sims.md
 **A set.** `src/content/sets/<id>.ts` (`defineSet`) with per-level arrays in `tune` (`[L1, L2, L3]`) and `text.<lang>.bonus` as three strings. A set is active at level above 0 (`SET_THRESHOLDS` 2 / 3 / 4 distinct types). Its build effect is a `set`-phase hook (or `post-combo`), its combat effect a runtime hook. Adding a set id means adding it to `FAMILIES` or `ELEMENTS` in `define.ts`.
 
 **A combo.** `src/content/combos/<id>.ts` (`defineCombo`) with `requires` (weapon first, unless `cart: true`), optional `replaces` (other combos it switches off) and `suppresses` (module buffs it switches off on its weapon, e.g. Mist Machine suppresses the Desk Fan), `tune`, `text` (`name`, `short`, `summary`, `detail`), a `combo`-phase build hook and runtime hooks. Put the id in `RECIPE_ORDER` and add a sim `src/sims/combo-<id>.ts`.
+
+**An enemy.** Add `src/content/enemies/<id>.ts` (`defineEnemy`), put the id in `ENEMY_ORDER` (the order of `ENEMIES`, which the lab's spawn palette lists), add `tests/content/enemies/<id>.test.ts`, a sim `src/sims/enemy-<id>.ts` and the sprites (`enemy_<id>_a|b`, plus `_tell` where the AI uses one: `TELL_TEX` in `scenes/enemies.ts`). Fields:
+
+| Field | What |
+|---|---|
+| `id`, `behavior`, `scale` | `behavior` picks the AI branch in `scenes/enemies.ts` (`chase`, `charger`, `tank`, `spitter`, `swiper`, `exploder`, `splitter`, `healer`, `thief`, `teleporter`, `boss`); `scale` is the sprite scale (the art is bigger than the radius) |
+| `stats` | `hp`, `speed`, `contactDamage`, `coins`, `radius` (required), and where the enemy has them `knockbackResist`, `armor`, `shield`, `trail`, `tell`, `attackCooldown`, `attackRange`, `attackDamage`, `projectileSpeed`, `projectileLife`, `lungeSpeed`, `lungeTime`, `preferredDistance`, `arcDeg` (missing = 0). The registry rejects unknown names |
+| `tune` | numbers that belong to this enemy's behavior only (the Spitter's fan, the Honey Jar's heal, the egg blast, the Gum puddles, the Watermelon's slices, Cereal shield, Beans armor floor, Gift Card jackpot, Expired Milk blink). Scalars only. The AI and the systems read them as `ENEMIES.<id>.tune` (`contentEnemyTune(id)`) and never hold a copy of the number. A boss's `tune` is its signature move's numbers (`BOSS_SPECIAL_KEYS` lists what each move needs) |
+| `text` | `en` / `de` `name` and `blurb`; `{key}` placeholders resolve against the `tune` and the numeric `stats` (Beans: `{armor}`), so the blurb cannot drift from the number. The bare-number lint covers them |
+| `hpBar` | show a health bar once damaged (`SHOW_HP_BAR`) |
+| `weak`, `resist` | `Partial<Record<AffinityTag, number>>`, a damage multiplier per tag (`heat`, `frost`, `electric`, `blast`, `cleaning`, `poison`, `mark`). Validated, but nothing reads them yet (step 2 of the enemy rework) |
+| `boss` | bosses only: `{ theme, kit }`. `theme` is the department whose aisle-8 boss it is (one boss per theme), `kit` is `{ cycle, shot, special?, moves }` (the loop of volley / charge / summon / special, the shot texture, the signature move, the volley and summon numbers) |
+
+`data/enemies.ts` derives `ENEMIES` (with the EN name and rendered blurb, for old readers), `BOSS_IDS`, `BOSS_BY_THEME`, `BOSS_KITS`, `BOSS_CYCLE`, `BOSS_SPECIAL` and `SHOW_HP_BAR` from the files. What stays there on purpose has no single owner: `BOSS` (the shared boss rules, which the shifts tune: enrage, cooldown multipliers and the Manager's volley and summon base), `MINI_BOSS` (its two variants name one grocery per theme, so it belongs to no one enemy), `ELITE`, `AFFIX`, `ELITE_EXCLUDED`, `SPLITTER_EXCLUDED`, `THEME_SUMMONS` and the codex order `CODEX_ENEMIES`. The AI stays in `scenes/enemies.ts` (`createEnemy`, `updateEnemy`, the boss moves, the telegraphs).
 
 **Numbers and text.** Per-tier values are arrays of three (`[★1, ★2, ★3]`), flat ones scalars. Text never contains a bare number: use `{key}` or `{key|fmt}` (`n`, `int`, `pct`, `pct1`, `pctn`, `pctup`, `pctdown`, `s`, `ps`, `x`, `deg`, with an optional leading `+` or `−`; the registry rejects unknown formatters and keys). `tests/content/text-lint.test.ts` fails on a digit that is not a placeholder, with a short allowlist of deliberate literals (each with a reason, and a stale-entry check). EN and DE must use the same placeholders.
 
@@ -69,12 +84,12 @@ Deliberate by-name reads that are not hooks (each is a documented host read of a
 
 ## Testing
 
-- `tests/content/items|combos|sets/<id>.test.ts`: one file per content file. Build asserts go through `full(cart)` / `stats(cart)` (`tests/content/helpers.ts`, carts from `at('fan', 2)`, `far('ice')`, `gilded(i)`).
+- `tests/content/items|combos|sets|enemies/<id>.test.ts`: one file per content file. The enemy tests hardcode the pre-refactor stats, tune and EN/DE text (`tests/content/enemies/registry.test.ts` covers the registry and its validation). Build asserts go through `full(cart)` / `stats(cart)` (`tests/content/helpers.ts`, carts from `at('fan', 2)`, `far('ice')`, `gilded(i)`).
 - Runtime asserts: `arena(cart)` gives a real build and a `FakeCtx` wired to the compiled hooks (`fake.hit(enemy, dmg, stats)`, `fake.callsOf('stun')`, `fake.spawnEnemy`, a deterministic clock and rng; `seedWhere` / `draws` in the helpers choose a seed whose first draws satisfy given predicates). `arsenal(cart)` adds a `FakeArsenal`: the real pattern code over the cart's weapons, `a.step(dt)` / `a.run(n, dt)`.
 - `describeCombo` / `expectSetText` pin the registered content and its EN and DE texts.
 - Golden snapshots in `tests/golden/__snapshots__/`: `build.json` (`computeBuild` output of about 344 carts) and `text.json` (rendered text, EN and DE). Both must stay byte-identical unless a change is intended; regenerate one with `npx vitest run tests/golden/<name>.golden.test.ts -u` and review the diff by key. Never run a blanket `-u`. The `rules` field in `text.json` is the older `{0}`/`{1}` template form, reproduced by the test-only helper `tests/golden/legacyRules.ts`.
 - Registry tests (`tests/engine/registry.test.ts`) validate the rules above on fixtures; the real registry validates itself at load.
-- Sims (`?sim=<id>`, docs/sims.md): launch an exact cart, department and enemies in the arena. Use them to look at a change; `tests/sims/sims.test.ts` checks that each combo and weapon sim shows what it names.
+- Sims (`?sim=<id>`, docs/sims.md): launch an exact cart, department and enemies in the arena. Use them to look at a change; `tests/sims/sims.test.ts` checks that each combo, weapon, enemy and boss sim shows what it names.
 - `tools/botrun.mjs` plays real runs in a browser: a smoke test (page errors), not a golden test.
 
 ---

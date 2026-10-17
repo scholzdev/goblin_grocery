@@ -1,6 +1,6 @@
 import type { Unlock } from '../data/unlocks';
 import type { HookName, RuntimeHookMap } from './hooks';
-import type { ActiveRecipe, BuffId, Build, Cell, DepartmentId, ElementTag, FamilyTag, Inventory, ItemDef, ItemInstance, ItemTypeId, Perk, RecipeId, SetId, StarterWeapon, WeaponBase, WeaponStats } from '../types';
+import type { ActiveRecipe, BuffId, Build, Cell, DepartmentId, ElementTag, EnemyBehavior, EnemyId, FamilyTag, Inventory, ItemDef, ItemInstance, ItemTypeId, Perk, RecipeId, SetId, StarterWeapon, WeaponBase, WeaponStats } from '../types';
 
 // Content definitions for the item-hooks refactor (docs/item-hooks-refactor.md). Types only plus identity `define*` helpers:
 // a content file is data (tune, text) and pure build behavior together. No Phaser, no DOM, no imports from data/*.
@@ -38,6 +38,15 @@ export const RECIPE_ORDER = [
   'toastMode', 'nailstorm', 'coldStorage', 'expressCheckout', 'brainFreeze', 'tvDinner', 'clearanceSale', 'greaseFire', 'pressurePoint', 'mistMachine',
   'fiveAlarm', 'sizzlingSkillet', 'chickenDinner', 'frostbiteNails', 'staticCling', 'reheat', 'smoothieShield', 'confettiCannon', 'blackIce', 'shrapnel',
   'pressureWasher', 'powerSurge', 'potSlam', 'priceCheck', 'sugarRush', 'smashBank', 'bagIt', 'sourMist', 'sparksFly', 'rayGun', 'tailwind',
+] as const;
+
+/**
+ * Every enemy, in the order of `ENEMIES` (the lab's spawn palette lists it), the regular groceries first, Melon Slice (a spawn of the Watermelon) last of them, then the
+ * five bosses. A new enemy is a file `src/content/enemies/<id>.ts` plus one entry here; the registry fails at load if the two disagree.
+ */
+export const ENEMY_ORDER = [
+  'milk', 'banana', 'soda', 'spitter', 'baguette', 'egg', 'melon', 'turkey', 'beans', 'cereal', 'honey', 'giftcard', 'expired', 'gum', 'slice',
+  'boss', 'boss_frozen', 'boss_bakery', 'boss_electronics', 'boss_checkout',
 ] as const;
 
 /** The module buffs, in the order the `module` build phase applies them to a weapon (a module item's `build.order` must follow it: 10, 20, ...). */
@@ -294,3 +303,98 @@ export interface SetContent<T extends Tune = Tune> {
 export const defineItem = <const T extends Tune = Tune>(def: ItemContent<T>): ItemContent<T> => def;
 export const defineCombo = <const T extends Tune = Tune>(def: ComboContent<T>): ComboContent<T> => def;
 export const defineSet = <const T extends Tune = Tune>(def: SetContent<T>): SetContent<T> => def;
+
+// ---- enemies ----------------------------------------------------------------------------------------------------------
+
+/** What an enemy can be weak to or resist (step 2 of the enemy rework: the multiplier on damage and status of that kind). Unused by the game for now. */
+export const AFFINITY_TAGS = ['heat', 'frost', 'electric', 'blast', 'cleaning', 'poison', 'mark'] as const;
+export type AffinityTag = (typeof AFFINITY_TAGS)[number];
+/** Damage multiplier per tag (weak: above 1, resist: below 1). A missing tag is neutral. */
+export type AffinityMap = Partial<Record<AffinityTag, number>>;
+
+export const ENEMY_BEHAVIORS: readonly EnemyBehavior[] = ['chase', 'charger', 'tank', 'spitter', 'swiper', 'exploder', 'splitter', 'healer', 'thief', 'teleporter', 'boss'];
+
+/** Boss move loop entries. 'special' runs the kit's signature move (BossKit.special). */
+export type BossMove = 'volley' | 'charge' | 'summon' | 'special';
+export const BOSS_MOVES: readonly BossMove[] = ['volley', 'charge', 'summon', 'special'];
+/** Signature moves: slush = slowing ice puddles dropped on marked circles; ring = radial shot burst; lanes = telegraphed live-cable strips; belt = conveyor shoves you toward the boss. */
+export type BossSpecial = 'slush' | 'ring' | 'lanes' | 'belt';
+/** The `tune` keys each signature move needs on its boss (the validator checks them; the numbers are in the boss's file). */
+export const BOSS_SPECIAL_KEYS: Readonly<Record<BossSpecial, readonly string[]>> = {
+  slush: ['spots', 'radius', 'scatter', 'life', 'rMult'],
+  ring: ['shots', 'speed', 'life', 'halfExtra'],
+  lanes: ['count', 'gap', 'width'],
+  belt: ['speed', 'time'],
+};
+/** A boss's move set: the loop it walks through, the texture of its shots, its signature move and its volley / summon numbers. */
+export interface BossKit {
+  cycle: BossMove[];
+  /** Texture of the volley / ring shots. */
+  shot: string;
+  special?: BossSpecial;
+  /** Volley / summon numbers (shift bonuses are added on top for aisle-8 bosses; mini-bosses use them as is). */
+  moves: { volleyCount?: number; volleySpreadDeg?: number; summonCount?: number; summonTypes?: EnemyId[] };
+}
+
+/** The numbers every enemy has (missing ones are 0). `armor` / `shield` / `trail` are flags of a few. */
+export interface EnemyStats {
+  hp: number;
+  speed: number;
+  contactDamage: number;
+  coins: number;
+  /** Collision radius (smaller than the art). */
+  radius: number;
+  /** 0..1 */
+  knockbackResist?: number;
+  /** Flat damage soaked off direct hits (Canned Beans). */
+  armor?: number;
+  /** Blocks player projectiles from the front (Cereal Box). */
+  shield?: boolean;
+  /** Leaves sticky puddles while walking (Bubble Gum). */
+  trail?: boolean;
+  /** Behavior tuning (seconds / world units). */
+  tell?: number;
+  attackCooldown?: number;
+  attackRange?: number;
+  attackDamage?: number;
+  projectileSpeed?: number;
+  projectileLife?: number;
+  lungeSpeed?: number;
+  lungeTime?: number;
+  preferredDistance?: number;
+  arcDeg?: number;
+}
+export const ENEMY_STAT_KEYS: readonly (keyof EnemyStats)[] = [
+  'hp', 'speed', 'contactDamage', 'coins', 'radius', 'knockbackResist', 'armor', 'shield', 'trail',
+  'tell', 'attackCooldown', 'attackRange', 'attackDamage', 'projectileSpeed', 'projectileLife', 'lungeSpeed', 'lungeTime', 'preferredDistance', 'arcDeg',
+];
+
+/** Codex text. Placeholders resolve against the enemy's `tune` and its numeric stats (see {@link enemyTextTune}). */
+export interface EnemyText { name: string; blurb: string }
+
+export interface EnemyContent<T extends Tune = Tune> {
+  id: EnemyId;
+  behavior: EnemyBehavior;
+  /** Sprite scale on the field (the art is drawn bigger than the collision radius). */
+  scale: number;
+  stats: EnemyStats;
+  /** Numbers that belong to this enemy's behavior only (a Spitter's fan, a Honey Jar's heal, the egg blast ...). Scalars: an enemy has no tiers. */
+  tune?: T;
+  /** Health bar once damaged (never at full HP, to avoid clutter). Elites always show theirs. */
+  hpBar?: boolean;
+  /** Affinity: damage taken (and status duration) multiplied for these tags; above 1 = weak, below 1 = resist. Not read by the game yet. */
+  weak?: AffinityMap;
+  resist?: AffinityMap;
+  text: Localized<EnemyText>;
+  /** Bosses only (behavior 'boss'): the department whose aisle-8 boss this is, and the move set. A boss's `tune` holds its signature move's numbers (BOSS_SPECIAL_KEYS). */
+  boss?: { theme: DepartmentId; kit: BossKit };
+}
+
+/** What `{key}` in an enemy's text can name: its numeric stats (armor ...), overridden by its `tune`. */
+export const enemyTextTune = (c: Pick<EnemyContent, 'stats' | 'tune'>): Tune => {
+  const out: Record<string, number> = {};
+  for (const [k, v] of Object.entries(c.stats)) if (typeof v === 'number') out[k] = v;
+  return { ...out, ...c.tune };
+};
+
+export const defineEnemy = <const T extends Tune = Tune>(def: EnemyContent<T>): EnemyContent<T> => def;

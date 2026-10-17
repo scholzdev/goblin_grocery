@@ -2,7 +2,7 @@
 import type { DoorId, ModifierId } from './data/modifiers';
 import type { EventKind } from './data/events';
 import type { ZoneId } from './data/zones';
-import type { BUFF_ORDER, ELEMENTS, FAMILIES, ITEM_ORDER, RECIPE_ORDER, SET_ORDER } from './engine/define';
+import type { AffinityMap, BUFF_ORDER, ELEMENTS, ENEMY_ORDER, FAMILIES, ITEM_ORDER, RECIPE_ORDER, SET_ORDER } from './engine/define';
 
 /** The id unions are derived from the order lists of engine/define.ts (which the registry checks against the content files). */
 export type ItemTypeId = (typeof ITEM_ORDER)[number];
@@ -18,7 +18,7 @@ export type SetId = (typeof SET_ORDER)[number];
 /** Weapon role tags (shown on cards; Electric is the separate `electrical` flag). */
 export type WeaponTag = 'ranged' | 'melee' | 'area';
 export type BuffId = (typeof BUFF_ORDER)[number];
-export type EnemyId = 'milk' | 'banana' | 'soda' | 'spitter' | 'baguette' | 'egg' | 'melon' | 'slice' | 'turkey' | 'beans' | 'cereal' | 'honey' | 'giftcard' | 'expired' | 'gum' | 'boss' | 'boss_frozen' | 'boss_bakery' | 'boss_electronics' | 'boss_checkout';
+export type EnemyId = (typeof ENEMY_ORDER)[number];
 
 export interface Cell { x: number; y: number }
 
@@ -187,8 +187,8 @@ export type EnemyBehavior = 'chase' | 'charger' | 'tank' | 'spitter' | 'swiper' 
 
 export interface EnemyDef {
   id: EnemyId;
-  name: string;
-  blurb: string;           // Codex flavour + what it does
+  name: string;            // English; the language-aware text is `enemyT` (i18n/data)
+  blurb: string;           // English codex flavour + what it does
   behavior: EnemyBehavior;
   hp: number;
   speed: number;
@@ -213,6 +213,13 @@ export interface EnemyDef {
   shield?: boolean;
   /** Leaves sticky puddles while walking (Bubble Gum). */
   trail?: boolean;
+  /** Sprite scale on the field. */
+  scale: number;
+  /** The enemy's own behavior numbers (content `tune`): Spitter fan, Honey heal, egg blast ... Scalars. */
+  tune: Readonly<Record<string, number>>;
+  /** Affinity multipliers per tag (step 2: not read yet). */
+  weak?: AffinityMap;
+  resist?: AffinityMap;
 }
 
 export interface WaveDef {
@@ -257,7 +264,7 @@ export interface ShopState {
 
 export type Phase = 'title' | 'combat' | 'checkout' | 'shop' | 'route' | 'victory' | 'defeat';
 
-export type DepartmentId = 'main' | 'frozen' | 'bakery' | 'electronics' | 'checkout' | 'clearance' | 'boss';
+export type DepartmentId = 'main' | 'frozen' | 'bakery' | 'electronics' | 'checkout' | 'boss';
 export type HazardKind = 'none' | 'ice' | 'vents' | 'cables' | 'conveyor';
 
 export interface DepartmentDef {
@@ -279,7 +286,7 @@ export interface DepartmentDef {
   forceLegendary: boolean;  // next shop: at least one legendary offer, guaranteed
   electricalRate: number;   // in-fight attack-rate multiplier for electrical weapons (1 = none)
   breadHeal: boolean;
-  theme: { floor: string; walls: string[]; sides: string[]; props: string[]; tint?: number; icon: string };
+  theme: { floor: string; walls: string[]; sides: string[]; props: string[]; icon: string };
 }
 
 export interface CoinLogEntry { label: string; amount: number }

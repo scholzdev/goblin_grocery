@@ -12,7 +12,7 @@ type Chances = Partial<Record<DepartmentId, number>>;
 
 export const EVENTS = {
   wetFloor: {
-    chanceByDept: { main: 0.35, bakery: 0.35, clearance: 0.4, checkout: 0.3, frozen: 0.2, electronics: 0.2 } as Chances,
+    chanceByDept: { main: 0.35, bakery: 0.35, checkout: 0.3, frozen: 0.2, electronics: 0.2 } as Chances,
     minAisle: 2,
     startAt: [12, 35] as [number, number], // seconds into the aisle
     streaks: 3,             // max robot runs
@@ -25,7 +25,7 @@ export const EVENTS = {
     robotSpeed: 300,        // px/s
   },
   outage: {
-    chanceByDept: { electronics: 0.6, frozen: 0.15, main: 0.12, clearance: 0.15, checkout: 0.15, bakery: 0.1 } as Chances,
+    chanceByDept: { electronics: 0.6, frozen: 0.15, main: 0.12, checkout: 0.15, bakery: 0.1 } as Chances,
     minAisle: 3,
     startAt: [15, 30] as [number, number],
     duration: 16,           // seconds of darkness

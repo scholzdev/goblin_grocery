@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { MINI_BOSS, ENEMIES, BOSS_IDS, BOSS_KITS, BOSS_SPECIAL, CODEX_ENEMIES, ELITE_EXCLUDED, bossFor, enemyFrame, isBossId } from '../src/data/enemies';
 import { SVG_ASSETS } from '../src/data/assets';
-import { DATA_DE } from '../src/i18n/data-de';
+import { enemyT } from '../src/i18n/data';
+import { setLang } from '../src/i18n/lang';
 import { UI } from '../src/i18n/ui';
 import { THEMES } from '../src/data/departments';
 import { BOSS_WAVE } from '../src/data/waves';
@@ -79,8 +80,10 @@ describe('per-theme final bosses', () => {
     for (const id of BOSS_IDS) {
       for (const f of ['a', 'b', 'tell'] as const) expect(keys.has(enemyFrame(id, f)), `${id} ${f}`).toBe(true);
       expect(ENEMIES[id].name && ENEMIES[id].blurb, id).toBeTruthy();
-      expect(DATA_DE.enemies[id].name && DATA_DE.enemies[id].blurb, id + ' de').toBeTruthy();
-      expect(DATA_DE.enemies[id].name, id + ' de differs').not.toBe(ENEMIES[id].name);
+      setLang('de');
+      expect(enemyT(id).name && enemyT(id).blurb, id + ' de').toBeTruthy();
+      expect(enemyT(id).name, id + ' de differs').not.toBe(ENEMIES[id].name);
+      setLang('en');
       names.add(ENEMIES[id].name);
       const kit = BOSS_KITS[id];
       expect(kit.cycle.includes('special'), id + ' special').toBe(!!kit.special);

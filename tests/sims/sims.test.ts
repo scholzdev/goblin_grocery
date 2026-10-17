@@ -8,7 +8,8 @@ import { footprint } from '../../src/systems/inventory';
 import { BOSS_WAVE } from '../../src/data/waves';
 import { mulberry32 } from '../../src/systems/rng';
 import { RECIPES } from '../../src/data/recipes';
-import { RECIPE_ORDER } from '../../src/engine/define';
+import { ENEMY_ORDER, RECIPE_ORDER } from '../../src/engine/define';
+import { BOSS_BY_THEME, BOSS_IDS, ENEMIES } from '../../src/data/enemies';
 import type { ItemTypeId, RecipeId, SetId } from '../../src/types';
 
 const sim = (id: string): SimDef => simRegistry.get(id)!;
@@ -282,6 +283,67 @@ describe('weapon sims', () => {
   it('the vacuum\'s dummies are mortal (coins drop), the others keep their dummies alive', () => {
     expect(simDummies(simOf('vacuum')).every((d) => !d.immortal)).toBe(true);
     for (const id of WEAPON_IDS.filter((w) => w !== 'vacuum')) expect(simDummies(simOf(id)).every((d) => d.immortal), id).toBe(true);
+  });
+});
+
+// One sim per regular enemy (src/sims/enemy-<id>.ts): the sandbox with a neutral cart (a pan and a toaster, both ★2) and 6 to 10 of that enemy, god mode
+// on. Mortal where the behaviour needs deaths. The notes name the enemy's HP, so a stat change shows up as a failing test.
+describe('enemy sims', () => {
+  const REGULAR = ENEMY_ORDER.filter((id) => !BOSS_IDS.includes(id));
+  const simOf = (id: string): SimDef => sim(`enemy-${id}`);
+  const own = (id: string) => simDummies(simOf(id)).filter((d) => d.id === id);
+
+  it('there is one sim for every regular enemy', () => {
+    expect(REGULAR).toHaveLength(15);
+    for (const id of REGULAR) expect(simRegistry.get(`enemy-${id}`), id).toBeDefined();
+    expect(simRegistry.ids.filter((i) => i.startsWith('enemy-'))).toHaveLength(15);
+  });
+  it('each is a god-mode sandbox with the neutral cart, notes, and 6 to 10 of that enemy', () => {
+    for (const id of REGULAR) {
+      const s = simOf(id);
+      expect(s.cart, id).toEqual([{ id: 'pan', tier: 2, at: [1, 1] }, { id: 'toaster', tier: 2, at: [3, 2] }]);
+      expect(s.waves ?? false, id).toBe(false);
+      expect(s.god ?? true, id).toBe(true);
+      expect(s.notes, id).toBeTruthy();
+      expect(own(id).length, id).toBeGreaterThanOrEqual(6);
+      expect(own(id).length, id).toBeLessThanOrEqual(10);
+    }
+  });
+  it('the cart is just the pan and the toaster: no combo, two weapons', () => {
+    const { build } = createSimRun(simOf('milk'));
+    expect(build.weapons.map((w) => [w.type, w.tier])).toEqual([['pan', 2], ['toaster', 2]]);
+    expect(build.recipes).toEqual([]);
+  });
+  it('the notes name the enemy\'s HP', () => {
+    for (const id of REGULAR) expect(simOf(id).notes, id).toContain(`${ENEMIES[id].hp} HP`);
+  });
+  it('the enemies are immortal except where the behaviour needs a death (egg, melon, gift card, the popped gum, the honey jar\'s heal targets)', () => {
+    for (const id of ['egg', 'melon', 'giftcard']) expect(own(id).every((d) => !d.immortal), id).toBe(true);
+    expect(own('gum').some((d) => d.immortal) && own('gum').some((d) => !d.immortal)).toBe(true);
+    expect(own('honey').every((d) => d.immortal)).toBe(true);
+    expect(simDummies(simOf('honey')).filter((d) => d.id === 'soda').every((d) => !d.immortal)).toBe(true);
+    for (const id of REGULAR.filter((i) => !['egg', 'melon', 'giftcard', 'gum'].includes(i))) expect(own(id).every((d) => d.immortal), id).toBe(true);
+  });
+});
+
+// One sim per boss (src/sims/boss-<theme>.ts): a real aisle 8 in the boss's department (waves, director), the strong cart of the `boss` sim, god mode on.
+describe('boss sims', () => {
+  it('there is one sim for every boss, named after its department', () => {
+    expect(Object.keys(BOSS_BY_THEME)).toHaveLength(5);
+    for (const theme of Object.keys(BOSS_BY_THEME)) expect(simRegistry.get(`boss-${theme}`), theme).toBeDefined();
+    expect(simRegistry.ids.filter((i) => i.startsWith('boss-'))).toHaveLength(5);
+  });
+  it('each is aisle 8 with waves in that department, no dummies, notes naming the boss\'s HP', () => {
+    for (const [theme, id] of Object.entries(BOSS_BY_THEME)) {
+      const s = sim(`boss-${theme}`), run = createSimRun(s);
+      expect(s).toMatchObject({ waves: true, aisle: 8, department: theme });
+      expect(s.god ?? true).toBe(true);
+      expect(simDummies(s)).toEqual([]);
+      expect(s.notes, theme).toContain(`${ENEMIES[id].hp} HP`);
+      expect(run.theme, theme).toBe(theme);
+      expect(run.wave, theme).toBe(8);
+      expect(run.department, theme).toBe('boss');
+    }
   });
 });
 

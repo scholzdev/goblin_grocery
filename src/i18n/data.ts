@@ -1,12 +1,12 @@
 import { lang } from './lang';
 import { DATA_DE } from './data-de';
 import { PLAYER } from '../data/items';
-import { ENEMIES } from '../data/enemies';
 import { DEPARTMENTS } from '../data/departments';
 import { ZONES, type ZoneId } from '../data/zones';
 import { SHIFTS } from '../data/waves';
 import { CART_SKINS, GOBLIN_SKINS, UNLOCKS } from '../data/unlocks';
-import { contentCombo, contentItem, contentSet } from '../engine/registry';
+import { enemyTextTune } from '../engine/define';
+import { contentCombo, contentEnemy, contentItem, contentSet } from '../engine/registry';
 import { renderAll, renderText } from '../engine/text';
 import type { CartSkin, GoblinSkin } from '../data/unlocks';
 import type { DepartmentId, EnemyId, ItemTypeId, RecipeId, SetId, StarterId } from '../types';
@@ -28,9 +28,10 @@ export const recipeT = (id: RecipeId) => {
   const c = contentCombo(id)!;
   return renderAll(c.text[lang()], c.tune, lang());
 };
+/** An enemy's name and codex blurb in the current language (the blurb's placeholders filled from its tune and stats). */
 export const enemyT = (id: EnemyId) => {
-  const { name, blurb } = de() ? DATA_DE.enemies[id] : ENEMIES[id];
-  return { name, blurb };
+  const c = contentEnemy(id)!, { name, blurb } = c.text[lang()];
+  return { name, blurb: renderText(blurb, enemyTextTune(c), 1, lang()) };
 };
 export const deptT = (id: DepartmentId) => {
   const { name, short, blurb, enemiesText, rewardText } = de() ? DATA_DE.departments[id] : DEPARTMENTS[id];

@@ -2060,10 +2060,6 @@ add('dept_electronics', () => badge('#4E6B78', '#3A5260',
 add('dept_checkout', () => badge(C.coral, C.coralD,
   shape([[58, 24], [88, 24], [88, 54], [78, 50], [74, 56], [68, 50], [58, 56]], C.cream, C.creamD, { sw: 3, dx: 3, dy: 0 }) + line([[63, 32], [82, 32]], C.chromeD, 2) + line([[63, 39], [82, 39]], C.chromeD, 2) +
   prism(28, 70, 60, 28, 18, 12, [C.teal, C.tealD], [C.plumSoft, C.plum], [C.tealD, '#1D6A60'], { sw: 3.5 }) + shape(rect(36, 74, 22, 12), '#241638', null, { sw: 2.5 }) + flat(rect(40, 78, 12, 3), C.gold) + shape(rect(62, 76, 18, 7), C.cream, C.creamD, { sw: 2, dx: 0, dy: 2 }), C.white));
-add('dept_clearance', () => badge(C.gold, C.goldD,
-  shape(star(64, 64, 48, 36, 16, -90), C.coral, C.coralD, { sw: 4, dx: 4, dy: 4 }) + shape(star(64, 64, 33, 27, 14, -90), C.cream, C.creamD, { sw: 3, dx: 3, dy: 3 }) +
-  `<circle cx="50" cy="50" r="8" fill="none" stroke="${C.plum}" stroke-width="12"/><circle cx="78" cy="78" r="8" fill="none" stroke="${C.plum}" stroke-width="12"/>` + line([[80, 46], [48, 82]], C.plum, 14) +
-  `<circle cx="50" cy="50" r="8" fill="none" stroke="${C.coral}" stroke-width="7"/><circle cx="78" cy="78" r="8" fill="none" stroke="${C.coral}" stroke-width="7"/>` + line([[80, 46], [48, 82]], C.coral, 8), C.coral));
 add('dept_boss', () => badge('#4A3560', '#30203F',
   shape([[30, 28], [98, 26], [102, 76], [26, 78]], C.coral, C.coralD, { sw: 3.5, dx: 4, dy: 4 }) + shape([[36, 34], [94, 33], [96, 70], [32, 72]], '#241638', null, { sw: 2.5 }) +
   shape([[40, 44], [58, 41], [58, 55], [42, 58]], C.gold, C.goldD, { sw: 2.2, dx: 1.5, dy: 1.5 }) + shape([[88, 44], [70, 41], [70, 55], [86, 58]], C.gold, C.goldD, { sw: 2.2, dx: 1.5, dy: 1.5 }) +

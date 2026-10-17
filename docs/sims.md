@@ -1,6 +1,6 @@
 # Sims
 
-A sim is a Test Lab scenario in one file. It drops you straight into the arena (or the cart editor) with an exact cart, department, event and enemies, so you can playtest items, sets and enemies without clicking through the Test Lab form. Fixed seed, so every start is the same.
+A sim is a Test Lab scenario in one file. It drops you straight into the arena (or the cart editor) with an exact cart, department, event and enemies, so you can playtest items, sets, enemies and bosses without clicking through the Test Lab form. Fixed seed, so every start is the same.
 
 ## Run one
 
@@ -119,6 +119,24 @@ One sim per weapon, `src/sims/weapon-<id>.ts` (`?sim=weapon-toaster`, `weapon-pa
 | `weapon-spray` | 8 milk close in front | The 70° cone hits all of them each spray, with a light push. |
 
 `tests/sims/sims.test.ts` checks that each weapon sim has exactly its weapon (★3, or ★1 for the legendary), an explicit `at`, notes and dummies, and that the build `createSimRun` computes carries the weapon's pattern with its base damage and interval scaled by the tier. Each weapon's behaviour in the patterns is tested in `tests/content/items/<weapon>.test.ts`.
+
+## Enemy sims
+
+One sim per regular enemy, `src/sims/enemy-<id>.ts` (`?sim=enemy-milk`, `enemy-banana`, `enemy-soda`, `enemy-spitter`, `enemy-baguette`, `enemy-egg`, `enemy-melon`, `enemy-turkey`, `enemy-beans`, `enemy-cereal`, `enemy-honey`, `enemy-giftcard`, `enemy-expired`, `enemy-gum`, `enemy-slice`). The dummy sandbox with the same neutral cart for all of them, a ★2 pan at `[1, 1]` and a ★2 toaster at `[3, 2]` (a melee and a ranged weapon, no module, no combo), god mode on, and 6 to 10 of that enemy walking at you. Compare numbers between sims: the same cart shows how armor (beans) or the shield (cereal) change what lands. The notes start with the enemy's HP and say what to look for. Immortal dummies unless the behaviour needs a death:
+
+| Sim | Difference |
+| --- | --- |
+| `enemy-egg` | 6 mortal eggs: they explode next to the cart (8 damage to you, 12 to the other groceries in the 90 px ring) and die without credit. F9 for a fresh batch. |
+| `enemy-melon` | 6 mortal watermelons: each bursts into 3 melon slices. |
+| `enemy-giftcard` | 6 mortal gift cards: a kill pays 8x coins, every coin dropped. A dummy never escapes (a real card leaves after 8 s). |
+| `enemy-gum` | 4 immortal gums that keep trailing puddles and 3 mortal ones that leave the trap when popped. |
+| `enemy-honey` | 6 honey jars plus 4 mortal Soda Six-Packs in the same bunch, as heal targets (a jar never heals another jar). |
+
+`tests/sims/sims.test.ts` checks that every regular enemy has its sim, that the cart is exactly the neutral one, that each has 6 to 10 of its enemy, that the notes name the enemy's HP (so a stat change fails the test until the note follows) and which sims are mortal.
+
+## Boss sims
+
+One sim per boss, named after its department: `boss-main` (the Store Manager), `boss-frozen` (Walk-In Freezer), `boss-bakery` (Industrial Oven), `boss-electronics` (Smart-TV Wall), `boss-checkout` (Self-Checkout Kiosk). Each is `waves: true`, `aisle: 8` in the matching department (a real boss aisle with the director and the boss's summons), with the strong heat/electric cart of the plain `boss` sim, god mode on. The notes give the boss's HP, its move loop and the numbers of its signature move. `tests/sims/sims.test.ts` checks aisle, department and that the notes name the HP.
 
 ## Where the code lives
 

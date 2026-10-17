@@ -46,7 +46,7 @@ export function createRun(seed: number, starter: StarterId = 'toaster', shift = 
 
 /** Test Lab: a run parked in the shop before aisle `o.aisle`, with an empty cart and every item unlocked. */
 export function createLabRun(seed: number, o: LabOpts): RunState {
-  const s = createRun(seed, o.starter, o.shift, o.weapon, o.dept === 'boss' || o.dept === 'clearance' ? 'main' : o.dept);
+  const s = createRun(seed, o.starter, o.shift, o.weapon, o.dept === 'boss' ? 'main' : o.dept);
   s.inventory = { cols: o.cart[0], rows: o.cart[1], placed: [], shelf: Array(o.shelf).fill(null) };
   s.wave = o.sandbox ? o.aisle : o.aisle - 1; // the sandbox never advances, so it sits on the chosen aisle
   s.money = o.money;

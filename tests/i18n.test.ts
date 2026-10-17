@@ -20,12 +20,13 @@ afterEach(() => setLang('en'));
 describe('German data', () => {
   it('covers every id with non-empty fields', () => {
     const tables: [Record<string, unknown>, Record<string, Record<string, string>>][] = [
-      [ENEMIES, DATA_DE.enemies], [DEPARTMENTS, DATA_DE.departments],
+      [DEPARTMENTS, DATA_DE.departments],
       [PLAYER.starters, DATA_DE.starters], [GOBLIN_SKINS, DATA_DE.goblinSkins], [CART_SKINS, DATA_DE.cartSkins],
     ];
     for (const [en, de] of tables) for (const id of Object.keys(en)) { expect(de[id], id).toBeDefined(); expect(nonEmpty(de[id]), id).toBe(true); }
-    // Items and combos are content files: both languages are read through itemT / recipeT.
+    // Items, combos and enemies are content files: both languages are read through itemT / recipeT / enemyT.
     setLang('de');
+    for (const id of Object.keys(ENEMIES) as (keyof typeof ENEMIES)[]) expect(nonEmpty({ ...enemyT(id) }), id).toBe(true);
     for (const id of Object.keys(ITEMS) as (keyof typeof ITEMS)[]) expect(nonEmpty({ ...itemT(id) }), id).toBe(true);
     for (const id of Object.keys(RECIPES) as (keyof typeof RECIPES)[]) expect(nonEmpty({ ...recipeT(id) }), id).toBe(true);
     expect(DATA_DE.shifts).toHaveLength(SHIFTS.length);

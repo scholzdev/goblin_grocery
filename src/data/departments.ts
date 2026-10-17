@@ -17,7 +17,7 @@ export const DEPARTMENTS: Record<DepartmentId, DepartmentDef> = {
     ...base, id: 'frozen', name: 'Frozen Foods', short: 'FROZEN', danger: 1, hazard: 'ice',
     blurb: 'Ice patches: longer dashes, enemies slip', enemiesText: 'Turkeys, Expired Milk, Sour Milk & Soda',
     rewardText: 'Cold deals in the shop',
-    mix: { turkey: 2.5, expired: 2.5, milk: 2, soda: 2 }, shopBias: ['ice', 'blender', 'vacuum'],
+    mix: { turkey: 2.5, expired: 2.5, milk: 2, soda: 2 }, shopBias: ['fuel', 'toaster', 'hotsauce'],
     theme: { floor: 'floor_frozen', walls: ['freezer_a', 'freezer_c', 'freezer_b', 'freezer_c'], sides: ['side_freezer'], props: ['prop_icecream', 'prop_wetfloor', 'prop_cans'], icon: 'dept_frozen' },
   },
   bakery: {
@@ -41,13 +41,6 @@ export const DEPARTMENTS: Record<DepartmentId, DepartmentDef> = {
     rewardText: 'No bonus',
     mix: { gum: 2.5, melon: 1.5, banana: 2, giftcard: 2 },
     theme: { floor: 'floor_checkout', walls: ['checkout_counter', 'checkout_counter', 'checkout_counter', 'checkout_counter'], sides: ['side_checkout'], props: ['prop_lanesign', 'prop_cans'], icon: 'dept_checkout' },
-  },
-  clearance: {
-    ...base, id: 'clearance', name: 'Clearance Bin', short: 'CLEARANCE', danger: 3, hazard: 'none',
-    blurb: 'No hazards, just a LOT of groceries', enemiesText: '+35% groceries, +25% HP, Cereal & Honey',
-    rewardText: '+25% coins · guaranteed legendary next shop',
-    mix: { cereal: 1.8, honey: 2 }, hpMult: 1.25, countMult: 1.35, coinMult: 1.25, forceLegendary: true,
-    theme: { floor: 'floor_tile', walls: ['shelf_a', 'shelf_b', 'shelf_a', 'shelf_b'], sides: ['shelf_side'], props: ['prop_salesign', 'prop_salesign', 'prop_cans', 'prop_cereal'], tint: 0xffd6d0, icon: 'dept_clearance' },
   },
   boss: {
     ...base, id: 'boss', name: "Manager's Checkout", short: 'MANAGER', danger: 3, hazard: 'none',

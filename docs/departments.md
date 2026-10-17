@@ -18,12 +18,12 @@ All five are open from the start. Theme multipliers (HP, speed, count, coins) ar
 | Theme | Hazard | Roster (weight multiplier on the wave mix) | Perk / shop bias |
 |---|---|---|---|
 | Main Aisle | none | Cereal 2.5, Beans 2.5, Soda 2, Honey 2 | none |
-| Frozen Foods | ice patches | Turkey 2.5, Expired Milk 2.5, Sour Milk 2, Soda 2 | ice, blender, vacuum |
+| Frozen Foods | ice patches | Turkey 2.5, Expired Milk 2.5, Sour Milk 2, Soda 2 | fuel, toaster, hotsauce |
 | Bakery | oven vents | Baguette 2.5, Egg 2.5, Honey 2.5, Banana 1.5 | crumbs heal; pan, toaster, fuel, hot sauce, lunchbox |
 | Electronics | live cables | Spitter 2.5, Beans 2, Cereal 2, Expired Milk 1.5 | electrical weapons +15% rate; battery, microwave, blender, nail gun, power strip; +3% legendary chance |
 | Checkout Lanes | conveyor belts | Gum 2.5, Melon 2.5, Banana 2, Gift Card 2 | none |
 
-**Spawn weights** (`waveSpawnPlan`): `wave mix × theme weight`. Enemies not in the roster get `DEPT_TUNING.offTheme` (0.35), except the basics Sour Milk, Banana and Gift Card which stay at 1. The wave mix still gates by aisle, so late enemies only appear late. The Clearance Bin department stays in the data (dormant, not pickable); its music plays on Clearance Sale aisles.
+**Spawn weights** (`waveSpawnPlan`): `wave mix × theme weight`. Enemies not in the roster get `DEPT_TUNING.offTheme` (0.35), except the basics Sour Milk, Banana and Gift Card which stay at 1. The wave mix still gates by aisle, so late enemies only appear late. There is no Clearance department; the Clearance Sale aisles (a door modifier) have their own music.
 
 ### Hazards
 
@@ -57,7 +57,7 @@ Modifiers multiply on top of the theme. Coin multipliers apply to kill coins and
 
 ### Boss
 
-Aisle 8 has one boss per theme (`BOSS_BY_THEME` / `BOSS_KITS` in `src/data/enemies.ts`; `ArenaScene.spawnBoss` picks by `state.theme`, the Lab and F3 use the run's theme). Every boss is an enemy def with `behavior: 'boss'` (all boss checks key on the behavior) and sprites `boss_<theme>_a|b|tell` (`boss_a|b|tell` for the Manager). Shift multipliers (`bossHpMult`, volley/summon bonuses, coins) apply to all of them.
+Aisle 8 has one boss per theme (each boss's file in `src/content/enemies/` names its theme and kit; `BOSS_BY_THEME` / `BOSS_KITS` in `src/data/enemies.ts` are derived from them; `ArenaScene.spawnBoss` picks by `state.theme`, the Lab and F3 use the run's theme). Every boss is an enemy def with `behavior: 'boss'` (all boss checks key on the behavior) and sprites `boss_<theme>_a|b|tell` (`boss_a|b|tell` for the Manager). Shift multipliers (`bossHpMult`, volley/summon bonuses, coins) apply to all of them.
 
 | Theme | Boss | HP | Loop (S = signature move) | Signature |
 |---|---|---|---|---|
@@ -67,7 +67,7 @@ Aisle 8 has one boss per theme (`BOSS_BY_THEME` / `BOSS_KITS` in `src/data/enemi
 | Electronics | The Smart-TV Wall | 1500 | S, volley, summon, S, charge, volley | Cable Zap: 3 vertical live-cable strips (5 at half HP) locked at the tell, hit if you stand in one |
 | Checkout | The Self-Checkout Kiosk | 1550 | S, charge, volley, summon, charge, S | Conveyor Shift: scrolling arrows, then a 170 px/s sideways shove toward the boss for 2.4 s |
 
-Summons: each summoned grocery has a 50% chance to come from the theme's summon pool (`THEME_SUMMONS`): Main Cereal/Beans, Frozen Expired/Sour Milk, Bakery Baguette/Banana, Electronics Spitter/Beans, Checkout Gum/Banana. Otherwise it uses the boss's own list (`BossKit.moves.summonTypes`; the Manager uses the shift's usual list). Volley/summon counts per boss live in `BOSS_KITS`; signature numbers in `BOSS_SPECIAL`.
+Summons: each summoned grocery has a 50% chance to come from the theme's summon pool (`THEME_SUMMONS`): Main Cereal/Beans, Frozen Expired/Sour Milk, Bakery Baguette/Banana, Electronics Spitter/Beans, Checkout Gum/Banana. Otherwise it uses the boss's own list (`BossKit.moves.summonTypes`; the Manager uses the shift's usual list). Volley/summon counts per boss live in its file (`boss.kit.moves`, derived as `BOSS_KITS`); the signature numbers are that boss's `tune` (derived as `BOSS_SPECIAL`).
 
 ### Mid-shift boss (aisle 4)
 

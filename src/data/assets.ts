@@ -184,7 +184,6 @@ export const SVG_ASSETS: SvgAsset[] = [
   { key: 'dept_bakery', w: 128, h: 128 },
   { key: 'dept_electronics', w: 128, h: 128 },
   { key: 'dept_checkout', w: 128, h: 128 },
-  { key: 'dept_clearance', w: 128, h: 128 },
   { key: 'dept_boss', w: 128, h: 128 },
   // AOE / multi-hit effects.
   { key: 'proj_pot', w: 40, h: 36 },

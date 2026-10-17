@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { AFFIX, BOSS, BOSS_KITS, BOSS_SPECIAL, ELITE, MINI_BOSS, ELITE_AFFIXES, ENEMIES, EGG_BLAST, EXPIRED, GIFTCARD, GUM, HONEY, SPITTER, SPLITTER_EXCLUDED, enemyFrame, isBossId, type BossKit, type BossMove, type EliteAffix, type MiniVariant } from '../data/enemies';
+import { AFFIX, BOSS, BOSS_KITS, BOSS_SPECIAL, ELITE, MINI_BOSS, ELITE_AFFIXES, ENEMIES, SPLITTER_EXCLUDED, enemyFrame, isBossId, type BossKit, type BossMove, type EliteAffix, type MiniVariant } from '../data/enemies';
 import { bossTuning } from '../data/waves';
 import { store } from '../state/store';
 import type { EnemyDef, EnemyId } from '../types';
@@ -79,7 +79,8 @@ export const pickAffix = (id: EnemyId, rng: () => number): EliteAffix => {
   return pool[Math.floor(rng() * pool.length)];
 };
 
-const SCALE: Record<EnemyId, number> = { milk: 0.78, banana: 0.8, soda: 0.72, spitter: 0.78, baguette: 0.8, egg: 0.78, melon: 0.9, slice: 0.5, turkey: 0.8, beans: 0.78, cereal: 0.82, honey: 0.76, giftcard: 0.74, expired: 0.78, gum: 0.76, boss: 0.95, boss_frozen: 1, boss_bakery: 0.95, boss_electronics: 0.95, boss_checkout: 0.95 };
+// The enemies' own behavior numbers: their content `tune` (src/content/enemies/<id>.ts).
+const SPITTER = ENEMIES.spitter.tune, EGG_BLAST = ENEMIES.egg.tune, HONEY = ENEMIES.honey.tune, GIFTCARD = ENEMIES.giftcard.tune, EXPIRED = ENEMIES.expired.tune, GUM = ENEMIES.gum.tune;
 const TELL_TEX: Partial<Record<EnemyId, string>> = { banana: 'enemy_banana_tell', spitter: 'enemy_spitter_tell', baguette: 'enemy_baguette_tell', egg: 'enemy_egg_tell', soda: 'enemy_soda_tell', turkey: 'enemy_turkey_tell' };
 const tellKey = (id: EnemyId): string | undefined => (isBossId(id) ? enemyFrame(id, 'tell') : TELL_TEX[id]);
 const frameKey = (id: EnemyId, f: 0 | 1) => enemyFrame(id, f ? 'b' : 'a');
@@ -110,7 +111,7 @@ export function createEnemy(scene: ArenaScene, id: EnemyId, x: number, y: number
   };
   if (mini) { e.mini = true; e.kit = mini.kit; }
   else if (isBossId(id)) e.kit = BOSS_KITS[id];
-  scene.tweens.add({ targets: sprite, scale: SCALE[id] * (elite ? ELITE.scale : 1) * (small || 1) * (mini ? MINI_BOSS.scale : 1), duration: 260, ease: 'Back.Out' });
+  scene.tweens.add({ targets: sprite, scale: base.scale * (elite ? ELITE.scale : 1) * (small || 1) * (mini ? MINI_BOSS.scale : 1), duration: 260, ease: 'Back.Out' });
   if (affix) {
     e.tag = scene.add.text(x, y, t(`affix_${affix}`), { fontFamily: '"Luckiest Guy", "Arial Black", sans-serif', fontSize: '15px', color: '#' + AFFIX[affix].color.toString(16).padStart(6, '0'), stroke: '#30203F', strokeThickness: 4 })
       .setOrigin(0.5, 1).setDepth(DEPTH.bars + 1).setAlpha(0);
@@ -267,7 +268,7 @@ export function updateEnemy(scene: ArenaScene, e: Enemy, dt: number, now: number
   if (d.behavior === 'teleporter') e.sprite.setAlpha(e.state === 'tell' ? 0.3 + 0.4 * Math.abs(Math.sin(now * 28)) : 1);
   const tex = (e.state === 'tell' || (e.state === 'attack' && d.behavior !== 'chase')) && tellTex ? tellTex : frameKey(d.id, (Math.floor(e.animT) % 2) as 0 | 1);
   if (e.sprite.texture.key !== tex) e.sprite.setTexture(tex);
-  const s = SCALE[d.id] * (e.elite ? ELITE.scale : 1) * (e.small || 1) * (e.mini ? MINI_BOSS.scale : 1);
+  const s = d.scale * (e.elite ? ELITE.scale : 1) * (e.small || 1) * (e.mini ? MINI_BOSS.scale : 1);
   const squash = e.state === 'tell' ? 0.06 * Math.sin(now * 40) : Math.sin(e.animT * Math.PI) * 0.035;
   e.sprite.setScale(s * e.facing * (1 + squash), s * (1 - squash));
   e.sprite.setPosition(e.x + (e.state === 'tell' ? Math.sin(now * 70) * 1.5 : 0), e.y).setDepth(DEPTH.world + e.y);

@@ -1,5 +1,5 @@
 import type { BurnEffect, SlowEffect } from '../types';
-import { ARMOR, HONEY, SHIELD } from '../data/enemies';
+import { ENEMIES } from '../data/enemies';
 
 export interface HitTracker { maxHits: number; hits: Set<number> }
 export const newHitTracker = (maxHits: number): HitTracker => ({ maxHits, hits: new Set() });
@@ -19,7 +19,7 @@ export function applyBurn(s: StatusFx, burn: BurnEffect, now: number): void {
   const active = s.burnUntil > now;
   s.burnDps = active ? Math.max(s.burnDps, burn.dps) : burn.dps;
   if (!active) { s.burnTick = burn.tick; s.nextBurnAt = now + burn.tick; }
-  s.burnUntil = now + burn.duration;
+  s.burnUntil = Math.max(s.burnUntil, now + burn.duration); // a short re-application never shortens a running burn
 }
 
 export function tickBurn(s: StatusFx, now: number): number {
@@ -30,13 +30,13 @@ export function tickBurn(s: StatusFx, now: number): number {
   return dmg;
 }
 
-/** Poison: refreshes its duration, never stacks dps (keeps the higher one). Ticks every POISON_TICK, independent of burn. */
+/** Poison: extends its end time (never shortens it), never stacks dps (keeps the higher one). Ticks every POISON_TICK, independent of burn. */
 export const POISON_TICK = 0.5;
 export function applyPoison(s: StatusFx, dps: number, duration: number, now: number): void {
   const active = s.poisonUntil > now;
   s.poisonDps = active ? Math.max(s.poisonDps, dps) : dps;
   if (!active) s.nextPoisonAt = now + POISON_TICK;
-  s.poisonUntil = now + duration;
+  s.poisonUntil = Math.max(s.poisonUntil, now + duration);
 }
 
 export function tickPoison(s: StatusFx, now: number): number {
@@ -67,6 +67,14 @@ export function pickRicochetTarget<T extends { id: number; x: number; y: number 
 
 export const rollCrit = (chance: number, rng: () => number): boolean => chance > 0 && rng() < chance;
 
+/** The multipliers every kill coin payout shares: department, door modifier, shift, aisle event (Flash Sale ...) and the cart's kill-coin items. */
+export interface KillCoinMults { dept: number; modifier: number; shift: number; event: number; kill: number }
+/** Their product, in this exact order (the regular kill coins roll against it). */
+export const killCoinMult = (m: KillCoinMults): number => m.dept * m.modifier * m.shift * m.event * m.kill;
+
+/** Gift Card jackpot: `base` x `jackpot` x the same multipliers as the regular kill coins, rounded. Always dropped in full (no per-coin roll, no rng draw). */
+export const giftcardCoins = (base: number, jackpot: number, m: KillCoinMults): number => Math.round(base * jackpot * m.dept * m.modifier * m.shift * m.event * m.kill);
+
 /** Expected value = base * mult: floor plus a bonus coin with probability of the fractional part. */
 export function killCoins(base: number, coinMult: number, rng: () => number): number {
   const v = base * coinMult, f = Math.floor(v);
@@ -74,10 +82,10 @@ export function killCoins(base: number, coinMult: number, rng: () => number): nu
 }
 
 /** Armor soaks flat damage off a direct hit but never more than 70% of it (min 30%, rounded up). */
-export const armorDamage = (dmg: number, armor: number): number => (armor > 0 ? Math.max(Math.ceil(dmg * ARMOR.minShare), dmg - armor) : dmg);
+export const armorDamage = (dmg: number, armor: number): number => (armor > 0 ? Math.max(Math.ceil(dmg * ENEMIES.beans.tune.minShare), dmg - armor) : dmg);
 
 /** Cereal shield: blocks a shot when its reversed travel direction is within the half-angle of the facing vector. */
-export function shieldBlocks(shotVx: number, shotVy: number, faceX: number, faceY: number, halfDeg = SHIELD.halfAngleDeg): boolean {
+export function shieldBlocks(shotVx: number, shotVy: number, faceX: number, faceY: number, halfDeg = ENEMIES.cereal.tune.halfAngleDeg): boolean {
   const sl = Math.hypot(shotVx, shotVy), fl = Math.hypot(faceX, faceY);
   if (!sl || !fl) return false;
   return (-shotVx * faceX - shotVy * faceY) / (sl * fl) > Math.cos((halfDeg * Math.PI) / 180);
@@ -85,7 +93,7 @@ export function shieldBlocks(shotVx: number, shotVy: number, faceX: number, face
 
 interface Healable { x: number; y: number; hp: number; maxHp: number; alive: boolean; def: { id: string; behavior?: string } }
 /** Honey heal tick: HP each ally in range gains (capped at max). Skips the healer, boss and other honey jars. */
-export function healTargets<T extends Healable>(healer: T, all: T[], radius = HONEY.radius, pct = HONEY.pct): { target: T; amount: number }[] {
+export function healTargets<T extends Healable>(healer: T, all: T[], radius = ENEMIES.honey.tune.radius, pct = ENEMIES.honey.tune.pct): { target: T; amount: number }[] {
   const out: { target: T; amount: number }[] = [];
   for (const o of all) {
     if (o === healer || !o.alive || o.def.id === 'boss' || o.def.behavior === 'boss' || o.def.id === 'honey' || o.hp >= o.maxHp) continue;

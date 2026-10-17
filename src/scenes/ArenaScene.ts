@@ -3,7 +3,7 @@ import { deptT, enemyT, itemT } from '../i18n/data';
 import { store } from '../state/store';
 import { flow } from '../flow';
 import { waveDef, eliteChance, bossTuning, ECONOMY, SHIFTS, WAVE_RAMP } from '../data/waves';
-import { SHOW_HP_BAR, EGG_BLAST, MELON_SLICES, ELITE, GIFTCARD, GUM, THEME_SUMMONS, ELITE_EXCLUDED, AFFIX, MINI_BOSS, bossFor, isBossId, type BossMove } from '../data/enemies';
+import { SHOW_HP_BAR, ENEMIES, ELITE, THEME_SUMMONS, ELITE_EXCLUDED, AFFIX, MINI_BOSS, bossFor, isBossId, type BossMove } from '../data/enemies';
 import { GumPuddles } from './gum';
 import { CRIT, PLAYER, STARTER_LOOKS } from '../data/items';
 import { addCoins, damagePlayer, takeStockroomItem } from '../state/run';
@@ -39,7 +39,7 @@ const sk = (key: string): string =>
 import { DEPARTMENTS, DEPT_TUNING } from '../data/departments';
 import { MODIFIERS, ROOMS } from '../data/modifiers';
 import { waveSpawnPlan, rollStockroom, rollMiniCrates } from '../systems/shop';
-import { killCoins } from '../systems/combat';
+import { giftcardCoins, killCoinMult, killCoins } from '../systems/combat';
 import type { DepartmentDef } from '../types';
 import { CRATE, DASH_PROPS, OBSTACLES, OBSTACLE_KINDS, PROP_TUNING, crateSpots, type Obstacle } from '../data/obstacles';
 import { ZONES, type ZoneDef } from '../data/zones';
@@ -186,8 +186,7 @@ export class ArenaScene extends Phaser.Scene {
     const th = this.dept.theme;
     // Floor and dressing extend far past the arena so any screen aspect is filled with store, not bars.
     const PAD = 700;
-    const floor = this.add.tileSprite(-PAD, -PAD, ARENA.w + PAD * 2, ARENA.h + PAD * 2, th.floor).setOrigin(0).setDepth(DEPTH.floor);
-    if (th.tint) floor.setTint(th.tint);
+    this.add.tileSprite(-PAD, -PAD, ARENA.w + PAD * 2, ARENA.h + PAD * 2, th.floor).setOrigin(0).setDepth(DEPTH.floor);
     this.buildOuterStore(PAD);
     // Soft lavender shade where the shelves meet the floor.
     const shade = this.add.graphics().setDepth(DEPTH.floor + 1);
@@ -718,7 +717,7 @@ export class ArenaScene extends Phaser.Scene {
     play('pop');
     for (const o of this.enemies) {
       if (o === e || !o.alive || o.state === 'spawn' || o.def.behavior === 'boss') continue;
-      if (Math.hypot(o.x - e.x, o.y - e.y) < EGG_BLAST.radius + o.def.radius) this.damageEnemy(o, EGG_BLAST.enemyDamage, null, { label: 'Egg Carton' });
+      if (Math.hypot(o.x - e.x, o.y - e.y) < ENEMIES.egg.tune.radius + o.def.radius) this.damageEnemy(o, ENEMIES.egg.tune.enemyDamage, null, { label: 'Egg Carton' });
     }
     this.killEnemy(e, false);
   }
@@ -732,7 +731,7 @@ export class ArenaScene extends Phaser.Scene {
     const tint = ({ milk: 0xfff2d5, banana: 0xf6d24a, soda: 0xe2473f, spitter: 0x7cc4e8, baguette: 0xd9954a, egg: 0xfff2d5, melon: 0x8fcb57, slice: 0xf45f52, turkey: 0xcff3ff, beans: 0xb9895a, cereal: 0xe8b04a, honey: 0xf5bd45, giftcard: 0xf45f52, expired: 0xd5ebdd, gum: 0xff7fb8, boss: 0xf5bd45, boss_frozen: 0xcff3ff, boss_bakery: 0xd9954a, boss_electronics: 0x7cc4e8, boss_checkout: 0x3fb7a6 } as const)[e.def.id];
     this.fx.puff(e.x, e.y - 24, e.def.behavior === 'boss' ? 14 : 4);
     this.fx.crumbsAt(e.x, e.y - 30, e.def.behavior === 'boss' ? 24 : 7, tint);
-    if (e.def.trail && !this.ending) this.gum.drop(0, e.x, e.y, GUM.trapRadiusMult);
+    if (e.def.trail && !this.ending) this.gum.drop(0, e.x, e.y, ENEMIES.gum.tune.trapRadiusMult);
     this.tweens.killTweensOf(e.sprite);
     e.sprite.clearTint();
     this.tweens.add({
@@ -746,10 +745,11 @@ export class ArenaScene extends Phaser.Scene {
     s.stats.kills++;
     noteEnemy(s, e.def.id, { elite: e.elite });
     const thief = e.def.id === 'giftcard';
-    const coins = thief ? Math.round(e.def.coins * GIFTCARD.coinMult * this.dept.coinMult * MODIFIERS[s.modifier].coinMult * SHIFTS[store.state.shift].coinMult) : e === this.boss
+    const mults = { dept: this.dept.coinMult, modifier: MODIFIERS[s.modifier].coinMult, shift: SHIFTS[store.state.shift].coinMult, event: this.aisleEvent.coinMult(), kill: s.build.killCoinMult };
+    const coins = thief ? giftcardCoins(e.def.coins, ENEMIES.giftcard.tune.coinMult, mults) : e === this.boss
       ? bossTuning(store.state.shift).coins
       : e.mini ? MINI_BOSS.coins
-      : killCoins(e.def.coins * (e.elite ? ELITE.coinMult : 1), this.dept.coinMult * MODIFIERS[s.modifier].coinMult * SHIFTS[store.state.shift].coinMult * this.aisleEvent.coinMult() * s.build.killCoinMult, flow.rng);
+      : killCoins(e.def.coins * (e.elite ? ELITE.coinMult : 1), killCoinMult(mults), flow.rng);
     // Bosses always pay out in full; regular groceries drop each coin only sometimes.
     for (let i = 0; i < coins; i++) if (thief || e.def.behavior === 'boss' || flow.rng() < ECONOMY.killCoinChance) this.dropCoin(e.x, e.y, enemyT(e.def.id).name);
     const B = DEPT_TUNING.bread;
@@ -771,8 +771,8 @@ export class ArenaScene extends Phaser.Scene {
       }
     }
     if (e.def.id === 'melon') {
-      for (let i = 0; i < MELON_SLICES; i++) {
-        const a = (i / MELON_SLICES) * Math.PI * 2 + this.rng();
+      for (let i = 0; i < ENEMIES.melon.tune.slices; i++) {
+        const a = (i / ENEMIES.melon.tune.slices) * Math.PI * 2 + this.rng();
         noteEnemy(store.state, 'slice');
         const sl = createEnemy(this, 'slice', e.x + Math.cos(a) * 16, e.y + Math.sin(a) * 10, this.plan.hpScale, this.plan.speedScale, false, this.plan.dmgScale);
         sl.kx = Math.cos(a) * 260; sl.ky = Math.sin(a) * 260;

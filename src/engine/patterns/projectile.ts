@@ -1,8 +1,11 @@
-import { SHIELD } from '../../data/enemies';
+import { ENEMIES } from '../../data/enemies';
 import { isSpent, pickRicochetTarget, shieldBlocks, tryHit } from '../../systems/combat';
 import { DEPTH } from '../../data/depth';
 import type { ShotMoveEvent } from '../hooks';
 import type { PatternHost, Shot } from './types';
+
+/** The Cereal Box's shield numbers (its content tune). */
+const SHIELD = ENEMIES.cereal.tune;
 
 /**
  * Flight and impact of every player projectile (toast, nails, caps, Ray Gun bolts), shared by the projectile patterns: life, bounds, the

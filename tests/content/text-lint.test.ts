@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { contentCombos, contentItems, contentSets } from '../../src/engine/registry';
+import { contentCombos, contentEnemies, contentItems, contentSets } from '../../src/engine/registry';
 
 // The bare-number lint: a number in a player-facing text that is not a `{key}` placeholder is a number that can drift from the tune. Every text
-// of every item, combo and set (EN and DE) is scanned. `★2`/`★3` (tier names) are not numbers. What is left is listed below, each with the reason
+// of every item, combo, set and enemy (EN and DE) is scanned. `★2`/`★3` (tier names) are not numbers. What is left is listed below, each with the reason
 // it is a fixed fact of the rule or a joke, not a tuned value.
 type Texts = Record<string, string | readonly string[]>;
 const ALLOWED: Record<string, string> = {
@@ -30,11 +30,12 @@ function scan(kind: string, id: string, text: Record<'en' | 'de', Texts>): strin
 }
 
 describe('text lint: no bare numbers', () => {
-  it('items, combos and sets write every number as a {placeholder} (except the listed facts and jokes)', () => {
+  it('items, combos, sets and enemies write every number as a {placeholder} (except the listed facts and jokes)', () => {
     const hits = [
       ...contentItems().flatMap((c) => scan('item', c.id, c.text as never)),
       ...contentCombos().flatMap((c) => scan('combo', c.id, c.text as never)),
       ...contentSets().flatMap((c) => scan('set', c.id, c.text as never)),
+      ...contentEnemies().flatMap((c) => scan('enemy', c.id, c.text as never)),
     ];
     expect(hits).toEqual([]);
   });
@@ -44,6 +45,7 @@ describe('text lint: no bare numbers', () => {
       ...contentItems().map((c) => ['item', c.id, c.text] as const),
       ...contentCombos().map((c) => ['combo', c.id, c.text] as const),
       ...contentSets().map((c) => ['set', c.id, c.text] as const),
+      ...contentEnemies().map((c) => ['enemy', c.id, c.text] as const),
     ];
     for (const key of Object.keys(ALLOWED)) {
       const [kind, rest] = key.split(':'), [id, field] = rest.split('.');

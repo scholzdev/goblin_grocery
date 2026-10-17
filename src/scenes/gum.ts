@@ -1,7 +1,10 @@
 import Phaser from 'phaser';
-import { GUM } from '../data/enemies';
+import { ENEMIES } from '../data/enemies';
 import { DEPTH } from './fx';
 import type { ArenaScene } from './ArenaScene';
+
+/** The Bubble Gum's puddle numbers (its content tune). */
+const GUM = ENEMIES.gum.tune;
 
 interface Glob { x: number; y: number; r: number; age: number; life: number; owner: number; img: Phaser.GameObjects.Image }
 

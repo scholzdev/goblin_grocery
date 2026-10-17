@@ -7,7 +7,7 @@ const errs = []; page.on('pageerror', (e) => errs.push(e.message)); page.on('con
 await page.goto(url);
 await page.waitForSelector('#title:not(.hidden)');
 await page.click('[data-act="play"]'); await page.click('[data-starter="toaster"]'); await page.click('[data-act="start-run"]'); await page.waitForTimeout(500);
-for (const d of ['frozen', 'bakery', 'electronics', 'checkout', 'clearance']) {
+for (const d of ['frozen', 'bakery', 'electronics', 'checkout']) {
   await page.evaluate((d) => { const { store, flow } = window.__gg; const s = store.state; s.department = d; s.wave = 4; s.phase = 'combat'; s.hp = s.build.maxHp; flow.restartArena(); store.changed(); }, d);
   for (let i = 0; i < 6; i++) { await page.keyboard.down(i % 2 ? 'a' : 'd'); await page.waitForTimeout(700); await page.keyboard.up(i % 2 ? 'a' : 'd'); }
   await page.screenshot({ path: `screenshots/dept-${d}.png` });
