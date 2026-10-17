@@ -32,6 +32,9 @@ const SET_ICON: Record<string, string> = {
   frost: '<path d="M12 2.5v19M3.8 7.2l16.4 9.6M3.8 16.8 20.2 7.2M9.5 4.5 12 7l2.5-2.5M9.5 19.5 12 17l2.5 2.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>',
   blast: '<path d="m12 2 2.2 5.2L19 4.5l-1.4 5.6L22 12l-4.4 1.9L19 19.5l-4.8-2.7L12 22l-2.2-5.2L5 19.5l1.4-5.6L2 12l4.4-1.9L5 4.5l4.8 2.7z"/>',
   electric: '<path d="M13 2 5 13.5h6L10 22l9-12h-6.5z"/>',
+  // Affinity-only tags (not sets): the poison bubbles and the price flag of a mark.
+  poison: '<circle cx="9" cy="15" r="5"/><circle cx="16.5" cy="10" r="3.4"/><circle cx="11" cy="5.5" r="2.2"/>',
+  mark: '<path d="M5 2.5h2v19H5z"/><path d="M8 4h12l-3.2 4.6L20 13H8z"/>',
 };
 /** Bold single-colour set icon (inline SVG, tints with the surrounding `color`). */
 export const setIcon = (id: string, size = 14): string => `<svg class="sico" width="${size}" height="${size}" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${SET_ICON[id] ?? ''}</svg>`;

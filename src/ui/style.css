@@ -693,6 +693,8 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .chip.set-heat { background: #ffd9c9; color: #b8381c; }
 .chip.set-frost { background: #d4ecff; color: #2a6aa8; }
 .chip.set-blast { background: #ffd6ec; color: #a8286e; }
+.chip.aff-poison { background: #e3f3c9; color: #4d7a1a; }
+.chip.aff-mark { background: #fff1c2; color: #8a6200; }
 .set-electric { --sc: #8a6200; --sb: #fff1c2; }
 .set-kitchen { --sc: #9a5412; --sb: #ffe2c2; }
 .set-cleaning { --sc: #1f7a70; --sb: #cdf2ee; }
@@ -865,3 +867,13 @@ body.pad-nav :focus { outline: 4px solid var(--gold); outline-offset: 3px; }
 .sim-error-card { max-width: 640px; padding: 20px 28px; text-align: left; font-weight: 800; }
 .sim-error-card h2 { font-family: var(--display); font-weight: 400; margin: 0 0 8px; }
 .sim-error-card ul { margin: 0 0 14px; padding-left: 20px; max-height: 360px; overflow: auto; font-size: 14px; }
+
+/* element soft counters: weak / resist rows (codex) and the "Strong vs" strip (shop item card) */
+.aff-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 4px; }
+.aff-row > b { font-size: 12px; font-weight: 800; opacity: 0.75; }
+.aff-row .chip { font-size: 12px; font-weight: 800; padding: 2px 6px; gap: 3px; text-transform: none; letter-spacing: 0; }
+.aff-row.resist .chip { opacity: 0.65; }
+.inspector .strongvs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 6px 14px 0; font-size: 12px; font-weight: 800; }
+.inspector .strongvs > b { opacity: 0.75; margin-right: 2px; }
+.inspector .strongvs img { width: 24px; height: 24px; border-radius: 6px; background: rgba(48, 32, 63, 0.08); }
+.inspector .strongvs img.boss { background: #ffe9a8; box-shadow: 0 0 0 2px #f5bd45; }

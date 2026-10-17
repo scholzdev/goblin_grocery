@@ -306,11 +306,38 @@ export const defineSet = <const T extends Tune = Tune>(def: SetContent<T>): SetC
 
 // ---- enemies ----------------------------------------------------------------------------------------------------------
 
-/** What an enemy can be weak to or resist (step 2 of the enemy rework: the multiplier on damage and status of that kind). Unused by the game for now. */
+/**
+ * What an enemy can be weak to or resist (the element soft counters, docs/item-hooks-refactor.md "Affinity"). `heat`, `frost`, `electric`, `blast`,
+ * `cleaning` and `poison` are hit tags (derived per hit by `engine/hitTags.ts`); `mark` is the Price Check / Sale Flag mark bonus.
+ */
 export const AFFINITY_TAGS = ['heat', 'frost', 'electric', 'blast', 'cleaning', 'poison', 'mark'] as const;
 export type AffinityTag = (typeof AFFINITY_TAGS)[number];
-/** Damage multiplier per tag (weak: above 1, resist: below 1). A missing tag is neutral. */
+/**
+ * An enemy's `weak` / `resist`: the per-tag MAGNITUDE (a positive fraction, not a multiplier). `weak: { heat: 0.3 }` takes +30% damage from heat hits
+ * and ×`AFFINITY.weakDuration` status time of heat; `resist: { frost: 0.3 }` takes −30% and ×`AFFINITY.resistDuration`. A boss weak uses 0.4. For
+ * `mark` the value scales the mark's bonus instead: `weak: { mark: 1 }` doubles it (×1.2 becomes ×1.4). A tag is never both weak and resist.
+ */
 export type AffinityMap = Partial<Record<AffinityTag, number>>;
+
+/**
+ * The one place the soft-counter numbers live (tunable). Enemy files use the magnitudes (`weak`, `bossWeak`, `resist`, `markWeak`), the engine
+ * (`engine/affinity.ts`) the durations and the stagger.
+ */
+export const AFFINITY = {
+  /** Magnitude of a regular enemy's weakness (+30% damage). */
+  weak: 0.3,
+  /** Magnitude of a boss's weakness (+40% damage). */
+  bossWeak: 0.4,
+  /** Magnitude of a resistance (−30% damage), regular enemies and bosses. */
+  resist: 0.3,
+  /** The Manager's weak mark: the mark bonus is scaled by 1 + this (1 doubles it: ×1.2 becomes ×1.4). */
+  markWeak: 1,
+  /** Status duration (burn, slow, poison, frost/electric stuns) against a weak / resisting enemy. The dps and the slow percentage are never scaled. */
+  weakDuration: 1.5,
+  resistDuration: 0.5,
+  /** A boss or mini-boss hit on its weak tag may stagger: a short stun in its walk state only, at most once per `cooldown` seconds per boss. */
+  stagger: { time: 0.25, cooldown: 4 },
+} as const;
 
 export const ENEMY_BEHAVIORS: readonly EnemyBehavior[] = ['chase', 'charger', 'tank', 'spitter', 'swiper', 'exploder', 'splitter', 'healer', 'thief', 'teleporter', 'boss'];
 
@@ -382,7 +409,7 @@ export interface EnemyContent<T extends Tune = Tune> {
   tune?: T;
   /** Health bar once damaged (never at full HP, to avoid clutter). Elites always show theirs. */
   hpBar?: boolean;
-  /** Affinity: damage taken (and status duration) multiplied for these tags; above 1 = weak, below 1 = resist. Not read by the game yet. */
+  /** Affinity (see {@link AffinityMap}): magnitudes per tag; `weak` takes more damage and longer statuses of that tag, `resist` less and shorter. */
   weak?: AffinityMap;
   resist?: AffinityMap;
   text: Localized<EnemyText>;

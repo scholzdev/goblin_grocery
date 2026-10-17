@@ -27,7 +27,7 @@ export default defineCombo({
       if (!c.touches(ev.stats.uid) || ev.stats.pattern !== 'burst' || !e.alive) return;
       const t = c.tune();
       e.nailHits = (e.nailHits ?? 0) + 1;
-      if (e.nailHits % t.every === 0) { ctx.stun(e, t.freeze); ctx.fx.frostBurst(e.x, e.y - 20, 6); }
+      if (e.nailHits % t.every === 0) { ctx.stun(e, t.freeze, 'frost'); ctx.fx.frostBurst(e.x, e.y - 20, 6); }
     },
   },
 });

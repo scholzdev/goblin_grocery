@@ -11,7 +11,7 @@ const OLD = { id: 'melon', behavior: 'splitter', tell: 0, attackCooldown: 0, att
 
 describe('Watermelon (melon)', () => {
   it('has the stats, sprite scale and tune it had as a table row', () => {
-    expect(ENEMIES.melon).toEqual(OLD);
+    expect(ENEMIES.melon).toEqual({ ...OLD, weak: { blast: 0.3 } });
   });
 
   it('shows its name and blurb unchanged in English and German', () => {
@@ -20,9 +20,9 @@ describe('Watermelon (melon)', () => {
     expect(enemyT('melon')).toEqual({ name: 'Wassermelone', blurb: 'Platzt beim Tod in drei flinke Scheiben. Vorsicht, Matsch.' });
   });
 
-  it('has no affinity yet', () => {
+  it('has its element affinity (weak and resist magnitudes)', () => {
     const c = contentEnemy('melon')!;
-    expect(c.weak).toBeUndefined();
+    expect(c.weak).toEqual({ blast: 0.3 });
     expect(c.resist).toBeUndefined();
   });
 

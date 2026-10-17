@@ -3,7 +3,7 @@ import { contentComboTune, contentCombos, contentItems, contentSets, contentSetT
 import { neighbors } from '../systems/inventory';
 import { ITEMS } from '../data/items';
 import type { ActiveRecipe, Inventory, ItemDef, ItemTypeId, RecipeId, SetId, SlowEffect, WeaponStats } from '../types';
-import { HOOK_NAMES, resolveTune, type ComboContent, type ItemContent, type Resolved, type RuntimeHooks, type SetContent, type Tune } from './define';
+import { HOOK_NAMES, resolveTune, type AffinityTag, type ComboContent, type ItemContent, type Resolved, type RuntimeHooks, type SetContent, type Tune } from './define';
 import type { CombatEnemy, CombatShot, FxApi, RuntimeCtx } from './ctx';
 
 // Runtime (combat) hooks, docs/item-hooks-refactor.md §4c. Content declares `hooks: { onHit(hit, ctx, c) { ... } }`; this file holds the
@@ -33,6 +33,8 @@ export interface HitOpts {
   poison?: boolean;
   /** Leaf Blower slam damage. */
   blow?: number;
+  /** Extra affinity tags this hit carries besides its weapon's and its kind's (`engine/hitTags.ts`): explosions `blast`, the Leaf Blower slam `cleaning`, hazards. */
+  tags?: readonly AffinityTag[];
 }
 
 /** One `damageEnemy` call, from `modifyDamage` to `onKill`. The same object travels the whole pipeline. */
@@ -59,6 +61,8 @@ export interface HitEvent {
   armored: boolean;
   /** Set when `onHit` runs: this hit took the enemy to 0 HP (it dies right after). */
   killed: boolean;
+  /** The hit's affinity tags (`hitTags`: the weapon's element sets and electrical flag, plus the kind of hit). Read-only; `affinityMult` already used them. */
+  tags: readonly AffinityTag[];
   /** Knockback multiplier (starts at 1): `afterHit` hooks multiply it (Cleaning L2), the scene applies it last when it computes the push. */
   kbMult: number;
 }

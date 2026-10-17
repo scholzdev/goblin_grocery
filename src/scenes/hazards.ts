@@ -134,7 +134,7 @@ export class Hazards {
       for (const e of sc.enemies) {
         if (!e.alive || e.state === 'spawn' || h.hit.has(e.id) || !inside(e.x, e.y, e.def.radius)) continue;
         h.hit.add(e.id);
-        sc.damageEnemy(e, T.enemyDamage, null, { label: 'Oven vent' });
+        sc.damageEnemy(e, T.enemyDamage, null, { label: 'Oven vent', tags: ['heat'] });
       }
     } else {
       const T = DEPT_TUNING.cables;
@@ -144,8 +144,8 @@ export class Hazards {
       for (const e of sc.enemies) {
         if (!e.alive || e.state === 'spawn' || h.hit.has(e.id) || !inside(e.x, e.y, e.def.radius)) continue;
         h.hit.add(e.id);
-        sc.damageEnemy(e, T.enemyDamage, null, { label: 'Live cable' });
-        sc.stunEnemy(e, T.stun);
+        sc.damageEnemy(e, T.enemyDamage, null, { label: 'Live cable', tags: ['electric'] });
+        sc.stunEnemy(e, T.stun, 'electric');
       }
     }
   }

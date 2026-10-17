@@ -217,7 +217,7 @@ export interface EnemyDef {
   scale: number;
   /** The enemy's own behavior numbers (content `tune`): Spitter fan, Honey heal, egg blast ... Scalars. */
   tune: Readonly<Record<string, number>>;
-  /** Affinity multipliers per tag (step 2: not read yet). */
+  /** Affinity magnitudes per tag (engine/define.ts `AffinityMap`; the rules are in engine/affinity.ts). */
   weak?: AffinityMap;
   resist?: AffinityMap;
 }

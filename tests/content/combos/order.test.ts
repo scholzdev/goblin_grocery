@@ -15,12 +15,13 @@ import { build } from '../../golden/carts';
 // is pinned here next to the per-combo files.
 
 describe('order: Five-Alarm Toast -> mark -> crit (the damage pipeline)', () => {
-  it('scene: modifyDamage emit, then the mark rule, then the crit roll, then onCrit, then armor/hp (source order of damageEnemy)', () => {
+  it('scene: modifyDamage emit, then the element affinity, then the mark rule, then the crit roll, then onCrit, then armor/hp (source order of damageEnemy)', () => {
     const src = source('scenes/ArenaScene.ts'), from = src.indexOf('damageEnemy(e: Enemy');
     const body = src.slice(from, from + 6000);
     const at = (s: string) => { const i = body.indexOf(s); expect(i, s).toBeGreaterThan(-1); return i; };
-    expect(at("H.emit('modifyDamage'")).toBeLessThan(at('markedDamage(dmg, e.markedUntil, now)'));
-    expect(at('markedDamage(dmg, e.markedUntil, now)')).toBeLessThan(at('this.rng() < stats.critChance'));
+    expect(at("H.emit('modifyDamage'")).toBeLessThan(at('affinityMult(e.def, tags)'));
+    expect(at('affinityMult(e.def, tags)')).toBeLessThan(at('markedDamage(dmg, e.markedUntil, now, markMult(e.def))'));
+    expect(at('markedDamage(dmg, e.markedUntil, now, markMult(e.def))')).toBeLessThan(at('this.rng() < stats.critChance'));
     expect(at('this.rng() < stats.critChance')).toBeLessThan(at("H.emit('onCrit'"));
     expect(at("H.emit('onCrit'")).toBeLessThan(at('e.hp -= dmg'));
     expect(at('e.hp -= dmg')).toBeLessThan(at("H.emit('onHit'"));
@@ -34,6 +35,16 @@ describe('order: Five-Alarm Toast -> mark -> crit (the damage pipeline)', () => 
     const crit = (1000 - e.hp) / (10 * 1.8 * 1.2);
     expect(crit).toBeGreaterThan(1);
     expect(1000 - e.hp).toBeCloseTo(10 * 1.8 * 1.2 * crit, 9);
+  });
+  it('fake: the element affinity sits between them: x1.8 (Five-Alarm) x1.3 (a baguette is weak to the toaster\'s heat) x1.2 (mark) x CRIT.mult', () => {
+    const { fake, stats } = arena(partsOf(fiveAlarm), { seed: 3 });
+    const e = fake.spawnReal('baguette', { hp: 1000 });
+    e.status.burnUntil = 10;
+    fake.mark(e, 5);
+    fake.hit(e, 10, { ...stats, critChance: 1 });
+    const crit = (1000 - e.hp) / (10 * 1.8 * 1.3 * 1.2);
+    expect(crit).toBeGreaterThan(1);
+    expect(1000 - e.hp).toBeCloseTo(10 * 1.8 * 1.3 * 1.2 * crit, 9);
   });
   it('the Five-Alarm hook is the only modifyDamage with order 10 and runs before the engine mark rule (the mark is engine, not a hook)', () => {
     expect(fiveAlarm.hooks!.order).toBe(10);

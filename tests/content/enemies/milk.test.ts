@@ -11,7 +11,7 @@ const OLD = { id: 'milk', behavior: 'chase', tell: 0, attackCooldown: 0, attackR
 
 describe('Sour Milk (milk)', () => {
   it('has the stats, sprite scale and tune it had as a table row', () => {
-    expect(ENEMIES.milk).toEqual(OLD);
+    expect(ENEMIES.milk).toEqual({ ...OLD, weak: { blast: 0.3 } });
   });
 
   it('shows its name and blurb unchanged in English and German', () => {
@@ -20,9 +20,9 @@ describe('Sour Milk (milk)', () => {
     expect(enemyT('milk')).toEqual({ name: 'Saure Milch', blurb: 'Über dem Datum und stinksauer darüber. Läuft einfach auf dich zu. Immer wieder.' });
   });
 
-  it('has no affinity yet', () => {
+  it('has its element affinity (weak and resist magnitudes)', () => {
     const c = contentEnemy('milk')!;
-    expect(c.weak).toBeUndefined();
+    expect(c.weak).toEqual({ blast: 0.3 });
     expect(c.resist).toBeUndefined();
   });
 

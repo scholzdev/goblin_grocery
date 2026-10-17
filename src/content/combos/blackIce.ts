@@ -20,7 +20,7 @@ export default defineCombo({
   hooks: {
     'pattern:puddleEnter'(ev, ctx, c) {
       if (!ev.first || !c.touches(ev.stats.uid)) return;
-      ctx.stun(ev.enemy, c.tune().freeze);
+      ctx.stun(ev.enemy, c.tune().freeze, 'frost');
       ctx.fx.frostBurst(ev.enemy.x, ev.enemy.y - 20, 4);
     },
   },

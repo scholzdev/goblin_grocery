@@ -11,7 +11,7 @@ const OLD = { id: 'expired', behavior: 'teleporter', tell: 0.6, attackCooldown: 
 
 describe('Expired Milk (expired)', () => {
   it('has the stats, sprite scale and tune it had as a table row', () => {
-    expect(ENEMIES.expired).toEqual(OLD);
+    expect(ENEMIES.expired).toEqual({ ...OLD, weak: { cleaning: 0.3 }, resist: { poison: 0.3 } });
   });
 
   it('shows its name and blurb unchanged in English and German', () => {
@@ -20,10 +20,10 @@ describe('Expired Milk (expired)', () => {
     expect(enemyT('expired')).toEqual({ name: 'Abgelaufene Milch', blurb: 'Flackert und blinkt dann direkt neben dich. Achte auf den gestrichelten Ring.' });
   });
 
-  it('has no affinity yet', () => {
+  it('has its element affinity (weak and resist magnitudes)', () => {
     const c = contentEnemy('expired')!;
-    expect(c.weak).toBeUndefined();
-    expect(c.resist).toBeUndefined();
+    expect(c.weak).toEqual({ cleaning: 0.3 });
+    expect(c.resist).toEqual({ poison: 0.3 });
   });
 
   it('shows a health bar once damaged', () => {

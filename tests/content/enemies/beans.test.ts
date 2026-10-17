@@ -12,7 +12,7 @@ const OLD = { id: 'beans', behavior: 'chase', tell: 0, attackCooldown: 0, attack
 
 describe('Canned Beans (beans)', () => {
   it('has the stats, sprite scale and tune it had as a table row', () => {
-    expect(ENEMIES.beans).toEqual(OLD);
+    expect(ENEMIES.beans).toEqual({ ...OLD, weak: { electric: 0.3 } });
   });
 
   it('shows its name and blurb unchanged in English and German', () => {
@@ -21,9 +21,9 @@ describe('Canned Beans (beans)', () => {
     expect(enemyT('beans')).toEqual({ name: 'Dosenbohnen', blurb: 'Verbeult, dicht und gepanzert: direkte Treffer verlieren 3 Schaden. Brand, Pfützen und Auren ignorieren die Dose.' });
   });
 
-  it('has no affinity yet', () => {
+  it('has its element affinity (weak and resist magnitudes)', () => {
     const c = contentEnemy('beans')!;
-    expect(c.weak).toBeUndefined();
+    expect(c.weak).toEqual({ electric: 0.3 });
     expect(c.resist).toBeUndefined();
   });
 

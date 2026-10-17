@@ -4,6 +4,7 @@ import type { CombatEnemy } from '../../../src/engine/ctx';
 import type { HitEvent, HitOpts } from '../../../src/engine/hooks';
 import { setBonusT, tagT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
+import { hitTags } from '../../../src/engine/hitTags';
 import { combatRng } from '../../../src/systems/rng';
 import type { SetId, WeaponStats } from '../../../src/types';
 
@@ -19,7 +20,7 @@ export const draws = (seed: number, n: number): number[] => { const r = combatRn
 
 /** A `HitEvent` for emitting `afterHit` by hand (the fake only builds one inside `hit`, where `kbMult` is not visible to a test). */
 export const hitOf = (enemy: CombatEnemy, stats: WeaponStats | null, opts: HitOpts = {}, dmg = 5): HitEvent => ({
-  enemy, base: dmg, dmg, stats, opts, source: stats?.uid ?? 'shove', now: 0, direct: !opts.isDot && !opts.echo && !opts.fromPopper && !opts.chained, crit: false, armored: false, killed: false, kbMult: 1,
+  enemy, base: dmg, dmg, stats, opts, source: stats?.uid ?? 'shove', now: 0, tags: hitTags(stats, opts), direct: !opts.isDot && !opts.echo && !opts.fromPopper && !opts.chained, crit: false, armored: false, killed: false, kbMult: 1,
 });
 
 /**

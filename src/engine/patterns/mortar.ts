@@ -1,8 +1,11 @@
 import { DEPTH } from '../../data/depth';
 import { newHitTracker, tryHit } from '../../systems/combat';
 import type { WeaponStats } from '../../types';
+import type { AffinityTag } from '../define';
 import { origin, repeat } from './common';
 import type { Pattern, PatternEnemy, PatternHost, WeaponRt } from './types';
+
+const BLAST: readonly AffinityTag[] = ['blast'];
 
 /** An explosion of `st` at (x, y): everything within `aoe` takes the weapon's damage with knockback. Also what `ctx.explode` runs (Pot Slam). */
 export function explodeAt(h: PatternHost, x: number, y: number, st: WeaponStats): void {
@@ -18,7 +21,7 @@ export function explodeAt(h: PatternHost, x: number, y: number, st: WeaponStats)
     if (!e.alive || e.state === 'spawn') continue;
     const dx = e.x - x, dy = e.y - y, d = Math.hypot(dx, dy);
     if (d > st.aoe + e.def.radius || !tryHit(tracker, e.id)) continue;
-    sc.damageEnemy(e, st.damage, st, { kb: 220, kbX: dx / (d || 1), kbY: dy / (d || 1) });
+    sc.damageEnemy(e, st.damage, st, { kb: 220, kbX: dx / (d || 1), kbY: dy / (d || 1), tags: BLAST }); // an explosion is a blast hit on top of the pot's own sets
     hits?.push(e);
   }
   if (hits) sc.hooks.emit('pattern:explode', { stats: st, x, y, hits }); // Pressure Point's fire pool, Shrapnel's fragments

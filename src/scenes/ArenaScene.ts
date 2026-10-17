@@ -20,6 +20,9 @@ import { EMPTY_HOOKS, buildHooks, type HitEvent, type HitOpts, type HookTable } 
 import { applyHitStatuses, scheduleEcho } from '../engine/onHitStatuses';
 import { applyKillEffects } from '../engine/onKillEffects';
 import { markedDamage } from '../engine/marks';
+import { affinityMult, markMult, resistTag, statusDurationMult, tryStagger, weakTag } from '../engine/affinity';
+import { AFFINITY, type AffinityTag } from '../engine/define';
+import { hitTags } from '../engine/hitTags';
 import { contentSetTune } from '../engine/registry';
 import { PhaserCtx } from './phaserCtx';
 import { createEnemy, drawTelegraph, updateEnemy, type Enemy } from './enemies';
@@ -50,6 +53,10 @@ import { padMove, takePadShove } from '../input/gamepad';
 import { ARENA, ENTRIES, SIDE_UNITS, DECO_SPOTS, edgeSolids } from '../data/arena';
 import { labDummies, type LabDummy } from '../lab';
 export { ARENA };
+
+/** Damage-number and flash colours of the affinity tags (the set chips' hues): a weak hit's number, the boss "WEAK!" label and its ring. */
+const AFFINITY_TINT: Record<AffinityTag, number> = { heat: 0xff7a3d, frost: 0x8fd8ff, electric: 0xf5e26b, blast: 0xff8fc8, cleaning: 0x4fd1c5, poison: 0x8fcb57, mark: 0xf5bd45 };
+const AFFINITY_COLOR = Object.fromEntries(Object.entries(AFFINITY_TINT).map(([k, v]) => [k, '#' + v.toString(16).padStart(6, '0').toUpperCase()])) as Record<AffinityTag, string>;
 
 interface Player {
   x: number; y: number; radius: number; facing: 1 | -1;
@@ -527,13 +534,34 @@ export class ArenaScene extends Phaser.Scene {
     this.fx.puff(e.x, e.y - 10, 2);
     this.fx.spark(e.x, e.y - 30, 4, 0xcfefff);
     this.fx.shake(0.003, 80);
-    this.damageEnemy(e, dmg, null, { label: 'Slam' });
+    this.damageEnemy(e, dmg, null, { label: 'Slam', tags: ['cleaning'] }); // the Leaf Blower's slam
   }
 
-  stunEnemy(e: Enemy, t: number): void {
-    if (!e.alive || e.def.behavior === 'boss') return;
+  /**
+   * Stun from hazards and hooks. The boss shrugs it off to keep its patterns readable (see `staggerEnemy`). `tag` is the element of a frost or
+   * electric stun: the time scales with the enemy's affinity (engine/affinity). Returns the seconds applied, 0 if refused.
+   */
+  stunEnemy(e: Enemy, t: number, tag?: AffinityTag): number {
+    if (!e.alive || e.def.behavior === 'boss') return 0;
+    const dur = t * statusDurationMult(e.def, tag);
     e.state = 'stun';
-    e.stateT = Math.max(e.stateT, t);
+    e.stateT = Math.max(e.stateT, dur);
+    return dur;
+  }
+
+  /**
+   * Weakness stagger: a boss (or mini-boss) knocked out of its walk for `AFFINITY.stagger.time`. Bypasses the boss guard of `stunEnemy`, which stays
+   * for every other stun. The caller (`damageEnemy`) already checked `tryStagger`: walking only, the cooldown, a weak-tag hit. `staggered` keeps the
+   * half-HP volley chain of a charge recovery from firing when it ends.
+   */
+  staggerEnemy(e: Enemy, tag: AffinityTag | null): void {
+    if (!e.alive || e.state !== 'walk') return;
+    e.state = 'stun';
+    e.stateT = Math.max(e.stateT, AFFINITY.stagger.time);
+    e.staggered = true;
+    this.fx.label(e.x, e.y - e.sprite.displayHeight - 30, t('weakFlash'), tag ? AFFINITY_COLOR[tag] : '#FFF2D5', 24);
+    this.fx.ring('fx_pulse', e.x, e.y, 120, 220, tag ? AFFINITY_TINT[tag] : 0xffffff);
+    play('cap_ping', { rate: 1.2, volume: 0.6 });
   }
 
   /** Floor slow multiplier for enemies (ice). */
@@ -603,18 +631,22 @@ export class ArenaScene extends Phaser.Scene {
     const key = o.poison ? 'poison' : o.isDot ? 'burn' : stats?.uid ?? o.label ?? 'shove';
     // DAMAGE PIPELINE, in this order (runtime hooks slot into it, docs/item-hooks-refactor.md §4c):
     //   1. modifyDamage hooks   pre-crit, pre-armor: multiply hit.dmg (Five-Alarm Toast, order 10)
-    //   2. the mark rule (engine/marks): x Price Check's damageMult while marked, for every source (Sale Flag marks too)
-    //   3. crit roll (combat rng): dmg x CRIT.mult, then onCrit hooks (Free Sample, then the Clearance Sale coin)
-    //   4. armor (direct hits only), hp -= dmg, damageByWeapon
-    //   5. onHit hooks, then applyHitStatuses (engine/onHitStatuses: burn, ignite, slow), afterHit hooks (the sets: Frost freeze, Cleaning
-    //      knockback mult, Electric chain), knockback, flash/number fx, scheduleEcho (Double Bag)
-    //   6. kill: killEnemy (coins; onKill hooks fire inside it, after the bread drop: Coupon, Bag It's charge) -> afterKill hooks (the sets:
+    //   2. element affinity (engine/affinity): x (1 + best weak - best resist) of the hit's tags (engine/hitTags) against this enemy
+    //   3. the mark rule (engine/marks): x Price Check's damageMult while marked, for every source (Sale Flag marks too); the Manager's is bigger
+    //   4. crit roll (combat rng): dmg x CRIT.mult, then onCrit hooks (Free Sample, then the Clearance Sale coin)
+    //   5. armor (direct hits only), hp -= dmg, damageByWeapon
+    //   6. onHit hooks, then applyHitStatuses (engine/onHitStatuses: burn, ignite, slow), afterHit hooks (the sets: Frost freeze, Cleaning
+    //      knockback mult, Electric chain), the boss weakness stagger, knockback, flash/number fx, scheduleEcho (Double Bag)
+    //   7. kill: killEnemy (coins; onKill hooks fire inside it, after the bread drop: Coupon, Bag It's charge) -> afterKill hooks (the sets:
     //      Kitchen heal, Blast pop) -> applyKillEffects (engine/onKillEffects: Party Popper)
     // A hook runs before the engine lines of its slot.
     // The payload is one small object per hit; the engine modules (statuses, echo, kill effects) read it, the emits are guarded by `H.hit`.
-    const hit: HitEvent = { enemy: e, base: dmg, dmg, stats, opts: o, source: key, now, direct: !o.isDot && !o.echo && !o.fromPopper && !o.chained, crit: false, armored: false, killed: false, kbMult: 1 };
+    const tags = hitTags(stats, o);
+    const hit: HitEvent = { enemy: e, base: dmg, dmg, stats, opts: o, source: key, now, tags, direct: !o.isDot && !o.echo && !o.fromPopper && !o.chained, crit: false, armored: false, killed: false, kbMult: 1 };
     if (H.hit) { H.emit('modifyDamage', hit); dmg = hit.dmg; }
-    dmg = markedDamage(dmg, e.markedUntil, now); // Price Check / Sale Flag mark: after Five-Alarm (a modifyDamage hook), before the crit roll
+    const aff = affinityMult(e.def, tags); // element soft counters: after Five-Alarm (a modifyDamage hook), before the mark and the crit roll
+    dmg *= aff;
+    dmg = markedDamage(dmg, e.markedUntil, now, markMult(e.def)); // Price Check / Sale Flag mark
     // Crits resolve here and only here (never on burn ticks).
     const crit = !o.isDot && !!stats && stats.critChance > 0 && this.rng() < stats.critChance;
     if (crit) {
@@ -639,6 +671,7 @@ export class ArenaScene extends Phaser.Scene {
     if (H.hit) H.emit('onHit', hit);
     applyHitStatuses(hit, this.ctx); // burn, Heat L2 ignite, slow (stats-driven, shared by every source)
     if (H.afterHit.length) H.emit('afterHit', hit); // the sets: Frost freeze (needs the slow just applied), Cleaning knockback mult + spritz, Electric chain
+    if (e.def.behavior === 'boss' && e.hp > 0 && !o.isDot && tryStagger(e, tags, (e.markedUntil ?? 0) > now, now)) this.staggerEnemy(e, weakTag(e.def, tags, (e.markedUntil ?? 0) > now)); // a boss hit on its weak tag: a brief stagger (walk only, cooldown)
     if (o.kb) {
       const k = o.kb * (1 - e.def.knockbackResist) * (this.hazards.onIce(e.x, e.y) ? DEPT_TUNING.ice.knockbackMult : 1) * hit.kbMult;
       e.kx += (o.kbX ?? 0) * k * 3; e.ky += (o.kbY ?? 0) * k * 3;
@@ -657,7 +690,9 @@ export class ArenaScene extends Phaser.Scene {
     }
     if (crit || now - e.lastHitNumberAt > 0.14 || dmg >= 10) {
       e.lastHitNumberAt = now;
-      this.fx.number(e.x, e.y - e.sprite.displayHeight * 0.9, dmg, crit ? '#F45F52' : o.poison ? '#8FCB57' : o.isDot ? '#F5BD45' : '#FFF2D5', crit ? 28 : o.isDot ? 16 : 22);
+      // Weak hits take the element's colour a size up, resisted ones a dim grey a size down; a crit stays a crit.
+      const wk = aff > 1 ? weakTag(e.def, tags) : null, rs = aff < 1 ? resistTag(e.def, tags) : null;
+      this.fx.number(e.x, e.y - e.sprite.displayHeight * 0.9, dmg, crit ? '#F45F52' : wk ? AFFINITY_COLOR[wk] : rs ? '#9C93B0' : o.poison ? '#8FCB57' : o.isDot ? '#F5BD45' : '#FFF2D5', crit ? 28 : wk ? (o.isDot ? 18 : 25) : rs ? (o.isDot ? 14 : 19) : o.isDot ? 16 : 22);
     }
     scheduleEcho(hit, this.ctx); // Double Bag (stats.echo): one delayed second strike per direct hit
     if (e.dummy?.immortal && e.hp <= 0) e.hp = e.maxHp; // lab sandbox: unkillable dummies refill
@@ -717,7 +752,7 @@ export class ArenaScene extends Phaser.Scene {
     play('pop');
     for (const o of this.enemies) {
       if (o === e || !o.alive || o.state === 'spawn' || o.def.behavior === 'boss') continue;
-      if (Math.hypot(o.x - e.x, o.y - e.y) < ENEMIES.egg.tune.radius + o.def.radius) this.damageEnemy(o, ENEMIES.egg.tune.enemyDamage, null, { label: 'Egg Carton' });
+      if (Math.hypot(o.x - e.x, o.y - e.y) < ENEMIES.egg.tune.radius + o.def.radius) this.damageEnemy(o, ENEMIES.egg.tune.enemyDamage, null, { label: 'Egg Carton', tags: ['blast'] });
     }
     this.killEnemy(e, false);
   }

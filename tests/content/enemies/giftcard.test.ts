@@ -11,7 +11,7 @@ const OLD = { id: 'giftcard', behavior: 'thief', tell: 0, attackCooldown: 0, att
 
 describe('Gift Card (giftcard)', () => {
   it('has the stats, sprite scale and tune it had as a table row', () => {
-    expect(ENEMIES.giftcard).toEqual(OLD);
+    expect(ENEMIES.giftcard).toEqual({ ...OLD, weak: { electric: 0.3 } });
   });
 
   it('shows its name and blurb unchanged in English and German', () => {
@@ -20,9 +20,9 @@ describe('Gift Card (giftcard)', () => {
     expect(enemyT('giftcard')).toEqual({ name: 'Geschenkkarte', blurb: 'Rennt vor dir weg und entwischt nach 8 Sekunden. Schnapp sie dir für einen Münz-Jackpot.' });
   });
 
-  it('has no affinity yet', () => {
+  it('has its element affinity (weak and resist magnitudes)', () => {
     const c = contentEnemy('giftcard')!;
-    expect(c.weak).toBeUndefined();
+    expect(c.weak).toEqual({ electric: 0.3 });
     expect(c.resist).toBeUndefined();
   });
 

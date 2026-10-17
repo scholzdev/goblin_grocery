@@ -11,7 +11,7 @@ const OLD = { id: 'boss', behavior: 'boss', tell: 0.8, attackCooldown: 2.4, atta
 
 describe('The Store Manager (boss)', () => {
   it('has the stats, sprite scale and tune it had as a table row', () => {
-    expect(ENEMIES.boss).toEqual(OLD);
+    expect(ENEMIES.boss).toEqual({ ...OLD, weak: { mark: 1 } });
   });
 
   it('shows its name and blurb unchanged in English and German', () => {
@@ -20,9 +20,9 @@ describe('The Store Manager (boss)', () => {
     expect(enemyT('boss')).toEqual({ name: 'Der Filialleiter', blurb: 'Salven, Ansturm und Verstärkung. Wird ungemütlich, wenn du zu lange brauchst.' });
   });
 
-  it('has no affinity yet', () => {
+  it('has its element affinity (weak and resist magnitudes)', () => {
     const c = contentEnemy('boss')!;
-    expect(c.weak).toBeUndefined();
+    expect(c.weak).toEqual({ mark: 1 });
     expect(c.resist).toBeUndefined();
   });
 

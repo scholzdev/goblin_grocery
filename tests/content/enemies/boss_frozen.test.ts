@@ -11,7 +11,7 @@ const OLD = { id: 'boss_frozen', behavior: 'boss', tell: 0.9, attackCooldown: 2.
 
 describe('The Walk-In Freezer (boss_frozen)', () => {
   it('has the stats, sprite scale and tune it had as a table row', () => {
-    expect(ENEMIES.boss_frozen).toEqual(OLD);
+    expect(ENEMIES.boss_frozen).toEqual({ ...OLD, weak: { heat: 0.4 }, resist: { frost: 0.3 } });
   });
 
   it('shows its name and blurb unchanged in English and German', () => {
@@ -20,10 +20,10 @@ describe('The Walk-In Freezer (boss_frozen)', () => {
     expect(enemyT('boss_frozen')).toEqual({ name: 'Der Kühlraum', blurb: 'Langsam, riesig und eiskalt. Seine Kälteeinbrüche machen den Boden zu bremsendem Matsch, und sein Ansturm rutscht weiter.' });
   });
 
-  it('has no affinity yet', () => {
+  it('has its element affinity (weak and resist magnitudes)', () => {
     const c = contentEnemy('boss_frozen')!;
-    expect(c.weak).toBeUndefined();
-    expect(c.resist).toBeUndefined();
+    expect(c.weak).toEqual({ heat: 0.4 });
+    expect(c.resist).toEqual({ frost: 0.3 });
   });
 
   it('shows no health bar (it only does for elites)', () => {

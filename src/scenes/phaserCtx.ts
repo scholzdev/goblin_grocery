@@ -6,6 +6,8 @@ import { play } from '../audio/sfx';
 import { t, type UIKey } from '../i18n';
 import type { CombatEnemy, CombatShot, PoolSpec, PlayerView, RuntimeCtx, ShotSpec } from '../engine/ctx';
 import type { HitOpts } from '../engine/hooks';
+import type { AffinityTag } from '../engine/define';
+import { burnFor, poisonTimeFor, slowFor } from '../engine/affinity';
 import type { ArenaScene } from './ArenaScene';
 import type { Enemy } from './enemies';
 import { beamOnce, boltFx, explodeAt, spawnFirePool, sweepOnce } from '../engine/patterns';
@@ -49,10 +51,11 @@ export class PhaserCtx implements RuntimeCtx {
     for (const e of hit) this.sc.damageEnemy(e as Enemy, dmg, source, opts);
     return hit.length;
   }
-  stun(e: CombatEnemy, seconds: number): void { this.sc.stunEnemy(e as Enemy, seconds); }
-  ignite(e: CombatEnemy, burn: BurnEffect): void { applyBurn(e.status, this.sc.aisleEvent.burn(burn), this.now()); }
-  slow(e: CombatEnemy, slow: SlowEffect): void { applySlow(e.status, slow, this.now()); }
-  poison(e: CombatEnemy, dps: number, duration: number): void { applyPoison(e.status, dps, duration, this.now()); }
+  stun(e: CombatEnemy, seconds: number, tag?: AffinityTag): number { return this.sc.stunEnemy(e as Enemy, seconds, tag); }
+  // Status durations scale with the enemy's element affinity (engine/affinity); the dps and the slow percentage never do.
+  ignite(e: CombatEnemy, burn: BurnEffect): void { applyBurn(e.status, burnFor(e.def, this.sc.aisleEvent.burn(burn)), this.now()); }
+  slow(e: CombatEnemy, slow: SlowEffect): void { applySlow(e.status, slowFor(e.def, slow), this.now()); }
+  poison(e: CombatEnemy, dps: number, duration: number): void { applyPoison(e.status, dps, poisonTimeFor(e.def, duration), this.now()); }
   mark(e: CombatEnemy, seconds: number): void { e.markedUntil = this.now() + seconds; }
 
   get player(): PlayerView { return this.sc.player; }

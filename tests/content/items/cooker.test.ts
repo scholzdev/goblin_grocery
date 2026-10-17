@@ -107,7 +107,7 @@ describe('Pressure Cooker: pattern mortar', () => {
     const hits = fake.callsOf('damage');
     expect(hits.map((c) => c.enemy)).toEqual([c1.id, c2.id, c3.id]);
     expect(hits.every((c) => c.dmg === 32)).toBe(true);
-    expect(hits[0].opts).toEqual({ kb: 220, kbX: 0, kbY: 0 });
+    expect(hits[0].opts).toEqual({ kb: 220, kbX: 0, kbY: 0, tags: ['blast'] });
     expect(hits[1].opts).toMatchObject({ kb: 220, kbX: 1, kbY: 0 });
     expect(hits.some((c) => c.enemy === lone.id)).toBe(false);
     expect(a.pots).toHaveLength(0);

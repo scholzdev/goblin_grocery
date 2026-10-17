@@ -12,7 +12,7 @@ const OLD = { id: 'honey', behavior: 'healer', tell: 0, attackCooldown: 0, attac
 
 describe('Honey Jar (honey)', () => {
   it('has the stats, sprite scale and tune it had as a table row', () => {
-    expect(ENEMIES.honey).toEqual(OLD);
+    expect(ENEMIES.honey).toEqual({ ...OLD, weak: { frost: 0.3 }, resist: { poison: 0.3 } });
   });
 
   it('shows its name and blurb unchanged in English and German', () => {
@@ -21,10 +21,10 @@ describe('Honey Jar (honey)', () => {
     expect(enemyT('honey')).toEqual({ name: 'Honigglas', blurb: 'Hält sich hinten und heilt Gegner in der Nähe jede Sekunde um 3%. Klebrig; zuerst platzieren.' });
   });
 
-  it('has no affinity yet', () => {
+  it('has its element affinity (weak and resist magnitudes)', () => {
     const c = contentEnemy('honey')!;
-    expect(c.weak).toBeUndefined();
-    expect(c.resist).toBeUndefined();
+    expect(c.weak).toEqual({ frost: 0.3 });
+    expect(c.resist).toEqual({ poison: 0.3 });
   });
 
   it('shows a health bar once damaged', () => {

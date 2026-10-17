@@ -15,6 +15,7 @@ import { keyLabel, matches } from '../state/keymap';
 import type { ShopPad } from '../input/gamepad';
 import { pickNext, type Dir } from '../input/pad-core';
 import { icons, setIcon } from './icons';
+import { strongVsHtml } from './affinity';
 import { t, fmtNum } from '../i18n';
 import { itemRules, itemT, recipeT, setBonusT, tagT } from '../i18n/data';
 import { lvOf, setCount as setCountOf, setGains, setsOf } from '../data/sets';
@@ -367,7 +368,7 @@ export function inspectorHtml(type: ItemTypeId, uid: string | null, offerTier?: 
     <div class="hd"><div class="nm"><span style="font-size:${fitName(itemT(type).name)}px">${itemT(type).name}</span><b class="lv ${def.legendary ? 'leg' : `t${tier}`}">★${def.legendary ? '' : tier}</b></div>
     <span class="sub ${rc}">${rarity} · ${kind}</span></div></header>
     <div class="chips">${dblNote}${flavor ? `<span class="chip flavor-chip flavor-${flavor}">${esc(t('flavorLabel', { f: tagT(flavor) }))}</span>` : ''}${setChips}${otherTags.map((tg) => `<span class="chip">${tagT(tg)}</span>`).join('')}<span class="chip">${icons.grid(15)}${w}×${h}</span>
-    <span class="chip coin"><img class="coin-ico" src="${svg('coin')}" alt="">${loc ? t('sells', { n: sellPrice(type, tier) }) : def.price}</span></div>`;
+    <span class="chip coin"><img class="coin-ico" src="${svg('coin')}" alt="">${loc ? t('sells', { n: sellPrice(type, tier) }) : def.price}</span></div>${def.kind === 'weapon' ? strongVsHtml(type) : ''}`;
 
   let body = '';
   // Weapon stats: live values when in the cart, the base values at this level otherwise (shelf / offer).

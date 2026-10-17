@@ -74,9 +74,9 @@ describe('Sale Flag: the mark multiplier stays in the pipeline', () => {
     expect(contentCombo('priceCheck')!.hooks!['pattern:beam']).toBeTypeOf('function'); // the beam marks too
   });
 
-  it('applies the modifyDamage hooks (Five-Alarm) first, then the mark, then the crit roll (the multiplication order of today)', () => {
+  it('applies the modifyDamage hooks (Five-Alarm) first, then the element affinity, then the mark, then the crit roll (the multiplication order of today)', () => {
     const at_ = (n: string) => { const i = body.indexOf(n); expect(i, n).toBeGreaterThan(-1); return i; };
-    const order = ["H.emit('modifyDamage'", 'markedDamage(dmg, e.markedUntil, now)', 'this.rng() < stats.critChance'].map(at_);
+    const order = ["H.emit('modifyDamage'", 'affinityMult(e.def, tags)', 'markedDamage(dmg, e.markedUntil, now, markMult(e.def))', 'this.rng() < stats.critChance'].map(at_);
     expect(order).toEqual([...order].sort((a, b) => a - b));
   });
 

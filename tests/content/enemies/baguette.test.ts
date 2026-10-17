@@ -11,7 +11,7 @@ const OLD = { id: 'baguette', behavior: 'swiper', tell: 0.55, attackCooldown: 2.
 
 describe('Baguette Bruiser (baguette)', () => {
   it('has the stats, sprite scale and tune it had as a table row', () => {
-    expect(ENEMIES.baguette).toEqual(OLD);
+    expect(ENEMIES.baguette).toEqual({ ...OLD, weak: { heat: 0.3 } });
   });
 
   it('shows its name and blurb unchanged in English and German', () => {
@@ -20,9 +20,9 @@ describe('Baguette Bruiser (baguette)', () => {
     expect(enemyT('baguette')).toEqual({ name: 'Baguette-Rabauke', blurb: 'Schwingt einen breiten, knusprigen Bogen, wenn du zu nah kommst. Geh weg oder brich ihn.' });
   });
 
-  it('has no affinity yet', () => {
+  it('has its element affinity (weak and resist magnitudes)', () => {
     const c = contentEnemy('baguette')!;
-    expect(c.weak).toBeUndefined();
+    expect(c.weak).toEqual({ heat: 0.3 });
     expect(c.resist).toBeUndefined();
   });
 

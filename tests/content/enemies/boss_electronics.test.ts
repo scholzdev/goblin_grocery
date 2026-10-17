@@ -11,7 +11,7 @@ const OLD = { id: 'boss_electronics', behavior: 'boss', tell: 0.8, attackCooldow
 
 describe('The Smart-TV Wall (boss_electronics)', () => {
   it('has the stats, sprite scale and tune it had as a table row', () => {
-    expect(ENEMIES.boss_electronics).toEqual(OLD);
+    expect(ENEMIES.boss_electronics).toEqual({ ...OLD, weak: { cleaning: 0.4 }, resist: { electric: 0.3 } });
   });
 
   it('shows its name and blurb unchanged in English and German', () => {
@@ -20,10 +20,10 @@ describe('The Smart-TV Wall (boss_electronics)', () => {
     expect(enemyT('boss_electronics')).toEqual({ name: 'Die Smart-TV-Wand', blurb: 'Zappt Bahnen aus Starkstromkabeln über den Boden, feuert breite schnelle Fächer und startet Spucker.' });
   });
 
-  it('has no affinity yet', () => {
+  it('has its element affinity (weak and resist magnitudes)', () => {
     const c = contentEnemy('boss_electronics')!;
-    expect(c.weak).toBeUndefined();
-    expect(c.resist).toBeUndefined();
+    expect(c.weak).toEqual({ cleaning: 0.4 });
+    expect(c.resist).toEqual({ electric: 0.3 });
   });
 
   it('shows no health bar (it only does for elites)', () => {

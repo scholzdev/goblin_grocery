@@ -15,6 +15,8 @@ src/engine/build.ts          runs build hooks in phase order for systems/synergi
 src/engine/hooks.ts          runtime hook types; compiles the cart's handlers once per build
 src/engine/ctx.ts            the narrow runtime API (`ctx`) hooks use; PhaserCtx lives in scenes/, FakeCtx in engine/fakeCtx.ts
 src/engine/text.ts           renders `{key|fmt}` placeholders from the tune
+src/engine/affinity.ts         the element soft counters: affinityMult, statusDurationMult, markMult, tryStagger (pure)
+src/engine/hitTags.ts         the affinity tags of one hit (weapon sets + kind of hit)
 src/engine/patterns/         weapon behavior (toast, sweep, burst, pulse, zap, aura, ricochet, puddle, laser, mortar, cone + projectile.ts, common.ts)
 src/data/items.ts, recipes.ts, sets.ts, enemies.ts   plain tables derived from the content (ITEMS, RECIPES, counting, ENEMIES, BOSS_KITS ...); enemies.ts also keeps the shared rules that have no single owner (below)
 src/sims/                    playtest scenarios, see docs/sims.md
@@ -45,7 +47,7 @@ src/sims/                    playtest scenarios, see docs/sims.md
 | `tune` | numbers that belong to this enemy's behavior only (the Spitter's fan, the Honey Jar's heal, the egg blast, the Gum puddles, the Watermelon's slices, Cereal shield, Beans armor floor, Gift Card jackpot, Expired Milk blink). Scalars only. The AI and the systems read them as `ENEMIES.<id>.tune` (`contentEnemyTune(id)`) and never hold a copy of the number. A boss's `tune` is its signature move's numbers (`BOSS_SPECIAL_KEYS` lists what each move needs) |
 | `text` | `en` / `de` `name` and `blurb`; `{key}` placeholders resolve against the `tune` and the numeric `stats` (Beans: `{armor}`), so the blurb cannot drift from the number. The bare-number lint covers them |
 | `hpBar` | show a health bar once damaged (`SHOW_HP_BAR`) |
-| `weak`, `resist` | `Partial<Record<AffinityTag, number>>`, a damage multiplier per tag (`heat`, `frost`, `electric`, `blast`, `cleaning`, `poison`, `mark`). Validated, but nothing reads them yet (step 2 of the enemy rework) |
+| `weak`, `resist` | `Partial<Record<AffinityTag, number>>`: the element soft counters (see "Affinity" below). The value is the MAGNITUDE (`weak: { heat: AFFINITY.weak }` = +30% damage), tags `heat`, `frost`, `electric`, `blast`, `cleaning`, `poison`, `mark`. Validated at load: known tag, positive, resist at most 1, never both weak and resist for one tag |
 | `boss` | bosses only: `{ theme, kit }`. `theme` is the department whose aisle-8 boss it is (one boss per theme), `kit` is `{ cycle, shot, special?, moves }` (the loop of volley / charge / summon / special, the shot texture, the signature move, the volley and summon numbers) |
 
 `data/enemies.ts` derives `ENEMIES` (with the EN name and rendered blurb, for old readers), `BOSS_IDS`, `BOSS_BY_THEME`, `BOSS_KITS`, `BOSS_CYCLE`, `BOSS_SPECIAL` and `SHOW_HP_BAR` from the files. What stays there on purpose has no single owner: `BOSS` (the shared boss rules, which the shifts tune: enrage, cooldown multipliers and the Manager's volley and summon base), `MINI_BOSS` (its two variants name one grocery per theme, so it belongs to no one enemy), `ELITE`, `AFFIX`, `ELITE_EXCLUDED`, `SPLITTER_EXCLUDED`, `THEME_SUMMONS` and the codex order `CODEX_ENEMIES`. The AI stays in `scenes/enemies.ts` (`createEnemy`, `updateEnemy`, the boss moves, the telegraphs).
@@ -74,13 +76,54 @@ A build hook is `weapon(stats, c)` and/or `player(build, c)`. `c` offers `tier`,
 Declared in `hooks: { order?, <hook>(event, ctx, c) {} }`. Handlers are compiled once per build into flat arrays, only for what the cart contains. `c` is the owner's tier and resolved tune (`c.tune()`), `c.touches(weaponUid)`, `c.owned(id)`, `c.def(id)`, `c.tuneOf(...)`. The events are typed in `engine/hooks.ts`, the `ctx` API (`now`, `rng`, enemies, `damage`, `stun`, `heal`, `dropCoin`, `fx.*`, ...) in `engine/ctx.ts`.
 
 - Run: `onAisleStart`, `onTick(dt)`.
-- Damage pipeline (`ArenaScene.damageEnemy`, in this order): `modifyDamage` (pre-crit, multiply `hit.dmg`), crit roll (combat rng), `onCrit`, armor and `hp -= dmg`, `onHit`, the stats-driven statuses (`engine/onHitStatuses.ts`: burn, ignite, slow, echo), `afterHit`; on a lethal hit `killEnemy` (loot), `onKill`, the stats-driven on-kill effects (`engine/onKillEffects.ts`), `afterKill`. Five-Alarm (order 10) comes before the mark multiplier (`engine/marks.ts`).
+- Damage pipeline (`ArenaScene.damageEnemy`, in this order): `modifyDamage` (pre-crit, multiply `hit.dmg`), the element affinity multiplier (`engine/affinity.ts`), the mark (`engine/marks.ts`), crit roll (combat rng), `onCrit`, armor and `hp -= dmg`, `onHit`, the stats-driven statuses (`engine/onHitStatuses.ts`: burn, ignite, slow, echo), `afterHit`, the boss weakness stagger; on a lethal hit `killEnemy` (loot), `onKill`, the stats-driven on-kill effects (`engine/onKillEffects.ts`), `afterKill`. Five-Alarm (order 10) comes before the affinity, which comes before the mark.
 - Player: `onDashStart`, `onDashHit`, `onDashEnd`, `onEnemyShotTouch`, `onPlayerHit`, `onCoinPickup`.
 - Patterns: `pattern:sweep`, `explode`, `zap`, `bounce`, `shotHit`, `shotMove`, `beam`, `fire`, `pulse`, `cone`, `puddleEnter` (the handler may rewrite `ev.slow`), `aura`, `look` (cosmetics).
 
 Combat randomness is the seeded combat rng (`ctx.rng()`), never `Math.random`, and the number and order of draws is part of the behavior: a refactor must not add, drop or reorder draws.
 
 Deliberate by-name reads that are not hooks (each is a documented host read of a content tune): checkout interest in `state/run.ts` (`contentSetTune('checkout', lv)`; there is no run-lifecycle hook), the Multipack repeat delay in the arsenal (`contentTune('multipack', 1).repeatDelay`), the kitchen heal popup in `ArenaScene.healHeartFx`. The migration tests list the files allowed to read content by name.
+
+## Affinity: element soft counters
+
+Enemies are weak to some elements and resist others (`weak` / `resist` in the enemy file). Nothing is immune: it is a nudge, not a lock. All numbers are the one const `AFFINITY` in `engine/define.ts`, the rules are pure functions in `engine/affinity.ts`, the tags of a hit come from `engine/hitTags.ts`.
+
+**Values.** An enemy's `weak` / `resist` map a tag to a MAGNITUDE (a fraction, not a multiplier): `weak: { heat: AFFINITY.weak }` means +30% damage from heat hits, `resist: { frost: AFFINITY.resist }` means -30%. Regular enemies use `AFFINITY.weak` / `resist` (0.3), the five department bosses `AFFINITY.bossWeak` (0.4) for their weakness and `AFFINITY.resist` for theirs. The table is pinned by one test (`tests/content/enemies/registry.test.ts`). `mark` is not a hit tag: its value scales the mark's own bonus, so the Manager's `weak: { mark: AFFINITY.markWeak }` (1) doubles it from x1.2 to x1.4 (`markMult(def)`, not a generic +40%).
+
+**Damage.** `affinityMult(def, tags)` = `1 + (best weak magnitude among the tags) - (best resist magnitude among the tags)`, never below 0. The single best weak and the single best resist count, they never stack with each other, and weak and resist add into ONE multiplier: a heat + frost hit on a Frozen Turkey (weak heat, resist frost) is x1.0. It runs in `damageEnemy` after the `modifyDamage` hooks (Five-Alarm) and before the mark and the crit roll; armor comes after. `FakeCtx.runHit` mirrors it.
+
+**Status time.** `statusDurationMult(def, tag)`: x`AFFINITY.weakDuration` (1.5) when weak to the status's element, x`AFFINITY.resistDuration` (0.5) when resisting it, regardless of the magnitude (a boss's +40% damage is still x1.5 time). Only the duration scales, never the burn dps or the slow percentage. The scaling points: `PhaserCtx.ignite` / `slow` / `poison` and `FakeCtx` (via `burnFor`, `slowFor`, `poisonTimeFor`), the Mop and fire-pool puddles in `patterns/puddle.ts` (they apply the status directly), and `ArenaScene.stunEnemy(e, t, tag)` / `ctx.stun(e, t, tag)` for the stuns that have an element: Frost freeze, Black Ice, Frostbite Nails (`'frost'`), Sparks Fly and the live cable (`'electric'`). The Tools set's dash stun has no tag (x1). `ctx.stun` returns the seconds applied (0 for a boss), which the Frost freeze uses for its ice block.
+
+**Where a hit's tags come from** (`hitTags(stats, opts)`, stored on the hit as `hit.tags`):
+
+| Source | Tags |
+|---|---|
+| a weapon hit (any pattern, echo, puddle tick) | the weapon item's `setsOf`: its element (`heat`, `frost`, `blast`), `cleaning` when its family is Cleaning, `electric` when `electrical` |
+| burn tick (`isDot`) | `heat` |
+| poison tick (`isDot` + `poison`) | `poison` |
+| Electric-set arc, Ray Gun splash (`chained`) | `electric` |
+| Party Popper, Blast-set pop, Confetti Cannon (`fromPopper`) | `blast` |
+| Pressure Cooker explosion (`explodeAt`, also Pot Slam) | `blast`, on top of the cooker's own `heat` |
+| Bag It bomb, Egg Carton blast | `blast` (`opts.tags`) |
+| Leaf Blower slam (`slamEnemy`) | `cleaning` (`opts.tags`) |
+| Oven vent / live cable hazards | `heat` / `electric` (`opts.tags`) |
+| dash, Can Pyramid, Slam Bumper, Sale Flag | none |
+
+A call site that fires a hit of a kind the weapon does not say adds `tags` to its `HitOpts`; the weapon's own tags are always merged in.
+
+**Boss weakness stagger.** A hit on a boss or mini-boss (both have `behavior: 'boss'`) that matches its weak tag (a marked Manager counts for `mark`; burn and poison ticks do not) stuns it for `AFFINITY.stagger.time` (0.25 s), only while it is in its `walk` state (never a tell, attack, recovery or stun), at most once per `AFFINITY.stagger.cooldown` (4 s) per boss. `tryStagger` decides (pure), `ArenaScene.staggerEnemy` does it, bypassing the boss guard of `stunEnemy` (which stays: bosses are still immune to every other stun) and flashing a tinted "WEAK!" with a ring. The stagger sets `staggered` so ending it does not fire the half-HP volley chain of a charge recovery. No rng.
+
+**Mini-boss giants** are built by `miniBossDef(base, variant)` (`data/enemies.ts`) from their grocery's def, so they keep its `weak` / `resist` (a Frozen Turkey giant is still weak to heat, with the grocery's 0.3, not a boss's 0.4) and stagger like a boss. `MINI_BOSS.def` and the variants never name `weak` / `resist`; a test pins it.
+
+**Feedback.** A weak hit's damage number takes the element's colour and a size up, a resisted one is dim grey and a size down; a crit stays red. The stagger label and ring use the same colours (`AFFINITY_TINT` in `ArenaScene.ts`).
+
+**Display.** The codex enemy card shows "Weak to" / "Resists" chips (set icon and colour; poison and price marks have their own); the shop item card of a weapon shows "Strong vs": the icons of the enemies (groceries first, bosses ringed) whose `weak` matches one of the weapon's hit tags, derived with `enemiesWeakTo`. Both in `ui/affinity.ts`, strings `weakTo`, `resistsLabel`, `strongVs`, `affPoison`, `affMark`, `weakFlash` in `i18n/ui.ts`.
+
+**How to give a new enemy or item an element.**
+- An enemy: add `weak: { <tag>: AFFINITY.weak }` and/or `resist: { <tag>: AFFINITY.resist }` (a boss: `AFFINITY.bossWeak`) to its file, update the table in `tests/content/enemies/registry.test.ts` and its own test. The codex, "Strong vs", numbers and stagger follow with no other change.
+- A weapon: its tags are its sets. Put it in an element set (`sets: ['kitchen', 'heat']`), the Cleaning family, or give it `electrical: true`; nothing else.
+- A new kind of hit (a hazard, a bomb): pass `tags: ['blast']` etc. in its `HitOpts`. A new status with an element: scale its duration with `statusDurationMult` (or `burnFor` / `slowFor` / `poisonTimeFor`) where it is applied, and pass the tag to `ctx.stun` for a stun.
+- A new tag: add it to `AFFINITY_TAGS` (`engine/define.ts`), `HIT_TAGS` follows, give it a colour (`AFFINITY_TINT`), an icon (`SET_ICON`) and a chip style.
 
 ## Testing
 
@@ -89,6 +132,7 @@ Deliberate by-name reads that are not hooks (each is a documented host read of a
 - `describeCombo` / `expectSetText` pin the registered content and its EN and DE texts.
 - Golden snapshots in `tests/golden/__snapshots__/`: `build.json` (`computeBuild` output of about 344 carts) and `text.json` (rendered text, EN and DE). Both must stay byte-identical unless a change is intended; regenerate one with `npx vitest run tests/golden/<name>.golden.test.ts -u` and review the diff by key. Never run a blanket `-u`. The `rules` field in `text.json` is the older `{0}`/`{1}` template form, reproduced by the test-only helper `tests/golden/legacyRules.ts`.
 - Registry tests (`tests/engine/registry.test.ts`) validate the rules above on fixtures; the real registry validates itself at load.
+- `tests/engine/affinity.test.ts` (rules, hit tags, pipeline per tag source through `FakeCtx.spawnReal`, status times, stagger, mini-boss inheritance, wiring guards) and `tests/affinity-ui.test.ts` (codex rows, "Strong vs", EN and DE).
 - Sims (`?sim=<id>`, docs/sims.md): launch an exact cart, department and enemies in the arena. Use them to look at a change; `tests/sims/sims.test.ts` checks that each combo, weapon, enemy and boss sim shows what it names.
 - `tools/botrun.mjs` plays real runs in a browser: a smoke test (page errors), not a golden test.
 
@@ -685,3 +729,12 @@ Runtime hook orders: kitchen heal `afterKill` 10, blast pop `afterKill` 20 (kitc
 1. The text formatter syntax (`{dps|pct}`). Fine, or something else?
 2. Should sets also become content files in this refactor (as planned in phase 5), or later?
 3. Should the seeded combat rng be per aisle, from the run seed (daily runs become fully reproducible)?
+
+## Enemy rework, step 2: element soft counters (history)
+
+Done on top of phase 8 and the enemy content files. `weak` / `resist` (declared and validated since the enemy files) became live: `engine/affinity.ts` (pure rules), `engine/hitTags.ts` (a hit's tags), the numbers in `AFFINITY` (`engine/define.ts`), the table in the 20 enemy files. Learnings:
+- The goldens did not move: affinity is runtime, nothing in `computeBuild` or the rendered texts changed.
+- `hit.tags` is the one new field on `HitEvent`; call sites that fire an elemental hit the weapon does not describe (explosions, hazards, slam) add `HitOpts.tags`. `tests/content/sets/helpers.ts` `hitOf` computes them with `hitTags`.
+- `ctx.stun` got an optional element tag and now returns the applied seconds, and the pipeline order tests (`order.test.ts`, `flag.test.ts`, `onHitStatuses.test.ts`) pin `affinityMult` between `modifyDamage` and the mark. `markedDamage` takes the multiplier (`markMult(e.def)`).
+- The Manager's weak mark is a scale on the mark bonus, not a damage tag, so it is `markMult` and a `weakTag(..., marked)` match for the stagger.
+- Open balance question: the `electrical` flag makes many weapons electric (Toaster, Microwave, Nail Gun, Vacuum, Blender, Laser), so soda, beans, gift card and the checkout boss are weak to a big part of the arsenal.

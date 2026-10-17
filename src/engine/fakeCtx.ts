@@ -1,11 +1,15 @@
 import { applyBurn, applyPoison, applySlow, newStatus } from '../systems/combat';
 import { combatRng, type Rng } from '../systems/rng';
 import { CRIT, PLAYER } from '../data/items';
+import { ENEMIES } from '../data/enemies';
 import { t, type UIKey } from '../i18n';
 import type { Build, BurnEffect, SlowEffect, WeaponStats } from '../types';
 import { FX_METHODS, type AisleView, type CombatEnemy, type CombatShot, type FxApi, type PlayerView, type PoolSpec, type RuntimeCtx, type ShotSpec } from './ctx';
 import { EMPTY_HOOKS, type HitEvent, type HitOpts, type HookTable } from './hooks';
 import { markedDamage } from './marks';
+import { affinityMult, burnFor, markMult, poisonTimeFor, slowFor, statusDurationMult, tryStagger } from './affinity';
+import { AFFINITY, type AffinityTag } from './define';
+import { hitTags } from './hitTags';
 import { applyHitStatuses, scheduleEcho } from './onHitStatuses';
 import { applyKillEffects } from './onKillEffects';
 
@@ -23,7 +27,8 @@ import { applyKillEffects } from './onKillEffects';
 /** One effect a hook asked for, stamped with the fake clock (`at`, seconds). */
 export type Call = { at: number } & (
   | { kind: 'damage'; enemy: number; dmg: number; source: string | null; opts: HitOpts }
-  | { kind: 'stun'; enemy: number; seconds: number }
+  | { kind: 'stun'; enemy: number; seconds: number; tag?: AffinityTag }
+  | { kind: 'stagger'; enemy: number }
   | { kind: 'ignite'; enemy: number; burn: BurnEffect }
   | { kind: 'slow'; enemy: number; slow: SlowEffect }
   | { kind: 'poison'; enemy: number; dps: number; duration: number }
@@ -127,6 +132,15 @@ export class FakeCtx implements RuntimeCtx {
     return e;
   }
 
+  /**
+   * Add a live enemy built from the real content def of `id` (radius, behavior, knockback resist, armor, weak / resist, HP): what the arena
+   * would spawn at HP scale 1. `spawnEnemy` stays neutral (no affinity) so tests of one item do not depend on the enemy table.
+   */
+  spawnReal(id: keyof typeof ENEMIES, p: Partial<Omit<CombatEnemy, 'def'>> = {}): CombatEnemy {
+    const d = ENEMIES[id];
+    return this.spawnEnemy({ hp: d.hp, ...p, def: { id, radius: d.radius, behavior: d.behavior, knockbackResist: d.knockbackResist, ...(d.armor ? { armor: d.armor } : {}), ...(d.weak ? { weak: d.weak } : {}), ...(d.resist ? { resist: d.resist } : {}) } });
+  }
+
   /** Add an enemy projectile in flight. */
   spawnHostileShot(p: Partial<CombatShot> = {}): CombatShot {
     const s: CombatShot = { active: true, x: 0, y: 0, vx: 0, vy: 0, life: 2, damage: 8, stats: null, splash: null, ...p };
@@ -206,21 +220,27 @@ export class FakeCtx implements RuntimeCtx {
     for (const e of hit) this.damage(e, dmg, source, opts);
     return hit.length;
   }
-  stun(e: CombatEnemy, seconds: number): void {
-    this.log({ kind: 'stun', enemy: e.id, seconds });
-    if (e.alive && e.def.behavior !== 'boss') e.state = 'stun';
+  /** Mirrors `ArenaScene.stunEnemy`: bosses are immune, the time scales with the enemy's affinity for `tag`. The log keeps the requested seconds. */
+  stun(e: CombatEnemy, seconds: number, tag?: AffinityTag): number {
+    this.log({ kind: 'stun', enemy: e.id, seconds, ...(tag ? { tag } : {}) });
+    if (!e.alive || e.def.behavior === 'boss') return 0;
+    const applied = seconds * statusDurationMult(e.def, tag);
+    e.state = 'stun';
+    e.stateT = Math.max(e.stateT ?? 0, applied);
+    return applied;
   }
+  // The log keeps what the hook asked for; the status on the enemy has the duration scaled by its affinity (burnFor / slowFor / poisonTimeFor).
   ignite(e: CombatEnemy, burn: BurnEffect): void {
     this.log({ kind: 'ignite', enemy: e.id, burn });
-    applyBurn(e.status, this.aisle.burn(burn), this.time);
+    applyBurn(e.status, burnFor(e.def, this.aisle.burn(burn)), this.time);
   }
   slow(e: CombatEnemy, slow: SlowEffect): void {
     this.log({ kind: 'slow', enemy: e.id, slow });
-    applySlow(e.status, slow, this.time);
+    applySlow(e.status, slowFor(e.def, slow), this.time);
   }
   poison(e: CombatEnemy, dps: number, duration: number): void {
     this.log({ kind: 'poison', enemy: e.id, dps, duration });
-    applyPoison(e.status, dps, duration, this.time);
+    applyPoison(e.status, dps, poisonTimeFor(e.def, duration), this.time);
   }
   mark(e: CombatEnemy, seconds: number): void {
     this.log({ kind: 'mark', enemy: e.id, seconds });
@@ -291,7 +311,7 @@ export class FakeCtx implements RuntimeCtx {
   private later(seconds: number, fn: () => void): void { this.queue.push({ due: this.time + seconds, seq: this.seq++, fn }); }
 
   /**
-   * The combat-rng part of `ArenaScene.damageEnemy` (see the pipeline comment there): modifyDamage, crit roll, onCrit, hp, onHit, the
+   * The combat-rng part of `ArenaScene.damageEnemy` (see the pipeline comment there): modifyDamage, the element affinity, the mark, crit roll, onCrit, hp, onHit, the
    * stats-driven statuses (burn, ignite, slow), afterHit (the Frost freeze, Cleaning, Electric chain), echo, and on a lethal hit onKill +
    * afterKill (Kitchen heal, Blast pop) + the popper blast, and the engine's mark multiplier. Not simulated: armor, knockback itself.
    */
@@ -299,9 +319,11 @@ export class FakeCtx implements RuntimeCtx {
     if (!e.alive) return;
     const H = this.hooks, now = this.time;
     const key = o.poison ? 'poison' : o.isDot ? 'burn' : stats?.uid ?? o.label ?? 'shove';
-    const hit: HitEvent = { enemy: e, base: dmg, dmg, stats, opts: o, source: key, now, direct: !o.isDot && !o.echo && !o.fromPopper && !o.chained, crit: false, armored: false, killed: false, kbMult: 1 };
+    const tags = hitTags(stats, o);
+    const hit: HitEvent = { enemy: e, base: dmg, dmg, stats, opts: o, source: key, now, tags, direct: !o.isDot && !o.echo && !o.fromPopper && !o.chained, crit: false, armored: false, killed: false, kbMult: 1 };
     H.emit('modifyDamage', hit); dmg = hit.dmg;
-    dmg = markedDamage(dmg, e.markedUntil, now); // the shared mark rule (engine/marks), after the modifyDamage hooks like the scene
+    dmg *= affinityMult(e.def, tags); // element soft counters (engine/affinity), after the modifyDamage hooks like the scene
+    dmg = markedDamage(dmg, e.markedUntil, now, markMult(e.def)); // the shared mark rule (engine/marks), after the affinity like the scene
     if (!o.isDot && stats && stats.critChance > 0 && this.rand() < stats.critChance) {
       dmg *= CRIT.mult;
       hit.crit = true; hit.dmg = dmg; H.emit('onCrit', hit); dmg = hit.dmg;
@@ -311,6 +333,7 @@ export class FakeCtx implements RuntimeCtx {
     hit.killed = e.hp <= 0; H.emit('onHit', hit);
     applyHitStatuses(hit, this);
     H.emit('afterHit', hit);
+    if (e.hp > 0 && !o.isDot && tryStagger(e, tags, (e.markedUntil ?? 0) > now, now)) { this.log({ kind: 'stagger', enemy: e.id }); e.state = 'stun'; e.stateT = Math.max(e.stateT ?? 0, AFFINITY.stagger.time); }
     scheduleEcho(hit, this);
     if (e.hp <= 0) {
       e.alive = false;

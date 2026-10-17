@@ -2,6 +2,7 @@ import type { BurnEffect, Build, SlowEffect, WeaponStats } from '../types';
 import type { StatusFx } from '../systems/combat';
 import type { UIKey } from '../i18n';
 import type { HitOpts } from './hooks';
+import type { AffinityMap, AffinityTag } from './define';
 
 // The narrow runtime API runtime hooks get (docs/item-hooks-refactor.md §5). Hooks never touch the scene: everything they may
 // do is a method here. Pure types, no Phaser: `PhaserCtx` (src/scenes/phaserCtx.ts) adapts the arena, `FakeCtx`
@@ -24,7 +25,11 @@ export interface CombatEnemy {
   critCoinDropped?: boolean;
   frozenT?: number;
   nailHits?: number;
-  def: { id: string; radius: number; behavior: string; knockbackResist: number; armor?: number };
+  /** Seconds left in the current stun / stagger / recovery (the real `Enemy` always has it; `FakeCtx.stun` writes it). */
+  stateT?: number;
+  /** Scene clock (s) of this boss's last weakness stagger (`engine/affinity.ts` `tryStagger`). */
+  staggerAt?: number;
+  def: { id: string; radius: number; behavior: string; knockbackResist: number; armor?: number; weak?: AffinityMap; resist?: AffinityMap };
 }
 
 /** The part of a `Shot` (scenes/weapons.ts) hooks may read or write. `stats === null`: an enemy projectile. */
@@ -124,10 +129,16 @@ export interface RuntimeCtx {
   damage(e: CombatEnemy, dmg: number, source: WeaponStats | null, opts?: HitOpts): void;
   /** Hit every live enemy within `r` of `pos` (+ its radius) once. Returns how many were hit. */
   damageArea(pos: { x: number; y: number }, r: number, dmg: number, source: WeaponStats | null, opts?: HitOpts): number;
-  stun(e: CombatEnemy, seconds: number): void;
-  /** Burn through the aisle's modifiers (`aisle.burn`), as the weapon branches do. */
+  /**
+   * Stun for `seconds` (bosses are immune). `tag` names the element of a frost or electric stun: the time scales with the enemy's affinity for it
+   * (`statusDurationMult`); no tag = x1 (the dash stun). Returns the seconds actually applied (0 = refused), for a hook's ice-block visual.
+   */
+  stun(e: CombatEnemy, seconds: number, tag?: AffinityTag): number;
+  /** Burn through the aisle's modifiers (`aisle.burn`), as the weapon branches do; its duration scales with the enemy's heat affinity. */
   ignite(e: CombatEnemy, burn: BurnEffect): void;
+  /** Slow, its duration scaled by the enemy's frost affinity. */
   slow(e: CombatEnemy, slow: SlowEffect): void;
+  /** Poison, its duration scaled by the enemy's poison affinity. */
   poison(e: CombatEnemy, dps: number, duration: number): void;
   /** Price Check / Sale Flag mark: extra damage from every source for `seconds`. */
   mark(e: CombatEnemy, seconds: number): void;

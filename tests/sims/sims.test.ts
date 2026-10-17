@@ -8,8 +8,10 @@ import { footprint } from '../../src/systems/inventory';
 import { BOSS_WAVE } from '../../src/data/waves';
 import { mulberry32 } from '../../src/systems/rng';
 import { RECIPES } from '../../src/data/recipes';
-import { ENEMY_ORDER, RECIPE_ORDER } from '../../src/engine/define';
+import { AFFINITY, ENEMY_ORDER, RECIPE_ORDER } from '../../src/engine/define';
 import { BOSS_BY_THEME, BOSS_IDS, ENEMIES } from '../../src/data/enemies';
+import { affinityMult } from '../../src/engine/affinity';
+import { weaponTags } from '../../src/engine/hitTags';
 import type { ItemTypeId, RecipeId, SetId } from '../../src/types';
 
 const sim = (id: string): SimDef => simRegistry.get(id)!;
@@ -331,7 +333,7 @@ describe('boss sims', () => {
   it('there is one sim for every boss, named after its department', () => {
     expect(Object.keys(BOSS_BY_THEME)).toHaveLength(5);
     for (const theme of Object.keys(BOSS_BY_THEME)) expect(simRegistry.get(`boss-${theme}`), theme).toBeDefined();
-    expect(simRegistry.ids.filter((i) => i.startsWith('boss-'))).toHaveLength(5);
+    expect(simRegistry.ids.filter((i) => i.startsWith('boss-') && i !== 'boss-stagger')).toHaveLength(5); // boss-stagger is the affinity sim below
   });
   it('each is aisle 8 with waves in that department, no dummies, notes naming the boss\'s HP', () => {
     for (const [theme, id] of Object.entries(BOSS_BY_THEME)) {
@@ -344,6 +346,85 @@ describe('boss sims', () => {
       expect(run.wave, theme).toBe(8);
       expect(run.department, theme).toBe('boss');
     }
+  });
+});
+
+// The element soft counters (src/sims/affinity-<tag>.ts, boss-stagger.ts): one tag-only cart against groups that are weak to it, resist it or have no
+// affinity. The enemies are checked against the real affinity data, so a retuned table fails here until the sim follows.
+describe('affinity sims', () => {
+  const AFFINITY_SIMS = { 'affinity-heat': 'heat', 'affinity-frost': 'frost', 'affinity-electric': 'electric', 'affinity-blast': 'blast', 'affinity-cleaning': 'cleaning' } as const;
+  const groups = (id: string) => [...new Set(simDummies(sim(id)).map((d) => d.id))];
+
+  it('there is one per element, a god-mode sandbox with notes and a single weapon', () => {
+    for (const id of Object.keys(AFFINITY_SIMS)) {
+      const s = sim(id), run = createSimRun(s);
+      expect(s.waves ?? false, id).toBe(false);
+      expect(s.god ?? true, id).toBe(true);
+      expect(s.notes, id).toBeTruthy();
+      expect(run.build.weapons, id).toHaveLength(1);
+      expect(run.build.recipes, id).toEqual([]);
+    }
+  });
+
+  it('each cart carries its element, and its groups include enemies weak to it and a contrast', () => {
+    for (const [id, tag] of Object.entries(AFFINITY_SIMS)) {
+      const w = createSimRun(sim(id)).build.weapons[0];
+      expect([...weaponTags(w.type)], id).toContain(tag);
+      const ids = groups(id) as (keyof typeof ENEMIES)[];
+      const weak = ids.filter((e) => (ENEMIES[e].weak?.[tag] ?? 0) > 0), others = ids.filter((e) => affinityMult(ENEMIES[e], weaponTags(w.type)) <= 1);
+      expect(weak.length, `${id} weak`).toBeGreaterThanOrEqual(1);
+      expect(others.length, `${id} contrast`).toBeGreaterThanOrEqual(1);
+    }
+  });
+
+  it('the heat and frost sims also show a resisted group, the others a neutral one', () => {
+    expect(groups('affinity-heat')).toEqual(['baguette', 'turkey', 'gum', 'slice']);
+    expect(groups('affinity-frost')).toEqual(['banana', 'turkey', 'gum', 'slice']);
+    expect(groups('affinity-electric')).toEqual(['soda', 'beans', 'milk']);
+    expect(groups('affinity-blast')).toEqual(['milk', 'egg', 'banana']);
+    expect(groups('affinity-cleaning')).toEqual(['expired', 'milk']);
+    const w = (id: string) => createSimRun(sim(id)).build.weapons[0];
+    expect(affinityMult(ENEMIES.gum, weaponTags(w('affinity-heat').type))).toBeLessThan(1);
+    expect(affinityMult(ENEMIES.turkey, weaponTags(w('affinity-frost').type))).toBeLessThan(1);
+    expect(affinityMult(ENEMIES.slice, weaponTags(w('affinity-heat').type))).toBe(1);
+  });
+
+  it('the notes quote the per-hit numbers of the weak and the plain case, from the real build and the multipliers', () => {
+    const near = (n: number) => Math.round(n);
+    const expectDamage = (id: string, plain: number) => {
+      const dmg = createSimRun(sim(id)).build.weapons[0].damage;
+      expect(dmg, id).toBeCloseTo(plain, 9);
+      expect(sim(id).notes, id).toContain(`${near(dmg)}`);
+      expect(sim(id).notes, id).toContain(`${near(dmg * (1 + AFFINITY.weak))}`);
+    };
+    expectDamage('affinity-heat', 18);
+    expectDamage('affinity-frost', 12.72); // 12 plus the 6% bundle bonus of the Ice Pack touching it
+    expectDamage('affinity-electric', 20);
+    expectDamage('affinity-blast', 6);
+    expectDamage('affinity-cleaning', 6);
+    expect(sim('affinity-heat').notes).toContain(`${near(18 * (1 - AFFINITY.resist))}`);
+    expect(sim('affinity-frost').notes).toContain(`${near(12.72 * (1 - AFFINITY.resist))}`);
+  });
+
+  it('the dummies are immortal so the numbers can be read for as long as you like', () => {
+    for (const id of Object.keys(AFFINITY_SIMS)) expect(simDummies(sim(id)).every((d) => d.immortal), id).toBe(true);
+    expect(simDummies(sim('affinity-heat')).every((d) => d.still)).toBe(true);
+  });
+
+  it('boss-stagger: an immortal Walk-In Freezer (weak to heat) that keeps walking, against a heat-only cart', () => {
+    const s = sim('boss-stagger'), run = createSimRun(s);
+    expect(s).toMatchObject({ department: 'frozen' });
+    expect(s.waves ?? false).toBe(false);
+    expect(s.god ?? true).toBe(true);
+    const d = simDummies(s);
+    expect(d.map((x) => x.id)).toEqual(['boss_frozen']);
+    expect(d[0].immortal).toBe(true);
+    expect(d[0].still ?? false).toBe(false); // it must walk: the stagger only works in the walk state
+    expect(s.notes).toContain(`${ENEMIES.boss_frozen.hp} HP`);
+    for (const w of run.build.weapons) expect(s.notes, w.type).toContain(`${Math.round(w.damage * (1 + AFFINITY.bossWeak))}`); // per hit: the pan's swing, the cooker's pot (Kitchen +10% included)
+    for (const w of run.build.weapons) expect([...weaponTags(w.type)]).toContain('heat');
+    expect(run.build.weapons.map((w) => w.type)).toEqual(['pan', 'cooker']);
+    expect(ENEMIES.boss_frozen.weak).toEqual({ heat: AFFINITY.bossWeak });
   });
 });
 

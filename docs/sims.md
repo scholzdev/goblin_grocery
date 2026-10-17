@@ -138,6 +138,20 @@ One sim per regular enemy, `src/sims/enemy-<id>.ts` (`?sim=enemy-milk`, `enemy-b
 
 One sim per boss, named after its department: `boss-main` (the Store Manager), `boss-frozen` (Walk-In Freezer), `boss-bakery` (Industrial Oven), `boss-electronics` (Smart-TV Wall), `boss-checkout` (Self-Checkout Kiosk). Each is `waves: true`, `aisle: 8` in the matching department (a real boss aisle with the director and the boss's summons), with the strong heat/electric cart of the plain `boss` sim, god mode on. The notes give the boss's HP, its move loop and the numbers of its signature move. `tests/sims/sims.test.ts` checks aisle, department and that the notes name the HP.
 
+## Affinity sims
+
+The element soft counters (docs/item-hooks-refactor.md "Affinity"), one sim per element, `src/sims/affinity-<tag>.ts`: a one-weapon cart (★3, the legendary Laser ★1) and still, immortal groups of 3 or 4 that are weak to it, resist it or have no affinity, so the per-hit damage numbers (tinted orange or element-coloured when weak, dim grey when resisted) can be read side by side. The notes quote the numbers; `tests/sims/sims.test.ts` derives the cart's tags and each group's affinity from the real data and checks the quoted numbers against the build.
+
+| Sim | Cart | Groups |
+| --- | --- | --- |
+| `affinity-heat` | Frying Pan ★3 (heat only) | baguette and turkey (weak), gum (resists), slice (none). Four bunches around the cart |
+| `affinity-frost` | Fizz Cannon ★3 + Ice Pack (frost, slows) | banana and gum (weak), turkey (resists), slice (none). They walk, so the slow times (x1.5 / x0.5) show |
+| `affinity-electric` | Self-Checkout Laser (electric only) | soda and beans (weak, the beans soak part of it), milk (none) |
+| `affinity-blast` | Nail Gun ★3 (blast and electric) | milk and egg (weak), banana (none) |
+| `affinity-cleaning` | Leaf Blower ★3 (cleaning only) | expired milk (weak), milk (none) |
+
+`boss-stagger` is the boss weakness stagger: an immortal Walk-In Freezer dummy (weak to heat, so +40% and a 0.25 s stagger while it walks, once per 4 s) against a Frying Pan and a Pressure Cooker (heat). It is a sandbox, not a boss aisle, so it is not one of the five `boss-<department>` sims.
+
 ## Where the code lives
 
 - `src/sims/_sim.ts`: the types, `defineSim`, defaults, `layoutCart` (auto-placement) and `validateSim`.

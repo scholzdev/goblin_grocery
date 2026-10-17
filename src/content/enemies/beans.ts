@@ -1,4 +1,4 @@
-import { defineEnemy } from '../../engine/define';
+import { AFFINITY, defineEnemy } from '../../engine/define';
 
 // Armor never soaks more than 70% of a hit: the damage after armor is at least `minShare` of it.
 export default defineEnemy({
@@ -8,6 +8,7 @@ export default defineEnemy({
     armor: 3, knockbackResist: 0.4,
   },
   tune: { minShare: 0.3 },
+  weak: { electric: AFFINITY.weak },
   text: {
     en: { name: 'Canned Beans', blurb: 'Dented, dense and armored: direct hits lose {armor} damage. Burn, puddles and auras ignore the tin.' },
     de: { name: 'Dosenbohnen', blurb: 'Verbeult, dicht und gepanzert: direkte Treffer verlieren {armor} Schaden. Brand, Pfützen und Auren ignorieren die Dose.' },

@@ -11,7 +11,7 @@ const OLD = { id: 'turkey', behavior: 'tank', tell: 0, attackCooldown: 0, attack
 
 describe('Frozen Turkey (turkey)', () => {
   it('has the stats, sprite scale and tune it had as a table row', () => {
-    expect(ENEMIES.turkey).toEqual(OLD);
+    expect(ENEMIES.turkey).toEqual({ ...OLD, weak: { heat: 0.3 }, resist: { frost: 0.3 } });
   });
 
   it('shows its name and blurb unchanged in English and German', () => {
@@ -20,10 +20,10 @@ describe('Frozen Turkey (turkey)', () => {
     expect(enemyT('turkey')).toEqual({ name: 'Gefrorener Truthahn', blurb: 'Steinhart gefroren, schwer wie ein Ziegel. Braucht ewig zum Auftauen.' });
   });
 
-  it('has no affinity yet', () => {
+  it('has its element affinity (weak and resist magnitudes)', () => {
     const c = contentEnemy('turkey')!;
-    expect(c.weak).toBeUndefined();
-    expect(c.resist).toBeUndefined();
+    expect(c.weak).toEqual({ heat: 0.3 });
+    expect(c.resist).toEqual({ frost: 0.3 });
   });
 
   it('shows a health bar once damaged', () => {

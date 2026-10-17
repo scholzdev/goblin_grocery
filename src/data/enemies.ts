@@ -1,5 +1,5 @@
 import type { DepartmentId, EnemyDef, EnemyId } from '../types';
-import { ENEMY_ORDER, enemyTextTune, resolveTune, type BossKit, type BossMove, type BossSpecial, type EnemyContent } from '../engine/define';
+import { ENEMY_ORDER, enemyTextTune, resolveTune, type AffinityTag, type BossKit, type BossMove, type BossSpecial, type EnemyContent } from '../engine/define';
 import { contentEnemy } from '../engine/registry';
 import { renderText } from '../engine/text';
 
@@ -48,6 +48,9 @@ export const BOSS_SPECIAL = Object.fromEntries(BOSS_IDS.flatMap((id) => { const 
 
 /** Codex order: by first aisle, slice after melon, boss last. */
 export const CODEX_ENEMIES: EnemyId[] = ['milk', 'banana', 'giftcard', 'soda', 'beans', 'gum', 'spitter', 'turkey', 'cereal', 'expired', 'baguette', 'egg', 'honey', 'melon', 'slice', ...BOSS_IDS];
+
+/** The enemies (codex order: the groceries, then the bosses) weak to any of `tags`: what the shop card's "Strong vs" lists. Derived from the enemy files; the mini-bosses are their base grocery. */
+export const enemiesWeakTo = (tags: readonly AffinityTag[]): EnemyId[] => CODEX_ENEMIES.filter((id) => tags.some((tag) => (ENEMIES[id].weak?.[tag] ?? 0) > 0));
 
 /** Half of the Manager's (and mini-bosses') summons come from the run's theme. */
 export const THEME_SUMMONS: Partial<Record<DepartmentId, EnemyId[]>> = {
@@ -98,6 +101,16 @@ export const MINI_BOSS = {
   weaponTier: 2,
 };
 export type MiniVariant = (typeof MINI_BOSS.variants)[number];
+
+/**
+ * The def of a mid-shift giant: its base grocery with the Manager's behavior (every boss check keys on `behavior`), the giant's move numbers and
+ * the variant's overrides. The merge starts from `base`, so the giant keeps its grocery's `weak` and `resist` (a Frozen Turkey giant is still weak
+ * to heat): neither `MINI_BOSS.def` nor a variant's `def` names them. `dm` is the aisle's damage scale.
+ */
+export const miniBossDef = (base: EnemyDef, mini: MiniVariant, dm = 1): EnemyDef => ({
+  ...base, ...MINI_BOSS.def, ...mini.def, behavior: 'boss' as const, radius: base.radius * MINI_BOSS.scale,
+  contactDamage: Math.round(MINI_BOSS.def.contactDamage * dm), attackDamage: Math.round(MINI_BOSS.def.attackDamage * dm),
+});
 
 /**
  * Elite groceries: tougher, bigger, gold-ringed, pay more. Rolled per spawn; never boss/slice/egg.

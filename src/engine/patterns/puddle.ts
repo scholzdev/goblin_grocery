@@ -1,5 +1,6 @@
 import { DEPTH } from '../../data/depth';
 import { applyBurn, applySlow } from '../../systems/combat';
+import { burnFor, slowFor } from '../affinity';
 import type { WeaponStats } from '../../types';
 import type { Pattern, PatternHost, Puddle } from './types';
 
@@ -50,7 +51,7 @@ export const puddle: Pattern = {
         // Floor ellipse test (puddles are drawn flattened).
         const dx = (e.x - pd.x) / pd.r, dy = (e.y - pd.y) / (pd.r * 0.62);
         if (dx * dx + dy * dy > 1) continue;
-        if (pd.burnOnly) { if (pd.burn) applyBurn(e.status, sc.aisleEvent.burn(pd.burn), now); continue; }
+        if (pd.burnOnly) { if (pd.burn) applyBurn(e.status, burnFor(e.def, sc.aisleEvent.burn(pd.burn)), now); continue; }
         let slow = pd.slow!;
         if (sc.hooks['pattern:puddleEnter'].length) {
           const seen = (pd.seen ??= new Set()), first = !seen.has(e.id);
@@ -59,7 +60,7 @@ export const puddle: Pattern = {
           sc.hooks.emit('pattern:puddleEnter', ev);
           slow = ev.slow; // the Frost set strengthens it
         }
-        applySlow(e.status, slow, now);
+        applySlow(e.status, slowFor(e.def, slow), now);
         sc.damageEnemy(e, pd.stats.damage, pd.stats, { quiet: true });
       }
     }

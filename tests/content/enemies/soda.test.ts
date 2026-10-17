@@ -11,7 +11,7 @@ const OLD = { id: 'soda', behavior: 'tank', tell: 0, attackCooldown: 0, attackRa
 
 describe('Soda Six-Pack (soda)', () => {
   it('has the stats, sprite scale and tune it had as a table row', () => {
-    expect(ENEMIES.soda).toEqual(OLD);
+    expect(ENEMIES.soda).toEqual({ ...OLD, weak: { electric: 0.3 } });
   });
 
   it('shows its name and blurb unchanged in English and German', () => {
@@ -20,9 +20,9 @@ describe('Soda Six-Pack (soda)', () => {
     expect(enemyT('soda')).toEqual({ name: 'Limo-Sixpack', blurb: 'Sechs Dosen, ein Groll. Langsam und sprudelzäh; zuckt kaum bei Dashes.' });
   });
 
-  it('has no affinity yet', () => {
+  it('has its element affinity (weak and resist magnitudes)', () => {
     const c = contentEnemy('soda')!;
-    expect(c.weak).toBeUndefined();
+    expect(c.weak).toEqual({ electric: 0.3 });
     expect(c.resist).toBeUndefined();
   });
 

@@ -11,7 +11,7 @@ const OLD = { id: 'boss_checkout', behavior: 'boss', tell: 0.8, attackCooldown: 
 
 describe('The Self-Checkout Kiosk (boss_checkout)', () => {
   it('has the stats, sprite scale and tune it had as a table row', () => {
-    expect(ENEMIES.boss_checkout).toEqual(OLD);
+    expect(ENEMIES.boss_checkout).toEqual({ ...OLD, weak: { electric: 0.4 }, resist: { blast: 0.3 } });
   });
 
   it('shows its name and blurb unchanged in English and German', () => {
@@ -20,10 +20,10 @@ describe('The Self-Checkout Kiosk (boss_checkout)', () => {
     expect(enemyT('boss_checkout')).toEqual({ name: 'Die Selbstbedienungskasse', blurb: 'Lässt das Fließband gegen dich laufen und rammt dich dann. Holt Kaugummis und Geschenkkarten dazu.' });
   });
 
-  it('has no affinity yet', () => {
+  it('has its element affinity (weak and resist magnitudes)', () => {
     const c = contentEnemy('boss_checkout')!;
-    expect(c.weak).toBeUndefined();
-    expect(c.resist).toBeUndefined();
+    expect(c.weak).toEqual({ electric: 0.4 });
+    expect(c.resist).toEqual({ blast: 0.3 });
   });
 
   it('shows no health bar (it only does for elites)', () => {

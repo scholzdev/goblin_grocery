@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { AFFIX, BOSS, BOSS_KITS, BOSS_SPECIAL, ELITE, MINI_BOSS, ELITE_AFFIXES, ENEMIES, SPLITTER_EXCLUDED, enemyFrame, isBossId, type BossKit, type BossMove, type EliteAffix, type MiniVariant } from '../data/enemies';
+import { AFFIX, BOSS, BOSS_KITS, BOSS_SPECIAL, ELITE, MINI_BOSS, ELITE_AFFIXES, ENEMIES, SPLITTER_EXCLUDED, enemyFrame, isBossId, miniBossDef, type BossKit, type BossMove, type EliteAffix, type MiniVariant } from '../data/enemies';
 import { bossTuning } from '../data/waves';
 import { store } from '../state/store';
 import type { EnemyDef, EnemyId } from '../types';
@@ -70,6 +70,8 @@ export interface Enemy {
   tag?: Phaser.GameObjects.Text;   // affix name above the HP bar
   /** Mid-shift boss (giant themed grocery with Manager moves). */
   mini?: boolean;
+  /** Weakness stagger (engine/affinity `tryStagger`): scene clock of this boss's last one, and a flag while that stun runs (it must not trigger the post-charge volley chain). */
+  staggerAt?: number; staggered?: boolean;
   /** Lab sandbox dummy: `still` skips the AI (no walking/attacks), `immortal` refills HP instead of dying. */
   dummy?: LabDummy;
 }
@@ -93,7 +95,7 @@ export function createEnemy(scene: ArenaScene, id: EnemyId, x: number, y: number
   const dm = dmgScale * (elite ? ELITE.contactMult : 1);
   const def = mini
     // Mid-shift boss: the themed grocery's look with Manager behavior (every boss check keys on behavior).
-    ? { ...base, ...MINI_BOSS.def, ...mini.def, behavior: 'boss' as const, radius: base.radius * MINI_BOSS.scale, contactDamage: Math.round(MINI_BOSS.def.contactDamage * dm), attackDamage: Math.round(MINI_BOSS.def.attackDamage * dm) }
+    ? miniBossDef(base, mini, dm)
     : elite || dm !== 1 || small ? { ...base, radius: base.radius * (elite ? ELITE.scale : 1), contactDamage: Math.round(base.contactDamage * dm), attackDamage: Math.round(base.attackDamage * dm) } : base;
   const affix = elite ? forceAffix ?? pickAffix(id, scene.rng) : undefined; // forceAffix: lab sims pin one
   // `small` (Splitter copies): scale / HP of the base type; the def copy shrinks the hit radius too.
@@ -237,8 +239,9 @@ export function updateEnemy(scene: ArenaScene, e: Enemy, dt: number, now: number
       if (Math.random() < dt * 8) scene.fx.spark(e.x + Phaser.Math.Between(-w, w), e.y - e.sprite.displayHeight, 1, 0xf5bd45);
       if (e.stateT <= 0) {
         e.state = 'walk';
-        // At half HP the manager chains a volley straight out of a charge.
-        if (d.behavior === 'boss' && scene.halfHp(e)) { e.bossMove = 'volley'; startTell(e, d.tell * 0.7); }
+        // At half HP the manager chains a volley straight out of a charge (not out of a weakness stagger, which interrupted nothing).
+        if (d.behavior === 'boss' && !e.staggered && scene.halfHp(e)) { e.bossMove = 'volley'; startTell(e, d.tell * 0.7); }
+        e.staggered = false;
       }
       break;
     }

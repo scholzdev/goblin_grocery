@@ -42,7 +42,7 @@ export default defineCombo({
         ctx.sound('boom');
         for (const e of ctx.inRadius({ x, y }, t.radius)) {
           const dx = e.x - x, dy = e.y - y, d = Math.hypot(dx, dy);
-          ctx.damage(e, t.dmgPerCharge * n, null, { kb: 220, kbX: dx / (d || 1), kbY: dy / (d || 1), label: 'Bag It' });
+          ctx.damage(e, t.dmgPerCharge * n, null, { kb: 220, kbX: dx / (d || 1), kbY: dy / (d || 1), label: 'Bag It', tags: ['blast'] });
         }
       });
     },

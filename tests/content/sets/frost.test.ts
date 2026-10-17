@@ -96,7 +96,7 @@ describe('Frost set: freeze', () => {
     const seed = seedWhere((r) => r < 0.1);
     const { fake, stats: w, enemy } = freeze(1, seed);
     fake.hit(enemy, 3, w);
-    expect(fake.callsOf('stun')).toEqual([{ at: 0, kind: 'stun', enemy: enemy.id, seconds: 0.5 }]);
+    expect(fake.callsOf('stun')).toEqual([{ at: 0, kind: 'stun', enemy: enemy.id, seconds: 0.5, tag: 'frost' }]);
     expect(enemy.frozenT).toBe(0.5);
     expect(fake.callsOf('sound')).toEqual([{ at: 0, kind: 'sound', name: 'frost', opts: { rate: 1.3, volume: 0.5 } }]);
     expect(fake.rng()).toBe(draws(seed, 2)[1]);
@@ -114,7 +114,7 @@ describe('Frost set: freeze', () => {
     const seed = seedWhere((r) => r < 0.2 && r >= 0.1);
     const { fake, stats: w, enemy } = freeze(2, seed);
     fake.hit(enemy, 3, w);
-    expect(fake.callsOf('stun')).toEqual([{ at: 0, kind: 'stun', enemy: enemy.id, seconds: 0.7 }]);
+    expect(fake.callsOf('stun')).toEqual([{ at: 0, kind: 'stun', enemy: enemy.id, seconds: 0.7, tag: 'frost' }]);
   });
 
   it('bosses are stunned by the call but never turn into an ice block (no sound either)', () => {

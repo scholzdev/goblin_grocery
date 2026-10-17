@@ -28,7 +28,7 @@ export default defineCombo({
       if (ev.link < 1 || !c.touches(ev.stats.uid)) return;
       const t = c.tune();
       if (ev.stage === 'before') { if (ev.link > ev.stats.chain - t.chain) ev.damageMult = t.chainMult; }
-      else if (ev.stage === 'hit' && ev.enemy!.alive && ctx.rng() < t.stunChance) ctx.stun(ev.enemy!, t.stun);
+      else if (ev.stage === 'hit' && ev.enemy!.alive && ctx.rng() < t.stunChance) ctx.stun(ev.enemy!, t.stun, 'electric');
     },
   },
 });

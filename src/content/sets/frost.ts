@@ -45,8 +45,8 @@ export default defineSet({
       if (!stats || c.tier < 2 || o.isDot || stats.pattern === 'aura' || stats.pattern === 'puddle') return;
       const t = c.tune();
       if (!(e.status.slowUntil > now && e.status.slowPct >= t.stunMinSlow && ctx.rng() < t.stunChance)) return;
-      ctx.stun(e, t.stun);
-      if (e.alive && e.def.behavior !== 'boss') { e.frozenT = t.stun; ctx.sound('frost', { rate: 1.3, volume: 0.5 }); } // the ice block is drawn from frozenT
+      const frozen = ctx.stun(e, t.stun, 'frost'); // the time scales with the enemy's frost affinity; bosses are immune (0)
+      if (e.alive && frozen > 0) { e.frozenT = frozen; ctx.sound('frost', { rate: 1.3, volume: 0.5 }); } // the ice block is drawn from frozenT
     },
   },
 });

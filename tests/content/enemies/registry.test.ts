@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BOSS_BY_THEME, BOSS_IDS, BOSS_KITS, BOSS_SPECIAL, CODEX_ENEMIES, ENEMIES, SHOW_HP_BAR, bossFor, enemyFrame, isBossId } from '../../../src/data/enemies';
-import { AFFINITY_TAGS, ENEMY_ORDER, defineEnemy } from '../../../src/engine/define';
+import { AFFINITY, AFFINITY_TAGS, ENEMY_ORDER, defineEnemy } from '../../../src/engine/define';
 import { contentEnemies, contentEnemy, contentEnemyTune, registry, validateContent } from '../../../src/engine/registry';
 
 // The real registry validates itself at load (a bad file throws on import); these tests pin what it loaded and prove the validation on fixtures.
@@ -39,9 +39,29 @@ describe('enemy registry', () => {
     expect(contentEnemyTune('milk')).toEqual({});
   });
 
-  it('leaves every affinity empty until step 2 fills it in', () => {
-    for (const c of contentEnemies()) { expect(c.weak, c.id).toBeUndefined(); expect(c.resist, c.id).toBeUndefined(); }
+  it('gives every enemy exactly the affinity of the design table (weak / resist magnitudes)', () => {
+    const W = 0.3, B = 0.4, R = 0.3; // regular weak, boss weak, resist
+    const TABLE: Record<string, { weak?: Record<string, number>; resist?: Record<string, number> }> = {
+      milk: { weak: { blast: W } }, banana: { weak: { frost: W } }, soda: { weak: { electric: W } },
+      spitter: { weak: { frost: W }, resist: { poison: R } }, baguette: { weak: { heat: W } }, egg: { weak: { blast: W } }, melon: { weak: { blast: W } },
+      turkey: { weak: { heat: W }, resist: { frost: R } }, beans: { weak: { electric: W } }, cereal: { weak: { heat: W } },
+      honey: { weak: { frost: W }, resist: { poison: R } }, giftcard: { weak: { electric: W } }, expired: { weak: { cleaning: W }, resist: { poison: R } },
+      gum: { weak: { frost: W }, resist: { heat: R } }, slice: {},
+      boss: { weak: { mark: 1 } },
+      boss_frozen: { weak: { heat: B }, resist: { frost: R } }, boss_bakery: { weak: { frost: B }, resist: { heat: R } },
+      boss_electronics: { weak: { cleaning: B }, resist: { electric: R } }, boss_checkout: { weak: { electric: B }, resist: { blast: R } },
+    };
+    expect(Object.keys(TABLE).sort()).toEqual([...ENEMY_ORDER].sort());
+    for (const c of contentEnemies()) {
+      expect(c.weak, `${c.id} weak`).toEqual(TABLE[c.id].weak);
+      expect(c.resist, `${c.id} resist`).toEqual(TABLE[c.id].resist);
+      expect(ENEMIES[c.id].weak, `${c.id} def weak`).toEqual(TABLE[c.id].weak);
+    }
     expect([...AFFINITY_TAGS]).toEqual(['heat', 'frost', 'electric', 'blast', 'cleaning', 'poison', 'mark']);
+  });
+
+  it('ties the content magnitudes to the one tunable AFFINITY const', () => {
+    expect(AFFINITY).toMatchObject({ weak: 0.3, bossWeak: 0.4, resist: 0.3, markWeak: 1, weakDuration: 1.5, resistDuration: 0.5, stagger: { time: 0.25, cooldown: 4 } });
   });
 });
 
@@ -109,9 +129,11 @@ describe('validateContent: enemies', () => {
     expect(errors({ 'enemies/spitter.ts': enemy({ text: { en: { name: 'A', blurb: '' }, de: { name: 'B', blurb: 'x' } } }) })).toMatch(/text\.en\.blurb must be a non-empty string/);
   });
 
-  it('checks the affinity tags and multipliers', () => {
+  it('checks the affinity tags and magnitudes', () => {
     expect(errors({ 'enemies/spitter.ts': enemy({ weak: { lava: 2 } }) })).toMatch(/weak\.lava is not an affinity tag/);
-    expect(errors({ 'enemies/spitter.ts': enemy({ resist: { heat: 0 } }) })).toMatch(/resist\.heat must be a positive multiplier/);
+    expect(errors({ 'enemies/spitter.ts': enemy({ resist: { heat: 0 } }) })).toMatch(/resist\.heat must be a positive magnitude/);
+    expect(errors({ 'enemies/spitter.ts': enemy({ resist: { heat: 1.5 } }) })).toMatch(/resist\.heat is a fraction of damage taken away and cannot exceed 1/);
+    expect(validateContent({ enemies: { 'enemies/spitter.ts': enemy({ weak: { mark: 1 }, resist: { heat: 0.3 } }) } })).toEqual([]); // a mark magnitude may exceed 1 (it scales the bonus)
     expect(errors({ 'enemies/spitter.ts': enemy({ weak: { heat: 1.5 }, resist: { heat: 0.5 } }) })).toMatch(/"heat" is both weak and resist/);
   });
 

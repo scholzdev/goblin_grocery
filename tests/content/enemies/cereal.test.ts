@@ -12,7 +12,7 @@ const OLD = { id: 'cereal', behavior: 'chase', tell: 0, attackCooldown: 0, attac
 
 describe('Cereal Box (cereal)', () => {
   it('has the stats, sprite scale and tune it had as a table row', () => {
-    expect(ENEMIES.cereal).toEqual(OLD);
+    expect(ENEMIES.cereal).toEqual({ ...OLD, weak: { heat: 0.3 } });
   });
 
   it('shows its name and blurb unchanged in English and German', () => {
@@ -21,9 +21,9 @@ describe('Cereal Box (cereal)', () => {
     expect(enemyT('cereal')).toEqual({ name: 'Müslipackung', blurb: 'Hält eine Pappfront hoch: Die ersten 6 Schüsse prallen ab, dann weicht sie durch. Schwünge, Explosionen, Brand und Dashes ignorieren sie.' });
   });
 
-  it('has no affinity yet', () => {
+  it('has its element affinity (weak and resist magnitudes)', () => {
     const c = contentEnemy('cereal')!;
-    expect(c.weak).toBeUndefined();
+    expect(c.weak).toEqual({ heat: 0.3 });
     expect(c.resist).toBeUndefined();
   });
 

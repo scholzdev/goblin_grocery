@@ -11,7 +11,7 @@ const OLD = { id: 'egg', behavior: 'exploder', tell: 0.7, attackCooldown: 0, att
 
 describe('Egg Carton (egg)', () => {
   it('has the stats, sprite scale and tune it had as a table row', () => {
-    expect(ENEMIES.egg).toEqual(OLD);
+    expect(ENEMIES.egg).toEqual({ ...OLD, weak: { blast: 0.3 } });
   });
 
   it('shows its name and blurb unchanged in English and German', () => {
@@ -20,9 +20,9 @@ describe('Egg Carton (egg)', () => {
     expect(enemyT('egg')).toEqual({ name: 'Eierkarton', blurb: 'Watschelt heran und explodiert. Platz ihn zuerst.' });
   });
 
-  it('has no affinity yet', () => {
+  it('has its element affinity (weak and resist magnitudes)', () => {
     const c = contentEnemy('egg')!;
-    expect(c.weak).toBeUndefined();
+    expect(c.weak).toEqual({ blast: 0.3 });
     expect(c.resist).toBeUndefined();
   });
 

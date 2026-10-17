@@ -11,7 +11,7 @@ const OLD = { id: 'spitter', behavior: 'spitter', tell: 0.45, attackCooldown: 2.
 
 describe('Detergent Spitter (spitter)', () => {
   it('has the stats, sprite scale and tune it had as a table row', () => {
-    expect(ENEMIES.spitter).toEqual(OLD);
+    expect(ENEMIES.spitter).toEqual({ ...OLD, weak: { frost: 0.3 }, resist: { poison: 0.3 } });
   });
 
   it('shows its name and blurb unchanged in English and German', () => {
@@ -20,10 +20,10 @@ describe('Detergent Spitter (spitter)', () => {
     expect(enemyT('spitter')).toEqual({ name: 'Spülmittel-Spucker', blurb: 'Spritzt aus der Ferne langsame Spülmittelblasen. Geh ran oder weich aus.' });
   });
 
-  it('has no affinity yet', () => {
+  it('has its element affinity (weak and resist magnitudes)', () => {
     const c = contentEnemy('spitter')!;
-    expect(c.weak).toBeUndefined();
-    expect(c.resist).toBeUndefined();
+    expect(c.weak).toEqual({ frost: 0.3 });
+    expect(c.resist).toEqual({ poison: 0.3 });
   });
 
   it('shows a health bar once damaged', () => {

@@ -1,4 +1,4 @@
-import { defineEnemy } from '../../engine/define';
+import { AFFINITY, defineEnemy } from '../../engine/define';
 
 // Death: `slices` Melon Slices.
 export default defineEnemy({
@@ -8,6 +8,7 @@ export default defineEnemy({
     knockbackResist: 0.5,
   },
   tune: { slices: 3 },
+  weak: { blast: AFFINITY.weak },
   text: {
     en: { name: 'Watermelon', blurb: 'Bursts into three fast slices when it dies. Mind the mess.' },
     de: { name: 'Wassermelone', blurb: 'Platzt beim Tod in drei flinke Scheiben. Vorsicht, Matsch.' },

@@ -182,7 +182,7 @@ describe('Frost L2 freeze', () => {
     const seed = seedWhere((r) => r < FROST.stunChance);
     const { fake, stats, enemy } = frost(seed);
     fake.hit(enemy, 3, stats);
-    expect(fake.callsOf('stun')).toEqual([{ at: 0, kind: 'stun', enemy: enemy.id, seconds: FROST.stun }]);
+    expect(fake.callsOf('stun')).toEqual([{ at: 0, kind: 'stun', enemy: enemy.id, seconds: FROST.stun, tag: 'frost' }]);
     expect(enemy.frozenT).toBe(FROST.stun);
     expect(fake.callsOf('sound')).toEqual([{ at: 0, kind: 'sound', name: 'frost', opts: { rate: 1.3, volume: 0.5 } }]);
   });
@@ -235,7 +235,7 @@ describe('Frost L2 freeze', () => {
     expect(b.sets.frost).toBe(3);
     const e = fake.spawnEnemy({ hp: 1000 });
     fake.hit(e, 3, stats);
-    expect(fake.callsOf('stun')).toEqual([{ at: 0, kind: 'stun', enemy: e.id, seconds: FROST3.stun }]);
+    expect(fake.callsOf('stun')).toEqual([{ at: 0, kind: 'stun', enemy: e.id, seconds: FROST3.stun, tag: 'frost' }]);
   });
 });
 
@@ -356,8 +356,8 @@ describe('ArenaScene.damageEnemy keeps its pipeline', () => {
   const at_ = (needle: string): number => { const i = body.indexOf(needle); expect(i, needle).toBeGreaterThan(-1); return i; };
   it('runs the steps in order', () => {
     const order = [
-      "H.emit('modifyDamage'", 'markedDamage(dmg, e.markedUntil, now)', 'this.rng() < stats.critChance', "H.emit('onCrit'", 'armorDamage(',
-      'e.hp -= dmg', "H.emit('onHit'", 'applyHitStatuses(hit', "H.emit('afterHit'", 'if (o.kb) {', 'e.kx += ', "this.fx.spark(e.x, e.y - 30, 3, armored", 'this.fx.number(', 'scheduleEcho(hit',
+      "H.emit('modifyDamage'", 'affinityMult(e.def, tags)', 'markedDamage(dmg, e.markedUntil, now, markMult(e.def))', 'this.rng() < stats.critChance', "H.emit('onCrit'", 'armorDamage(',
+      'e.hp -= dmg', "H.emit('onHit'", 'applyHitStatuses(hit', "H.emit('afterHit'", 'tryStagger(e, tags', 'if (o.kb) {', 'e.kx += ', "this.fx.spark(e.x, e.y - 30, 3, armored", 'this.fx.number(', 'scheduleEcho(hit',
       'this.killEnemy(e, true, hit)', "H.emit('afterKill'", 'applyKillEffects(hit',
     ].map(at_);
     expect(order).toEqual([...order].sort((a, b) => a - b));

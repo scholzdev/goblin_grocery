@@ -1,4 +1,4 @@
-import { defineEnemy } from '../../engine/define';
+import { AFFINITY, defineEnemy } from '../../engine/define';
 
 // tune = the conveyor: shoves the player toward the boss at `speed` px/s for `time` s.
 export default defineEnemy({
@@ -8,6 +8,8 @@ export default defineEnemy({
     knockbackResist: 1, tell: 0.8, attackCooldown: 2.3, attackDamage: 9, projectileSpeed: 195, projectileLife: 5, lungeSpeed: 560, lungeTime: 0.7,
   },
   tune: { speed: 170, time: 2.4 },
+  weak: { electric: AFFINITY.bossWeak },
+  resist: { blast: AFFINITY.resist },
   text: {
     en: { name: 'The Self-Checkout Kiosk', blurb: 'Runs the conveyor against you, then charges. Bags in gum and gift cards.' },
     de: { name: 'Die Selbstbedienungskasse', blurb: 'Lässt das Fließband gegen dich laufen und rammt dich dann. Holt Kaugummis und Geschenkkarten dazu.' },

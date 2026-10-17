@@ -11,7 +11,7 @@ const OLD = { id: 'gum', behavior: 'chase', tell: 0, attackCooldown: 0, attackRa
 
 describe('Bubble Gum (gum)', () => {
   it('has the stats, sprite scale and tune it had as a table row', () => {
-    expect(ENEMIES.gum).toEqual(OLD);
+    expect(ENEMIES.gum).toEqual({ ...OLD, weak: { frost: 0.3 }, resist: { heat: 0.3 } });
   });
 
   it('shows its name and blurb unchanged in English and German', () => {
@@ -20,10 +20,10 @@ describe('Bubble Gum (gum)', () => {
     expect(enemyT('gum')).toEqual({ name: 'Kaugummi', blurb: 'Kaut hinter dir her und hinterlässt klebrige rosa Pfützen, die dich verlangsamen. Platzt zur Falle.' });
   });
 
-  it('has no affinity yet', () => {
+  it('has its element affinity (weak and resist magnitudes)', () => {
     const c = contentEnemy('gum')!;
-    expect(c.weak).toBeUndefined();
-    expect(c.resist).toBeUndefined();
+    expect(c.weak).toEqual({ frost: 0.3 });
+    expect(c.resist).toEqual({ heat: 0.3 });
   });
 
   it('shows a health bar once damaged', () => {

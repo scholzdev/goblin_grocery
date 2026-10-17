@@ -27,6 +27,7 @@ import { ITEM_IDS } from '../data/items';
 import type { DepartmentId, EnemyId, ItemTypeId, LabOpts, Perk, RecipeId, StarterId, StarterWeapon } from '../types';
 import type { Fresh } from '../state/profile';
 import { modIcon, setIcon } from './icons';
+import { affinityRowsHtml } from './affinity';
 import { t, fmtNum, lang, setLang, LANGS, type Lang, type UIKey } from '../i18n';
 import { newSetLevels, setsOf } from '../data/sets';
 import { flavorOf } from '../engine/define';
@@ -660,7 +661,7 @@ function codexTab(tab: 'combos' | 'items' | 'enemies'): string {
       const aisles = ap.first === ap.last ? t('aisleLc', { n: ap.first }) : t('aislesRange', { a: ap.first, b: ap.last });
       const depts = ap.depts.map((x) => deptT(x).name);
       const best = isBossId(id) ? Math.max(-1, ...Object.values(profile.stats.bestShift).map((n) => n ?? -1)) : -1;
-      return `<div class="codex-card known enemy">${newTag(`enemy:${id}`)}<div class="icons"><img src="${art}" alt=""></div><div class="nm">${et.name}</div><div class="eff">${t('enemyStat', { hp: d.hp, dmg: d.contactDamage, spd })}</div><div class="det">${et.blurb}</div>
+      return `<div class="codex-card known enemy">${newTag(`enemy:${id}`)}<div class="icons"><img src="${art}" alt=""></div><div class="nm">${et.name}</div><div class="eff">${t('enemyStat', { hp: d.hp, dmg: d.contactDamage, spd })}</div><div class="det">${et.blurb}</div>${affinityRowsHtml(id)}
         <div class="det">${t('appears', { aisles })}${depts.length ? ` \u00b7 ${depts.join(', ')}` : ''}</div>
         <div class="det">${t('returned', { n: rec?.kills ?? 0 })}${rec?.elites ? ` ${t('eliteCount', { n: rec.elites })}` : ''}${best >= 0 ? ` \u00b7 ${t('beatenOn', { name: shiftT(best).name })}` : ''}</div></div>`;
     }).join('');

@@ -11,7 +11,7 @@ const OLD = { id: 'banana', behavior: 'charger', tell: 0.6, attackCooldown: 2.6,
 
 describe('Banana Bandit (banana)', () => {
   it('has the stats, sprite scale and tune it had as a table row', () => {
-    expect(ENEMIES.banana).toEqual(OLD);
+    expect(ENEMIES.banana).toEqual({ ...OLD, weak: { frost: 0.3 } });
   });
 
   it('shows its name and blurb unchanged in English and German', () => {
@@ -20,9 +20,9 @@ describe('Banana Bandit (banana)', () => {
     expect(enemyT('banana')).toEqual({ name: 'Bananen-Bandit', blurb: 'Holt aus und rutscht dann zum Schlitterangriff heran. Weich aus.' });
   });
 
-  it('has no affinity yet', () => {
+  it('has its element affinity (weak and resist magnitudes)', () => {
     const c = contentEnemy('banana')!;
-    expect(c.weak).toBeUndefined();
+    expect(c.weak).toEqual({ frost: 0.3 });
     expect(c.resist).toBeUndefined();
   });
 

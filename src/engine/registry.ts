@@ -194,7 +194,8 @@ export function validateContent(files: Partial<ContentFiles>, opts: ValidateOpti
   const checkAffinity = (path: string, field: string, m: AffinityMap | undefined) => {
     for (const [tag, v] of Object.entries(m ?? {})) {
       if (!(AFFINITY_TAGS as readonly string[]).includes(tag)) err(path, `${field}.${tag} is not an affinity tag (${AFFINITY_TAGS.join(', ')})`);
-      if (typeof v !== 'number' || !Number.isFinite(v) || v <= 0) err(path, `${field}.${tag} must be a positive multiplier (got ${JSON.stringify(v)})`);
+      if (typeof v !== 'number' || !Number.isFinite(v) || v <= 0) err(path, `${field}.${tag} must be a positive magnitude (got ${JSON.stringify(v)})`);
+      else if (field === 'resist' && v > 1) err(path, `resist.${tag} is a fraction of damage taken away and cannot exceed 1 (got ${v})`);
     }
   };
   for (const [path, c] of Object.entries(files.enemies ?? {})) {

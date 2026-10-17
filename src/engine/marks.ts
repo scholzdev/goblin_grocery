@@ -9,5 +9,5 @@ import { contentComboTune } from './registry';
 /** Damage multiplier of a marked enemy (Price Check's `damageMult`; Sale Flag's text shows `1 + bonus` and a test pins them equal). */
 export const MARK_MULT = contentComboTune('priceCheck').damageMult;
 
-/** `dmg` after the mark: ×`MARK_MULT` while `markedUntil` is in the future, untouched otherwise. */
-export const markedDamage = (dmg: number, markedUntil: number | undefined, now: number): number => ((markedUntil ?? 0) > now ? dmg * MARK_MULT : dmg);
+/** `dmg` after the mark: ×`mult` (default `MARK_MULT`; callers pass `markMult(e.def)`) while `markedUntil` is in the future, untouched otherwise. */
+export const markedDamage = (dmg: number, markedUntil: number | undefined, now: number, mult: number = MARK_MULT): number => ((markedUntil ?? 0) > now ? dmg * mult : dmg);

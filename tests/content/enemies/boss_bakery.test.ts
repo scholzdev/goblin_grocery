@@ -11,7 +11,7 @@ const OLD = { id: 'boss_bakery', behavior: 'boss', tell: 0.75, attackCooldown: 2
 
 describe('The Industrial Oven (boss_bakery)', () => {
   it('has the stats, sprite scale and tune it had as a table row', () => {
-    expect(ENEMIES.boss_bakery).toEqual(OLD);
+    expect(ENEMIES.boss_bakery).toEqual({ ...OLD, weak: { frost: 0.4 }, resist: { heat: 0.3 } });
   });
 
   it('shows its name and blurb unchanged in English and German', () => {
@@ -20,10 +20,10 @@ describe('The Industrial Oven (boss_bakery)', () => {
     expect(enemyT('boss_bakery')).toEqual({ name: 'Der Industrieofen', blurb: 'Enge Toast-Fächer, Feuerringe und ein stetiger Nachschub an Baguettes.' });
   });
 
-  it('has no affinity yet', () => {
+  it('has its element affinity (weak and resist magnitudes)', () => {
     const c = contentEnemy('boss_bakery')!;
-    expect(c.weak).toBeUndefined();
-    expect(c.resist).toBeUndefined();
+    expect(c.weak).toEqual({ frost: 0.4 });
+    expect(c.resist).toEqual({ heat: 0.3 });
   });
 
   it('shows no health bar (it only does for elites)', () => {
