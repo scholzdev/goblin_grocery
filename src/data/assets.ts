@@ -71,6 +71,8 @@ export const SVG_ASSETS: SvgAsset[] = [
 { key: 'enemy_cereal_b', w: 80, h: 100, ax: 0.5, ay: 0.95 },
 { key: 'enemy_honey_a', w: 74, h: 96, ax: 0.5, ay: 0.95 },
 { key: 'enemy_honey_b', w: 74, h: 96, ax: 0.5, ay: 0.95 },
+{ key: 'enemy_sanitizer_a', w: 76, h: 96, ax: 0.5, ay: 0.95 },
+{ key: 'enemy_sanitizer_b', w: 76, h: 96, ax: 0.5, ay: 0.95 },
 { key: 'enemy_giftcard_a', w: 86, h: 92, ax: 0.5, ay: 0.95 },
 { key: 'enemy_giftcard_b', w: 86, h: 92, ax: 0.5, ay: 0.95 },
 { key: 'enemy_expired_a', w: 72, h: 96, ax: 0.5, ay: 0.95 },

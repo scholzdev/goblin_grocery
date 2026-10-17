@@ -1,9 +1,10 @@
 import { defineSet } from '../../engine/define';
 import { Set as S } from '../../engine/ids';
+import { wetChainBonus } from '../../engine/wet';
 
 // Electric set: electrical weapons (except the Microwave, which already chains) arc to nearby enemies. Arrays are L1/L2/L3: the chance and
 // the number of jumps grow with the level. `range` and `damageMult` (a share of the hit's incoming damage) are flat. Aura and puddle ticks
-// never arc (too many rolls), and chained hits never arc again.
+// never arc (too many rolls), and chained hits never arc again. A wet origin enemy adds one hop to the chain (`wetChainBonus`, once per chain).
 export default defineSet({
   id: S.electric,
   tune: { chance: [0.1, 0.2, 0.3], jumps: [1, 2, 3], range: 120, damageMult: 0.5 },
@@ -47,7 +48,8 @@ export default defineSet({
       const seen = new Set([e.id]);
       let from = e;
       const pts = [{ x: e.x, y: e.y - 30 }];
-      for (let j = 0; j < stats.chainJumps; j++) {
+      const jumps = stats.chainJumps + wetChainBonus(e.status, hit.now); // Wet: +1 hop when the enemy the chain starts on is wet
+      for (let j = 0; j < jumps; j++) {
         const n = ctx.ricochetTarget(from, seen, t.range);
         if (!n) break;
         seen.add(n.id);

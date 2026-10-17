@@ -153,6 +153,11 @@ export interface RuntimeCtx {
    * the later of the two (capped at `WEAKEN.cap`). Bosses are not immune; no element, so affinity never scales it. Nothing is rolled here.
    */
   weaken(e: CombatEnemy, pct: number, seconds: number): void;
+  /**
+   * Wet: the enemy is soaked for `seconds` (default `WET_STATUS.duration`; refresh to the later end). On its own it does nothing; it makes electric hits, Electric chains,
+   * frost slows / freezes and burns react (docs/item-hooks-refactor.md "Wet"). Bosses are not immune; no element, so affinity never scales it. Nothing is rolled here.
+   */
+  wet(e: CombatEnemy, seconds?: number): void;
 
   // ---- player
   readonly player: PlayerView;

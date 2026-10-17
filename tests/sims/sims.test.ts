@@ -296,17 +296,18 @@ describe('enemy sims', () => {
   const own = (id: string) => simDummies(simOf(id)).filter((d) => d.id === id);
 
   it('there is one sim for every regular enemy', () => {
-    expect(REGULAR).toHaveLength(15);
+    expect(REGULAR).toHaveLength(16);
     for (const id of REGULAR) expect(simRegistry.get(`enemy-${id}`), id).toBeDefined();
-    expect(simRegistry.ids.filter((i) => i.startsWith('enemy-'))).toHaveLength(15);
+    expect(simRegistry.ids.filter((i) => i.startsWith('enemy-'))).toHaveLength(16);
   });
   it('each is a god-mode sandbox with the neutral cart, notes, and 6 to 10 of that enemy', () => {
     for (const id of REGULAR) {
       const s = simOf(id);
-      expect(s.cart, id).toEqual([{ id: 'pan', tier: 2, at: [1, 1] }, { id: 'toaster', tier: 2, at: [3, 2] }]);
       expect(s.waves ?? false, id).toBe(false);
       expect(s.god ?? true, id).toBe(true);
       expect(s.notes, id).toBeTruthy();
+      if (id === 'sanitizer') continue; // the one exception: it needs a cart that burns, shreds, poisons and soaks (a crowd to scrub), see tests/sims/wet-sims.test.ts
+      expect(s.cart, id).toEqual([{ id: 'pan', tier: 2, at: [1, 1] }, { id: 'toaster', tier: 2, at: [3, 2] }]);
       expect(own(id).length, id).toBeGreaterThanOrEqual(6);
       expect(own(id).length, id).toBeLessThanOrEqual(10);
     }

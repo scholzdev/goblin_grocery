@@ -3,7 +3,7 @@ import { AFFIX, affixArmor, BOSS, BOSS_KITS, BOSS_SPECIAL, ELITE, MINI_BOSS, ELI
 import { bossTuning } from '../data/waves';
 import { store } from '../state/store';
 import type { EnemyDef, EnemyId } from '../types';
-import { healTargets, newStatus, slowFactor, tickBurn, tickPoison, type StatusFx } from '../systems/combat';
+import { cleanseAura, healTargets, newStatus, slowFactor, tickBurn, tickPoison, type StatusFx } from '../systems/combat';
 import { pushOutCircle } from '../systems/obstacles';
 import { lang, t } from '../i18n';
 import { play } from '../audio/sfx';
@@ -54,7 +54,7 @@ export interface Enemy {
   elite: boolean;
   /** Splitter copy: scale factor vs the base type (0 = normal). */
   small: number;
-  /** Behavior timer: honey heal / expired blink / gum puddle countdown, giftcard time alive. */
+  /** Behavior timer: honey heal / expired blink / gum puddle / sanitizer cleanse countdown, giftcard time alive. */
   auxT: number;
   /** Expired Milk blink target. */
   tx: number; ty: number;
@@ -82,7 +82,7 @@ export const pickAffix = (id: EnemyId, rng: () => number): EliteAffix => {
 };
 
 // The enemies' own behavior numbers: their content `tune` (src/content/enemies/<id>.ts).
-const SPITTER = ENEMIES.spitter.tune, EGG_BLAST = ENEMIES.egg.tune, HONEY = ENEMIES.honey.tune, GIFTCARD = ENEMIES.giftcard.tune, EXPIRED = ENEMIES.expired.tune, GUM = ENEMIES.gum.tune;
+const SPITTER = ENEMIES.spitter.tune, EGG_BLAST = ENEMIES.egg.tune, HONEY = ENEMIES.honey.tune, GIFTCARD = ENEMIES.giftcard.tune, EXPIRED = ENEMIES.expired.tune, GUM = ENEMIES.gum.tune, SANITIZER = ENEMIES.sanitizer.tune;
 const TELL_TEX: Partial<Record<EnemyId, string>> = { banana: 'enemy_banana_tell', spitter: 'enemy_spitter_tell', baguette: 'enemy_baguette_tell', egg: 'enemy_egg_tell', soda: 'enemy_soda_tell', turkey: 'enemy_turkey_tell' };
 const tellKey = (id: EnemyId): string | undefined => (isBossId(id) ? enemyFrame(id, 'tell') : TELL_TEX[id]);
 const frameKey = (id: EnemyId, f: 0 | 1) => enemyFrame(id, f ? 'b' : 'a');
@@ -109,7 +109,7 @@ export function createEnemy(scene: ArenaScene, id: EnemyId, x: number, y: number
     hp, maxHp: hp, elite, affix, lastHitT: -99, loot: 0, trailT: 0, small, speed: def.speed * speedScale * (affix === 'swift' ? AFFIX.swift.speedMult : 1),
     status: newStatus(), state: 'spawn', stateT: 0.3, atkCd: def.attackCooldown * (0.4 + scene.rng() * 0.6),
     dirX: 1, dirY: 0, flashT: 0, animT: Math.random(), facing: 1, alive: true, lastHitNumberAt: 0, lastFlashAt: 0,
-    auxT: id === 'expired' ? EXPIRED.interval * (0.5 + scene.rng() * 0.5) : id === 'honey' ? 0.5 : id === 'gum' ? 0.6 : 0, tx: x, ty: y, linkT: 0,
+    auxT: id === 'expired' ? EXPIRED.interval * (0.5 + scene.rng() * 0.5) : id === 'honey' ? 0.5 : id === 'gum' ? 0.6 : id === 'sanitizer' ? SANITIZER.cleanseInterval : 0, tx: x, ty: y, linkT: 0,
   };
   if (mini) { e.mini = true; e.kit = mini.kit; }
   else if (isBossId(id)) e.kit = BOSS_KITS[id];
@@ -154,6 +154,7 @@ export function updateEnemy(scene: ArenaScene, e: Enemy, dt: number, now: number
   e.linkT -= dt;
   if (e.affix && e.state !== 'spawn') affixTick(scene, e, dt, now);
   const d = e.def;
+  if (d.id === 'sanitizer' && e.state !== 'spawn' && (e.auxT -= dt) <= 0) sanitize(scene, e, now); // the aura runs whatever the Sanitizer is doing (a stun does not stop it)
   if (d.behavior === 'thief' && !e.dummy && e.state !== 'spawn' && (e.auxT += dt) >= GIFTCARD.escapeAfter) {
     scene.fx.puff(e.x, e.y - 24, 6);
     scene.fx.label(e.x, e.y - 80, lang() === 'de' ? 'entwischt!' : 'escaped!', '#FFF2D5', 22);
@@ -320,6 +321,13 @@ function updateIce(scene: ArenaScene, e: Enemy, dt: number): void {
 }
 
 const clampUnit = (v: number): number => Math.min(1, Math.max(0, v));
+
+/** Hand Sanitizer tick: scrub burn, poison, shred, wet and weaken off itself and every enemy in its aura (systems/combat `cleanseAura`, no rng), with a pulse ring and a sparkle on whoever lost something. */
+function sanitize(scene: ArenaScene, e: Enemy, now: number): void {
+  e.auxT += SANITIZER.cleanseInterval;
+  scene.fx.ring('fx_pulse', e.x, e.y, (SANITIZER.cleanseRadius + e.def.radius) * 2, 450, 0xbfe8ff, true);
+  for (const o of cleanseAura(e, scene.enemies, SANITIZER.cleanseRadius, now)) scene.fx.spark(o.x, o.y - 40, 3, 0xbfe8ff);
+}
 
 /** Honey Jar tick: heal nearby groceries and flash a golden tether to each. */
 function honeyHeal(scene: ArenaScene, e: Enemy): void {

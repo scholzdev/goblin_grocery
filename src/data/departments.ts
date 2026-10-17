@@ -53,7 +53,7 @@ export const DEPARTMENTS: Record<DepartmentId, DepartmentDef> = {
 
 /** Run themes the player can pick on the start screen. */
 export const THEMES: DepartmentId[] = [...THEME_ORDER];
-const BASICS: EnemyId[] = [Enemy.milk, Enemy.banana, Enemy.giftcard];
+const BASICS: EnemyId[] = [Enemy.milk, Enemy.banana, Enemy.giftcard, Enemy.sanitizer];
 export const DEPT_TUNING = {
   /** Off-theme enemies spawn at this weight; basics stay at 1. */
   offTheme: 0.35,

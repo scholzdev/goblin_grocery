@@ -1,12 +1,13 @@
 import { DEPTH } from '../../data/depth';
 import { newHitTracker, tryHit } from '../../systems/combat';
+import { applyWet } from '../wet';
 import { weaponDamageMult, wrapAngle } from '../define';
 import { degToRad, repeat } from './common';
 import type { Pattern, PatternEnemy, PatternHost, WeaponRt } from './types';
 
 /**
  * One cone toward the nearest enemy; every enemy inside is hit once per blast. Parameters from the weapon's content: `base.knockback`
- * (default 40), `base.fx` (the sprite, default the spray), `tune.blow` (Leaf Blower: slam damage at ★1, scaled by the weapon's tier).
+ * (default 40), `base.fx` (the sprite, default the spray), `tune.blow` (Leaf Blower: slam damage at ★1, scaled by the weapon's tier), `tune.wet` (Spray Bottle: seconds of Wet on every hit enemy).
  */
 function coneOnce(h: PatternHost, w: WeaponRt): void {
   const sc = h.sc;
@@ -28,6 +29,7 @@ function coneOnce(h: PatternHost, w: WeaponRt): void {
     if (d > st.range + e.def.radius) continue;
     if (Math.abs(wrapAngle(Math.atan2(dy, dx) - a)) > half && d > e.def.radius + p.radius) continue;
     if (!tryHit(tracker, e.id)) continue;
+    if (w.tune.wet) applyWet(e.status, w.tune.wet, sc.time.now / 1000); // the Spray Bottle soaks what it hits, before the hit (so a frost slow / electric bonus of this very hit reacts)
     sc.damageEnemy(e, st.damage, st, { kb: w.base.knockback ?? 40, kbX: dx / (d || 1), kbY: dy / (d || 1), quiet: true, blow });
     hits?.push(e);
   }

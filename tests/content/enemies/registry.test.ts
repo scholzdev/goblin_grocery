@@ -5,7 +5,7 @@ import { contentEnemies, contentEnemy, contentEnemyTune, registry, validateConte
 
 // The real registry validates itself at load (a bad file throws on import); these tests pin what it loaded and prove the validation on fixtures.
 
-const OLD_ORDER = ['milk', 'banana', 'soda', 'spitter', 'baguette', 'egg', 'melon', 'turkey', 'beans', 'cereal', 'honey', 'giftcard', 'expired', 'gum', 'slice', 'boss', 'boss_frozen', 'boss_bakery', 'boss_electronics', 'boss_checkout'];
+const OLD_ORDER = ['milk', 'banana', 'soda', 'spitter', 'baguette', 'egg', 'melon', 'turkey', 'beans', 'cereal', 'honey', 'giftcard', 'expired', 'gum', 'slice', 'boss', 'boss_frozen', 'boss_bakery', 'boss_electronics', 'boss_checkout', 'sanitizer'];
 
 describe('enemy registry', () => {
   it('loads one file per enemy, in ENEMY_ORDER, the order the table always had', () => {
@@ -30,7 +30,7 @@ describe('enemy registry', () => {
   });
 
   it('shows health bars on the same enemies as before, and every enemy is in the codex once', () => {
-    expect([...SHOW_HP_BAR].sort()).toEqual(['milk', 'banana', 'soda', 'baguette', 'spitter', 'egg', 'melon', 'slice', 'turkey', 'beans', 'cereal', 'honey', 'expired', 'gum'].sort());
+    expect([...SHOW_HP_BAR].sort()).toEqual(['milk', 'banana', 'soda', 'baguette', 'spitter', 'egg', 'melon', 'slice', 'turkey', 'beans', 'cereal', 'honey', 'expired', 'gum', 'sanitizer'].sort());
     expect([...CODEX_ENEMIES].sort()).toEqual([...OLD_ORDER].sort());
   });
 
@@ -46,7 +46,7 @@ describe('enemy registry', () => {
       spitter: { weak: { frost: W }, resist: { poison: R } }, baguette: { weak: { heat: W } }, egg: { weak: { blast: W } }, melon: { weak: { blast: W } },
       turkey: { weak: { heat: W }, resist: { frost: R } }, beans: { weak: { electric: W } }, cereal: { weak: { heat: W } },
       honey: { weak: { frost: W }, resist: { poison: R } }, giftcard: { weak: { electric: W } }, expired: { weak: { cleaning: W }, resist: { poison: R } },
-      gum: { weak: { frost: W }, resist: { heat: R } }, slice: {},
+      gum: { weak: { frost: W }, resist: { heat: R } }, slice: {}, sanitizer: { weak: { blast: W }, resist: { poison: R } },
       boss: { weak: { mark: 1 } },
       boss_frozen: { weak: { heat: B }, resist: { frost: R } }, boss_bakery: { weak: { frost: B }, resist: { heat: R } },
       boss_electronics: { weak: { cleaning: B }, resist: { electric: R } }, boss_checkout: { weak: { electric: B }, resist: { blast: R } },

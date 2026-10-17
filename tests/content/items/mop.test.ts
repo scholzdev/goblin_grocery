@@ -32,13 +32,13 @@ describe('Mop: content', () => {
 
   it('renders its text for every level, EN and DE', () => {
     expect([1, 2, 3].map((t) => itemRules('mop', t))).toEqual([
-      'Every 1.6 s drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip: 25% slow and 3 damage every 0.5 s.',
-      'Every 1.44 s drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip: 25% slow and 4.5 damage every 0.5 s.',
-      'Every 1.28 s drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip: 25% slow and 6 damage every 0.5 s.',
+      'Every 1.6 s drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip and get Wet (3 s): 25% slow and 3 damage every 0.5 s.',
+      'Every 1.44 s drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip and get Wet (3 s): 25% slow and 4.5 damage every 0.5 s.',
+      'Every 1.28 s drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip and get Wet (3 s): 25% slow and 6 damage every 0.5 s.',
     ]);
     expect(itemT('mop')).toMatchObject({ name: 'Mop', blurb: 'Leaves slippery soap puddles behind you.' });
     setLang('de');
-    expect([1, 3].map((t) => itemRules('mop', t))).toEqual(['Hinterlässt alle 1,6 s eine Seifenpfütze (Radius 60, hält 3 s). Gegner darin rutschen: 25% langsamer und 3 Schaden alle 0,5 s.', 'Hinterlässt alle 1,28 s eine Seifenpfütze (Radius 60, hält 3 s). Gegner darin rutschen: 25% langsamer und 6 Schaden alle 0,5 s.']);
+    expect([1, 3].map((t) => itemRules('mop', t))).toEqual(['Hinterlässt alle 1,6 s eine Seifenpfütze (Radius 60, hält 3 s). Gegner darin rutschen und werden nass (3 s): 25% langsamer und 3 Schaden alle 0,5 s.', 'Hinterlässt alle 1,28 s eine Seifenpfütze (Radius 60, hält 3 s). Gegner darin rutschen und werden nass (3 s): 25% langsamer und 6 Schaden alle 0,5 s.']);
     expect(itemT('mop')).toMatchObject({ name: 'Wischmopp', blurb: 'Hinterlässt rutschige Seifenpfützen.' });
   });
 

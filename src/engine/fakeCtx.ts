@@ -1,4 +1,5 @@
 import { applyBurn, applyPoison, applyShred, applySlow, applyWeaken, hitArmor, newStatus, shredGain } from '../systems/combat';
+import { applyWet, burnVsWet, slowVsWet, wetElectricMult } from './wet';
 import { newDamageStats, recordDamage, type DamageSink } from '../systems/damageStats';
 import { combatRng, type Rng } from '../systems/rng';
 import { CRIT, PLAYER } from '../data/items';
@@ -10,7 +11,7 @@ import { FX_METHODS, type AisleView, type CombatEnemy, type CombatShot, type FxA
 import { EMPTY_HOOKS, type HitEvent, type HitOpts, type HookTable } from './hooks';
 import { applyMark, markedDamage } from './marks';
 import { affinityMult, burnFor, markMult, poisonTimeFor, slowFor, statusDurationMult, tryStagger } from './affinity';
-import { AFFINITY, SHRED, type AffinityTag } from './define';
+import { AFFINITY, SHRED, WET_STATUS, type AffinityTag } from './define';
 import { hitTags } from './hitTags';
 import { damageType } from './damageType';
 import { applyHitStatuses, scheduleEcho } from './onHitStatuses';
@@ -38,6 +39,7 @@ export type Call = { at: number } & (
   | { kind: 'mark'; enemy: number; seconds: number }
   | { kind: 'shred'; enemy: number; stacks: number; seconds: number }
   | { kind: 'weaken'; enemy: number; pct: number; seconds: number }
+  | { kind: 'wet'; enemy: number; seconds: number }
   | { kind: 'hurt'; dmg: number }
   | { kind: 'heal'; hp: number }
   | { kind: 'healFx'; x: number; y: number }
@@ -239,11 +241,11 @@ export class FakeCtx implements RuntimeCtx {
   // The log keeps what the hook asked for; the status on the enemy has the duration scaled by its affinity (burnFor / slowFor / poisonTimeFor).
   ignite(e: CombatEnemy, burn: BurnEffect): void {
     this.log({ kind: 'ignite', enemy: e.id, burn });
-    applyBurn(e.status, burnFor(e.def, this.aisle.burn(burn)), this.time);
+    applyBurn(e.status, burnVsWet(e.status, burnFor(e.def, this.aisle.burn(burn)), this.time), this.time);
   }
   slow(e: CombatEnemy, slow: SlowEffect): void {
     this.log({ kind: 'slow', enemy: e.id, slow });
-    applySlow(e.status, slowFor(e.def, slow), this.time);
+    applySlow(e.status, slowVsWet(e.status, slowFor(e.def, slow), this.time), this.time);
   }
   poison(e: CombatEnemy, dps: number, duration: number): void {
     this.log({ kind: 'poison', enemy: e.id, dps, duration });
@@ -260,6 +262,10 @@ export class FakeCtx implements RuntimeCtx {
   weaken(e: CombatEnemy, pct: number, seconds: number): void {
     this.log({ kind: 'weaken', enemy: e.id, pct, seconds });
     applyWeaken(e.status, pct, seconds, this.time);
+  }
+  wet(e: CombatEnemy, seconds: number = WET_STATUS.duration): void {
+    this.log({ kind: 'wet', enemy: e.id, seconds });
+    applyWet(e.status, seconds, this.time);
   }
 
   playerNear(x: number, y: number): { x: number; y: number; d: number } {
@@ -339,6 +345,7 @@ export class FakeCtx implements RuntimeCtx {
     H.emit('modifyDamage', hit); dmg = hit.dmg;
     const aff = affinityMult(e.def, tags);
     dmg *= aff; // element soft counters (engine/affinity), after the modifyDamage hooks like the scene
+    dmg *= wetElectricMult(e.status, tags, now); // Wet: electric hits on a wet enemy, right after the affinity like the scene
     const unmarked = dmg;
     dmg = markedDamage(dmg, e.markedUntil, now, markMult(e.def)); // the shared mark rule (engine/marks), after the affinity like the scene
     const markBonus = dmg - unmarked;

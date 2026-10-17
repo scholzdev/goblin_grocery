@@ -1,5 +1,6 @@
 import { DEPTH } from '../../data/depth';
 import { newHitTracker, pickRicochetTarget, tryHit } from '../../systems/combat';
+import { wetChainBonus } from '../wet';
 import type { Pattern, PatternEnemy, PatternHost } from './types';
 
 /** The zap bolt drawn on (x, y). `small`: the lighter one chain links and Static Cling throw. Fx only (`ctx.boltFx`). */
@@ -24,7 +25,8 @@ export const zap: Pattern = {
     // Sniper role: the toughest grocery in range (Elites first, then most HP); the splash handles the small fry.
     let target: PatternEnemy | null = pool.reduce((b, e) => (e.elite !== b.elite ? (e.elite ? e : b) : e.hp > b.hp ? e : b));
     const H = sc.hooks, hooked = H['pattern:zap'].length > 0;
-    for (let link = 0; target && link <= st.chain; link++) {
+    const links = st.chain + wetChainBonus(target.status, sc.time.now / 1000); // Wet: +1 link when the first target is wet (once per zap)
+    for (let link = 0; target && link <= links; link++) {
       const t: PatternEnemy = target;
       boltFx(h, t.x, t.y, link > 0);
       // `before`: the hooks set the damage of a chain link (TV Dinner, then Sparks Fly on its links) and Reheat lights the first target's spot.

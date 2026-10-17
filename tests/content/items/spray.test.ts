@@ -31,13 +31,13 @@ describe('Spray Bottle: content', () => {
 
   it('renders its text for every level, EN and DE', () => {
     expect([1, 2, 3].map((t) => itemRules('spray', t))).toEqual([
-      'Every 0.55 s sprays a 70° cone (170 reach) for 3 damage to every enemy inside (each once per spray).',
-      'Every 0.5 s sprays a 70° cone (170 reach) for 4.5 damage to every enemy inside (each once per spray).',
-      'Every 0.44 s sprays a 70° cone (170 reach) for 6 damage to every enemy inside (each once per spray).',
+      'Every 0.55 s sprays a 70° cone (170 reach) for 3 damage to every enemy inside (each once per spray) and makes them Wet for 3 s.',
+      'Every 0.5 s sprays a 70° cone (170 reach) for 4.5 damage to every enemy inside (each once per spray) and makes them Wet for 3 s.',
+      'Every 0.44 s sprays a 70° cone (170 reach) for 6 damage to every enemy inside (each once per spray) and makes them Wet for 3 s.',
     ]);
     expect(itemT('spray')).toMatchObject({ name: 'Spray Bottle', blurb: 'Pssht pssht pssht. Hits everything in front.' });
     setLang('de');
-    expect([1, 3].map((t) => itemRules('spray', t))).toEqual(['Sprüht alle 0,55 s einen 70°-Kegel (170 Reichweite) und macht 3 Schaden an jedem Gegner darin (je einmal pro Sprühstoß).', 'Sprüht alle 0,44 s einen 70°-Kegel (170 Reichweite) und macht 6 Schaden an jedem Gegner darin (je einmal pro Sprühstoß).']);
+    expect([1, 3].map((t) => itemRules('spray', t))).toEqual(['Sprüht alle 0,55 s einen 70°-Kegel (170 Reichweite) und macht 3 Schaden an jedem Gegner darin (je einmal pro Sprühstoß) und macht sie 3 s lang nass.', 'Sprüht alle 0,44 s einen 70°-Kegel (170 Reichweite) und macht 6 Schaden an jedem Gegner darin (je einmal pro Sprühstoß) und macht sie 3 s lang nass.']);
     expect(itemT('spray')).toMatchObject({ name: 'Sprühflasche', blurb: 'Pssht pssht pssht. Trifft alles davor.' });
   });
 

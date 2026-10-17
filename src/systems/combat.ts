@@ -12,8 +12,8 @@ export function tryHit(t: HitTracker, enemyId: number): boolean {
   return true;
 }
 
-export interface StatusFx { burnDps: number; burnUntil: number; burnTick: number; nextBurnAt: number; slowPct: number; slowUntil: number; poisonDps: number; poisonUntil: number; nextPoisonAt: number; shredStacks: number; shredUntil: number; weakenPct: number; weakenUntil: number }
-export const newStatus = (): StatusFx => ({ burnDps: 0, burnUntil: 0, burnTick: 0.5, nextBurnAt: 0, slowPct: 0, slowUntil: 0, poisonDps: 0, poisonUntil: 0, nextPoisonAt: 0, shredStacks: 0, shredUntil: 0, weakenPct: 0, weakenUntil: 0 });
+export interface StatusFx { burnDps: number; burnUntil: number; burnTick: number; nextBurnAt: number; slowPct: number; slowUntil: number; poisonDps: number; poisonUntil: number; nextPoisonAt: number; shredStacks: number; shredUntil: number; weakenPct: number; weakenUntil: number; wetUntil: number }
+export const newStatus = (): StatusFx => ({ burnDps: 0, burnUntil: 0, burnTick: 0.5, nextBurnAt: 0, slowPct: 0, slowUntil: 0, poisonDps: 0, poisonUntil: 0, nextPoisonAt: 0, shredStacks: 0, shredUntil: 0, weakenPct: 0, weakenUntil: 0, wetUntil: 0 });
 
 const EPS = 1e-9;
 
@@ -85,6 +85,35 @@ export const weakenMult = (s: StatusFx, now: number): number => (s.weakenUntil >
 export function weakenedDamage(e: { status: StatusFx }, dmg: number, now: number): number {
   const m = weakenMult(e.status, now);
   return m < 1 ? Math.max(1, Math.round(dmg * m)) : dmg;
+}
+
+/** Does the enemy carry any status the Sanitizer's aura removes (burn, poison, shred, wet, weaken)? Slow, stun and mark do not count. */
+export const hasCleansable = (s: StatusFx, now: number): boolean => s.burnUntil > now || s.poisonUntil > now || s.shredUntil > now || s.wetUntil > now || s.weakenUntil > now;
+
+/** Remove burn, poison, shred, wet and weaken from `s` (and nothing else: slow, stun and mark stay). Deterministic. */
+export function cleanseStatus(s: StatusFx): void {
+  s.burnDps = 0; s.burnUntil = 0; s.nextBurnAt = 0;
+  s.poisonDps = 0; s.poisonUntil = 0; s.nextPoisonAt = 0;
+  s.shredStacks = 0; s.shredUntil = 0;
+  s.wetUntil = 0;
+  s.weakenPct = 0; s.weakenUntil = 0;
+}
+
+interface Cleanable { x: number; y: number; alive: boolean; state: string; status: StatusFx; def: { radius: number } }
+/**
+ * Sanitizer tick (docs/item-hooks-refactor.md "Sanitizer"): cleanse `src` and every living enemy within `radius` (plus its own radius, like the other aura checks) of it.
+ * Returns the ones that actually had something to lose, for the sparkle. No rng. Enemies still spawning or dying are skipped.
+ */
+export function cleanseAura<T extends Cleanable>(src: T, all: readonly T[], radius: number, now: number): T[] {
+  const out: T[] = [];
+  for (const o of all) {
+    if (!o.alive || o.state === 'spawn' || o.state === 'dying') continue;
+    if (o !== src && (o.x - src.x) ** 2 + (o.y - src.y) ** 2 > (radius + o.def.radius) ** 2) continue;
+    if (!hasCleansable(o.status, now)) continue;
+    cleanseStatus(o.status);
+    out.push(o);
+  }
+  return out;
 }
 
 export const slowFactor = (s: StatusFx, now: number): number => (s.slowUntil > now ? 1 - s.slowPct : 1);

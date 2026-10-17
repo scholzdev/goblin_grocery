@@ -47,6 +47,7 @@ export const RECIPE_ORDER = [
 export const ENEMY_ORDER = [
   'milk', 'banana', 'soda', 'spitter', 'baguette', 'egg', 'melon', 'turkey', 'beans', 'cereal', 'honey', 'giftcard', 'expired', 'gum', 'slice',
   'boss', 'boss_frozen', 'boss_bakery', 'boss_electronics', 'boss_checkout',
+  'sanitizer',
 ] as const;
 
 /** The module buffs, in the order the `module` build phase applies them to a weapon (a module item's `build.order` must follow it: 10, 20, ...). */
@@ -365,6 +366,15 @@ export const SHRED = { cap: 3, duration: 4, bonusShare: 0.5 } as const;
  * bosses are not immune.
  */
 export const WEAKEN = { cap: 0.5 } as const;
+
+/**
+ * Wet (docs/item-hooks-refactor.md "Wet"): an enemy status that does nothing on its own and makes the elements react. `duration` is the default seconds a source
+ * gives (refresh to the later end). While wet: an `electric` hit deals x`electricMult`; an Electric chain / Microwave zap that starts on the enemy gets
+ * `chainBonus` more hops; a frost slow gets `frostSlowBonus` more points (never pushed past `slowCap`, the Frost set's L3 cap, and never lowered);
+ * the Frost freeze chance is x`freezeChanceMult`; a burn lasts x`burnDurationMult` and dries the enemy (steam). No affinity tag, bosses are not immune.
+ * (The wet-floor event's own constant is `EVENTS.wetFloor`, unrelated.)
+ */
+export const WET_STATUS = { duration: 3, electricMult: 1.2, chainBonus: 1, frostSlowBonus: 0.1, freezeChanceMult: 2, burnDurationMult: 0.5, slowCap: 0.7 } as const;
 
 /** The enemy behaviors (`EnemyBehavior` of types.ts is derived from this list). */
 export const ENEMY_BEHAVIORS = ['chase', 'charger', 'tank', 'spitter', 'swiper', 'exploder', 'splitter', 'healer', 'thief', 'teleporter', 'boss'] as const;

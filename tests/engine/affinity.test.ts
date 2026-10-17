@@ -512,7 +512,7 @@ describe('mini-boss giants inherit the affinity of their grocery', () => {
 describe('derived lists', () => {
   it('"Strong vs" is derived from the enemy files: groceries first, bosses after', () => {
     expect(enemiesWeakTo(['heat'])).toEqual(['turkey', 'cereal', 'baguette', 'boss_frozen']);
-    expect(enemiesWeakTo(['blast'])).toEqual(['milk', 'egg', 'melon']);
+    expect(enemiesWeakTo(['blast'])).toEqual(['milk', 'sanitizer', 'egg', 'melon']);
     expect(enemiesWeakTo(['electric'])).toEqual(['giftcard', 'soda', 'beans', 'boss_checkout']);
     expect(enemiesWeakTo(['cleaning'])).toEqual(['expired', 'boss_electronics']);
     expect(enemiesWeakTo(['frost'])).toEqual(['banana', 'gum', 'spitter', 'honey', 'boss_bakery']);

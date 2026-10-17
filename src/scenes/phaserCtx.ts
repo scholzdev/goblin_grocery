@@ -1,12 +1,13 @@
 import type { BurnEffect, SlowEffect, WeaponStats } from '../types';
 import { applyBurn, applySlow, applyPoison, applyShred, applyWeaken, pickRicochetTarget } from '../systems/combat';
+import { applyWet, burnVsWet, slowVsWet } from '../engine/wet';
 import { addCoins } from '../state/run';
 import { store } from '../state/store';
 import { play } from '../audio/sfx';
 import { t, type UIKey } from '../i18n';
 import type { CombatEnemy, CombatShot, PoolSpec, PlayerView, RuntimeCtx, ShotSpec } from '../engine/ctx';
 import type { HitOpts } from '../engine/hooks';
-import { SHRED, type AffinityTag } from '../engine/define';
+import { SHRED, WET_STATUS, type AffinityTag } from '../engine/define';
 import { burnFor, poisonTimeFor, slowFor } from '../engine/affinity';
 import { applyMark } from '../engine/marks';
 import type { ArenaScene } from './ArenaScene';
@@ -54,12 +55,14 @@ export class PhaserCtx implements RuntimeCtx {
   }
   stun(e: CombatEnemy, seconds: number, tag?: AffinityTag): number { return this.sc.stunEnemy(e as Enemy, seconds, tag); }
   // Status durations scale with the enemy's element affinity (engine/affinity); the dps and the slow percentage never do.
-  ignite(e: CombatEnemy, burn: BurnEffect): void { applyBurn(e.status, burnFor(e.def, this.sc.aisleEvent.burn(burn)), this.now()); }
-  slow(e: CombatEnemy, slow: SlowEffect): void { applySlow(e.status, slowFor(e.def, slow), this.now()); }
+  // Wet (systems/combat): a burn on a wet enemy is halved and dries it, a frost slow on a wet enemy gains points.
+  ignite(e: CombatEnemy, burn: BurnEffect): void { const now = this.now(); applyBurn(e.status, burnVsWet(e.status, burnFor(e.def, this.sc.aisleEvent.burn(burn)), now), now); }
+  slow(e: CombatEnemy, slow: SlowEffect): void { const now = this.now(); applySlow(e.status, slowVsWet(e.status, slowFor(e.def, slow), now), now); }
   poison(e: CombatEnemy, dps: number, duration: number): void { applyPoison(e.status, dps, poisonTimeFor(e.def, duration), this.now()); }
   mark(e: CombatEnemy, seconds: number): void { applyMark(e, this.now(), seconds); }
   shred(e: CombatEnemy, stacks: number, seconds: number = SHRED.duration): void { applyShred(e.status, stacks, seconds, this.now()); }
   weaken(e: CombatEnemy, pct: number, seconds: number): void { applyWeaken(e.status, pct, seconds, this.now()); }
+  wet(e: CombatEnemy, seconds: number = WET_STATUS.duration): void { applyWet(e.status, seconds, this.now()); }
 
   get player(): PlayerView { return this.sc.player; }
   playerNear(x: number, y: number): { x: number; y: number; d: number } { return this.sc.playerNear(x, y); }

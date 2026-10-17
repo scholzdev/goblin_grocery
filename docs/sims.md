@@ -124,7 +124,7 @@ One sim per weapon, `src/sims/weapon-<id>.ts` (`?sim=weapon-toaster`, `weapon-pa
 
 ## Enemy sims
 
-One sim per regular enemy, `src/sims/enemy-<id>.ts` (`?sim=enemy-milk`, `enemy-banana`, `enemy-soda`, `enemy-spitter`, `enemy-baguette`, `enemy-egg`, `enemy-melon`, `enemy-turkey`, `enemy-beans`, `enemy-cereal`, `enemy-honey`, `enemy-giftcard`, `enemy-expired`, `enemy-gum`, `enemy-slice`). The dummy sandbox with the same neutral cart for all of them, a ★2 pan at `[1, 1]` and a ★2 toaster at `[3, 2]` (a melee and a ranged weapon, no module, no combo), god mode on, and 6 to 10 of that enemy walking at you. Compare numbers between sims: the same cart shows how armor (beans) or the shield (cereal) change what lands. The notes start with the enemy's HP and say what to look for. Immortal dummies unless the behaviour needs a death:
+One sim per regular enemy, `src/sims/enemy-<id>.ts` (`?sim=enemy-milk`, `enemy-banana`, `enemy-soda`, `enemy-spitter`, `enemy-baguette`, `enemy-egg`, `enemy-melon`, `enemy-turkey`, `enemy-beans`, `enemy-cereal`, `enemy-honey`, `enemy-giftcard`, `enemy-expired`, `enemy-gum`, `enemy-slice`, `enemy-sanitizer`). The dummy sandbox with the same neutral cart for all of them, a ★2 pan at `[1, 1]` and a ★2 toaster at `[3, 2]` (a melee and a ranged weapon, no module, no combo), god mode on, and 6 to 10 of that enemy walking at you. Compare numbers between sims: the same cart shows how armor (beans) or the shield (cereal) change what lands. The notes start with the enemy's HP and say what to look for. Immortal dummies unless the behaviour needs a death:
 
 | Sim | Difference |
 | --- | --- |
@@ -133,8 +133,9 @@ One sim per regular enemy, `src/sims/enemy-<id>.ts` (`?sim=enemy-milk`, `enemy-b
 | `enemy-giftcard` | 6 mortal gift cards: a kill pays 8x coins, every coin dropped. A dummy never escapes (a real card leaves after 8 s). |
 | `enemy-gum` | 4 immortal gums that keep trailing puddles and 3 mortal ones that leave the trap when popped. |
 | `enemy-honey` | 6 honey jars plus 4 mortal Soda Six-Packs in the same bunch, as heal targets (a jar never heals another jar). |
+| `enemy-sanitizer` | The one sim with its own cart: a Toaster + Fuel Can (burn) with a Can Opener ★2 (shred) and a Sour Mist Spray Bottle (poison and Wet), against 2 immortal Sanitizers and 6 mortal Sour Milk in one bunch. Statuses vanish within 120 px of a Sanitizer, once a second, and stay on the milk further out. |
 
-`tests/sims/sims.test.ts` checks that every regular enemy has its sim, that the cart is exactly the neutral one, that each has 6 to 10 of its enemy, that the notes name the enemy's HP (so a stat change fails the test until the note follows) and which sims are mortal.
+`tests/sims/sims.test.ts` checks that every regular enemy has its sim, that the cart is exactly the neutral one (the Sanitizer is the one exception), that each has 6 to 10 of its enemy, that the notes name the enemy's HP (so a stat change fails the test until the note follows) and which sims are mortal.
 
 ## Boss sims
 
@@ -177,6 +178,16 @@ Weaken and the armor pass (docs/item-hooks-refactor.md "Weaken", "Armor"). A lav
 | `armor-turkey` | Nail Gun ★3 | 4 still Frozen Turkey, 4 still Banana | 6 per nail on the Banana, 4 on the Turkey (armor 2). F8 and add a Can Opener to strip it |
 
 The armor pass also changes the `enemy-turkey`, `boss-frozen` and `boss-checkout` notes (they name the armor), and the notes of `affinity-heat`, `affinity-frost` and `boss-stagger` (their quoted numbers are before the Turkey's / Freezer's armor).
+
+## Wet sims
+
+Wet (docs/item-hooks-refactor.md "Wet"). Blue droplets drip down a wet enemy. God mode stays on. `tests/sims/wet-sims.test.ts` derives the numbers from the real build.
+
+| Sim | Cart | Enemies | Look for |
+|---|---|---|---|
+| `wet-electric` | Spray Bottle + Blender + Toaster + Vacuum + Battery (Electric L3) | 10 Sour Milk in a bunch | Blender hits are x1.2 on a wet milk. A toast arcs to 3 more enemies, 4 when the milk it hit is wet |
+| `wet-frost` | Spray Bottle + Ice Pack + Mop (Frost L2) | 6 Sour Milk, 3 Beans | The spray's Ice Pack slow is 35%, 45% on a wet enemy; the Frost freeze is 10% on a dry slowed enemy, 20% on a wet one |
+| `wet-steam` | Spray Bottle + Toaster + Fuel Can | 6 Sour Milk, 2 Baguette | A burn on a wet enemy lasts half as long and dries it (the droplets vanish); dry enemies get the full burn |
 
 ## Where the code lives
 

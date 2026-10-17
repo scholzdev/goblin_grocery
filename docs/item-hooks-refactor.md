@@ -8,7 +8,7 @@ Every item, weapon, set, combo and enemy is one file under `src/content/`: its n
 src/content/items/<id>.ts    one file per item, weapons included (45)
 src/content/combos/<id>.ts   one per combo, cart combos included (32)
 src/content/sets/<id>.ts     kitchen, cleaning, tools, snacks, checkout, heat, frost, blast, electric (9)
-src/content/enemies/<id>.ts  one per enemy: the 15 regular groceries and the 5 bosses (20)
+src/content/enemies/<id>.ts  one per enemy: the 16 regular groceries and the 5 bosses (21)
 src/engine/define.ts         defineItem / defineCombo / defineSet / defineEnemy, all content types, the order lists, tier and shape helpers
 src/engine/ids.ts            typed id constants: Item, Combo, Enemy, Set, Buff, Tag (see "Ids")
 src/engine/registry.ts       import.meta.glob collects the files, validates them (throws at load), contentItem / contentCombo / contentSet / contentEnemy / contentTune / contentSetTune / contentEnemyTune
@@ -109,7 +109,7 @@ A build hook is `weapon(stats, c)` and/or `player(build, c)`. `c` offers `tier`,
 Declared in `hooks: { order?, <hook>(event, ctx, c) {} }`. Handlers are compiled once per build into flat arrays, only for what the cart contains. `c` is the owner's tier and resolved tune (`c.tune()`), `c.touches(weaponUid)`, `c.owned(id)`, `c.def(id)`, `c.tuneOf(...)`. The events are typed in `engine/hooks.ts`, the `ctx` API (`now`, `rng`, enemies, `damage`, `stun`, `heal`, `dropCoin`, `fx.*`, ...) in `engine/ctx.ts`.
 
 - Run: `onAisleStart`, `onTick(dt)`.
-- Damage pipeline (`ArenaScene.damageEnemy`, in this order): `modifyDamage` (pre-crit, multiply `hit.dmg`), the element affinity multiplier (`engine/affinity.ts`), the mark (`engine/marks.ts`), crit roll (combat rng), `onCrit`, armor and `hp -= dmg`, `onHit`, the stats-driven statuses (`engine/onHitStatuses.ts`: burn, ignite, slow, echo), `afterHit`, the boss weakness stagger; on a lethal hit `killEnemy` (loot), `onKill`, the stats-driven on-kill effects (`engine/onKillEffects.ts`), `afterKill`. Five-Alarm (order 10) comes before the affinity, which comes before the mark.
+- Damage pipeline (`ArenaScene.damageEnemy`, in this order): `modifyDamage` (pre-crit, multiply `hit.dmg`), the element affinity multiplier (`engine/affinity.ts`), Wet's electric x1.2 (`engine/wet.ts`), the mark (`engine/marks.ts`), crit roll (combat rng), `onCrit`, armor and `hp -= dmg`, `onHit`, the stats-driven statuses (`engine/onHitStatuses.ts`: burn, ignite, slow, echo), `afterHit`, the boss weakness stagger; on a lethal hit `killEnemy` (loot), `onKill`, the stats-driven on-kill effects (`engine/onKillEffects.ts`), `afterKill`. Five-Alarm (order 10) comes before the affinity, which comes before the mark.
 - Player: `onDashStart`, `onDashHit`, `onDashEnd`, `onEnemyShotTouch`, `onPlayerHit`, `onCoinPickup`.
 - Patterns: `pattern:sweep`, `explode`, `zap`, `bounce`, `shotHit`, `shotMove`, `beam`, `fire`, `pulse`, `cone`, `puddleEnter` (the handler may rewrite `ev.slow`), `aura`, `look` (cosmetics).
 
@@ -227,6 +227,46 @@ A Tin Foil Hat reflection reuses the shot's `damage`, so a weakened shot comes b
 
 **Goldens.** The Decaf entries and the Cleaning set L2 / L3 text were added with a deliberate golden update (`build.json` and `text.json` only gained those entries and the two changed text lines).
 
+## Wet: a status that makes the elements react
+
+Wet does nothing on its own: no damage, no slow. It is a setup status. The one const is `WET_STATUS = { duration: 3, electricMult: 1.2, chainBonus: 1, frostSlowBonus: 0.1, freezeChanceMult: 2, burnDurationMult: 0.5, slowCap: 0.7 }` in `engine/define.ts` (not to be confused with `EVENTS.wetFloor`, the wet-floor event's own table).
+
+**Status.** `StatusFx.wetUntil` (`systems/combat.ts`). `applyWet(status, duration, now)` (`engine/wet.ts`, the leaf that holds every Wet rule so content files can import it): `until = max(until, now + duration)`, it never stacks and never shortens. `isWet(status, now)`. No affinity tag (the seconds are exactly what the source asked), bosses are not immune. Hooks call `ctx.wet(e, seconds?)` (default `WET_STATUS.duration`; `PhaserCtx` and `FakeCtx`, which logs a `wet` call). No rng.
+
+**Effects**, each one pure function in `engine/wet.ts` used by the scene and the `FakeCtx` alike:
+
+| Element | Rule | Where |
+|---|---|---|
+| Electric | a hit carrying the `electric` tag on a wet enemy deals x1.2 (`wetElectricMult`). Slot: right after the element affinity and before the mark and the crit roll (pipeline step 2b), so a weak electric hit is x(1 + weak) x 1.2. The tag comes from `hitTags` (Blender and Laser by their element, every Electric-set arc, the Ray Gun splash, the live cable) | `ArenaScene.damageEnemy`, `FakeCtx.runHit` |
+| Electric chain | +1 hop (`wetChainBonus`) when the enemy the chain STARTS on is wet: once per chain, wet enemies further along add nothing, no extra rng draw | Electric set arc (`content/sets/electric.ts`), Microwave zap (`engine/patterns/zap.ts`: the first target decides, +1 link) |
+| Frost slow | a slow applied to a wet enemy gets +10 points (`slowVsWet`), never past 0.7 (the Frost set's L3 cap; a slow already above it is not lowered). It is the slow of `ctx.slow`: Ice Pack, Jelly frost, Cold Storage, Brain Freeze and every other stats-driven slow. The soap puddle and the wet-floor event slow without it (they are not frost, and they are what makes the enemy wet in the first place) | `PhaserCtx.slow`, `FakeCtx.slow` |
+| Frost freeze | the Frost set L2 / L3 freeze chance is x2 on a wet enemy, at most 1 (`wetFreezeChance`); still one rng draw | `content/sets/frost.ts` `afterHit` |
+| Heat | a burn applied to a wet enemy lasts x0.5 and DRIES it (steam, `burnVsWet`: the Wet is removed). After the heat affinity's duration scaling. Burn ticks already running, and the dps, are untouched. Applies to `ctx.ignite` and to a burning pool's per-tick burn | `PhaserCtx.ignite`, `FakeCtx.ignite`, `engine/patterns/puddle.ts` |
+
+**Sources.**
+
+| Source | Where | What |
+|---|---|---|
+| Mop soap puddle | `engine/patterns/puddle.ts`, `tune.wet` of `content/items/mop.ts` | every tick, each enemy inside gets Wet for 3 s (the burning Grease Fire pool is a different puddle: no soap, no Wet) |
+| Spray Bottle | `engine/patterns/cone.ts`, `tune.wet` of `content/items/spray.ts` | every enemy the cone hits gets Wet for 3 s, BEFORE the hit, so a frost slow or electric tag of that very hit already reacts. The Leaf Blower shares the pattern but has no `tune.wet` |
+| Wet-floor event | `scenes/events.ts` | an enemy standing in a puddle spot gets Wet for 3 s, next to its slow |
+
+The Mop and Spray Bottle texts (EN and DE) name it. No set text changed.
+
+**Display.** Three blue droplets drip down a wet enemy's body (`ArenaScene.drawOverlays`), apart from the shred diamonds, the weaken arrow and the mark tag. No tint. Not done: a "wet bonus" line in the run-end breakdown (the x1.2 shows in the damage numbers, whose color is the electric one).
+
+**Goldens.** Only the Mop and Spray Bottle text lines (`text.json`) changed, deliberately; `build.json` is untouched.
+
+## Hand Sanitizer: the enemy that cleans
+
+`content/enemies/sanitizer.ts`, id `sanitizer`: a spray-bottle grocery, 60 HP, speed 44 (slow: the regular average is about 62), contact damage 4, 3 coins, radius 22; weak to blast, resists poison. It walks with the plain `chase` AI and carries one aura tick (`sanitize` in `scenes/enemies.ts`, `tune: { cleanseRadius: 120, cleanseInterval: 1 }`).
+
+**Cleanse.** Every second the Sanitizer removes burn, poison, shred, wet and weaken from ITSELF and every living enemy within 120 px (plus that enemy's own radius, like the other aura checks). It leaves slow, stun and the mark alone. The rule is pure and has no rng: `cleanseAura(src, all, radius, now)` in `systems/combat.ts` returns the enemies that actually lost something (for the sparkle), `cleanseStatus` is the removal. Enemies still spawning or dying are skipped. The AI ticks it before the state switch, so a stun does not stop it, and the timer (`auxT`) keeps the remainder, so the rhythm does not drift. Enemy AI is not simulated in the `FakeCtx`, so the rule is tested on its own and the behavior by the sim.
+
+**Look.** A pale pulse ring shrinking inward each cleanse, a small sparkle on every enemy that lost a status. Sprites `enemy_sanitizer_a|b` in `tools/gen-assets.mjs`.
+
+**Spawning.** Aisles 3 to 7 only, last key of each wave mix at weight 0.35 / 0.4 / 0.5 / 0.5 / 0.6 (about 3 to 6% of the mix), in every theme (`DEPT_TUNING.basics`: no off-theme cut, no favour). Appended to the end of the mixes: aisles 1 and 2 roll exactly as before; from aisle 3 the total weight is larger, so a seeded aisle rolls different picks. It can be an elite base (it is not in `ELITE_EXCLUDED`) and never a mid-shift boss (no variant names it). In the codex after Gum Trap, with its weak / resist chips. Its sim is `enemy-sanitizer` (docs/sims.md).
+
 ## Damage colors
 
 Every hit is shown as one display type: `physical` (no tag), `heat`, `frost`, `electric`, `poison`, `blast`, `cleaning`, plus a reserved `reaction` nothing produces yet. `engine/damageType.ts` holds the one palette, `ELEMENT_COLORS` (white, orange `#FF8A2B`, icy blue `#7FD6FF`, yellow `#FFE64D`, green `#8FCB57`, red `#FF4D4D`, lilac `#C792FF`; `mark` has a gold entry for the boss "WEAK!" flash), and the pure `damageType(tags, def, opts)`. Priority: reaction > a tag the enemy is weak to > the DoT tick tag (burn heat, poison poison) > the first weapon / item tag > physical. It is display only: damage still comes from `affinityMult` (best weak minus best resist of all tags).
@@ -248,6 +288,7 @@ Shown on the run-end receipt (`endHtml` -> `ui/damageBreakdown.ts`, under the fi
 - Registry tests (`tests/engine/registry.test.ts`) validate the rules above on fixtures; the real registry validates itself at load.
 - `tests/shred.test.ts` (the status, the armor table, the explosion source, plated), `tests/content/items/canopener.test.ts`, `tests/content/combos/crackOpen.test.ts`, the dash cases in `tests/content/sets/tools.test.ts`, `tests/sims/shred-sims.test.ts`.
 - `tests/weaken.test.ts` (the status, the damage rule, the source guards, the armor values), `tests/content/items/decaf.test.ts`, the weaken cases in `tests/content/sets/cleaning.test.ts`, `tests/sims/weaken-sims.test.ts`.
+- `tests/wet.test.ts` (the status, electric x1.2, the chain +1 on the Electric set and the Microwave, frost slow and freeze, steam, the sources, the Sanitizer's cleanse, its spawn gate and text), `tests/content/enemies/sanitizer.test.ts`, `tests/sims/wet-sims.test.ts`.
 - `tests/engine/affinity.test.ts` (rules, hit tags, pipeline per tag source through `FakeCtx.spawnReal`, status times, stagger, mini-boss inheritance, wiring guards) and `tests/affinity-ui.test.ts` (codex rows, "Strong vs" for weapons and modules, EN and DE).
 - Sims (`?sim=<id>`, docs/sims.md): launch an exact cart, department and enemies in the arena. Use them to look at a change; `tests/sims/sims.test.ts` checks that each combo, weapon, enemy and boss sim shows what it names.
 - `tools/botrun.mjs` plays real runs in a browser: a smoke test (page errors), not a golden test.

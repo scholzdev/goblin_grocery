@@ -556,6 +556,29 @@ function honey(f) {
 add('enemy_honey_a', () => honey('a'));
 add('enemy_honey_b', () => honey('b'));
 
+// ---------- hand sanitizer / spray bottle (aura cleanser) ----------
+function sanitizer(f) {
+  const a = f === 'a', gy = 91;
+  const legs = a ? stick([[30, 78], [24, 85], [20, 90]], 3.5, 6) + stick([[46, 78], [50, 84], [55, 90]], 3.5, 6)
+    : stick([[30, 78], [32, 85], [31, 90]], 3.5, 6) + stick([[46, 78], [44, 83], [48, 89]], 3.5, 6);
+  const arms = a ? stick([[14, 56], [8, 62], [6, 54]], 3.5) + stick([[62, 56], [68, 50], [70, 56]], 3.5)
+    : stick([[14, 56], [8, 50], [6, 58]], 3.5) + stick([[62, 56], [68, 60], [70, 52]], 3.5);
+  const BL = '#7CC4E8', BLD = '#4F9CC4';
+  let b = '';
+  b += shape([[16, 36], [60, 36], [66, 46], [66, 76], [60, 80], [16, 80], [10, 76], [10, 46]], BL, BLD, { dx: 4, dy: 3 }); // bottle
+  b += flat([[14, 46], [20, 46], [20, 72], [14, 68]], C.white, 'opacity=".45"'); // glass shine
+  b += shape([[16, 52], [60, 52], [60, 72], [16, 72]], C.cream, C.creamD, { dx: 3, dy: 2, sw: SWs }); // label
+  b += shape([[28, 24], [48, 24], [50, 36], [26, 36]], C.white, C.chromeD, { dx: 2, dy: 3 }); // collar
+  b += shape([[22, 8], [58, 8], [58, 24], [30, 24], [22, 20]], C.chromeL, C.chromeD, { dx: 3, dy: 3 }); // sprayer head
+  b += shape([[12, 12], [22, 10], [22, 18], [12, 18]], C.chrome, C.chromeD, { dx: 2, dy: 2, sw: SWs }); // nozzle
+  b += shape([[44, 24], [58, 24], [60, 36], [52, 38], [46, 30]], C.coral, C.coralD, { dx: 2, dy: 2, sw: SWs }); // trigger
+  b += face(38, 61, 0.78, { gap: 6, mw: 12, mh: 7, my: 6, eyeCol: C.cream });
+  const mist = a ? flat(star(6, 12, 3.4, 1, 4), C.white, 'opacity=".9"') + flat(star(2, 20, 2.4, 0.8, 4), C.white, 'opacity=".8"') : flat(star(5, 8, 3.4, 1, 4), C.white, 'opacity=".9"') + flat(star(3, 16, 2.4, 0.8, 4), C.white, 'opacity=".8"');
+  return `${legs}${squash(38, gy, a ? 1.02 : 0.98, a ? 0.98 : 1.02, b)}${arms}${mist}`;
+}
+add('enemy_sanitizer_a', () => sanitizer('a'));
+add('enemy_sanitizer_b', () => sanitizer('b'));
+
 // ---------- gift card (loot thief) ----------
 function giftcard(f) {
   const a = f === 'a', gy = 88;

@@ -8,6 +8,7 @@ import { GumPuddles } from './gum';
 import { CRIT, PLAYER, STARTER_LOOKS } from '../data/items';
 import { addCoins, damagePlayer, takeStockroomItem } from '../state/run';
 import { hitArmor, newHitTracker, shredGain, shredStacks, tryHit, weakenedDamage, weakenMult, type HitTracker } from '../systems/combat';
+import { isWet, wetElectricMult } from '../engine/wet';
 import type { EnemyId, ShopOffer, WaveDef, WeaponStats } from '../types';
 import { play, setWheel } from '../audio/sfx';
 import { musicFor, playMusic } from '../audio/music';
@@ -635,6 +636,7 @@ export class ArenaScene extends Phaser.Scene {
     // DAMAGE PIPELINE, in this order (runtime hooks slot into it, docs/item-hooks-refactor.md §4c):
     //   1. modifyDamage hooks   pre-crit, pre-armor: multiply hit.dmg (Five-Alarm Toast, order 10)
     //   2. element affinity (engine/affinity): x (1 + best weak - best resist) of the hit's tags (engine/hitTags) against this enemy
+    //   2b. Wet: x WET_STATUS.electricMult when the hit carries `electric` and the enemy is wet (systems/combat wetElectricMult), same slot as the affinity
     //   3. the mark rule (engine/marks): x Price Check's damageMult while marked, for every source (Sale Flag marks too); the Manager's is bigger
     //   4. crit roll (combat rng): dmg x CRIT.mult, then onCrit hooks (Free Sample, then the Clearance Sale coin)
     //   5. armor (direct hits only), hp -= dmg, damageByWeapon
@@ -649,6 +651,7 @@ export class ArenaScene extends Phaser.Scene {
     if (H.hit) { H.emit('modifyDamage', hit); dmg = hit.dmg; }
     const aff = affinityMult(e.def, tags); // element soft counters: after Five-Alarm (a modifyDamage hook), before the mark and the crit roll
     dmg *= aff;
+    dmg *= wetElectricMult(e.status, tags, now); // Wet: an electric hit on a wet enemy, x WET_STATUS.electricMult, right after the affinity (before the mark and the crit)
     const unmarked = dmg;
     dmg = markedDamage(dmg, e.markedUntil, now, markMult(e.def)); // Price Check / Sale Flag mark
     const markBonus = dmg - unmarked;
@@ -768,7 +771,7 @@ export class ArenaScene extends Phaser.Scene {
     e.state = 'dying';
     e.ice?.destroy(); e.ice = undefined; e.frozenT = 0;
     e.tag?.destroy(); e.tag = undefined;
-    const tint = ({ milk: 0xfff2d5, banana: 0xf6d24a, soda: 0xe2473f, spitter: 0x7cc4e8, baguette: 0xd9954a, egg: 0xfff2d5, melon: 0x8fcb57, slice: 0xf45f52, turkey: 0xcff3ff, beans: 0xb9895a, cereal: 0xe8b04a, honey: 0xf5bd45, giftcard: 0xf45f52, expired: 0xd5ebdd, gum: 0xff7fb8, boss: 0xf5bd45, boss_frozen: 0xcff3ff, boss_bakery: 0xd9954a, boss_electronics: 0x7cc4e8, boss_checkout: 0x3fb7a6 } as const)[e.def.id];
+    const tint = ({ milk: 0xfff2d5, banana: 0xf6d24a, soda: 0xe2473f, spitter: 0x7cc4e8, baguette: 0xd9954a, egg: 0xfff2d5, melon: 0x8fcb57, slice: 0xf45f52, turkey: 0xcff3ff, beans: 0xb9895a, cereal: 0xe8b04a, honey: 0xf5bd45, sanitizer: 0xbfe8ff, giftcard: 0xf45f52, expired: 0xd5ebdd, gum: 0xff7fb8, boss: 0xf5bd45, boss_frozen: 0xcff3ff, boss_bakery: 0xd9954a, boss_electronics: 0x7cc4e8, boss_checkout: 0x3fb7a6 } as const)[e.def.id];
     this.fx.puff(e.x, e.y - 24, e.def.behavior === 'boss' ? 14 : 4);
     this.fx.crumbsAt(e.x, e.y - 30, e.def.behavior === 'boss' ? 24 : 7, tint);
     if (e.def.trail && !this.ending) this.gum.drop(0, e.x, e.y, ENEMIES.gum.tune.trapRadiusMult);
@@ -1216,6 +1219,16 @@ export class ArenaScene extends Phaser.Scene {
       const pts = [{ x: x - 3, y: y - 6 }, { x: x + 3, y: y - 6 }, { x: x + 3, y: y - 1 }, { x: x + 7, y: y - 1 }, { x, y: y + 7 }, { x: x - 7, y: y - 1 }, { x: x - 3, y: y - 1 }];
       b.fillStyle(0x9081b6, 1).fillPoints(pts, true);
       b.lineStyle(1.5, 0x30203f, 1).strokePoints(pts, true);
+    }
+    // Wet: three blue droplets dripping down the enemy's body (cosmetic, driven by the clock; the status itself does nothing on its own).
+    for (const e of this.enemies) {
+      if (!e.alive || !isWet(e.status, t)) continue;
+      const top = e.y - e.sprite.displayHeight * 0.75;
+      for (let i = 0; i < 3; i++) {
+        const ph = (t * 1.4 + i / 3) % 1, x = e.x + (i - 1) * 11, y = top + ph * e.sprite.displayHeight * 0.55;
+        b.fillStyle(0x4e9bff, 1 - ph * 0.7).fillTriangle(x - 2.6, y, x + 2.6, y, x, y - 6);
+        b.fillCircle(x, y + 0.5, 2.8);
+      }
     }
   }
 

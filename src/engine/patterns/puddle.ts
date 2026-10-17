@@ -1,6 +1,7 @@
 import { DEPTH } from '../../data/depth';
 import { applyBurn, applySlow } from '../../systems/combat';
 import { burnFor, slowFor } from '../affinity';
+import { applyWet, burnVsWet } from '../wet';
 import type { WeaponStats } from '../../types';
 import type { Pattern, PatternHost, Puddle } from './types';
 
@@ -25,13 +26,13 @@ function dropPuddle(h: PatternHost, w: { stats: WeaponStats; tune: Readonly<Reco
   const x = p.x - p.facing * 40, y = p.y + 4;
   const img = h.sc.add.image(x, y, key).setDepth(DEPTH.decal).setDisplaySize(st.range * 0.6, st.range * 0.4).setAlpha(0.9);
   h.sc.tweens.add({ targets: img, displayWidth: st.range * 2.2, displayHeight: st.range * 1.36, duration: 200, ease: 'Back.Out' });
-  h.puddles.push({ img, x, y, r: st.range, until: h.time + st.duration, nextTick: h.time + 0.1, stats: st, slow: { pct: w.tune.slowPct, duration: w.tune.slowDuration } });
+  h.puddles.push({ img, x, y, r: st.range, until: h.time + st.duration, nextTick: h.time + 0.1, stats: st, slow: { pct: w.tune.slowPct, duration: w.tune.slowDuration }, wet: w.tune.wet });
   h.sound('splash');
 }
 
 /**
  * Mop: drops a puddle behind the cart every cooldown (no target needed). Enemies inside get a slow and a damage tick every `tick` s. The
- * slow is the weapon's `tune.slowPct` / `slowDuration`.
+ * slow is the weapon's `tune.slowPct` / `slowDuration`, and every tick leaves `tune.wet` seconds of Wet on them.
  */
 export const puddle: Pattern = {
   id: 'puddle',
@@ -51,7 +52,7 @@ export const puddle: Pattern = {
         // Floor ellipse test (puddles are drawn flattened).
         const dx = (e.x - pd.x) / pd.r, dy = (e.y - pd.y) / (pd.r * 0.62);
         if (dx * dx + dy * dy > 1) continue;
-        if (pd.burnOnly) { if (pd.burn) applyBurn(e.status, burnFor(e.def, sc.aisleEvent.burn(pd.burn)), now); continue; }
+        if (pd.burnOnly) { if (pd.burn) applyBurn(e.status, burnVsWet(e.status, burnFor(e.def, sc.aisleEvent.burn(pd.burn)), now), now); continue; } // Wet: a pool burn on a wet enemy is halved and dries it
         let slow = pd.slow!;
         if (sc.hooks['pattern:puddleEnter'].length) {
           const seen = (pd.seen ??= new Set()), first = !seen.has(e.id);
@@ -61,6 +62,7 @@ export const puddle: Pattern = {
           slow = ev.slow; // the Frost set strengthens it
         }
         applySlow(e.status, slowFor(e.def, slow), now);
+        if (pd.wet) applyWet(e.status, pd.wet, now); // the soap soaks everyone inside, every tick
         sc.damageEnemy(e, pd.stats.damage, pd.stats, { quiet: true });
       }
     }

@@ -86,7 +86,7 @@ export interface WeaponRt {
   electrical: boolean;
 }
 
-export interface Puddle { img: Sprite; x: number; y: number; r: number; until: number; nextTick: number; stats: WeaponStats; burnOnly?: boolean; burn?: BurnEffect; /** The soap slip (drops of a Mop; burning pools have none). */ slow?: SlowEffect; /** Enemies that already had a tick here (only tracked while a puddleEnter hook is registered: Black Ice freezes on `first`). */ seen?: Set<number> }
+export interface Puddle { img: Sprite; x: number; y: number; r: number; until: number; nextTick: number; stats: WeaponStats; burnOnly?: boolean; burn?: BurnEffect; /** The soap slip (drops of a Mop; burning pools have none). */ slow?: SlowEffect; /** Seconds of Wet each tick gives the enemies inside (the Mop's soap; docs "Wet"). */ wet?: number; /** Enemies that already had a tick here (only tracked while a puddleEnter hook is registered: Black Ice freezes on `first`). */ seen?: Set<number> }
 export interface Pot { img: Sprite; shadow: Sprite; sx: number; sy: number; tx: number; ty: number; t: number; dur: number; stats: WeaponStats }
 
 /** The arsenal as the patterns see it: the scene plus the pools they share. */

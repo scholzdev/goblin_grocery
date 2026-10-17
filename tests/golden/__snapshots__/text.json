@@ -7744,11 +7744,11 @@
   "items.mop.de": {
     "blurb": "Hinterlässt rutschige Seifenpfützen.",
     "name": "Wischmopp",
-    "rules": "Hinterlässt alle {1} eine Seifenpfütze (Radius 60, hält 3 s). Gegner darin rutschen: 25% langsamer und {0} Schaden alle 0,5 s.",
+    "rules": "Hinterlässt alle {1} eine Seifenpfütze (Radius 60, hält 3 s). Gegner darin rutschen und werden nass (3 s): 25% langsamer und {0} Schaden alle 0,5 s.",
     "rulesByTier": {
-      "1": "Hinterlässt alle 1,6 s eine Seifenpfütze (Radius 60, hält 3 s). Gegner darin rutschen: 25% langsamer und 3 Schaden alle 0,5 s.",
-      "2": "Hinterlässt alle 1,44 s eine Seifenpfütze (Radius 60, hält 3 s). Gegner darin rutschen: 25% langsamer und 4,5 Schaden alle 0,5 s.",
-      "3": "Hinterlässt alle 1,28 s eine Seifenpfütze (Radius 60, hält 3 s). Gegner darin rutschen: 25% langsamer und 6 Schaden alle 0,5 s."
+      "1": "Hinterlässt alle 1,6 s eine Seifenpfütze (Radius 60, hält 3 s). Gegner darin rutschen und werden nass (3 s): 25% langsamer und 3 Schaden alle 0,5 s.",
+      "2": "Hinterlässt alle 1,44 s eine Seifenpfütze (Radius 60, hält 3 s). Gegner darin rutschen und werden nass (3 s): 25% langsamer und 4,5 Schaden alle 0,5 s.",
+      "3": "Hinterlässt alle 1,28 s eine Seifenpfütze (Radius 60, hält 3 s). Gegner darin rutschen und werden nass (3 s): 25% langsamer und 6 Schaden alle 0,5 s."
     },
     "tierScaling": [
       {
@@ -7772,11 +7772,11 @@
   "items.mop.en": {
     "blurb": "Leaves slippery soap puddles behind you.",
     "name": "Mop",
-    "rules": "Every {1} drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip: 25% slow and {0} damage every 0.5 s.",
+    "rules": "Every {1} drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip and get Wet (3 s): 25% slow and {0} damage every 0.5 s.",
     "rulesByTier": {
-      "1": "Every 1.6 s drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip: 25% slow and 3 damage every 0.5 s.",
-      "2": "Every 1.44 s drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip: 25% slow and 4.5 damage every 0.5 s.",
-      "3": "Every 1.28 s drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip: 25% slow and 6 damage every 0.5 s."
+      "1": "Every 1.6 s drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip and get Wet (3 s): 25% slow and 3 damage every 0.5 s.",
+      "2": "Every 1.44 s drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip and get Wet (3 s): 25% slow and 4.5 damage every 0.5 s.",
+      "3": "Every 1.28 s drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip and get Wet (3 s): 25% slow and 6 damage every 0.5 s."
     },
     "tierScaling": [
       {
@@ -8252,11 +8252,11 @@
   "items.spray.de": {
     "blurb": "Pssht pssht pssht. Trifft alles davor.",
     "name": "Sprühflasche",
-    "rules": "Sprüht alle {1} einen 70°-Kegel (170 Reichweite) und macht {0} Schaden an jedem Gegner darin (je einmal pro Sprühstoß).",
+    "rules": "Sprüht alle {1} einen 70°-Kegel (170 Reichweite) und macht {0} Schaden an jedem Gegner darin (je einmal pro Sprühstoß) und macht sie 3 s lang nass.",
     "rulesByTier": {
-      "1": "Sprüht alle 0,55 s einen 70°-Kegel (170 Reichweite) und macht 3 Schaden an jedem Gegner darin (je einmal pro Sprühstoß).",
-      "2": "Sprüht alle 0,5 s einen 70°-Kegel (170 Reichweite) und macht 4,5 Schaden an jedem Gegner darin (je einmal pro Sprühstoß).",
-      "3": "Sprüht alle 0,44 s einen 70°-Kegel (170 Reichweite) und macht 6 Schaden an jedem Gegner darin (je einmal pro Sprühstoß)."
+      "1": "Sprüht alle 0,55 s einen 70°-Kegel (170 Reichweite) und macht 3 Schaden an jedem Gegner darin (je einmal pro Sprühstoß) und macht sie 3 s lang nass.",
+      "2": "Sprüht alle 0,5 s einen 70°-Kegel (170 Reichweite) und macht 4,5 Schaden an jedem Gegner darin (je einmal pro Sprühstoß) und macht sie 3 s lang nass.",
+      "3": "Sprüht alle 0,44 s einen 70°-Kegel (170 Reichweite) und macht 6 Schaden an jedem Gegner darin (je einmal pro Sprühstoß) und macht sie 3 s lang nass."
     },
     "tierScaling": [
       {
@@ -8280,11 +8280,11 @@
   "items.spray.en": {
     "blurb": "Pssht pssht pssht. Hits everything in front.",
     "name": "Spray Bottle",
-    "rules": "Every {1} sprays a 70° cone (170 reach) for {0} damage to every enemy inside (each once per spray).",
+    "rules": "Every {1} sprays a 70° cone (170 reach) for {0} damage to every enemy inside (each once per spray) and makes them Wet for 3 s.",
     "rulesByTier": {
-      "1": "Every 0.55 s sprays a 70° cone (170 reach) for 3 damage to every enemy inside (each once per spray).",
-      "2": "Every 0.5 s sprays a 70° cone (170 reach) for 4.5 damage to every enemy inside (each once per spray).",
-      "3": "Every 0.44 s sprays a 70° cone (170 reach) for 6 damage to every enemy inside (each once per spray)."
+      "1": "Every 0.55 s sprays a 70° cone (170 reach) for 3 damage to every enemy inside (each once per spray) and makes them Wet for 3 s.",
+      "2": "Every 0.5 s sprays a 70° cone (170 reach) for 4.5 damage to every enemy inside (each once per spray) and makes them Wet for 3 s.",
+      "3": "Every 0.44 s sprays a 70° cone (170 reach) for 6 damage to every enemy inside (each once per spray) and makes them Wet for 3 s."
     },
     "tierScaling": [
       {
