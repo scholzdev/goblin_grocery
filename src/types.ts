@@ -81,6 +81,8 @@ export interface ItemInstance {
   flavor?: ElementTag;
   /** Sourdough Starter only: completed waves since bought / last rise (grows at 2). */
   rise?: number;
+  /** Active items only: uses left this aisle. Missing = full (`engine/actives.ts`); refilled by `startNextWave`. */
+  charges?: number;
 }
 
 export interface Inventory {

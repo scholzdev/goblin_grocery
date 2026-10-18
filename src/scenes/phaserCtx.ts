@@ -57,8 +57,8 @@ export class PhaserCtx implements RuntimeCtx {
     for (const e of hit) this.sc.damageEnemy(e as Enemy, dmg, source, opts);
     return hit.length;
   }
-  stun(e: CombatEnemy, seconds: number, tag?: AffinityTag): number {
-    const applied = this.sc.stunEnemy(e as Enemy, seconds, tag);
+  stun(e: CombatEnemy, seconds: number, tag?: AffinityTag, bossSeconds = 0): number {
+    const applied = this.sc.stunEnemy(e as Enemy, seconds, tag, bossSeconds);
     if (applied > 0 && tag === 'frost') { markFrostStun(e.status, applied, this.now()); this.reactor.applied(e, 'frost'); } // a frost stun is a freeze: the enemy is frosted
     return applied;
   }
@@ -73,6 +73,12 @@ export class PhaserCtx implements RuntimeCtx {
   shred(e: CombatEnemy, stacks: number, seconds: number = SHRED.duration): void { applyShred(e.status, stacks, seconds, this.now()); }
   weaken(e: CombatEnemy, pct: number, seconds: number): void { applyWeaken(e.status, pct, seconds, this.now()); }
   wet(e: CombatEnemy, seconds: number = WET_STATUS.duration): void { applyWet(e.status, seconds, this.now()); }
+
+  pullCoins(): void { this.sc.pullCoins(); }
+  boostWeapon(weaponUid: string, boost: { pull: number; range: number }, seconds: number): void {
+    const w = this.sc.arsenal.weaponOf(weaponUid);
+    if (w) w.boost = { ...boost, until: this.sc.arsenal.time + seconds };
+  }
 
   get player(): PlayerView { return this.sc.player; }
   playerNear(x: number, y: number): { x: number; y: number; d: number } { return this.sc.playerNear(x, y); }

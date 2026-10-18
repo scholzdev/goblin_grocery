@@ -1,3 +1,4 @@
+import { refillCharges } from '../engine/actives';
 import { t } from '../i18n';
 import { ITEMS, ITEM_IDS, PLAYER, STARTER_WEAPONS, TIER } from '../data/items';
 import { DEPARTMENTS } from '../data/departments';
@@ -307,6 +308,7 @@ export function finishWave(state: RunState): void {
 export function startNextWave(state: RunState): void {
   state.wave++;
   state.phase = 'combat';
+  refillCharges(state.inventory);
   state.shop = null;
   state.coinLog = [];
 }

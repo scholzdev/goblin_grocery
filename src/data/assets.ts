@@ -17,6 +17,7 @@ export const ICON_IDS = [
   'fortune', 'sample', 'piggy', 'expiredmilk', 'tinfoilhat', 'jellybeans', 'leafblower', 'sourdough',
   'bumper', 'sparewheel', 'tipjar', 'flag', 'canopener', 'decaf',
   'expiredcoupon', 'popcorn', 'sparklers',
+  'fireextinguisher', 'airhorn',
 ] as const;
 
 export interface SvgAsset { key: string; w: number; h: number; ax?: number; ay?: number }

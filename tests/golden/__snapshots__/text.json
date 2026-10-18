@@ -1879,6 +1879,38 @@
       "weapon": "pan"
     }
   ],
+  "buffs.item.airhorn.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.airhorn.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.airhorn.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.airhorn.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
   "buffs.item.battery.t1.on.blender.de": [
     {
       "lines": [
@@ -3006,6 +3038,38 @@
     {
       "lines": [
         "+60% speed & range (Desk Fan ★3)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.fireextinguisher.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.fireextinguisher.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.fireextinguisher.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.fireextinguisher.t3.on.toaster.en": [
+    {
+      "lines": [
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "toaster"
@@ -7057,6 +7121,62 @@
     "short": "Zaps chain to +1 enemy",
     "summary": "Microwave touching a Lunchbox AND a Battery: chain-zapping meals."
   },
+  "items.airhorn.de": {
+    "blurb": "Dezent. Wie ein Güterzug.",
+    "name": "Signalhorn",
+    "rules": "Aktiv (E, {0} pro Gang): betäubt jeden Gegner im Bild für {1}. Bosse nur für 0,3 s.",
+    "rulesByTier": {
+      "1": "Aktiv (E, 1 pro Gang): betäubt jeden Gegner im Bild für 1 s. Bosse nur für 0,3 s.",
+      "2": "Aktiv (E, 1 pro Gang): betäubt jeden Gegner im Bild für 1,3 s. Bosse nur für 0,3 s.",
+      "3": "Aktiv (E, 2 pro Gang): betäubt jeden Gegner im Bild für 1,5 s. Bosse nur für 0,3 s."
+    },
+    "tierScaling": [
+      {
+        "label": "Ladungen",
+        "values": [
+          "1",
+          "1",
+          "2"
+        ]
+      },
+      {
+        "label": "Betäubung",
+        "values": [
+          "1 s",
+          "1,3 s",
+          "1,5 s"
+        ]
+      }
+    ]
+  },
+  "items.airhorn.en": {
+    "blurb": "Subtle. Like a freight train.",
+    "name": "Air Horn",
+    "rules": "Active (E, {0} per aisle): stuns every enemy on screen for {1}. Bosses are stunned for only 0.3 s.",
+    "rulesByTier": {
+      "1": "Active (E, 1 per aisle): stuns every enemy on screen for 1 s. Bosses are stunned for only 0.3 s.",
+      "2": "Active (E, 1 per aisle): stuns every enemy on screen for 1.3 s. Bosses are stunned for only 0.3 s.",
+      "3": "Active (E, 2 per aisle): stuns every enemy on screen for 1.5 s. Bosses are stunned for only 0.3 s."
+    },
+    "tierScaling": [
+      {
+        "label": "Charges",
+        "values": [
+          "1",
+          "1",
+          "2"
+        ]
+      },
+      {
+        "label": "Stun",
+        "values": [
+          "1 s",
+          "1.3 s",
+          "1.5 s"
+        ]
+      }
+    ]
+  },
   "items.battery.de": {
     "blurb": "Zack! Schnellere Angriffe, bei Elektrogeräten besonders.",
     "name": "Batterie",
@@ -7268,11 +7388,11 @@
   "items.bubblewrap.de": {
     "blurb": "Platzsichere Polsterung für deinen Wagen.",
     "name": "Luftpolsterfolie",
-    "rules": "Nimm {0} Schaden weniger pro Treffer (mindestens 1) und +0,25 s Unverwundbarkeit nach einem Treffer (stapelt sich nicht).",
+    "rules": "Nimm {0} Schaden weniger pro Treffer (mindestens 1) und +0,25 s Unverwundbarkeit nach einem Treffer (stapelt sich nicht). Aktiv (E, 1 pro Gang): Platzen, 1,5 s unverwundbar und eine Druckwelle mit {1} Schaden um dich.",
     "rulesByTier": {
-      "1": "Nimm 1 Schaden weniger pro Treffer (mindestens 1) und +0,25 s Unverwundbarkeit nach einem Treffer (stapelt sich nicht).",
-      "2": "Nimm 2 Schaden weniger pro Treffer (mindestens 1) und +0,25 s Unverwundbarkeit nach einem Treffer (stapelt sich nicht).",
-      "3": "Nimm 3 Schaden weniger pro Treffer (mindestens 1) und +0,25 s Unverwundbarkeit nach einem Treffer (stapelt sich nicht)."
+      "1": "Nimm 1 Schaden weniger pro Treffer (mindestens 1) und +0,25 s Unverwundbarkeit nach einem Treffer (stapelt sich nicht). Aktiv (E, 1 pro Gang): Platzen, 1,5 s unverwundbar und eine Druckwelle mit 10 Schaden um dich.",
+      "2": "Nimm 2 Schaden weniger pro Treffer (mindestens 1) und +0,25 s Unverwundbarkeit nach einem Treffer (stapelt sich nicht). Aktiv (E, 1 pro Gang): Platzen, 1,5 s unverwundbar und eine Druckwelle mit 15 Schaden um dich.",
+      "3": "Nimm 3 Schaden weniger pro Treffer (mindestens 1) und +0,25 s Unverwundbarkeit nach einem Treffer (stapelt sich nicht). Aktiv (E, 1 pro Gang): Platzen, 1,5 s unverwundbar und eine Druckwelle mit 20 Schaden um dich."
     },
     "tierScaling": [
       {
@@ -7282,17 +7402,25 @@
           "2",
           "3"
         ]
+      },
+      {
+        "label": "Platz-Schaden",
+        "values": [
+          "10",
+          "15",
+          "20"
+        ]
       }
     ]
   },
   "items.bubblewrap.en": {
     "blurb": "Pop-proof padding for your cart.",
     "name": "Bubble Wrap",
-    "rules": "Take {0} less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack).",
+    "rules": "Take {0} less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack). Active (E, 1 per aisle): Pop, 1.5 s invulnerable and a {1} damage blast around you.",
     "rulesByTier": {
-      "1": "Take 1 less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack).",
-      "2": "Take 2 less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack).",
-      "3": "Take 3 less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack)."
+      "1": "Take 1 less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack). Active (E, 1 per aisle): Pop, 1.5 s invulnerable and a 10 damage blast around you.",
+      "2": "Take 2 less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack). Active (E, 1 per aisle): Pop, 1.5 s invulnerable and a 15 damage blast around you.",
+      "3": "Take 3 less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack). Active (E, 1 per aisle): Pop, 1.5 s invulnerable and a 20 damage blast around you."
     },
     "tierScaling": [
       {
@@ -7301,6 +7429,14 @@
           "1",
           "2",
           "3"
+        ]
+      },
+      {
+        "label": "Pop damage",
+        "values": [
+          "10",
+          "15",
+          "20"
         ]
       }
     ]
@@ -7715,6 +7851,46 @@
           "+30%",
           "+45%",
           "+60%"
+        ]
+      }
+    ]
+  },
+  "items.fireextinguisher.de": {
+    "blurb": "Auf Lebensmittel gerichtet. Streng genommen Missbrauch.",
+    "name": "Feuerlöscher",
+    "rules": "Aktiv (E, {0} pro Gang): ein 70°-Kegel, 180 Reichweite, 6 Schaden, verlangsamt, betäubt 0,6 s und stößt zurück.",
+    "rulesByTier": {
+      "1": "Aktiv (E, 3 pro Gang): ein 70°-Kegel, 180 Reichweite, 6 Schaden, verlangsamt, betäubt 0,6 s und stößt zurück.",
+      "2": "Aktiv (E, 4 pro Gang): ein 70°-Kegel, 180 Reichweite, 6 Schaden, verlangsamt, betäubt 0,6 s und stößt zurück.",
+      "3": "Aktiv (E, 5 pro Gang): ein 70°-Kegel, 180 Reichweite, 6 Schaden, verlangsamt, betäubt 0,6 s und stößt zurück."
+    },
+    "tierScaling": [
+      {
+        "label": "Ladungen",
+        "values": [
+          "3",
+          "4",
+          "5"
+        ]
+      }
+    ]
+  },
+  "items.fireextinguisher.en": {
+    "blurb": "Aimed at groceries. Technically a misuse.",
+    "name": "Fire Extinguisher",
+    "rules": "Active (E, {0} per aisle): a 70° cone blast, 180 range, 6 damage, slows, stuns for 0.6 s and knocks back.",
+    "rulesByTier": {
+      "1": "Active (E, 3 per aisle): a 70° cone blast, 180 range, 6 damage, slows, stuns for 0.6 s and knocks back.",
+      "2": "Active (E, 4 per aisle): a 70° cone blast, 180 range, 6 damage, slows, stuns for 0.6 s and knocks back.",
+      "3": "Active (E, 5 per aisle): a 70° cone blast, 180 range, 6 damage, slows, stuns for 0.6 s and knocks back."
+    },
+    "tierScaling": [
+      {
+        "label": "Charges",
+        "values": [
+          "3",
+          "4",
+          "5"
         ]
       }
     ]
@@ -9122,11 +9298,11 @@
   "items.vacuum.de": {
     "blurb": "Saugt Gegner heran. Münzen übrigens auch.",
     "name": "Staubsauger",
-    "rules": "Zieht Gegner in der Nähe ständig zum Wagen. Alle {1} erleiden Gegner im Radius {0} Schaden. +60 Münz-Sammelradius.",
+    "rules": "Zieht Gegner in der Nähe ständig zum Wagen. Alle {1} erleiden Gegner im Radius {0} Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir.",
     "rulesByTier": {
-      "1": "Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,65 s erleiden Gegner im Radius 2 Schaden. +60 Münz-Sammelradius.",
-      "2": "Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,59 s erleiden Gegner im Radius 3 Schaden. +60 Münz-Sammelradius.",
-      "3": "Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,52 s erleiden Gegner im Radius 4 Schaden. +60 Münz-Sammelradius."
+      "1": "Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,65 s erleiden Gegner im Radius 2 Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir.",
+      "2": "Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,59 s erleiden Gegner im Radius 3 Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir.",
+      "3": "Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,52 s erleiden Gegner im Radius 4 Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir."
     },
     "tierScaling": [
       {
@@ -9150,11 +9326,11 @@
   "items.vacuum.en": {
     "blurb": "Sucks groceries closer. Sucks coins closer too.",
     "name": "Vacuum",
-    "rules": "Constantly pulls nearby enemies toward the cart. Every {1}, enemies in range take {0} damage. +60 coin pickup radius.",
+    "rules": "Constantly pulls nearby enemies toward the cart. Every {1}, enemies in range take {0} damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you.",
     "rulesByTier": {
-      "1": "Constantly pulls nearby enemies toward the cart. Every 0.65 s, enemies in range take 2 damage. +60 coin pickup radius.",
-      "2": "Constantly pulls nearby enemies toward the cart. Every 0.59 s, enemies in range take 3 damage. +60 coin pickup radius.",
-      "3": "Constantly pulls nearby enemies toward the cart. Every 0.52 s, enemies in range take 4 damage. +60 coin pickup radius."
+      "1": "Constantly pulls nearby enemies toward the cart. Every 0.65 s, enemies in range take 2 damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you.",
+      "2": "Constantly pulls nearby enemies toward the cart. Every 0.59 s, enemies in range take 3 damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you.",
+      "3": "Constantly pulls nearby enemies toward the cart. Every 0.52 s, enemies in range take 4 damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you."
     },
     "tierScaling": [
       {

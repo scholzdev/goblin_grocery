@@ -114,6 +114,7 @@ export function validateContent(files: Partial<ContentFiles>, opts: ValidateOpti
     }
     checkBuild(path, c.build, 'item');
     checkHooks(path, c.hooks);
+    if (c.active && !(c.tune && 'charges' in c.tune)) err(path, 'an active item needs a `charges` tune entry');
     if (c.elements !== undefined) {
       if (c.kind === 'passive') err(path, '`elements` is for weapons and modules only (a passive has no effect to tag)');
       if (!Array.isArray(c.elements) || c.elements.length === 0) err(path, '`elements` must be a non-empty list');

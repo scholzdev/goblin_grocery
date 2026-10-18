@@ -2229,6 +2229,27 @@ add('icon_sparklers', () => {
   return icon(s, 176);
 });
 
+add('icon_fireextinguisher', () => {
+  let s = line([[112, 46], [150, 40], [158, 74], [140, 98]], C.plum, 9) + line([[112, 46], [150, 40], [158, 74], [140, 98]], '#5A4A6E', 4);
+  s += S5([[62, 62], [120, 62], [124, 168], [58, 168]], C.coral, C.coralD, { dx: 7, dy: 5 });
+  s += S5([[70, 44], [112, 44], [116, 62], [66, 62]], C.chrome, C.creamD, { dx: 4, dy: 3, sw: 4.5 });
+  s += S5([[80, 28], [102, 28], [102, 44], [80, 44]], C.plum, null, { sw: 4 });
+  s += S5([[66, 98], [118, 98], [118, 128], [66, 128]], C.cream, C.creamD, { dx: 4, dy: 3, sw: 4 });
+  s += flat([[72, 70], [80, 70], [76, 160], [68, 160]], C.white, 'opacity=".4"');
+  s += spk(150, 130, 7);
+  return icon(s, 176);
+});
+
+add('icon_airhorn', () => {
+  let s = S5([[34, 80], [78, 80], [78, 128], [34, 128]], C.coral, C.coralD, { dx: 5, dy: 4 });
+  s += S5([[78, 70], [150, 30], [166, 56], [166, 150], [150, 178], [78, 138]], C.gold, C.goldD, { dx: 8, dy: 6 });
+  s += flat([[88, 80], [140, 56], [140, 70], [92, 98]], C.white, 'opacity=".5"');
+  s += shape([[24, 96], [34, 96], [34, 112], [24, 112]], C.plum, null, { sw: 4 });
+  s += `<g stroke="${C.plum}" stroke-width="5" stroke-linecap="round" fill="none"><path d="M176 74 Q188 104 176 134"/><path d="M168 56 Q192 104 168 152" opacity=".6"/></g>`;
+  s += spk(50, 56, 8);
+  return icon(s, 176);
+});
+
 add('icon_doublebag', () => {
   const bag = (x, y, w, h, fill, sh, fold) => shape([[x + w, y + 4], [x + w + 16, y - 4], [x + w + 16, y + h - 6], [x + w, y + h]], sh, fold, { sw: SWi, dx: 3, dy: 3 }) + S5(rect(x, y, w, h), fill, sh, { dx: 7, dy: 5 }) + line([[x + w * 0.5, y + h], [x + w * 0.5, y + h - 14]], sh, 3, 'opacity="0"') + flat([[x + 6, y + 6], [x + 22, y + 6], [x + 6, y + 34]], C.white, 'opacity=".35"') + line([[x, y + 10], [x + w, y + 10]], sh, 3, 'opacity=".7"');
   let s = bag(36, 34, 76, 112, '#D9A15A', '#A8703A', C.breadD);
