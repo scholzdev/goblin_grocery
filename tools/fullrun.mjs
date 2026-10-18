@@ -1,7 +1,8 @@
 // DEV bot: plays a whole run (circle-strafing + random shoves), auto-shops, reports per-wave stats.
 // Usage: node tools/fullrun.mjs [url] [shopping=1]
 import { chromium } from 'playwright';
-const url = process.argv[2] ?? 'http://localhost:5173/';
+import { devUrl } from './lib/dev.mjs';
+const url = await devUrl(process.argv[2]);
 const shopping = process.argv[3] !== '0';
 const browser = await chromium.launch({ channel: 'chrome' });
 const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });

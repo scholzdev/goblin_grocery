@@ -1,9 +1,10 @@
 // DEV: build an AOE/multi-hit cart (Pressure Point, Mist Machine, Popper, Double Bag, Multipack) and capture combat.
 import { chromium } from 'playwright';
+import { devUrl } from './lib/dev.mjs';
 const b = await chromium.launch({ channel: 'chrome' });
 const page = await b.newPage({ viewport: { width: 1600, height: 900 } });
 const errs = []; page.on('pageerror', (e) => errs.push(e.message)); page.on('console', (m) => (m.type() === 'error') && errs.push(m.text()));
-await page.goto(process.argv[2] ?? 'http://localhost:5173/');
+await page.goto(await devUrl(process.argv[2]));
 await page.waitForSelector('#title:not(.hidden)');
 await page.click('[data-act="play"]'); await page.click('[data-starter="toaster"]'); await page.click('[data-act="start-run"]'); await page.waitForTimeout(400);
 await page.keyboard.press('F2');

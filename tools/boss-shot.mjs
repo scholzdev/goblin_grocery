@@ -1,6 +1,7 @@
 // DEV: jump to the boss with a developed build and capture combat frames.
 import { chromium } from 'playwright';
-const url = process.argv[2] ?? 'http://localhost:5173/';
+import { devUrl } from './lib/dev.mjs';
+const url = await devUrl(process.argv[2]);
 const browser = await chromium.launch({ channel: 'chrome' });
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 const errors = [];

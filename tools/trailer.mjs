@@ -1,8 +1,9 @@
 // Renders the 30 s Steam trailer: release/trailer/goblin-grocery-trailer.mp4
-// Usage: node tools/trailer.mjs   (needs the dev server on :5173; DEV handles __gg/__arena are used, no src changes)
+// Usage: node tools/trailer.mjs   (starts its own dev server unless URL=... is set; DEV handles __gg/__arena are used, no src changes)
 // Capture: Playwright fake clock, one page.clock.runFor(16) + screenshot per output frame -> perfectly smooth 60 fps.
 // CSS animations are not covered by the fake clock, so they are paused and driven by hand every frame.
 import { chromium } from 'playwright';
+import { devUrl } from './lib/dev.mjs';
 import { execFileSync } from 'node:child_process';
 import { readFileSync, mkdirSync, rmSync, existsSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -10,7 +11,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const URL = process.env.URL ?? 'http://localhost:5173/';
+const URL = await devUrl(process.env.URL);
 const OUT = join(ROOT, 'release/trailer');
 const FRAMES = process.env.FRAMES ?? join(tmpdir(), 'gg-trailer-frames');
 const FFMPEG = existsSync('/opt/homebrew/bin/ffmpeg') ? '/opt/homebrew/bin/ffmpeg' : 'ffmpeg';

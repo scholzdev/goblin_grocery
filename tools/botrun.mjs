@@ -1,7 +1,8 @@
 // DEV bot that kites enemies like a cautious human, auto-shops with a simple recipe-aware layout.
 // Usage: node tools/botrun.mjs [url] [runs=1] [build=default|toast]  (toast: follow Toast Stack target list; default: buy everything)
 import { chromium } from 'playwright';
-const url = process.argv[2] ?? 'http://localhost:5173/';
+import { devUrl } from './lib/dev.mjs';
+const url = await devUrl(process.argv[2]);
 const runs = Number(process.argv[3] ?? 1);
 const build = process.argv[4] ?? 'default';
 const BUILDS = { toast: ['toaster', 'fuel', 'fan', 'hotsauce', 'battery', 'multipack', 'doublebag'] };

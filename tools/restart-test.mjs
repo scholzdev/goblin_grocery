@@ -1,5 +1,6 @@
 // Verifies restarts don't duplicate DOM overlays, window/document listeners, sounds or scene objects.
 import { chromium } from 'playwright';
+import { devUrl } from './lib/dev.mjs';
 const b = await chromium.launch({ channel: 'chrome' });
 const page = await b.newPage({ viewport: { width: 1280, height: 800 } });
 const errs = []; page.on('pageerror', (e) => errs.push(e.message)); page.on('console', (m) => m.type() === 'error' && errs.push(m.text()));
@@ -11,7 +12,7 @@ await page.addInitScript(() => {
     T.prototype.removeEventListener = function (...a) { window.__listeners--; return rem.apply(this, a); };
   }
 });
-await page.goto(process.argv[2] ?? 'http://localhost:5173/');
+await page.goto(await devUrl(process.argv[2]));
 await page.waitForSelector('#title:not(.hidden)');
 const snap = () => page.evaluate(() => ({
   ui: document.getElementById('ui-root').children.length, body: document.body.children.length, listeners: window.__listeners,
