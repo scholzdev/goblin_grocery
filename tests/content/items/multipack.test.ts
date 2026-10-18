@@ -112,9 +112,9 @@ describe('Multipack: content', () => {
     expect(def.weapon).toBeUndefined();
   });
 
-  it('keeps its position in the item order (last until the Can Opener, the Decaf, the Expired Coupon, the Popcorn Maker and the Sparklers were appended)', () => {
+  it('keeps its position in the item order (last until the Can Opener, the Decaf, the Expired Coupon, the Popcorn Maker, the Sparklers, the Punch Card, the Shortcut Key and the Spent Key were appended)', () => {
     expect(around('multipack', 1, 0)).toEqual(['doublebag', 'multipack']);
-    expect(Object.keys(ITEMS).at(-6)).toBe('multipack');
+    expect(Object.keys(ITEMS).at(-9)).toBe('multipack');
   });
 
   it('renders its text for every level, EN and DE', () => {

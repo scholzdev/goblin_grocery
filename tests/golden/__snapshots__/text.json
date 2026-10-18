@@ -4913,6 +4913,38 @@
       "weapon": "toaster"
     }
   ],
+  "buffs.item.punchcard.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.punchcard.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.punchcard.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.punchcard.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
   "buffs.item.sample.t1.on.toaster.de": [
     {
       "lines": [
@@ -4938,6 +4970,38 @@
     }
   ],
   "buffs.item.sample.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.shortcut.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.shortcut.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.shortcut.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.shortcut.t3.on.toaster.en": [
     {
       "lines": [
         "Bundle Deal: 1 item → +6% damage"
@@ -5070,6 +5134,38 @@
     }
   ],
   "buffs.item.sparklers.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.spentkey.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.spentkey.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.spentkey.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.spentkey.t3.on.toaster.en": [
     {
       "lines": [
         "Bundle Deal: 1 item → +6% damage"
@@ -8673,6 +8769,46 @@
       }
     ]
   },
+  "items.punchcard.de": {
+    "blurb": "Zehn Stempel und das Brötchen ist gratis.",
+    "name": "Stempelkarte",
+    "rules": "Jeder Gang stellt dir ein Ziel, das zu deinem Wagen passt. Schaffst du es, gibt es {0} Münzen und einen Gratis-Reroll im nächsten Shop (stapelt sich nicht).",
+    "rulesByTier": {
+      "1": "Jeder Gang stellt dir ein Ziel, das zu deinem Wagen passt. Schaffst du es, gibt es 5 Münzen und einen Gratis-Reroll im nächsten Shop (stapelt sich nicht).",
+      "2": "Jeder Gang stellt dir ein Ziel, das zu deinem Wagen passt. Schaffst du es, gibt es 8 Münzen und einen Gratis-Reroll im nächsten Shop (stapelt sich nicht).",
+      "3": "Jeder Gang stellt dir ein Ziel, das zu deinem Wagen passt. Schaffst du es, gibt es 12 Münzen und einen Gratis-Reroll im nächsten Shop (stapelt sich nicht)."
+    },
+    "tierScaling": [
+      {
+        "label": "Münzen-Belohnung",
+        "values": [
+          "5",
+          "8",
+          "12"
+        ]
+      }
+    ]
+  },
+  "items.punchcard.en": {
+    "blurb": "Ten punches and the sandwich is free.",
+    "name": "Punch Card",
+    "rules": "Each aisle gives you one goal that suits your cart. Complete it for {0} coins and a free reroll in the next shop (does not stack).",
+    "rulesByTier": {
+      "1": "Each aisle gives you one goal that suits your cart. Complete it for 5 coins and a free reroll in the next shop (does not stack).",
+      "2": "Each aisle gives you one goal that suits your cart. Complete it for 8 coins and a free reroll in the next shop (does not stack).",
+      "3": "Each aisle gives you one goal that suits your cart. Complete it for 12 coins and a free reroll in the next shop (does not stack)."
+    },
+    "tierScaling": [
+      {
+        "label": "Reward coins",
+        "values": [
+          "5",
+          "8",
+          "12"
+        ]
+      }
+    ]
+  },
   "items.sample.de": {
     "blurb": "Nur zum Probieren. Jeder Krit ist ein Häppchen.",
     "name": "Kostprobe",
@@ -8712,6 +8848,28 @@
         ]
       }
     ]
+  },
+  "items.shortcut.de": {
+    "blurb": "Nur für Personal. Wir haben uns nie gesehen.",
+    "name": "Abkürzungsschlüssel",
+    "rules": "Einmal pro Run: Nach einem Shop erscheint eine Personaltür. Sie überspringt den nächsten Gang (kein Kampf, keine Münzen, kein Shop) und heilt dich voll. Überspringt nie Gang 4 oder Gang 8.",
+    "rulesByTier": {
+      "1": "Einmal pro Run: Nach einem Shop erscheint eine Personaltür. Sie überspringt den nächsten Gang (kein Kampf, keine Münzen, kein Shop) und heilt dich voll. Überspringt nie Gang 4 oder Gang 8.",
+      "2": "Einmal pro Run: Nach einem Shop erscheint eine Personaltür. Sie überspringt den nächsten Gang (kein Kampf, keine Münzen, kein Shop) und heilt dich voll. Überspringt nie Gang 4 oder Gang 8.",
+      "3": "Einmal pro Run: Nach einem Shop erscheint eine Personaltür. Sie überspringt den nächsten Gang (kein Kampf, keine Münzen, kein Shop) und heilt dich voll. Überspringt nie Gang 4 oder Gang 8."
+    },
+    "tierScaling": []
+  },
+  "items.shortcut.en": {
+    "blurb": "Staff only. You did not see us.",
+    "name": "Shortcut Key",
+    "rules": "Once per run: a Staff Only door appears after a shop. It skips the next aisle (no fight, no coins, no shop) and heals you fully. Never skips aisle 4 or aisle 8.",
+    "rulesByTier": {
+      "1": "Once per run: a Staff Only door appears after a shop. It skips the next aisle (no fight, no coins, no shop) and heals you fully. Never skips aisle 4 or aisle 8.",
+      "2": "Once per run: a Staff Only door appears after a shop. It skips the next aisle (no fight, no coins, no shop) and heals you fully. Never skips aisle 4 or aisle 8.",
+      "3": "Once per run: a Staff Only door appears after a shop. It skips the next aisle (no fight, no coins, no shop) and heals you fully. Never skips aisle 4 or aisle 8."
+    },
+    "tierScaling": []
   },
   "items.snackbag.de": {
     "blurb": "Bodenlos. Vermutlich.",
@@ -8854,6 +9012,28 @@
         ]
       }
     ]
+  },
+  "items.spentkey.de": {
+    "blurb": "Abgegriffen. Öffnet nichts mehr.",
+    "name": "Verbrauchter Schlüssel",
+    "rules": "Keine Wirkung. Verkaufe ihn für 1 Münze.",
+    "rulesByTier": {
+      "1": "Keine Wirkung. Verkaufe ihn für 1 Münze.",
+      "2": "Keine Wirkung. Verkaufe ihn für 1 Münze.",
+      "3": "Keine Wirkung. Verkaufe ihn für 1 Münze."
+    },
+    "tierScaling": []
+  },
+  "items.spentkey.en": {
+    "blurb": "Worn smooth. Opens nothing now.",
+    "name": "Spent Key",
+    "rules": "No effect. Sell it for 1 coin.",
+    "rulesByTier": {
+      "1": "No effect. Sell it for 1 coin.",
+      "2": "No effect. Sell it for 1 coin.",
+      "3": "No effect. Sell it for 1 coin."
+    },
+    "tierScaling": []
   },
   "items.spray.de": {
     "blurb": "Pssht pssht pssht. Trifft alles davor.",

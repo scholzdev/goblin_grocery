@@ -390,7 +390,7 @@ function starterHtml(): string {
     return `<button class="btn weapon-pick ${did === pickedTheme ? 'coral' : ''}" data-act="theme" data-theme="${did}" aria-pressed="${did === pickedTheme}">
       <img src="${svg(d.theme.icon)}" alt=""><span class="wp-text"><span class="wp-head"><b>${dt.short}</b></span><span class="wp-stat">${dt.blurb}</span></span></button>`;
   };
-  const detail = `<div class="detail"><span class="who">${portrait(id)}</span><div class="dtxt"><div class="dn display">${stT.name}</div><div class="blurb">${stT.blurb}</div>
+  const detail = `<div class="detail"><span class="who">${portrait(id)}</span><div class="dtxt"><div class="dn display">${stT.name}</div><div class="blurb">${stT.blurb}</div><div class="sig"><b>${t('sigLabel')}</b> ${t(`sig_${id}` as UIKey)}</div>
       ${away ? `<div class="need">🔒 ${gate ? `${unlockNeedT(gate.id)} (${gate.progress(profile.stats).join('/')})` : t('charLocked')}</div>`
         : st.perk ? `<ul>${perkLines(st.perk).map((l) => `<li>${l}</li>`).join('')}</ul>` : ''}</div></div>`;
   const reason = away ? t('charLocked') : shiftLock ? t('winShiftStarter', { n: pickedShift }) : '';
@@ -433,6 +433,16 @@ function routeHtml(): string {
       <span class="danger" title="${t('danger')}">${t('boss')}</span>
       <span class="ln"><b>${t('enemies')}</b> ${dt.enemiesText}</span>
       <span class="ln reward"><b>${t('reward')}</b> ${dt.rewardText}</span>
+    </button>`;
+    }
+    if (id === 'shortcut') {
+      return `<button class="door mod shortcut" data-act="door" data-id="shortcut" ${i === 0 ? 'data-focus' : ''} aria-label="${t('doorStaffName')}">
+      <span class="key">${i + 1}</span>
+      <span class="modicon"><img src="${svg('icon_shortcut')}" alt=""></span>
+      <span class="dn">${t('doorStaffName')}</span>
+      <span class="danger" title="${t('danger')}">${'☆'.repeat(3)}</span>
+      <span class="ln"><b>${t('enemies')}</b> ${t('doorStaffFx')}</span>
+      <span class="ln reward"><b>${t('reward')}</b> ${t('doorStaffRw')}</span>
     </button>`;
     }
     const mt = modT(id), risk = MODIFIERS[id].risk, zid = s.doorZones?.[i] ?? null;

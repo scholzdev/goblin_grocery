@@ -1,7 +1,7 @@
 // Aisle modifiers: the doors after each shop pick how the NEXT aisle plays (the theme is fixed per run).
 export type ModifierId = 'none' | 'rush' | 'clearance' | 'event' | 'quiet' | 'stockroom' | 'coldRoom' | 'vipAisle';
-/** What a route door can be: a modifier, or the boss aisle. */
-export type DoorId = ModifierId | 'boss';
+/** What a route door can be: a modifier, the boss aisle, or the Shortcut Key's Staff Only door (skips the next aisle). */
+export type DoorId = ModifierId | 'boss' | 'shortcut';
 
 export interface ModifierDef {
   countMult: number;

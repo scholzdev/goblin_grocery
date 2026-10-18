@@ -1,4 +1,5 @@
 import { ITEMS, PLAYER, TIER } from '../data/items';
+import { botDoors } from '../systems/shortcut';
 import type { DoorId } from '../data/modifiers';
 import { cellsFor } from '../data/items';
 import type { Build, Inventory, ItemInstance, ItemTypeId, Rotation, RunState, ShopOffer } from '../types';
@@ -211,7 +212,8 @@ export function createGreedyPolicy(opt: Partial<GreedyOptions> = {}): Policy {
       }
       return [{ kind: 'leave' }];
     },
-    chooseDoor(doors, state, view) {
+    chooseDoor(allDoors, state, view) {
+      const doors = botDoors(allDoors, state);
       let pick = doors;
       if (doors.length > 1 && (state.hp < state.build.maxHp * o.rushAvoidHpFrac || state.wave <= o.rushAvoidUntilWave)) {
         const safe = doors.filter((d) => d !== 'rush');

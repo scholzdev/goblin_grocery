@@ -3,6 +3,7 @@ import { BOSS_WAVE } from '../data/waves';
 import { RECIPES, recipeIcon } from '../data/recipes';
 import { deptT, recipeT, zoneT } from '../i18n/data';
 import { fmtNum, t, type UIKey } from '../i18n';
+import { initPunchCard, renderPunchCard } from './punchcard';
 
 // Compact receipt-strip combat HUD. Built once; per-frame values only touch changed text.
 export const svg = (key: string): string => `${import.meta.env.BASE_URL}assets/svg/${key}.svg`;
@@ -49,6 +50,7 @@ export function initHud(ui: HTMLElement): void {
   bark.className = 'sticker';
   bark.style.opacity = '0';
   ui.append(hud, boss, banner, bark);
+  initPunchCard(ui, hud);
   els = {
     hud, boss, banner, bark,
     hpbar: hud.querySelector('.hpbar > i')!, hpnum: hud.querySelector('.hpnum')!, aisle: hud.querySelector('.aisle')!, dept: hud.querySelector('.dept')!,
@@ -72,7 +74,7 @@ function render(): void {
   const s = store.state;
   const inCombat = s.phase === 'combat' || s.phase === 'checkout';
   els.hud.classList.toggle('hidden', !inCombat);
-  if (!inCombat) els.boss.classList.add('hidden');
+  if (!inCombat) { els.boss.classList.add('hidden'); renderPunchCard(null); }
   if (!inCombat) return;
   els.hpbar.style.width = `${(100 * s.hp) / s.build.maxHp}%`;
   set('hpnum', `${Math.ceil(s.hp)}/${s.build.maxHp}`);
@@ -109,6 +111,8 @@ export const hud = {
       els.boss.classList.toggle('enraged', o.boss.enraged);
     }
   },
+  /** Punch Card sticker under the strip (ui/punchcard.ts); null hides it. */
+  contract: renderPunchCard,
   bark(text: string): void {
     els.bark.textContent = text;
     els.bark.classList.remove('show');

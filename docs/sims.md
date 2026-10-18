@@ -208,3 +208,10 @@ Element reactions (docs/item-hooks-refactor.md "Reactions"). A teal name pops ov
 - `src/flow.ts`: `flow.startSim(sim)`, `flow.restartSim()`, `flow.sim`.
 - `src/systems/spread.ts`: pure cluster / ring positions. The arena side is `ArenaScene.labSpawnAll`.
 - `src/ui/simTag.ts`: HUD tag, notes, error card, `launchSim(id)`.
+
+## Contract and shortcut sims
+
+| Sim | What to look at |
+| --- | --- |
+| `punch-card` | A real aisle 4 with a Punch Card and a heat cart (`waves: true`, `god: false`). The goal is on the banner, the sticker sits under the HUD strip. |
+| `shortcut-key` | Starts in the cart editor before aisle 3 with a Shortcut Key and 8 HP. Leave the shop: the route screen shows a Staff Only door (a lab aisle normally has one door and skips that screen). Take it to land in aisle 4 at full HP. |

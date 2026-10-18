@@ -6,7 +6,10 @@ import { waveDef, eliteChance, bossTuning, ECONOMY, SHIFTS, WAVE_RAMP } from '..
 import { SHOW_HP_BAR, ENEMIES, ELITE, THEME_SUMMONS, ELITE_EXCLUDED, AFFIX, MINI_BOSS, bossFor, isBossId, type BossMove } from '../data/enemies';
 import { GumPuddles } from './gum';
 import { CRIT, PLAYER, STARTER_LOOKS } from '../data/items';
-import { addCoins, damagePlayer, takeStockroomItem } from '../state/run';
+import { dashCooldownAfterKill, firstHitCrit } from '../systems/signatures';
+import { punchHit, punchKill, punchTick, punchView, rollPunchCard } from '../systems/contracts';
+import { isDashHit } from '../engine/hitTags';
+import { addCoins, damagePlayer, payPunchCard, takeStockroomItem } from '../state/run';
 import { hitArmor, newHitTracker, shredGain, shredStacks, tryHit, weakenedDamage, weakenMult, type HitTracker } from '../systems/combat';
 import { isWet, wetElectricMult } from '../engine/wet';
 import type { EnemyId, ShopOffer, WaveDef, WeaponStats } from '../types';
@@ -125,6 +128,8 @@ export class ArenaScene extends Phaser.Scene {
   gum!: GumPuddles;
   private hudT = 0;
   private shoveMult = 1;
+  /** Toast Goblin: uids of the weapons that already landed their first direct hit this aisle. */
+  private firstHitDone = new Set<string>();
   /** Props the dash interacts with in this aisle (see DASH_PROPS); `hit` = already toppled / broken. */
   private dashProps: { o: Obstacle; img: Phaser.GameObjects.Image; hit: boolean }[] = [];
 
@@ -151,6 +156,7 @@ export class ArenaScene extends Phaser.Scene {
     this.dept = DEPARTMENTS[s.phase === 'title' ? 'main' : s.department];
     this.plan = waveSpawnPlan(s);
     this.breadDropped = 0;
+    this.firstHitDone.clear();
     this.cameras.main.setBackgroundColor('#B8DED2');
 
     this.buildEnvironment();
@@ -183,8 +189,11 @@ export class ArenaScene extends Phaser.Scene {
       if (s.labSandbox) this.labSpawnAll(labDummies); else this.planWave();
       playMusic(musicFor(this.dept.id, this.wave.boss, s.modifier));
       const room = s.modifier === 'stockroom' || s.modifier === 'coldRoom' || s.modifier === 'vipAisle' ? s.modifier : null;
-      if (room) showBanner(t(`modName_${room}`), t(`roomSub_${room}`));
-      else showBanner(this.wave.boss ? t('finalAisle') : deptT(this.dept.id).name, this.wave.boss ? t('bossAwaits', { name: enemyT(bossFor(s.theme)).name }) : this.dept.hazard === 'none' ? t('surviveCheckout') : deptT(this.dept.id).blurb);
+      s.punch = s.labSandbox ? undefined : rollPunchCard(s.seed, s.inventory, { aisle: s.wave, boss: this.wave.boss, total: this.plan.total, fight: s.modifier !== 'stockroom' }) ?? undefined; // Punch Card: this aisle's goal
+      const goal = s.punch ? t('pcBanner', { goal: t(`pcText_${s.punch.goal}` as UIKey, { n: s.punch.target }) }) : '';
+      if (room) showBanner(t(`modName_${room}`), goal || t(`roomSub_${room}`));
+      else showBanner(this.wave.boss ? t('finalAisle') : deptT(this.dept.id).name, goal || (this.wave.boss ? t('bossAwaits', { name: enemyT(bossFor(s.theme)).name }) : this.dept.hazard === 'none' ? t('surviveCheckout') : deptT(this.dept.id).blurb));
+      if (s.skipped) { hud.bark(t('doorStaffOn', { n: s.skipped })); s.skipped = undefined; } // came through the Staff Only door
       if (s.modifier === 'stockroom' && !this.wave.boss) this.openStockroom();
     }
     if (s.phase === 'combat' && this.hooks.onAisleStart.length) this.hooks.emit('onAisleStart', { aisle: s.wave, boss: this.wave.boss, department: this.dept.id, modifier: s.modifier });
@@ -662,7 +671,10 @@ export class ArenaScene extends Phaser.Scene {
     dmg = markedDamage(dmg, e.markedUntil, now, markMult(e.def)); // Price Check / Sale Flag mark
     const markBonus = dmg - unmarked;
     // Crits resolve here and only here (never on burn ticks).
-    const crit = !o.isDot && !rx && !!stats && stats.critChance > 0 && this.rng() < stats.critChance;
+    const rolled = !o.isDot && !rx && !!stats && stats.critChance > 0 && this.rng() < stats.critChance;
+    // Toast Goblin: a weapon's first direct hit of the aisle always crits (after the roll, so the combat rng stream is the same for every goblin).
+    const first = !!stats && !o.isDot && !rx && !o.echo && !o.fromPopper && !o.chained && firstHitCrit(store.state.starter, this.firstHitDone, stats.uid);
+    const crit = rolled || first;
     if (crit) {
       dmg *= CRIT.mult;
       this.fx.popImage('fx_crit', e.x + Phaser.Math.Between(-10, 10), e.y - e.sprite.displayHeight - 6, 0.8);
@@ -796,6 +808,9 @@ export class ArenaScene extends Phaser.Scene {
     const s = store.state;
     s.stats.kills++;
     noteEnemy(s, e.def.id, { elite: e.elite });
+    const dashKill = !!hit && isDashHit(hit.opts);
+    if (s.punch && punchKill(s.punch, { tags: hit?.tags ?? [], dash: dashKill, elite: e.elite })) this.punchDone();
+    this.player.shoveCd = dashCooldownAfterKill(s.starter, this.player.shoveCd, dashKill); // Night Shift
     const thief = e.def.id === EnemyIds.giftcard;
     const mults = { dept: this.dept.coinMult, modifier: MODIFIERS[s.modifier].coinMult, shift: SHIFTS[store.state.shift].coinMult, event: this.aisleEvent.coinMult(), kill: s.build.killCoinMult };
     const coins = thief ? giftcardCoins(e.def.coins, ENEMIES.giftcard.tune.coinMult, mults) : e === this.boss
@@ -928,6 +943,7 @@ export class ArenaScene extends Phaser.Scene {
     let invuln = PLAYER.invuln;
     if (this.hooks.onPlayerHit.length) { const ev = { dmg, invuln }; this.hooks.emit('onPlayerHit', ev); dmg = ev.dmg; invuln = ev.invuln; }
     const dead = damagePlayer(store.state, dmg);
+    if (store.state.punch) punchHit(store.state.punch);
     p.invulnT = invuln;
     p.hurtT = 0.45;
     play('hurt');
@@ -981,6 +997,7 @@ export class ArenaScene extends Phaser.Scene {
         if (Math.floor(this.waveTime * 2) !== Math.floor((this.waveTime - dt) * 2)) store.changed();
       }
       if (this.hooks.onTick.length) this.hooks.emit('onTick', dt);
+      if (s.punch && punchTick(s.punch, dt, this.timeLeft()) === 'done') this.punchDone();
       if (!s.labSandbox) this.updateDirector();
       if (this.wave.boss && !s.labSandbox && !this.enraged && this.waveTime > bossTuning(store.state.shift).enrageAfter + 1.6) {
         this.enraged = true;
@@ -1019,13 +1036,30 @@ export class ArenaScene extends Phaser.Scene {
     if (this.hudT <= 0 && (s.phase === 'combat')) {
       this.hudT = 0.05;
       hud.tick({
-        timeLeft: this.wave.boss || this.miniDue || s.labSandbox || s.modifier === 'stockroom' ? -1 : Math.max(0, this.wave.duration - this.waveTime),
+        timeLeft: this.timeLeft(),
         elapsed: this.waveTime,
         shoveCd: this.player.chainT > 0 ? 0 : Math.max(0, this.player.shoveCd), shoveMax: s.build.shoveCooldown,
         boss: this.boss ? { hp: Math.max(0, this.boss.hp), max: this.boss.maxHp, enraged: this.enraged, name: enemyT(this.boss.def.id).name.toUpperCase() }
           : this.mini ? { hp: Math.max(0, this.mini.hp), max: this.mini.maxHp, enraged: this.enraged, name: t('miniBossBar', { name: enemyT(this.mini.def.id).name.toUpperCase() }) } : null,
       });
+      hud.contract(s.punch ? punchView(s.punch) : null);
     }
+  }
+
+  /** Seconds left on the aisle clock, or -1 when this aisle has none (boss, mini-boss, stockroom, sandbox). */
+  private timeLeft(): number {
+    const s = store.state;
+    return this.wave.boss || this.miniDue || s.labSandbox || s.modifier === 'stockroom' ? -1 : Math.max(0, this.wave.duration - this.waveTime);
+  }
+
+  /** Punch Card goal met: coins now (the receipt lists them), the free reroll comes with the shop. */
+  private punchDone(): void {
+    payPunchCard(store.state);
+    hud.bark(t('pcDone'));
+    play('ding');
+    play('buy', { rate: 1.2 });
+    this.fx.spark(this.player.x, this.player.y - 60, 10, 0xf5bd45);
+    store.changed();
   }
 
   /** DEV: bot/automation input override. */

@@ -1,4 +1,5 @@
 import { apply } from '../buildlab/run';
+import { botDoors } from '../systems/shortcut';
 import { createGenomePolicy, genomeFromJSON, type Genome } from '../buildlab/genome';
 import { SHOP_ROUNDS, bestPlacement, mergePairs, type Policy, type PolicyView, type Scorer, type ShopAction } from '../buildlab/policy';
 import type { ShopStep } from '../buildlab/report';
@@ -516,7 +517,8 @@ export function startBot(): void {
   }
 
   /** The door by the build's power: harder doors (more enemies, elites) only while dps and toughness are up to the next aisle and HP is healthy; weaker builds take the lightest aisle (a stockroom is free loot). The genome's door weights break ties. */
-  function pickDoor(doors: DoorId[], s: RunState): DoorId {
+  function pickDoor(allDoors: DoorId[], s: RunState): DoorId {
+    const doors = botDoors(allDoors, s);
     const aisle = s.wave + 1;
     if (doors.includes('boss')) return 'boss';
     const strong = dpsOf(s.build) >= POWER_OK * needDps(aisle) && toughness(s.inventory, s.build, aisle) >= 0.9 * toughTarget(aisle) && s.hp >= 0.6 * s.build.maxHp;

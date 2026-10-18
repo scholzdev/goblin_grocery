@@ -2229,6 +2229,40 @@ add('icon_sparklers', () => {
   return icon(s, 176);
 });
 
+const keyArt = (body, bodyD, tag) => {
+  let s = `<circle cx="60" cy="62" r="34" fill="${C.plum}"/><circle cx="60" cy="62" r="28" fill="${body}"/><circle cx="60" cy="62" r="11" fill="${C.plum}"/>`;
+  s += flat([[34, 50], [50, 36], [58, 38]], GL, 'opacity=".7"');
+  s += shape(rect(84, 56, 84, 14), body, bodyD, { sw: SWi, dx: 3, dy: 4 });
+  s += shape(rect(140, 70, 12, 24), body, bodyD, { sw: SWi, dx: 2, dy: 3 }) + shape(rect(118, 70, 12, 16), body, bodyD, { sw: SWi, dx: 2, dy: 3 });
+  s += tag;
+  return s;
+};
+
+add('icon_shortcut', () => {
+  let s = keyArt(C.gold, C.goldD, '');
+  s += rot(shape(rect(34, 108, 60, 38), C.cream, C.creamD, { sw: SWi, dx: 3, dy: 4 }) + flat(rect(42, 120, 40, 5), C.chromeD) + flat(rect(42, 130, 26, 5), C.chromeD), -8, 64, 127);
+  s += spk(166, 40, 9) + spk(30, 28, 6);
+  return icon(s, 176);
+});
+
+add('icon_spentkey', () => {
+  let s = keyArt('#B7AFC0', '#8D8499', '');
+  s += line([[40, 40], [92, 100]], C.coral, 5);
+  return icon(s, 176);
+});
+
+add('icon_punchcard', () => {
+  let s = shape(rect(30, 40, 124, 104), C.cream, C.creamD, { sw: SWi, dx: 6, dy: 6 });
+  s += shape(rect(30, 40, 124, 26), C.coral, C.coralD, { sw: SWi, dx: 0, dy: 3 });
+  s += flat(rect(44, 50, 56, 6), C.cream);
+  for (let r = 0; r < 2; r++) for (let c = 0; c < 4; c++) {
+    const x = 52 + c * 28, y = 90 + r * 28, punched = r * 4 + c < 5;
+    s += punched ? `<circle cx="${x}" cy="${y}" r="9" fill="${C.plum}"/><circle cx="${x - 1.5}" cy="${y - 1.5}" r="5" fill="#2A1D38"/>` : `<circle cx="${x}" cy="${y}" r="9" fill="none" stroke="${C.plum}" stroke-width="3" stroke-dasharray="4 3"/>`;
+  }
+  s += spk(160, 36, 9) + spk(24, 150, 6);
+  return icon(s, 176);
+});
+
 add('icon_doublebag', () => {
   const bag = (x, y, w, h, fill, sh, fold) => shape([[x + w, y + 4], [x + w + 16, y - 4], [x + w + 16, y + h - 6], [x + w, y + h]], sh, fold, { sw: SWi, dx: 3, dy: 3 }) + S5(rect(x, y, w, h), fill, sh, { dx: 7, dy: 5 }) + line([[x + w * 0.5, y + h], [x + w * 0.5, y + h - 14]], sh, 3, 'opacity="0"') + flat([[x + 6, y + 6], [x + 22, y + 6], [x + 6, y + 34]], C.white, 'opacity=".35"') + line([[x, y + 10], [x + w, y + 10]], sh, 3, 'opacity=".7"');
   let s = bag(36, 34, 76, 112, '#D9A15A', '#A8703A', C.breadD);

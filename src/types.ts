@@ -1,5 +1,6 @@
 // Shared contracts. Pure data shapes only — no Phaser, no DOM.
 import type { DoorId, ModifierId } from './data/modifiers';
+import type { PunchCard } from './systems/contracts';
 import type { EventKind } from './data/events';
 import type { ZoneId } from './data/zones';
 import type { DamageStats } from './systems/damageStats';
@@ -56,6 +57,8 @@ export interface ItemDef {
   tags?: WeaponTag[];
   /** Legendary: unique effect, gold border, rare in shops, cannot be upgraded or merged. */
   legendary?: boolean;
+  /** Never offered by a shop or crate (the Spent Key). */
+  noShop?: boolean;
   /** Modules only: the elements its effect deals or applies (see `ItemContent.elements`). */
   elements?: readonly AffinityTag[];
   /** The item's hits shred armor (see `ItemContent.shreds`). */
@@ -142,6 +145,8 @@ export interface ActiveRecipe {
 }
 
 export type StarterId = (typeof STARTER_ORDER)[number];
+/** A goblin's passive signature (data/items `SIGNATURE`). */
+export type SignatureId = 'firstCrit' | 'mergeHeal' | 'freeReroll' | 'dashCooldown';
 /** Starting weapons selectable independently of the character. */
 export type StarterWeapon = 'toaster' | 'pan' | 'nailgun';
 
@@ -367,6 +372,10 @@ export interface RunState {
   labMod?: ModifierId;
   /** Aisle event forced in every lab aisle ('random' = normal roll). */
   labEvent?: 'random' | 'none' | EventKind;
+  /** This aisle's Punch Card goal (systems/contracts); rolled when the aisle starts, a completed one pays the next shop a free reroll. */
+  punch?: PunchCard;
+  /** Aisle skipped through the Staff Only door, until the next aisle announces it. */
+  skipped?: number;
   /** Lab dummy sandbox: no waves or timer, dummies spawned from a panel, shop ↔ arena on demand. */
   labSandbox?: boolean;
 }

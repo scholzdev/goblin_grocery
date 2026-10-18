@@ -32,6 +32,7 @@ export const ITEM_ORDER = [
   'microwave', 'blender', 'fizz', 'mop', 'pricegun', 'tape', 'coupon', 'bubblewrap', 'energy', 'fortune', 'sample', 'piggy', 'expiredmilk', 'tinfoilhat', 'jellybeans',
   'leafblower', 'sourdough', 'powerstrip', 'goldstar', 'laser', 'snackbag', 'cooker', 'spray', 'popper', 'doublebag', 'multipack', 'canopener', 'decaf',
   'expiredcoupon', 'popcorn', 'sparklers',
+  'punchcard', 'shortcut', 'spentkey',
 ] as const;
 
 /** Every combo, in the order `computeBuild` applies the matching ones (it decides which combo hook runs first on a weapon) and the codex lists them. */
@@ -248,6 +249,8 @@ export interface ItemContent<T extends Tune = Tune> {
   /** Modules: the item's hits shred armor, so the shop card's "Strong vs" adds the armored chip (`ui/affinity.ts`). */
   shreds?: boolean;
   legendary?: boolean;
+  /** Never offered by a shop or crate (the Spent Key). */
+  noShop?: boolean;
   /** Weapons only. */
   tags?: ItemDef['tags'];
   weapon?: ItemDef['weapon'];

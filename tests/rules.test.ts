@@ -250,7 +250,7 @@ describe('run state ops', () => {
   });
   it('every item is a starting item or has an unlock (else the shop never offers it and the catalog crashes)', () => {
     const reachable = new Set([...STARTING_ITEMS, ...UNLOCKS.flatMap((u) => (u.kind === 'item' ? [u.item] : []))]);
-    expect(ITEM_IDS.filter((id) => !reachable.has(id))).toEqual([]);
+    expect(ITEM_IDS.filter((id) => !reachable.has(id) && !ITEMS[id].noShop)).toEqual([]);
   });
   it('starterUnlocked: base starters open, others gated by UNLOCKS', () => {
     expect(starterUnlocked('toaster') && starterUnlocked('pan')).toBe(true);
@@ -1040,7 +1040,7 @@ describe('aoe / multi-hit modules', () => {
       expect(new Set(o.map((x) => x.type)).size).toBe(4);
       o.forEach((x) => seen.add(x.type));
     }
-    expect(seen.size).toBe(Object.keys(ITEMS).length);
+    expect(seen.size).toBe(Object.values(ITEMS).filter((d) => !d.noShop).length); // the Spent Key is never offered
   });
 });
 
@@ -1145,6 +1145,7 @@ describe('per-level scaling table', () => {
     for (const [id, def] of Object.entries(ITEMS)) {
       const rows = tierScaling(id as ItemTypeId);
       if (def.legendary) expect(rows, id).toEqual([]);
+      else if (id === 'shortcut' || id === 'spentkey') expect(rows, id).toEqual([]); // one-shot keys: no ★ scaling
       else {
         expect(rows.length, `${id} has no scaling rows`).toBeGreaterThan(0);
         for (const r of rows) expect(r.values, `${id} ${r.label}`).toHaveLength(3);

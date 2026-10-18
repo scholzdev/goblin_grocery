@@ -7,6 +7,7 @@ import { RECIPES } from '../data/recipes';
 import { ZONES, ZONE_TUNING, zonesOf, type ZoneId } from '../data/zones';
 import type { EnemyId, ItemTypeId, RunState, ShopOffer } from '../types';
 import type { Rng } from './rng';
+import { canShortcut } from './shortcut';
 
 export const sellPrice = (type: ItemTypeId, tier = 1): number => Math.floor(TIER.value(ITEMS[type].price, tier) / 2);
 export const rerollCost = (rerollsDone: number, shopIndex: number): number => (ECONOMY.rerollBase + Math.ceil(shopIndex / 2)) * (rerollsDone + 1);
@@ -56,7 +57,7 @@ export function rollOffers(state: RunState, rng: Rng, shopIndex: number, guarant
   if (guarantee) for (const t of STARTER_WEAPONS[state.weapon ?? 'toaster'].guarantee) add(t, 1);
   // Locked items (meta-progression) never show up.
   const allowed = (t: ItemTypeId) => !state.unlocked || state.unlocked.includes(t);
-  const pool = ITEM_IDS.filter((t) => allowed(t) && !ITEMS[t].legendary && !offers.some((o) => o.type === t));
+  const pool = ITEM_IDS.filter((t) => allowed(t) && !ITEMS[t].legendary && !ITEMS[t].noShop && !offers.some((o) => o.type === t));
   const legends = ITEM_IDS.filter((t) => allowed(t) && ITEMS[t].legendary);
   while (offers.length < ECONOMY.offerCount) {
     const needLegend = !!opts.forceLegendary && offers.length === ECONOMY.offerCount - 1 && !offers.some((o) => ITEMS[o.type].legendary);
@@ -76,7 +77,7 @@ export function rollDoors(state: RunState, rng: Rng): DoorId[] {
   if (idx + 1 >= BOSS_WAVE && !state.overtime) return ['boss'];
   const pool = [...DOOR_POOL];
   for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
-  const doors = pool.slice(0, state.shopLevel >= DEPT_TUNING.threeDoorsAtLoyalty ? 3 : 2);
+  const doors: DoorId[] = pool.slice(0, state.shopLevel >= DEPT_TUNING.threeDoorsAtLoyalty ? 3 : 2);
   if (idx >= DEPT_TUNING.clearanceFromShop && state.modifier !== 'clearance' && rng() < DEPT_TUNING.clearanceChance) doors[doors.length - 1] = 'clearance';
   // Special rooms: each regular slot may turn into one (never next to a clearance door, never the boss door).
   if (idx + 1 >= ROOMS.fromAisle && !doors.includes('clearance')) {
@@ -84,6 +85,7 @@ export function rollDoors(state: RunState, rng: Rng): DoorId[] {
       if (rng() < ROOMS.chance) { doors[i] = ROOM_DOORS[Math.floor(rng() * ROOM_DOORS.length)]; break; }
     }
   }
+  if (canShortcut(state, idx)) doors.push('shortcut'); // last: callers that take doors[0] never pick it
   return doors;
 }
 
@@ -108,7 +110,7 @@ export function rollMiniCrates(state: RunState, rng: Rng): ShopOffer[] {
 export function rollZones(state: RunState, rng: Rng, doors: DoorId[]): (ZoneId | null)[] {
   const pool = zonesOf(state.theme);
   return doors.map((d) => {
-    if (d === 'boss' || d === 'clearance' || ROOM_DOORS.includes(d) || !pool.length) return null;
+    if (d === 'boss' || d === 'shortcut' || d === 'clearance' || ROOM_DOORS.includes(d) || !pool.length) return null;
     const ws = pool.map((z) => 1 / (1 + state.zones.filter((u) => u === z.id).length) ** ZONE_TUNING.repeatPenalty);
     let r = rng() * ws.reduce((a, b) => a + b, 0), i = 0;
     while (i < pool.length - 1 && (r -= ws[i]) >= 0) i++;
