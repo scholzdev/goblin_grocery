@@ -1446,6 +1446,18 @@ add('icon_coupon', () => {
   return icon(s, 166);
 });
 
+add('icon_expiredcoupon', () => {
+  let s = shape(rect(34, 44, 112, 76), C.cream, C.creamD, { sw: SWi, dx: 6, dy: 6 });
+  s += shape(rect(34, 44, 16, 76), C.gold, C.goldD, { sw: SWi, dx: 3, dy: 0 });
+  s += `<rect x="58" y="54" width="80" height="56" fill="none" stroke="${C.goldD}" stroke-width="3" stroke-dasharray="7 5"/>`;
+  s += flat(rect(64, 66, 48, 6), C.chromeD) + flat(rect(64, 78, 32, 5), C.chromeD);
+  s += flat([[40, 48], [72, 46], [44, 58]], GL, 'opacity=".7"');
+  // red "expired" stamp across the coupon
+  s += rot(`<rect x="52" y="84" width="92" height="30" rx="3" fill="none" stroke="${C.coral}" stroke-width="5"/>` + line([[64, 99], [132, 99]], C.coral, 9), -14, 98, 99);
+  s += spk(160, 36, 11) + spk(24, 140, 7) + spk(40, 30, 5);
+  return icon(s, 166);
+});
+
 add('icon_bubblewrap', () => {
   const A = [30, 62], B = [150, 48], Cc = [166, 128], Dd = [42, 146];
   const bil = (u, v) => [A[0] * (1 - u) * (1 - v) + B[0] * u * (1 - v) + Cc[0] * u * v + Dd[0] * (1 - u) * v, A[1] * (1 - u) * (1 - v) + B[1] * u * (1 - v) + Cc[1] * u * v + Dd[1] * (1 - u) * v];

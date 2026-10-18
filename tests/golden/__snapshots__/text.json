@@ -2517,6 +2517,38 @@
       "weapon": "toaster"
     }
   ],
+  "buffs.item.expiredcoupon.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.expiredcoupon.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.expiredcoupon.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.expiredcoupon.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
   "buffs.item.expiredmilk.t1.on.toaster.de": [
     {
       "lines": [
@@ -7112,6 +7144,28 @@
         ]
       }
     ]
+  },
+  "items.expiredcoupon.de": {
+    "blurb": "Längst abgelaufen. Niemand prüft nach.",
+    "name": "Abgelaufener Gutschein",
+    "rules": "Shop-Preise −25 % (neue Angebote). Stapelt sich mit dem Kassen-Set.",
+    "rulesByTier": {
+      "1": "Shop-Preise −25 % (neue Angebote). Stapelt sich mit dem Kassen-Set.",
+      "2": "Shop-Preise −25 % (neue Angebote). Stapelt sich mit dem Kassen-Set.",
+      "3": "Shop-Preise −25 % (neue Angebote). Stapelt sich mit dem Kassen-Set."
+    },
+    "tierScaling": []
+  },
+  "items.expiredcoupon.en": {
+    "blurb": "Long expired. Nobody checks.",
+    "name": "Expired Coupon",
+    "rules": "Shop prices −25% (new offers). Stacks with the Checkout set.",
+    "rulesByTier": {
+      "1": "Shop prices −25% (new offers). Stacks with the Checkout set.",
+      "2": "Shop prices −25% (new offers). Stacks with the Checkout set.",
+      "3": "Shop prices −25% (new offers). Stacks with the Checkout set."
+    },
+    "tierScaling": []
   },
   "items.expiredmilk.de": {
     "blurb": "Verflucht. Riecht nach einer schlechten Entscheidung.",
