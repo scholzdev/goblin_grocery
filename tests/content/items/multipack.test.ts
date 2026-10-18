@@ -112,9 +112,9 @@ describe('Multipack: content', () => {
     expect(def.weapon).toBeUndefined();
   });
 
-  it('keeps its position in the item order (last until the Can Opener, the Decaf, the Expired Coupon, the Popcorn Maker, the Sparklers, the Barter Stamp, the Collector Binder, the Fire Extinguisher, the Air Horn, the Avocado, the Fresh Fish, the Potted Basil and the Kombucha SCOBY were appended)', () => {
+  it('keeps its position in the item order (last until the Can Opener, the Decaf, the Expired Coupon, the Popcorn Maker, the Sparklers, the Barter Stamp, the Collector Binder, the Fire Extinguisher, the Air Horn, the Avocado, the Fresh Fish, the Potted Basil, the Kombucha SCOBY, the Snow Cone Machine and the Moldy Bread were appended)', () => {
     expect(around('multipack', 1, 0)).toEqual(['doublebag', 'multipack']);
-    expect(Object.keys(ITEMS).at(-14)).toBe('multipack');
+    expect(Object.keys(ITEMS).at(-16)).toBe('multipack');
   });
 
   it('renders its text for every level, EN and DE', () => {

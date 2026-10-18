@@ -103,7 +103,7 @@ One sim per combo, `src/sims/combo-<id>.ts` with the combo id in kebab-case (`?s
 
 ## Weapon sims
 
-One sim per weapon, `src/sims/weapon-<id>.ts` (`?sim=weapon-toaster`, `weapon-pan`, `weapon-nailgun`, `weapon-vacuum`, `weapon-microwave`, `weapon-blender`, `weapon-fizz`, `weapon-mop`, `weapon-leafblower`, `weapon-laser`, `weapon-cooker`, `weapon-spray`). The cart is the weapon alone at ★3 (the legendary Laser has no tiers) at `[2, 1]`, no modules and no combo, so you see the bare pattern of `src/engine/patterns`. God mode on, dummies immortal unless the notes say otherwise. The notes name the ★3 damage and interval and what to look for:
+One sim per weapon, `src/sims/weapon-<id>.ts` (`?sim=weapon-toaster`, `weapon-pan`, `weapon-nailgun`, `weapon-vacuum`, `weapon-microwave`, `weapon-blender`, `weapon-fizz`, `weapon-mop`, `weapon-leafblower`, `weapon-laser`, `weapon-cooker`, `weapon-spray`, `weapon-snowcone`). The cart is the weapon alone at ★3 (the legendary Laser has no tiers) at `[2, 1]`, no modules and no combo, so you see the bare pattern of `src/engine/patterns`. God mode on, dummies immortal unless the notes say otherwise. The notes name the ★3 damage and interval and what to look for:
 
 | Sim | Enemies | Look for |
 | --- | --- | --- |
@@ -119,6 +119,7 @@ One sim per weapon, `src/sims/weapon-<id>.ts` (`?sim=weapon-toaster`, `weapon-pa
 | `weapon-laser` | a far bunch and a ring of 5 milk | One beam down the line with the most enemies. |
 | `weapon-cooker` | a big bunch right, a small one left | The pot goes to the densest group; the blast pushes everything back. |
 | `weapon-spray` | 8 milk close in front | The 70° cone hits all of them each spray, with a light push. |
+| `weapon-snowcone` | 8 baguettes in a bunch on the right | A slush puddle behind you every 1.6 s even with nobody around; Wet, a 35% slow and a frost tick per 0.5 s. It never slides what it soaks itself: it needs another frost hit (see `reaction-ice-sheet`). |
 
 `tests/sims/sims.test.ts` checks that each weapon sim has exactly its weapon (★3, or ★1 for the legendary), an explicit `at`, notes and dummies, and that the build `createSimRun` computes carries the weapon's pattern with its base damage and interval scaled by the tier. Each weapon's behaviour in the patterns is tested in `tests/content/items/<weapon>.test.ts`.
 
@@ -191,7 +192,7 @@ Wet (docs/item-hooks-refactor.md "Wet"). Blue droplets drip down a wet enemy. Go
 
 ## Reaction sims
 
-Element reactions (docs/item-hooks-refactor.md "Reactions"). A teal name pops over the enemy and the burst's damage numbers are teal. Each enemy reacts at most once per second (Shatter: once per 3 s). God mode stays on; the groceries are immortal except in `reaction-crack`. `tests/sims/reaction-sims.test.ts` runs each cart headless and checks its reaction goes off.
+Element reactions (docs/item-hooks-refactor.md "Reactions"). A teal name pops over the enemy and the burst's damage numbers are teal. Each enemy reacts at most once per second (Shatter: once per 3 s). Ice Sheet and Detonate are the two newest. God mode stays on; the groceries are immortal except in `reaction-crack`. `tests/sims/reaction-sims.test.ts` runs each cart headless and checks its reaction goes off.
 
 | Sim | Cart | Enemies | Look for |
 |---|---|---|---|
@@ -199,6 +200,8 @@ Element reactions (docs/item-hooks-refactor.md "Reactions"). A teal name pops ov
 | `reaction-fumes` | Toaster ★1 + Fuel Can + Expired Milk | 10 Sour Milk in a bunch | A burning milk that walks into the aura bursts into a green cloud (radius 60, 2 s) that poisons its neighbors |
 | `reaction-conduct` | Spray Bottle ★1 + Laser ★1 | 10 Baguettes in a bunch | The Laser beam on a wet baguette (x1.2) jumps to the 3 nearest for 60%, the Wet is gone |
 | `reaction-crack` | Pressure Cooker ★1 + Can Opener ★3 + Party Popper | 10 Beans (mortal) | A blast on a Beans with 3 Shred stacks throws shrapnel at the 3 nearest within 90 px (+1 Shred each) |
+| `reaction-ice-sheet` | Snow Cone Machine ★1 + Toaster ★1 + Ice Pack | 8 Baguettes in a bunch | The puddle soaks them; a toast slowed by the Ice Pack on a Wet baguette sends it sliding away for 1.5 s: ICE SHEET!, 12 slam damage at a wall, a prop or another baguette, the Wet gone. A Wet applied in the same frame as the hit (Spray, Mop, Snow Cone's own tick) never counts |
+| `reaction-detonate` | Pressure Cooker ★1 + Moldy Bread | 10 Sour Milk in a bunch | A pot leaves a spore cloud (radius 70, 3 s) that poisons; the next pot's blast on a poisoned milk bursts DETONATE!: poison dps x seconds left within 70 px, the poison gone |
 
 ## Where the code lives
 

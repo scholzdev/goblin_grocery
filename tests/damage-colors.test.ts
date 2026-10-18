@@ -128,7 +128,7 @@ describe('the damage accumulator', () => {
     recordDamage(s, { ...rec, source: 'burn', dmg: 2, isDot: true, resisted: true });
     recordDamage(s, { ...rec, source: 'a', dmg: 3, type: 'physical', shred: 2 });
     expect(s.damageByWeapon).toEqual({ a: 13, b: 5, burn: 2 });
-    expect(s.damage).toEqual({ byType: { ...newDamageStats().byType, heat: 12, frost: 5, physical: 3 }, dot: 2, weak: 5, resisted: 2, shred: 2, mark: 1.5, reactions: { shatter: 0, fumes: 0, conduct: 0, crack: 0 } });
+    expect(s.damage).toEqual({ byType: { ...newDamageStats().byType, heat: 12, frost: 5, physical: 3 }, dot: 2, weak: 5, resisted: 2, shred: 2, mark: 1.5, reactions: { shatter: 0, fumes: 0, conduct: 0, crack: 0, iceSheet: 0, detonate: 0 } });
     expect(totalDamage(s.damage)).toBe(20);
   });
 });

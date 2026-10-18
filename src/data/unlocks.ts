@@ -87,6 +87,8 @@ export const UNLOCKS: Unlock[] = [
   { id: 'fireextinguisher', kind: 'item', item: 'fireextinguisher', need: 'Reach aisle 3', check: (s) => s.bestWave >= 3, progress: (s) => at(3)(s.bestWave) },
   { id: 'airhorn', kind: 'item', item: 'airhorn', need: 'Earn 150 coins (lifetime)', check: (s) => s.coins >= 150, progress: (s) => at(150)(s.coins) },
   { id: 'laser', kind: 'item', item: 'laser', need: 'Win 3 runs', check: (s) => s.wins >= 3, progress: (s) => at(3)(s.wins) },
+  { id: 'snowcone', kind: 'item', item: 'snowcone', need: 'Clear 5 Frozen Foods aisles', check: (s) => dept(s, 'frozen') >= 5, progress: (s) => at(5)(dept(s, 'frozen')) },
+  { id: 'moldybread', kind: 'item', item: 'moldybread', need: 'Discover 5 combos', check: (s) => s.combos >= 5, progress: (s) => at(5)(s.combos) },
   { id: 'starter-coupon', kind: 'starter', starter: 'coupon', need: 'Earn 400 coins (lifetime)', check: (s) => s.coins >= 400, progress: (s) => at(400)(s.coins) },
   { id: 'starter-night', kind: 'starter', starter: 'night', need: 'Reach aisle 6', check: (s) => s.bestWave >= 6, progress: (s) => at(6)(s.bestWave) },
   { id: 'skin-night', kind: 'goblin', skin: 'night', need: 'Finish 5 runs', check: (s) => s.runs >= 5, progress: (s) => at(5)(s.runs) },

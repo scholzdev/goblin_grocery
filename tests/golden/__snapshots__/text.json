@@ -2189,6 +2189,24 @@
       "weapon": "popcorn"
     }
   ],
+  "buffs.item.battery.t1.on.snowcone.de": [
+    {
+      "lines": [
+        "+12 % Angriffstempo (Batterie)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.item.battery.t1.on.snowcone.en": [
+    {
+      "lines": [
+        "+12% attack rate (Battery)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
   "buffs.item.battery.t1.on.spray.de": [
     {
       "lines": [
@@ -2715,6 +2733,22 @@
       "weapon": "popcorn"
     }
   ],
+  "buffs.item.doublebag.t1.on.snowcone.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.item.doublebag.t1.on.snowcone.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
   "buffs.item.doublebag.t1.on.spray.de": [
     {
       "lines": [
@@ -3079,6 +3113,24 @@
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "popcorn"
+    }
+  ],
+  "buffs.item.fan.t1.on.snowcone.de": [
+    {
+      "lines": [
+        "+30 % Reichweite (Tischventilator)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.item.fan.t1.on.snowcone.en": [
+    {
+      "lines": [
+        "+30% reach (Desk Fan)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "snowcone"
     }
   ],
   "buffs.item.fan.t1.on.spray.de": [
@@ -3487,6 +3539,24 @@
       "weapon": "popcorn"
     }
   ],
+  "buffs.item.fuel.t1.on.snowcone.de": [
+    {
+      "lines": [
+        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.item.fuel.t1.on.snowcone.en": [
+    {
+      "lines": [
+        "Burn 2.5/s for 2s (Fuel Can)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
   "buffs.item.fuel.t1.on.spray.de": [
     {
       "lines": [
@@ -3791,6 +3861,24 @@
       "weapon": "popcorn"
     }
   ],
+  "buffs.item.hotsauce.t1.on.snowcone.de": [
+    {
+      "lines": [
+        "+25 % Schaden (Scharfe Soße)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.item.hotsauce.t1.on.snowcone.en": [
+    {
+      "lines": [
+        "+25% damage (Hot Sauce)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
   "buffs.item.hotsauce.t1.on.spray.de": [
     {
       "lines": [
@@ -4069,6 +4157,24 @@
       "weapon": "popcorn"
     }
   ],
+  "buffs.item.ice.t1.on.snowcone.de": [
+    {
+      "lines": [
+        "Verlangsamung 25 % für 1 s (Kühlakku)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.item.ice.t1.on.snowcone.en": [
+    {
+      "lines": [
+        "Slow 25% for 1s (Ice Pack)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
   "buffs.item.ice.t1.on.spray.de": [
     {
       "lines": [
@@ -4257,6 +4363,38 @@
       "weapon": "toaster"
     }
   ],
+  "buffs.item.moldybread.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.moldybread.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.moldybread.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.moldybread.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
   "buffs.item.multipack.t1.on.blender.de": [
     {
       "lines": [
@@ -4435,6 +4573,24 @@
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "popcorn"
+    }
+  ],
+  "buffs.item.multipack.t1.on.snowcone.de": [
+    {
+      "lines": [
+        "+20 % Schaden (Multipack)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.item.multipack.t1.on.snowcone.en": [
+    {
+      "lines": [
+        "+20% damage (Multipack)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "snowcone"
     }
   ],
   "buffs.item.multipack.t1.on.spray.de": [
@@ -4743,6 +4899,24 @@
       "weapon": "popcorn"
     }
   ],
+  "buffs.item.popper.t1.on.snowcone.de": [
+    {
+      "lines": [
+        "Kills explodieren: 6 Schaden, Radius 70 (Partyknaller)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.item.popper.t1.on.snowcone.en": [
+    {
+      "lines": [
+        "Kills explode: 6 dmg, 70 radius (Party Popper)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
   "buffs.item.popper.t1.on.spray.de": [
     {
       "lines": [
@@ -5045,6 +5219,24 @@
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "popcorn"
+    }
+  ],
+  "buffs.item.pricegun.t1.on.snowcone.de": [
+    {
+      "lines": [
+        "15 % Kritchance (Preisauszeichner)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.item.pricegun.t1.on.snowcone.en": [
+    {
+      "lines": [
+        "15% crit chance (Price Gun)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "snowcone"
     }
   ],
   "buffs.item.pricegun.t1.on.spray.de": [
@@ -5513,6 +5705,24 @@
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "popcorn"
+    }
+  ],
+  "buffs.item.tape.t1.on.snowcone.de": [
+    {
+      "lines": [
+        "Mehr Reichweite / extra Durchschlag (Panzertape)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.item.tape.t1.on.snowcone.en": [
+    {
+      "lines": [
+        "Bigger reach / extra pierce (Duct Tape)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "snowcone"
     }
   ],
   "buffs.item.tape.t1.on.spray.de": [
@@ -6747,6 +6957,42 @@
     {
       "lines": [],
       "weapon": "popcorn"
+    }
+  ],
+  "buffs.weapon.snowcone.t1.de": [
+    {
+      "lines": [],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.weapon.snowcone.t1.en": [
+    {
+      "lines": [],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.weapon.snowcone.t2.de": [
+    {
+      "lines": [],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.weapon.snowcone.t2.en": [
+    {
+      "lines": [],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.weapon.snowcone.t3.de": [
+    {
+      "lines": [],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.weapon.snowcone.t3.en": [
+    {
+      "lines": [],
+      "weapon": "snowcone"
     }
   ],
   "buffs.weapon.spray.t1.de": [
@@ -8819,6 +9065,46 @@
       }
     ]
   },
+  "items.moldybread.de": {
+    "blurb": "Technisch gesehen noch Brot.",
+    "name": "Schimmelbrot",
+    "rules": "Explosionen der angrenzenden Waffe hinterlassen eine Sporenwolke (Radius 70, 3 s), die Gegner darin vergiftet: {0} für 2 s. Der nächste Explosionstreffer auf einen vergifteten Gegner lässt ihn detonieren: Detonation.",
+    "rulesByTier": {
+      "1": "Explosionen der angrenzenden Waffe hinterlassen eine Sporenwolke (Radius 70, 3 s), die Gegner darin vergiftet: 2/s für 2 s. Der nächste Explosionstreffer auf einen vergifteten Gegner lässt ihn detonieren: Detonation.",
+      "2": "Explosionen der angrenzenden Waffe hinterlassen eine Sporenwolke (Radius 70, 3 s), die Gegner darin vergiftet: 3/s für 2 s. Der nächste Explosionstreffer auf einen vergifteten Gegner lässt ihn detonieren: Detonation.",
+      "3": "Explosionen der angrenzenden Waffe hinterlassen eine Sporenwolke (Radius 70, 3 s), die Gegner darin vergiftet: 4/s für 2 s. Der nächste Explosionstreffer auf einen vergifteten Gegner lässt ihn detonieren: Detonation."
+    },
+    "tierScaling": [
+      {
+        "label": "Sporengift",
+        "values": [
+          "2/s",
+          "3/s",
+          "4/s"
+        ]
+      }
+    ]
+  },
+  "items.moldybread.en": {
+    "blurb": "Still technically bread.",
+    "name": "Moldy Bread",
+    "rules": "Explosions of adjacent weapons leave a spore cloud (radius 70, 3 s) that poisons enemies inside: {0} for 2 s. The next blast hit on a poisoned enemy detonates it: Detonate.",
+    "rulesByTier": {
+      "1": "Explosions of adjacent weapons leave a spore cloud (radius 70, 3 s) that poisons enemies inside: 2/s for 2 s. The next blast hit on a poisoned enemy detonates it: Detonate.",
+      "2": "Explosions of adjacent weapons leave a spore cloud (radius 70, 3 s) that poisons enemies inside: 3/s for 2 s. The next blast hit on a poisoned enemy detonates it: Detonate.",
+      "3": "Explosions of adjacent weapons leave a spore cloud (radius 70, 3 s) that poisons enemies inside: 4/s for 2 s. The next blast hit on a poisoned enemy detonates it: Detonate."
+    },
+    "tierScaling": [
+      {
+        "label": "Spore poison",
+        "values": [
+          "2/s",
+          "3/s",
+          "4/s"
+        ]
+      }
+    ]
+  },
   "items.mop.de": {
     "blurb": "Hinterlässt rutschige Seifenpfützen.",
     "name": "Wischmopp",
@@ -9342,6 +9628,62 @@
       "3": "+20 max HP and regenerate 1 HP every 4 s during combat (does not stack)."
     },
     "tierScaling": []
+  },
+  "items.snowcone.de": {
+    "blurb": "Geschmack: rutschig.",
+    "name": "Slush-Maschine",
+    "rules": "Hinterlässt alle {1} eine Matschpfütze (Radius 65, hält 4 s). Gegner darin werden nass (3 s): 35% langsamer und {0} Frostschaden alle 0,5 s. Der nächste Frosttreffer einer anderen Quelle auf einen nassen Gegner lässt ihn wegrutschen: Eisfläche.",
+    "rulesByTier": {
+      "1": "Hinterlässt alle 2 s eine Matschpfütze (Radius 65, hält 4 s). Gegner darin werden nass (3 s): 35% langsamer und 3 Frostschaden alle 0,5 s. Der nächste Frosttreffer einer anderen Quelle auf einen nassen Gegner lässt ihn wegrutschen: Eisfläche.",
+      "2": "Hinterlässt alle 1,8 s eine Matschpfütze (Radius 65, hält 4 s). Gegner darin werden nass (3 s): 35% langsamer und 4,5 Frostschaden alle 0,5 s. Der nächste Frosttreffer einer anderen Quelle auf einen nassen Gegner lässt ihn wegrutschen: Eisfläche.",
+      "3": "Hinterlässt alle 1,6 s eine Matschpfütze (Radius 65, hält 4 s). Gegner darin werden nass (3 s): 35% langsamer und 6 Frostschaden alle 0,5 s. Der nächste Frosttreffer einer anderen Quelle auf einen nassen Gegner lässt ihn wegrutschen: Eisfläche."
+    },
+    "tierScaling": [
+      {
+        "label": "Schaden",
+        "values": [
+          "3",
+          "4,5",
+          "6"
+        ]
+      },
+      {
+        "label": "Intervall",
+        "values": [
+          "2 s",
+          "1,8 s",
+          "1,6 s"
+        ]
+      }
+    ]
+  },
+  "items.snowcone.en": {
+    "blurb": "Flavor: slippery.",
+    "name": "Snow Cone Machine",
+    "rules": "Every {1} drops a slush puddle (radius 65, lasts 4 s). Enemies inside get Wet (3 s): 35% slow and {0} frost damage every 0.5 s. The next frost hit from another source on a Wet enemy sends it sliding: Ice Sheet.",
+    "rulesByTier": {
+      "1": "Every 2 s drops a slush puddle (radius 65, lasts 4 s). Enemies inside get Wet (3 s): 35% slow and 3 frost damage every 0.5 s. The next frost hit from another source on a Wet enemy sends it sliding: Ice Sheet.",
+      "2": "Every 1.8 s drops a slush puddle (radius 65, lasts 4 s). Enemies inside get Wet (3 s): 35% slow and 4.5 frost damage every 0.5 s. The next frost hit from another source on a Wet enemy sends it sliding: Ice Sheet.",
+      "3": "Every 1.6 s drops a slush puddle (radius 65, lasts 4 s). Enemies inside get Wet (3 s): 35% slow and 6 frost damage every 0.5 s. The next frost hit from another source on a Wet enemy sends it sliding: Ice Sheet."
+    },
+    "tierScaling": [
+      {
+        "label": "Damage",
+        "values": [
+          "3",
+          "4.5",
+          "6"
+        ]
+      },
+      {
+        "label": "Interval",
+        "values": [
+          "2 s",
+          "1.8 s",
+          "1.6 s"
+        ]
+      }
+    ]
   },
   "items.sourdough.de": {
     "blurb": "Füttern, und er wächst. Blubbert vor Potenzial.",

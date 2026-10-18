@@ -46,6 +46,10 @@ export interface Enemy {
   /** Leaf Blower: blown until this time (s); stopped by a wall/prop while marked = slam for blownDmg. */
   blownUntil?: number;
   blownDmg?: number;
+  /** Ice Sheet: slides (no steering, little friction) until this time (s); the slam uses `blownDmg` like the Leaf Blower's, and also fires on another enemy. */
+  slideUntil?: number;
+  /** Ice Sheet: the enemies already touching it when the slide began (they are not a collision). */
+  slideTouch?: Set<number>;
   /** Frostbite Nails hit counter. */
   nailHits?: number;
   /** Cereal Box: shots its cardboard front has blocked so far. */
@@ -122,6 +126,9 @@ export function createEnemy(scene: ArenaScene, id: EnemyId, x: number, y: number
   if (def.behavior === 'boss') { e.bossMove = 'volley'; e.bossStep = 0; e.atkCd = 1.8; }
   return e;
 }
+
+/** Ice Sheet: the velocity decay (per s) of a sliding enemy; the usual knockback decay is 9. */
+const SLIDE_FRICTION = 1.4;
 
 /** One simulation step for an enemy. Returns nothing; damage/spawns go through scene helpers. */
 export function updateEnemy(scene: ArenaScene, e: Enemy, dt: number, now: number): void {
@@ -251,17 +258,19 @@ export function updateEnemy(scene: ArenaScene, e: Enemy, dt: number, now: number
   }
 
   // Integrate movement + knockback.
+  const sliding = (e.slideUntil ?? 0) > now;
+  if (sliding) { mx = 0; my = 0; } // Ice Sheet: helpless on the ice
   e.x += mx * speed * dt + e.kx * dt;
   e.y += my * speed * dt + e.ky * dt;
   const blownFast = (e.blownUntil ?? 0) > now && Math.hypot(e.kx, e.ky) > 60; // still flying from the blast
-  const decay = Math.exp(-9 * dt);
+  const decay = Math.exp((sliding ? -SLIDE_FRICTION : -9) * dt);
   e.kx *= decay; e.ky *= decay;
   const wall = scene.clampToArena(e, d.radius);
   const prop = d.behavior !== 'boss' && scene.pushEnemyOut(e, d.radius);
   if (prop && e.state === 'attack' && d.behavior === 'charger') {
     e.stateT = 0; e.kx -= e.dirX * 140; e.ky -= e.dirY * 140; // lunge bumps into the prop
   }
-  if (blownFast && (wall || prop)) { scene.slamEnemy(e); if (!e.alive) return; }
+  if (blownFast && (wall || prop || (sliding && scene.enemies.some((o) => o !== e && o.alive && o.state !== 'spawn' && !e.slideTouch?.has(o.id) && Math.hypot(o.x - e.x, o.y - e.y) < o.def.radius + d.radius)))) { scene.slamEnemy(e); if (!e.alive) return; }
   if (Math.abs(mx) > 0.05) e.facing = mx > 0 ? 1 : -1;
   else if (e.state === 'tell' || e.state === 'walk') e.facing = nx > 0 ? 1 : -1;
 

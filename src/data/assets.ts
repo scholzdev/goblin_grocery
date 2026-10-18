@@ -18,7 +18,7 @@ export const ICON_IDS = [
   'bumper', 'sparewheel', 'tipjar', 'flag', 'canopener', 'decaf',
   'expiredcoupon', 'popcorn', 'sparklers', 'barter', 'binder',
   'fireextinguisher', 'airhorn',
-  'avocado', 'fish', 'basil', 'scoby',
+  'avocado', 'fish', 'basil', 'scoby', 'snowcone', 'moldybread',
   'avocado_rotten', 'fish_rotten',
 ] as const;
 

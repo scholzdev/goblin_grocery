@@ -62,6 +62,7 @@ export class PhaserCtx implements RuntimeCtx {
     if (applied > 0 && tag === 'frost') { markFrostStun(e.status, applied, this.now()); this.reactor.applied(e, 'frost'); } // a frost stun is a freeze: the enemy is frosted
     return applied;
   }
+  slide(e: CombatEnemy, seconds: number, slam: number, speed: number): number { return this.sc.slideEnemy(e as Enemy, seconds, slam, speed); }
   // Status durations scale with the enemy's element affinity (engine/affinity); the dps and the slow percentage never do.
   // Wet (systems/combat): a burn on a wet enemy is halved and dries it, a frost slow on a wet enemy gains points.
   // Reactions: every burn / frost / poison application is reported to the reactor (checked once, at the end of the hit it belongs to, or at once outside a hit).

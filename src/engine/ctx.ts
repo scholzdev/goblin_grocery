@@ -25,6 +25,8 @@ export interface CombatEnemy {
   markedUntil?: number;
   critCoinDropped?: boolean;
   frozenT?: number;
+  /** Ice Sheet: sliding (no steering) until this time (s). */
+  slideUntil?: number;
   nailHits?: number;
   /** Seconds left in the current stun / stagger / recovery (the real `Enemy` always has it; `FakeCtx.stun` writes it). */
   stateT?: number;
@@ -146,6 +148,11 @@ export interface RuntimeCtx {
   boostWeapon(weaponUid: string, boost: { pull: number; range: number }, seconds: number): void;
   /** Burn through the aisle's modifiers (`aisle.burn`), as the weapon branches do; its duration scales with the enemy's heat affinity. */
   ignite(e: CombatEnemy, burn: BurnEffect): void;
+  /**
+   * Ice Sheet: the enemy slides away from the goblin at `speed` px/s for `seconds` and cannot steer (bosses are immune: nothing happens, 0 returned). It takes `slam`
+   * damage once if it hits a wall, a prop or another enemy while sliding (the Leaf Blower's slam). Returns the seconds applied.
+   */
+  slide(e: CombatEnemy, seconds: number, slam: number, speed: number): number;
   /** Slow, its duration scaled by the enemy's frost affinity. */
   slow(e: CombatEnemy, slow: SlowEffect): void;
   /** Poison, its duration scaled by the enemy's poison affinity. */

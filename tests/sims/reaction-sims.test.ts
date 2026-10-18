@@ -11,19 +11,19 @@ import type { EnemyId } from '../../src/types';
 // The reaction sims (docs/sims.md): each is registered and valid, its notes quote the real constants, and its cart really sets its reaction off against its enemies.
 
 const sim = (id: string): SimDef => simRegistry.get(id)!;
-const IDS = ['reaction-shatter', 'reaction-fumes', 'reaction-conduct', 'reaction-crack'];
+const IDS = ['reaction-shatter', 'reaction-fumes', 'reaction-conduct', 'reaction-crack', 'reaction-ice-sheet', 'reaction-detonate'];
 
 /**
  * The sim's cart run headless for `seconds` against `n` still enemies of `enemy` in a bunch in front of the goblin. The FakeArsenal does not fly the Toaster's
  * toasts (sprites never move), so `volley` lands one toast of the cart's first `volley` weapon on every enemy each half second instead.
  */
-function play(id: string, enemy: EnemyId, n: number, seconds: number, volley?: 'toaster') {
+function play(id: string, enemy: EnemyId, n: number, seconds: number, volley?: 'toaster', x0 = 120) {
   const run = createSimRun(sim(id));
   const fake = new FakeCtx({ build: run.build });
   fake.attach(buildHooks(run.inventory, run.build.recipes, run.build.sets, fake));
   const a = new FakeArsenal(fake, run.build);
   a.applyLooks();
-  for (let i = 0; i < n; i++) fake.spawnReal(enemy, { hp: 4000, x: 120 + (i % 3) * 36, y: -36 + Math.floor(i / 3) * 36 });
+  for (let i = 0; i < n; i++) fake.spawnReal(enemy, { hp: 4000, x: x0 + (i % 3) * 36, y: -36 + Math.floor(i / 3) * 36 });
   const toast = run.build.weapons.find((w) => w.type === volley);
   for (let i = 0; i < Math.round(seconds / 0.05); i++) {
     a.step(0.05);
@@ -50,6 +50,8 @@ describe('reaction sims', () => {
     expect(sim('reaction-crack').notes).toContain(`${REACTIONS.crack.targets} nearest others within ${REACTIONS.crack.radius} px`);
     for (const id of ['reaction-shatter', 'reaction-conduct', 'reaction-crack']) expect(sim(id).notes, id).toContain('teal');
     expect(sim('reaction-fumes').notes).toContain('green cloud');
+    expect(sim('reaction-ice-sheet').notes).toContain(`${REACTIONS.iceSheet.slide} s, ${REACTIONS.iceSheet.slam} slam`);
+    expect(sim('reaction-detonate').notes).toContain(`within ${REACTIONS.detonate.radius} px`);
   });
 
   it('reaction-shatter: the Toaster burns and slows, and shatters the milk', () => {
@@ -81,5 +83,18 @@ describe('reaction sims', () => {
     expect(simDummies(sim('reaction-crack')).every((d) => !d.immortal)).toBe(true);
     const { fake } = play('reaction-crack', 'beans', 9, 8);
     expect(fake.dmgLog.damage.reactions.crack).toBeGreaterThan(0);
+  });
+
+  it('reaction-ice-sheet: the Snow Cone puddle soaks, the Ice Pack toasts are frost hits, the baguettes slide', () => {
+    const { fake, run } = play('reaction-ice-sheet', 'baguette', 6, 8, 'toaster', -60); // in the puddle dropped behind the cart
+    expect(run.build.weapons.find((w) => w.type === 'toaster')!.slow).toBeTruthy();
+    expect(fake.dmgLog.damage.reactions.iceSheet).toBeGreaterThan(0);
+  });
+
+  it('reaction-detonate: the Cooker\'s pots and the Moldy Bread spores detonate the milk', () => {
+    const run = createSimRun(sim('reaction-detonate'));
+    expect(run.inventory.placed.map((i) => i.type)).toEqual(expect.arrayContaining(['cooker', 'moldybread']));
+    const { fake } = play('reaction-detonate', 'milk', 9, 12);
+    expect(fake.dmgLog.damage.reactions.detonate).toBeGreaterThan(0);
   });
 });

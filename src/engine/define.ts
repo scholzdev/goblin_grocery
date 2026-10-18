@@ -35,6 +35,7 @@ export const ITEM_ORDER = [
   'expiredcoupon', 'popcorn', 'sparklers', 'barter', 'binder',
   'fireextinguisher', 'airhorn',
   'avocado', 'fish', 'basil', 'scoby',
+  'snowcone', 'moldybread',
 ] as const;
 
 /** Every combo, in the order `computeBuild` applies the matching ones (it decides which combo hook runs first on a weapon) and the codex lists them. */
@@ -401,7 +402,7 @@ export const WEAKEN = { cap: 0.5 } as const;
 export const WET_STATUS = { duration: 3, electricMult: 1.2, chainBonus: 1, frostSlowBonus: 0.1, freezeChanceMult: 2, burnDurationMult: 0.5, slowCap: 0.7 } as const;
 
 /** The element reactions (`engine/reactions.ts`, `ReactionId` is derived from this list). */
-export const REACTION_IDS = ['shatter', 'fumes', 'conduct', 'crack'] as const;
+export const REACTION_IDS = ['shatter', 'fumes', 'conduct', 'crack', 'iceSheet', 'detonate'] as const;
 export type ReactionId = (typeof REACTION_IDS)[number];
 
 /**
@@ -409,6 +410,8 @@ export type ReactionId = (typeof REACTION_IDS)[number];
  * of them, per enemy. `shatter` (burn + frosted): `flat` + `share` of the triggering hit's damage on that enemy; it also has its own longer per-enemy `cooldown` (s). `fumes` (burn + poison): a poison cloud of
  * `radius` that lives `duration` s, ticks every `tick` s and poisons the OTHER enemies in it for `poisonDuration` s. `conduct` (wet + an electric hit): `hops` hits of
  * `share` of the hit along the nearest enemies. `crack` (shred at the cap + a blast hit): `targets` enemies within `radius` take `share` of the hit and `shred` stacks.
+ * `iceSheet` (wet + a frost hit that did not freeze): the enemy slides helplessly for `slide` s at `speed` px/s and takes `slam` damage when it hits a wall, a prop or another enemy.
+ * `detonate` (poisoned + a blast hit): eats the poison; everything within `radius` takes its poison dps x the seconds it had left.
  */
 export const REACTIONS = {
   cooldown: 1,
@@ -416,6 +419,8 @@ export const REACTIONS = {
   fumes: { radius: 60, duration: 2, tick: 0.5, poisonDuration: 2 },
   conduct: { hops: 3, share: 0.6 },
   crack: { targets: 3, radius: 90, share: 0.5, shred: 1 },
+  iceSheet: { slide: 1.5, slam: 12, speed: 260 },
+  detonate: { radius: 70 },
 } as const;
 
 /** The enemy behaviors (`EnemyBehavior` of types.ts is derived from this list). */
