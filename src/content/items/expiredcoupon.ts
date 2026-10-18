@@ -10,7 +10,6 @@ export default defineItem({
     de: { name: 'Abgelaufener Gutschein', blurb: 'Längst abgelaufen. Niemand prüft nach.', rules: 'Shop-Preise −{priceMult|pctdown} % (neue Angebote). Stapelt sich mit dem Kassen-Set.' },
   },
   build: {
-    // After the Checkout set's assignment (order 10), or that would overwrite this.
     phase: 'final', order: 20,
     player(b, c) { b.priceMult *= c.tune().priceMult; },
   },
