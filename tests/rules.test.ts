@@ -250,7 +250,7 @@ describe('run state ops', () => {
   });
   it('every item is a starting item or has an unlock (else the shop never offers it and the catalog crashes)', () => {
     const reachable = new Set([...STARTING_ITEMS, ...UNLOCKS.flatMap((u) => (u.kind === 'item' ? [u.item] : []))]);
-    expect(ITEM_IDS.filter((id) => !reachable.has(id) && !ITEMS[id].noShop)).toEqual([]);
+    expect(ITEM_IDS.filter((id) => !reachable.has(id))).toEqual([]);
   });
   it('starterUnlocked: base starters open, others gated by UNLOCKS', () => {
     expect(starterUnlocked('toaster') && starterUnlocked('pan')).toBe(true);

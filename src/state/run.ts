@@ -346,6 +346,7 @@ function takeShortcut(state: RunState): OpResult {
   spendKey(state.inventory);
   state.route.push(state.theme); state.mods.push('none'); state.zones.push(null);
   state.skipped = state.wave + 1;
+  (state.skippedAisles ??= []).push(state.skipped);
   state.wave++;
   const landing = state.wave + 1, boss = landing === BOSS_WAVE && !state.overtime;
   const zone = boss ? null : rollZones(state, mulberry32(state.seed ^ Math.imul(landing, 0x9e3779b1)), ['none'])[0];

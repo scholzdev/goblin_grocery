@@ -930,3 +930,6 @@ body.pad-nav :focus { outline: 4px solid var(--gold); outline-offset: 3px; }
 .door.shortcut .modicon img { width: 76px; height: 76px; }
 .loadout-pick .detail .sig { font: 700 14px/1.35 var(--ui); margin-bottom: 8px; padding: 4px 8px; background: var(--gold); border: 2px solid var(--plum); border-radius: 8px; }
 .loadout-pick .detail .sig b { font-family: var(--display); font-weight: 400; margin-right: 4px; }
+/* Loyalty 3 plus the Staff Only door: four cards must fit the 1280-wide root. */
+.route .doors:has(> .door:nth-child(4)) { gap: 14px; }
+.route .doors:has(> .door:nth-child(4)) .door { width: 280px; }

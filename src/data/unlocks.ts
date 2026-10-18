@@ -6,6 +6,7 @@ import type { DepartmentId, ItemTypeId, StarterId } from '../types';
 export const STARTING_ITEMS: ItemTypeId[] = [
   'toaster', 'pan', 'nailgun', 'vacuum', 'fan', 'fuel', 'battery', 'magnet', 'ice', 'hotsauce', 'lunchbox', 'bell', 'fortune', 'sample', 'piggy',
   'popcorn', 'sparklers', 'expiredcoupon',
+  'spentkey', // never offered (noShop), listed so every item is reachable for the catalog
 ];
 
 export type GoblinSkin = 'classic' | 'night' | 'frost' | 'gold';

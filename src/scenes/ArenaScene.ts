@@ -1055,6 +1055,7 @@ export class ArenaScene extends Phaser.Scene {
   /** Punch Card goal met: coins now (the receipt lists them), the free reroll comes with the shop. */
   private punchDone(): void {
     payPunchCard(store.state);
+    if (store.state.punch) hud.contract(punchView(store.state.punch)); // gold now, not on the next HUD tick
     hud.bark(t('pcDone'));
     play('ding');
     play('buy', { rate: 1.2 });

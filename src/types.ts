@@ -376,6 +376,8 @@ export interface RunState {
   punch?: PunchCard;
   /** Aisle skipped through the Staff Only door, until the next aisle announces it. */
   skipped?: number;
+  /** Aisles skipped through the Staff Only door, for the run's records (`route` / `mods` hold a placeholder for each). */
+  skippedAisles?: number[];
   /** Lab dummy sandbox: no waves or timer, dummies spawned from a panel, shop ↔ arena on demand. */
   labSandbox?: boolean;
 }

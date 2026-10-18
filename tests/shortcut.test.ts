@@ -7,6 +7,7 @@ import { rollDoors, rollOffers, sellPrice } from '../src/systems/shop';
 import { botDoors, canShortcut, findKey } from '../src/systems/shortcut';
 import { mulberry32 } from '../src/systems/rng';
 import { contentTune } from '../src/engine/registry';
+import { profile, recordRun } from '../src/state/profile';
 import type { RunState } from '../src/types';
 
 /** A run in the shop after `cleared` aisles, holding a Shortcut Key (cart or shelf). */
@@ -127,5 +128,15 @@ describe('Shortcut Key', () => {
     s.hp = 5;
     expect(botDoors(['none', 'rush', 'shortcut'], s)).toEqual(['shortcut']);
     expect(botDoors(['none', 'rush'], s)).toEqual(['none', 'rush']);
+  });
+
+  it('lifetime records skip the skipped aisle: the later Clearance aisle and the last clear still count', () => {
+    const s = createRun(1);
+    Object.assign(s, { route: ['main', 'main', 'main', 'main', 'main'], mods: ['none', 'none', 'none', 'clearance', 'none'], skippedAisles: [3], wave: 5 });
+    s.stats.wavesCleared = 3; // aisles 1, 2 and 4 were played and cleared, 3 was skipped, 5 was lost
+    const before = { main: profile.stats.deptClears.main ?? 0, clearance: profile.stats.deptClears.clearance ?? 0 };
+    recordRun(s, false);
+    expect(profile.stats.deptClears.main).toBe(before.main + 3);
+    expect(profile.stats.deptClears.clearance).toBe(before.clearance + 1);
   });
 });
