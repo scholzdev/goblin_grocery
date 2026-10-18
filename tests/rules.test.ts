@@ -16,9 +16,9 @@ import { BOSS_WAVE, ECONOMY, OVERTIME, SHIFTS, SHOP_LEVELS, WAVES, waveDef, boss
 import { BOSS, THEME_SUMMONS, CODEX_ENEMIES, ELITE, ELITE_EXCLUDED, ENEMIES } from '../src/data/enemies';
 import { enemyT } from '../src/i18n/data';
 import { setLang } from '../src/i18n/lang';
-import { ITEMS, PLAYER, STARTER_WEAPONS, TIER } from '../src/data/items';
+import { ITEMS, ITEM_IDS, PLAYER, STARTER_WEAPONS, TIER } from '../src/data/items';
 import { contentTune } from '../src/engine/registry';
-import { UNLOCKS } from '../src/data/unlocks';
+import { STARTING_ITEMS, UNLOCKS } from '../src/data/unlocks';
 import { createLabRun, labAddItem, labDoor, cartUpgradeCost, shelfUpgradeCost, upgradeCart, upgradeShelf, chooseDoor, finishWave, leaveShop, startNextWave, buyOffer, mergeTargetFor, createRun, damagePlayer, mergeItems, moveItem, openShop, previewMerge, previewMove, repair, reroll, sellItem, upgradeCost, upgradeItem, upgradeShop } from '../src/state/run';
 import { OBSTACLES, hazardRects } from '../src/data/obstacles';
 import { zonesOf } from '../src/data/zones';
@@ -247,6 +247,10 @@ describe('run state ops', () => {
     expect(a.map((o) => o.type)).toEqual(b.map((o) => o.type));
     a.forEach((o, k) => expect(Math.abs(o.price - Math.max(1, Math.round(b[k].price * m)))).toBeLessThanOrEqual(1)); // double rounding: off by one at x.5 edges
     expect(a.some((o, k) => o.price < b[k].price)).toBe(true);
+  });
+  it('every item is a starting item or has an unlock (else the shop never offers it and the catalog crashes)', () => {
+    const reachable = new Set([...STARTING_ITEMS, ...UNLOCKS.flatMap((u) => (u.kind === 'item' ? [u.item] : []))]);
+    expect(ITEM_IDS.filter((id) => !reachable.has(id))).toEqual([]);
   });
   it('starterUnlocked: base starters open, others gated by UNLOCKS', () => {
     expect(starterUnlocked('toaster') && starterUnlocked('pan')).toBe(true);
