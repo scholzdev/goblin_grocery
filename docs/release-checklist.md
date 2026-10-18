@@ -10,15 +10,12 @@ State as of 2026-10-18. Typecheck, `vite build` and all 1993 tests pass.
 
 ## Decide
 
-- [ ] **Platform: web or desktop?** Electron dist scripts exist (`dist:mac/win/linux`) and so does the web build.
-  - Web: the repo is private, so free GitHub Pages is out. Easiest is itch.io: zip `dist/` and upload as an HTML5 game (password-protected or restricted page for a closed test). Butler in CI can come later.
-  - Desktop: unsigned builds trigger Gatekeeper/SmartScreen warnings. Testers need "right-click → Open" instructions.
-- [ ] **Touch/phones:** controls are keyboard + gamepad only. Either say "desktop browser with keyboard or gamepad" in the invite, or build touch controls. That's real work: a move stick, shove, loadout, pause, the route screen's 1–3 picks, and verifying shop drag-and-drop on touch.
+- [x] **Platform: desktop.** `npm run release` builds `release/Goblin Grocery-<version>-{mac-arm64,mac-x64,win-x64}.zip`. Mac builds are ad-hoc signed (no Apple certificate), so testers use "Open Anyway". Install steps are in `docs/TESTERS.md`.
+- [ ] Fill in the feedback channel in `docs/TESTERS.md`, then upload the zips (Drive, Dropbox, itch.io restricted page, or a GitHub release).
 
 ## Should do before inviting testers
 
 - [ ] Browser check of the features `handoff.md` lists as untested: set level 3 FX, Doppelpack, elite affixes, set events, stockroom / cold room / VIP rooms. Fastest via the dev server `?lab=1` or a sim (`npm run sim`).
-- [ ] Feedback channel: tell testers where to report (form, Discord, email) and what to include (aisle, build, screenshot of the receipt).
 
 ## Balance (buildlab, 200 runs, greedy policy, all starters, seed 1)
 
@@ -34,5 +31,6 @@ Rerun: `npm run buildlab -- --runs 50 --seed 1 --starter all` (output in `buildl
 
 ## Later
 
-- og:image and an absolute URL once a host is picked.
+- Web build (itch.io) and touch controls, if a browser playtest is wanted later.
+- Apple Developer ID signing + notarization and Windows code signing, to drop the security warnings.
 - Code-split the 1.6 MB chunk (it only matters for slow connections on web).
