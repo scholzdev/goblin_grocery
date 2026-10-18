@@ -33,6 +33,7 @@ import { applyKillEffects } from './onKillEffects';
 export type Call = { at: number } & (
   | { kind: 'damage'; enemy: number; dmg: number; source: string | null; opts: HitOpts }
   | { kind: 'stun'; enemy: number; seconds: number; tag?: AffinityTag }
+  | { kind: 'slide'; enemy: number; seconds: number; slam: number; speed: number }
   | { kind: 'stagger'; enemy: number }
   | { kind: 'ignite'; enemy: number; burn: BurnEffect }
   | { kind: 'slow'; enemy: number; slow: SlowEffect }
@@ -241,6 +242,15 @@ export class FakeCtx implements RuntimeCtx {
     e.stateT = Math.max(e.stateT ?? 0, applied);
     if (tag === 'frost') { markFrostStun(e.status, applied, this.time); this.reactor.applied(e, 'frost'); } // a frost stun is a freeze: the enemy is frosted
     return applied;
+  }
+  /** Mirrors `ArenaScene.slideEnemy`: bosses are immune, the shove goes away from the goblin (the slam itself is the scene's, so only `slideUntil` and the velocity are set). */
+  slide(e: CombatEnemy, seconds: number, slam: number, speed: number): number {
+    this.log({ kind: 'slide', enemy: e.id, seconds, slam, speed });
+    if (!e.alive || e.def.behavior === 'boss') return 0;
+    const dx = e.x - this.player.x, dy = e.y - this.player.y, d = Math.hypot(dx, dy) || 1, k = 1 - e.def.knockbackResist;
+    e.kx = (dx / d) * speed * k; e.ky = (dy / d) * speed * k;
+    e.slideUntil = this.time + seconds;
+    return seconds;
   }
   // The log keeps what the hook asked for; the status on the enemy has the duration scaled by its affinity (burnFor / slowFor / poisonTimeFor).
   ignite(e: CombatEnemy, burn: BurnEffect): void {

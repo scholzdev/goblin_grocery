@@ -535,11 +535,21 @@ export class ArenaScene extends Phaser.Scene {
   /** Leaf Blower slam: a blown grocery stopped by the arena edge or a prop takes impact damage once. */
   slamEnemy(e: Enemy): void {
     const dmg = e.blownDmg ?? 0;
-    e.blownUntil = 0;
+    e.blownUntil = 0; e.slideUntil = 0;
     this.fx.puff(e.x, e.y - 10, 2);
     this.fx.spark(e.x, e.y - 30, 4, 0xcfefff);
     this.fx.shake(0.003, 80);
     this.damageEnemy(e, dmg, null, { label: 'Slam', tags: ['cleaning'] }); // the Leaf Blower's slam
+  }
+
+  /** Ice Sheet: shoves a grocery away from the goblin and marks it as blown, so the Leaf Blower's slam (`slamEnemy`) lands when it stops at a wall, a prop or another enemy. Bosses are immune. */
+  slideEnemy(e: Enemy, seconds: number, slam: number, speed: number): number {
+    if (!e.alive || e.def.behavior === 'boss') return 0;
+    const now = this.time.now / 1000, dx = e.x - this.player.x, dy = e.y - this.player.y, d = Math.hypot(dx, dy) || 1;
+    const k = 1 - e.def.knockbackResist;
+    e.kx = (dx / d) * speed * k; e.ky = (dy / d) * speed * k;
+    e.slideUntil = now + seconds; e.blownUntil = now + seconds; e.blownDmg = slam;
+    return seconds;
   }
 
   /**

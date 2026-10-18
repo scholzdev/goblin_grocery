@@ -255,9 +255,9 @@ describe('weapon sims', () => {
   const simOf = (id: string): SimDef => sim(`weapon-${id}`);
 
   it('there is one sim for every weapon', () => {
-    expect(WEAPON_IDS).toHaveLength(13);
+    expect(WEAPON_IDS).toHaveLength(14);
     for (const id of WEAPON_IDS) expect(simRegistry.get(`weapon-${id}`), id).toBeDefined();
-    expect(simRegistry.ids.filter((i) => i.startsWith('weapon-'))).toHaveLength(13);
+    expect(simRegistry.ids.filter((i) => i.startsWith('weapon-'))).toHaveLength(14);
   });
   it('each sim has exactly that weapon, at ★3 (the legendary at ★1), with an explicit spot, notes and dummies in the arena sandbox', () => {
     for (const id of WEAPON_IDS) {

@@ -2229,6 +2229,22 @@ add('icon_sparklers', () => {
   return icon(s, 176);
 });
 
+add('icon_snowcone', () => {
+  let s = S5([[62, 82], [134, 82], [98, 168]], C.cream, C.creamD, { dx: 6, dy: 5 });
+  for (let i = 0; i < 3; i++) s += flat([[70 + i * 12, 88], [78 + i * 12, 88], [98, 150]].map(([x, y]) => [x, y]), C.coral, 'opacity=".55"');
+  s += [[78, 70, 22, C.sky], [118, 70, 22, C.teal], [98, 52, 24, '#EAF7FF']].map(([x, y, r, c]) => `<circle cx="${x}" cy="${y}" r="${r + 3}" fill="${C.plum}"/><circle cx="${x}" cy="${y}" r="${r}" fill="${c}"/><circle cx="${x - r * 0.35}" cy="${y - r * 0.35}" r="${r * 0.3}" fill="${C.white}" opacity=".8"/>`).join('');
+  s += spk(140, 40, 8) + spk(52, 52, 6);
+  return icon(s, 172);
+});
+
+add('icon_moldybread', () => {
+  let s = S5([[48, 150], [148, 150], [152, 96], [140, 70], [104, 58], [64, 70], [46, 96]], C.bread, C.breadD, { dx: 6, dy: 5 });
+  s += flat([[60, 88], [76, 74], [96, 70], [90, 82], [68, 98]], C.cream, 'opacity=".55"');
+  s += [[70, 108, 13], [112, 94, 16], [128, 126, 11], [88, 130, 9], [96, 82, 8]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r + 2.5}" fill="${C.plum}"/><circle cx="${x}" cy="${y}" r="${r}" fill="${C.green}"/><circle cx="${x - r * 0.3}" cy="${y - r * 0.3}" r="${r * 0.35}" fill="#CFEFA6"/>`).join('');
+  s += [[150, 60, 5], [44, 70, 4], [160, 100, 4]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${C.green}" stroke="${C.plum}" stroke-width="1.6"/>`).join('');
+  return icon(s, 164);
+});
+
 add('icon_doublebag', () => {
   const bag = (x, y, w, h, fill, sh, fold) => shape([[x + w, y + 4], [x + w + 16, y - 4], [x + w + 16, y + h - 6], [x + w, y + h]], sh, fold, { sw: SWi, dx: 3, dy: 3 }) + S5(rect(x, y, w, h), fill, sh, { dx: 7, dy: 5 }) + line([[x + w * 0.5, y + h], [x + w * 0.5, y + h - 14]], sh, 3, 'opacity="0"') + flat([[x + 6, y + 6], [x + 22, y + 6], [x + 6, y + 34]], C.white, 'opacity=".35"') + line([[x, y + 10], [x + w, y + 10]], sh, 3, 'opacity=".7"');
   let s = bag(36, 34, 76, 112, '#D9A15A', '#A8703A', C.breadD);

@@ -71,6 +71,8 @@ const unlocks: Record<string, string> = {
   tipjar: 'Verdiene 250 Münzen (insgesamt)',
   bumper: 'Erreiche Gang 5',
   flag: 'Räume 2 Tiefkühlkost-Gänge',
+  snowcone: 'Räume 5 Tiefkühlkost-Gänge',
+  moldybread: 'Entdecke 5 Kombos',
   canopener: 'Erreiche Gang 3',
   decaf: 'Erreiche Gang 4',
   laser: 'Gewinne 3 Runs',

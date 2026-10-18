@@ -191,7 +191,7 @@ Wet (docs/item-hooks-refactor.md "Wet"). Blue droplets drip down a wet enemy. Go
 
 ## Reaction sims
 
-Element reactions (docs/item-hooks-refactor.md "Reactions"). A teal name pops over the enemy and the burst's damage numbers are teal. Each enemy reacts at most once per second (Shatter: once per 3 s). God mode stays on; the groceries are immortal except in `reaction-crack`. `tests/sims/reaction-sims.test.ts` runs each cart headless and checks its reaction goes off.
+Element reactions (docs/item-hooks-refactor.md "Reactions"). A teal name pops over the enemy and the burst's damage numbers are teal. Each enemy reacts at most once per second (Shatter: once per 3 s). Ice Sheet and Detonate are the two newest. God mode stays on; the groceries are immortal except in `reaction-crack`. `tests/sims/reaction-sims.test.ts` runs each cart headless and checks its reaction goes off.
 
 | Sim | Cart | Enemies | Look for |
 |---|---|---|---|
@@ -199,6 +199,8 @@ Element reactions (docs/item-hooks-refactor.md "Reactions"). A teal name pops ov
 | `reaction-fumes` | Toaster ★1 + Fuel Can + Expired Milk | 10 Sour Milk in a bunch | A burning milk that walks into the aura bursts into a green cloud (radius 60, 2 s) that poisons its neighbors |
 | `reaction-conduct` | Spray Bottle ★1 + Laser ★1 | 10 Baguettes in a bunch | The Laser beam on a wet baguette (x1.2) jumps to the 3 nearest for 60%, the Wet is gone |
 | `reaction-crack` | Pressure Cooker ★1 + Can Opener ★3 + Party Popper | 10 Beans (mortal) | A blast on a Beans with 3 Shred stacks throws shrapnel at the 3 nearest within 90 px (+1 Shred each) |
+| `reaction-ice-sheet` | Snow Cone Machine ★1 + Toaster ★1 + Ice Pack | 8 Baguettes in a bunch | The puddle soaks them; a toast slowed by the Ice Pack on a Wet baguette sends it sliding away for 1.5 s: ICE SHEET!, 12 slam damage at a wall, a prop or another baguette, the Wet gone. A Wet applied in the same frame as the hit (Spray, Mop, Snow Cone's own tick) never counts |
+| `reaction-detonate` | Pressure Cooker ★1 + Moldy Bread | 10 Sour Milk in a bunch | A pot leaves a spore cloud (radius 70, 3 s) that poisons; the next pot's blast on a poisoned milk bursts DETONATE!: poison dps x seconds left within 70 px, the poison gone |
 
 ## Where the code lives
 

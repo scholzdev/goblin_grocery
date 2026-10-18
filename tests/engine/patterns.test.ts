@@ -24,7 +24,7 @@ describe('the pattern table', () => {
     const used = WEAPON_IDS.map((id) => ITEMS[id].weapon!.pattern);
     for (const p of used) expect(PATTERNS[p], p).toBeDefined();
     expect([...new Set(used)].sort()).toEqual([...ALL].sort());
-    expect(WEAPON_IDS).toHaveLength(13);
+    expect(WEAPON_IDS).toHaveLength(14);
   });
 
   it('only the puddle is blind, burst/pulse/aura tick every frame, puddle and mortar keep things in the world', () => {
