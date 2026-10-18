@@ -1,7 +1,7 @@
 import type Phaser from 'phaser';
 import type { ArenaScene } from './scenes/ArenaScene';
 import { store } from './state/store';
-import { labDummies } from './lab';
+import { BOT, labDummies } from './lab';
 import { createSimRun } from './state/sim';
 import { SIM_DEFAULTS, simDummies, type SimDef } from './sims/_sim';
 import { chooseDoor, createLabRun, createRun, finishWave, leaveShop, openShop, recomputeBuild, startNextWave } from './state/run';
@@ -53,7 +53,8 @@ export const flow = {
     activeSim = null;
     store.state = createRun(seed, starter, shift, weapon, theme);
     if (opts.daily) { store.state.daily = true; noteDailyStart(); }
-    else if (useCoupon()) { store.state.money += COUPON_COINS; store.state.voucher = true; }
+    else if (!BOT && useCoupon()) { store.state.money += COUPON_COINS; store.state.voucher = true; }
+    if (BOT) store.state.bot = true;
     store.state.unlocked = unlockedItems();
     runSnap = snapProfile();
     rng = mulberry32(seed);
@@ -193,7 +194,7 @@ export const flow = {
   finish(s: RunState, won: boolean): void {
     stopLoops();
     const score = scoreOf(s, won);
-    if (s.lab) { // lab runs never touch the profile or the best receipts
+    if (s.lab || s.bot) { // lab and bot runs never touch the profile or the best receipts
       this.lastResult = { score, newBest: false, fresh: emptyFresh(), near: [] };
       play(won ? 'victory' : 'defeat');
       store.changed();

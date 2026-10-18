@@ -846,6 +846,11 @@ export class ArenaScene extends Phaser.Scene {
     return best ? { x: best.x, y: best.y } : null;
   }
 
+  /** Dev bot: the coins and bread crumbs on the floor (including the ones already flying to the player). */
+  pickups(): { x: number; y: number; bread: boolean; pull: boolean }[] {
+    return this.coins.filter((c) => c.active);
+  }
+
   /** Removes one loose floor coin within `r` of the point; true if one was taken. */
   absorbCoin(x: number, y: number, r: number): boolean {
     for (const c of this.coins) {

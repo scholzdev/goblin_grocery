@@ -8,6 +8,8 @@ const QUERY = new URLSearchParams(location.search);
 export const SIM_PARAM: string | null = QUERY.get('sim');
 /** Test Lab gate: launch with `--lab` (desktop) or `?lab=1` (web); a sim launch (`?sim=`) turns the lab features on too. Works in any build. */
 export const LAB = QUERY.has('lab') || QUERY.has('sim');
+/** Dev-only autoplayer (src/bot): `?bot=1` on the dev server. Its runs never touch the profile or the best receipts. */
+export const BOT = import.meta.env.DEV && QUERY.has('bot');
 
 const KEY = 'goblin-grocery.lab.v1';
 export const LAB_DEFAULTS: LabOpts = { aisle: 1, dept: 'main', shift: 0, starter: 'toaster', weapon: 'toaster', money: 999, cart: [4, 4], shelf: ECONOMY.shelfSlots, shopLevel: 1, god: false, keep: true, event: 'random', mod: 'none', sandbox: false };

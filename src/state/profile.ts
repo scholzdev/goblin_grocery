@@ -97,9 +97,9 @@ export function discoverRecipe(id: RecipeId): boolean {
   return true;
 }
 
-/** First sighting of an enemy type persists immediately; kills are counted in memory and flushed by recordRun. Lab runs are ignored. */
+/** First sighting of an enemy type persists immediately; kills are counted in memory and flushed by recordRun. Lab and bot runs are ignored. */
 export function noteEnemy(s: RunState, id: EnemyId, kill?: { elite: boolean }): void {
-  if (s.lab) return;
+  if (s.lab || s.bot) return;
   const e = (profile.enemies[id] ??= { seen: 0, kills: 0, elites: 0 });
   if (kill) { e.kills++; if (kill.elite) e.elites++; return; }
   if (e.seen) return;

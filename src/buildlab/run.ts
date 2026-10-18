@@ -48,8 +48,8 @@ function snapshot(state: RunState): FinalBuild {
   };
 }
 
-/** Apply one shop action with the real rules. */
-function apply(state: RunState, a: ShopAction, flow: Rng): ShopStep {
+/** Apply one shop action with the real rules (the headless run and the in-page bot, src/bot). */
+export function apply(state: RunState, a: ShopAction, flow: Rng): ShopStep {
   const money = state.money;
   const stepOf = (kind: string, r: OpResult, extra: Partial<ShopStep> = {}): ShopStep => ({ kind, ok: r.ok, ...extra, ...(r.ok ? { cost: money - state.money } : { reason: r.reason }) });
   switch (a.kind) {

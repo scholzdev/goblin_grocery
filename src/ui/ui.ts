@@ -117,7 +117,7 @@ export function initUi(_game: Phaser.Game): void {
   // Combo discovery: the first time a combo is active in your cart, it goes into the Catalog for good.
   store.on('change', () => {
     const st = store.state;
-    if ((st.phase !== 'shop' && st.phase !== 'combat') || st.lab) return;
+    if ((st.phase !== 'shop' && st.phase !== 'combat') || st.lab || st.bot) return;
     for (const r of st.build.recipes) if (discoverRecipe(r.id)) celebrate(t('newCombo'), recipeT(r.id).name, `icon_${recipeIcon(RECIPES[r.id])}`);
   });
   // Set bonus level-ups: compare against the last baseline (reset whenever a shop/run opens), only while shopping.

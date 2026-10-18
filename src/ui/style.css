@@ -898,3 +898,6 @@ body.pad-nav :focus { outline: 4px solid var(--gold); outline-offset: 3px; }
 .inspector .strongvs img { width: 24px; height: 24px; border-radius: 6px; background: rgba(48, 32, 63, 0.08); }
 .inspector .strongvs .chip { font-size: 12px; font-weight: 800; padding: 2px 6px; gap: 3px; text-transform: none; letter-spacing: 0; }
 .inspector .strongvs img.boss { background: #ffe9a8; box-shadow: 0 0 0 2px #f5bd45; }
+
+/* dev autoplayer status (src/bot, ?bot=1) */
+#botpanel { position: absolute; left: 10px; top: 10px; max-width: 360px; margin: 0; padding: 6px 10px; z-index: 80; border-radius: 8px; background: rgba(48, 32, 63, 0.82); color: var(--cream); font: 700 12px/1.35 var(--ui); white-space: pre-wrap; pointer-events: none; }
