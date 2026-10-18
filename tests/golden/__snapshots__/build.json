@@ -882,6 +882,81 @@
       }
     ]
   },
+  "combo.freshBread": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "freshBread",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 1,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 11.12364,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "toast",
+        "pierce": 1,
+        "popper": null,
+        "projectileSpeed": 540,
+        "pull": 0,
+        "range": 455,
+        "recipes": [
+          "freshBread"
+        ],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
   "combo.frostbiteNails": {
     "adjacency": [
       [
@@ -1119,6 +1194,83 @@
         "tick": 0,
         "tier": 1,
         "type": "popcorn",
+        "uid": "u0"
+      }
+    ]
+  },
+  "combo.liveWire": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "liveWire",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [
+          "battery"
+        ],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1.428571,
+        "count": 1,
+        "critChance": 0,
+        "damage": 3.18,
+        "duration": 3,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "puddle",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 0,
+        "pull": 0,
+        "range": 60,
+        "recipes": [
+          "liveWire"
+        ],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0.5,
+        "tier": 1,
+        "type": "mop",
         "uid": "u0"
       }
     ]
@@ -1999,6 +2151,86 @@
       }
     ]
   },
+  "combo.slushie": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "slushie",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 1,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 2,
+        "buffs": [
+          "ice"
+        ],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 6.36,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "ricochet",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 620,
+        "pull": 0,
+        "range": 420,
+        "recipes": [
+          "slushie"
+        ],
+        "slow": {
+          "duration": 1,
+          "pct": 0.35
+        },
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "fizz",
+        "uid": "u0"
+      }
+    ]
+  },
   "combo.smashBank": {
     "adjacency": [
       [
@@ -2518,6 +2750,102 @@
           "tailwind"
         ],
         "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "leafblower",
+        "uid": "u0"
+      }
+    ]
+  },
+  "combo.thunderstorm": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ],
+      [
+        "u0",
+        "u2"
+      ],
+      [
+        "u0",
+        "u3"
+      ],
+      [
+        "u1",
+        "u2"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "thunderstorm",
+        "supportUids": [
+          "u1",
+          "u2",
+          "u3"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 1,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 50,
+        "bounces": 0,
+        "buffs": [
+          "fan",
+          "battery",
+          "ice"
+        ],
+        "bundle": 3,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 0.803571,
+        "count": 1,
+        "critChance": 0,
+        "damage": 3.54,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "cone",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 0,
+        "pull": 0,
+        "range": 328.9,
+        "recipes": [
+          "thunderstorm"
+        ],
+        "slow": {
+          "duration": 1,
+          "pct": 0.25
+        },
         "spreadDeg": 0,
         "tick": 0,
         "tier": 1,
@@ -3428,6 +3756,13 @@
           "u1"
         ],
         "weaponUid": "u0"
+      },
+      {
+        "id": "slushie",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u2"
       }
     ],
     "regen": 0,
@@ -3514,7 +3849,9 @@
         "projectileSpeed": 620,
         "pull": 0,
         "range": 420,
-        "recipes": [],
+        "recipes": [
+          "slushie"
+        ],
         "slow": {
           "duration": 1,
           "pct": 0.65
@@ -8002,7 +8339,15 @@
     "moveSpeedMult": 1,
     "pickupRadius": 70,
     "priceMult": 1,
-    "recipes": [],
+    "recipes": [
+      {
+        "id": "liveWire",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
     "regen": 0,
     "sets": {
       "blast": 0,
@@ -8047,7 +8392,9 @@
         "projectileSpeed": 0,
         "pull": 0,
         "range": 60,
-        "recipes": [],
+        "recipes": [
+          "liveWire"
+        ],
         "slow": null,
         "spreadDeg": 0,
         "tick": 0.5,
@@ -14599,7 +14946,15 @@
     "moveSpeedMult": 1,
     "pickupRadius": 70,
     "priceMult": 1,
-    "recipes": [],
+    "recipes": [
+      {
+        "id": "slushie",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
     "regen": 0,
     "sets": {
       "blast": 0,
@@ -14644,7 +14999,9 @@
         "projectileSpeed": 620,
         "pull": 0,
         "range": 420,
-        "recipes": [],
+        "recipes": [
+          "slushie"
+        ],
         "slow": {
           "duration": 1,
           "pct": 0.35
@@ -19547,7 +19904,15 @@
     "moveSpeedMult": 1,
     "pickupRadius": 70,
     "priceMult": 1,
-    "recipes": [],
+    "recipes": [
+      {
+        "id": "freshBread",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
     "regen": 0,
     "sets": {
       "blast": 0,
@@ -19585,12 +19950,14 @@
         "frostRing": false,
         "ignite": null,
         "pattern": "toast",
-        "pierce": 0,
+        "pierce": 1,
         "popper": null,
         "projectileSpeed": 540,
         "pull": 0,
         "range": 455,
-        "recipes": [],
+        "recipes": [
+          "freshBread"
+        ],
         "slow": null,
         "spreadDeg": 0,
         "tick": 0,
@@ -19612,7 +19979,15 @@
     "moveSpeedMult": 1,
     "pickupRadius": 70,
     "priceMult": 1,
-    "recipes": [],
+    "recipes": [
+      {
+        "id": "freshBread",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
     "regen": 0,
     "sets": {
       "blast": 0,
@@ -19650,12 +20025,14 @@
         "frostRing": false,
         "ignite": null,
         "pattern": "toast",
-        "pierce": 0,
+        "pierce": 2,
         "popper": null,
         "projectileSpeed": 540,
         "pull": 0,
         "range": 455,
-        "recipes": [],
+        "recipes": [
+          "freshBread"
+        ],
         "slow": null,
         "spreadDeg": 0,
         "tick": 0,
@@ -22823,6 +23200,13 @@
           "u1"
         ],
         "weaponUid": "u0"
+      },
+      {
+        "id": "slushie",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u2"
       }
     ],
     "regen": 0,
@@ -22909,7 +23293,9 @@
         "projectileSpeed": 620,
         "pull": 0,
         "range": 420,
-        "recipes": [],
+        "recipes": [
+          "slushie"
+        ],
         "slow": {
           "duration": 1,
           "pct": 0.35
@@ -22953,6 +23339,13 @@
           "u1"
         ],
         "weaponUid": "u0"
+      },
+      {
+        "id": "slushie",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u2"
       }
     ],
     "regen": 0,
@@ -23039,7 +23432,9 @@
         "projectileSpeed": 620,
         "pull": 0,
         "range": 420,
-        "recipes": [],
+        "recipes": [
+          "slushie"
+        ],
         "slow": {
           "duration": 1,
           "pct": 0.4

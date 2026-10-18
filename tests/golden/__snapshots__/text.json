@@ -213,6 +213,24 @@
       "weapon": "toaster"
     }
   ],
+  "buffs.combo.freshBread.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Frisches Brot"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.combo.freshBread.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Fresh Bread"
+      ],
+      "weapon": "toaster"
+    }
+  ],
   "buffs.combo.frostbiteNails.de": [
     {
       "lines": [
@@ -271,6 +289,26 @@
         "Combo: Kettle Corn"
       ],
       "weapon": "popcorn"
+    }
+  ],
+  "buffs.combo.liveWire.de": [
+    {
+      "lines": [
+        "+12 % Angriffstempo (Batterie)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Stromschlag"
+      ],
+      "weapon": "mop"
+    }
+  ],
+  "buffs.combo.liveWire.en": [
+    {
+      "lines": [
+        "+12% attack rate (Battery)",
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Live Wire"
+      ],
+      "weapon": "mop"
     }
   ],
   "buffs.combo.mistMachine.de": [
@@ -487,6 +525,26 @@
       "weapon": "pan"
     }
   ],
+  "buffs.combo.slushie.de": [
+    {
+      "lines": [
+        "Verlangsamung 25 % für 1 s (Kühlakku)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Slush"
+      ],
+      "weapon": "fizz"
+    }
+  ],
+  "buffs.combo.slushie.en": [
+    {
+      "lines": [
+        "Slow 25% for 1s (Ice Pack)",
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Slushie"
+      ],
+      "weapon": "fizz"
+    }
+  ],
   "buffs.combo.smashBank.de": [
     {
       "lines": [
@@ -601,6 +659,30 @@
         "+30% reach (Desk Fan)",
         "Bundle Deal: 2 items → +12% damage",
         "Combo: Tailwind"
+      ],
+      "weapon": "leafblower"
+    }
+  ],
+  "buffs.combo.thunderstorm.de": [
+    {
+      "lines": [
+        "+30 % Reichweite (Tischventilator)",
+        "+12 % Angriffstempo (Batterie)",
+        "Verlangsamung 25 % für 1 s (Kühlakku)",
+        "Mengenrabatt: 3 Gegenstände → +18 % Schaden",
+        "Combo: Gewitter"
+      ],
+      "weapon": "leafblower"
+    }
+  ],
+  "buffs.combo.thunderstorm.en": [
+    {
+      "lines": [
+        "+30% reach (Desk Fan)",
+        "+12% attack rate (Battery)",
+        "Slow 25% for 1s (Ice Pack)",
+        "Bundle Deal: 3 items → +18% damage",
+        "Combo: Thunderstorm"
       ],
       "weapon": "leafblower"
     }
@@ -825,7 +907,8 @@
     {
       "lines": [
         "Verlangsamung 50 % für 1 s (Kühlakku ★3)",
-        "Mengenrabatt: 3 Gegenstände → +18 % Schaden"
+        "Mengenrabatt: 3 Gegenstände → +18 % Schaden",
+        "Combo: Slush"
       ],
       "weapon": "fizz"
     },
@@ -848,7 +931,8 @@
     {
       "lines": [
         "Slow 50% for 1s (Ice Pack ★3)",
-        "Bundle Deal: 3 items → +18% damage"
+        "Bundle Deal: 3 items → +18% damage",
+        "Combo: Slushie"
       ],
       "weapon": "fizz"
     },
@@ -1907,7 +1991,8 @@
     {
       "lines": [
         "+12 % Angriffstempo (Batterie)",
-        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Stromschlag"
       ],
       "weapon": "mop"
     }
@@ -1916,7 +2001,8 @@
     {
       "lines": [
         "+12% attack rate (Battery)",
-        "Bundle Deal: 1 item → +6% damage"
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Live Wire"
       ],
       "weapon": "mop"
     }
@@ -3613,7 +3699,8 @@
     {
       "lines": [
         "Verlangsamung 25 % für 1 s (Kühlakku)",
-        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Slush"
       ],
       "weapon": "fizz"
     }
@@ -3622,7 +3709,8 @@
     {
       "lines": [
         "Slow 25% for 1s (Ice Pack)",
-        "Bundle Deal: 1 item → +6% damage"
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Slushie"
       ],
       "weapon": "fizz"
     }
@@ -4892,7 +4980,8 @@
   "buffs.item.sourdough.t1.on.toaster.de": [
     {
       "lines": [
-        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Frisches Brot"
       ],
       "weapon": "toaster"
     }
@@ -4900,7 +4989,8 @@
   "buffs.item.sourdough.t1.on.toaster.en": [
     {
       "lines": [
-        "Bundle Deal: 1 item → +6% damage"
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Fresh Bread"
       ],
       "weapon": "toaster"
     }
@@ -4908,7 +4998,8 @@
   "buffs.item.sourdough.t3.on.toaster.de": [
     {
       "lines": [
-        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Frisches Brot"
       ],
       "weapon": "toaster"
     }
@@ -4916,7 +5007,8 @@
   "buffs.item.sourdough.t3.on.toaster.en": [
     {
       "lines": [
-        "Bundle Deal: 1 item → +6% damage"
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Fresh Bread"
       ],
       "weapon": "toaster"
     }
@@ -5747,7 +5839,8 @@
     {
       "lines": [
         "Verlangsamung 25 % für 1 s (Kühlakku)",
-        "Mengenrabatt: 2 Gegenstände → +12 % Schaden"
+        "Mengenrabatt: 2 Gegenstände → +12 % Schaden",
+        "Combo: Slush"
       ],
       "weapon": "fizz"
     }
@@ -5764,7 +5857,8 @@
     {
       "lines": [
         "Slow 25% for 1s (Ice Pack)",
-        "Bundle Deal: 2 items → +12% damage"
+        "Bundle Deal: 2 items → +12% damage",
+        "Combo: Slushie"
       ],
       "weapon": "fizz"
     }
@@ -5781,7 +5875,8 @@
     {
       "lines": [
         "Verlangsamung 25 % für 1 s (Kühlakku)",
-        "Mengenrabatt: 3 Gegenstände → +18 % Schaden"
+        "Mengenrabatt: 3 Gegenstände → +18 % Schaden",
+        "Combo: Slush"
       ],
       "weapon": "fizz"
     },
@@ -5804,7 +5899,8 @@
     {
       "lines": [
         "Slow 25% for 1s (Ice Pack)",
-        "Bundle Deal: 3 items → +18% damage"
+        "Bundle Deal: 3 items → +18% damage",
+        "Combo: Slushie"
       ],
       "weapon": "fizz"
     },
@@ -6637,6 +6733,18 @@
     "short": "+80% vs burning",
     "summary": "Toaster touching Hot Sauce AND a Fuel Can: toast scorches burning groceries."
   },
+  "combos.freshBread.de": {
+    "detail": "Toast durchschlägt 1 weiteren Gegner, 2, sobald der Sauerteig ganz aufgegangen ist.",
+    "name": "Frisches Brot",
+    "short": "Sauerteig lässt Toast durchschlagen",
+    "summary": "Toaster berührt Sauerteig-Ansatz: ein aufgegangener Laib ist kaum zu stoppen."
+  },
+  "combos.freshBread.en": {
+    "detail": "Toast pierces 1 extra enemy, 2 once the Sourdough has fully risen.",
+    "name": "Fresh Bread",
+    "short": "Sourdough lets toast pierce",
+    "summary": "Toaster touching a Sourdough Starter: a risen loaf is hard to stop."
+  },
   "combos.frostbiteNails.de": {
     "detail": "Nägel durchschlagen 1 weiteren Gegner, und jeder 3. Nagel, der denselben Gegner trifft, friert ihn 0,7 s lang fest.",
     "name": "Frostbeulen-Nägel",
@@ -6672,6 +6780,18 @@
     "name": "Kettle Corn",
     "short": "Kernel kills scatter more kernels",
     "summary": "Popcorn Maker touching a Party Popper: sweet, salty, explosive."
+  },
+  "combos.liveWire.de": {
+    "detail": "Alle 1 s zappen die Pfützen bis zu 3 nasse Gegner, die gerade darin standen, für 100% Pfützenschaden. Der Blitz verbraucht die Nässe nicht.",
+    "name": "Stromschlag",
+    "short": "Pfützen zappen nasse Gegner",
+    "summary": "Wischmopp berührt Batterie: der Seifenboden steht unter Strom."
+  },
+  "combos.liveWire.en": {
+    "detail": "Every 1 s the puddles zap up to 3 Wet enemies that just stood in them for 100% puddle damage. The zap does not use up Wet.",
+    "name": "Live Wire",
+    "short": "Puddles zap Wet enemies",
+    "summary": "Mop touching a Battery: the soapy floor is live."
   },
   "combos.mistMachine.de": {
     "detail": "Der Sprühkegel wird 120° breit und reicht 40% weiter. (Der Ventilator-Bonus auf Tempo/Reichweite gilt nicht für Sprühstöße, dies ersetzt ihn.)",
@@ -6805,6 +6925,18 @@
     "short": "Sweeps leave fire",
     "summary": "Frying Pan touching a Fuel Can: every sweep scorches the floor."
   },
+  "combos.slushie.de": {
+    "detail": "Jeder Treffer eines Kronkorkens nach dem ersten bremst 10% stärker. Der letzte Treffer eines Kronkorkens friert den Gegner 0,5 s lang ein (2,5 s Abklingzeit pro Gegner).",
+    "name": "Slush",
+    "short": "Abpraller bremsen mehr, letzter Treffer friert",
+    "summary": "Sprudelkanone berührt Kühlakku: die Limo wird zu Slush."
+  },
+  "combos.slushie.en": {
+    "detail": "Each hit of a cap after the first slows 10% more. A cap's last hit freezes the enemy for 0.5 s (2.5 s cooldown per enemy).",
+    "name": "Slushie",
+    "short": "Bounces slow more, last hit freezes",
+    "summary": "Fizz Cannon touching an Ice Pack: the soda turns to slush."
+  },
   "combos.smashBank.de": {
     "detail": "Jeder von einem Pfannenschwung getroffene Gegner lässt mit 15% Chance eine Münze fallen.",
     "name": "Sparschwein-Schlag",
@@ -6888,6 +7020,18 @@
     "name": "Tailwind",
     "short": "Blasts push the cart forward",
     "summary": "Leaf Blower touching a Desk Fan AND Running Boots: ride your own breeze."
+  },
+  "combos.thunderstorm.de": {
+    "detail": "Jede Böe macht Gegner für 2 s nass. Jede 3. Böe trifft zuerst bis zu 4 bereits nasse Gegner für 50% Böenschaden.",
+    "name": "Gewitter",
+    "short": "Böen durchnässen, jede 3. blitzt",
+    "summary": "Laubbläser berührt Tischventilator, Batterie UND Kühlakku: zieh ein Unwetter auf."
+  },
+  "combos.thunderstorm.en": {
+    "detail": "Every blast leaves enemies Wet for 2 s. Every 3rd blast first strikes up to 4 enemies that were already Wet for 50% blast damage.",
+    "name": "Thunderstorm",
+    "short": "Blasts soak, every 3rd strikes",
+    "summary": "Leaf Blower touching a Desk Fan, a Battery AND an Ice Pack: whip up a storm."
   },
   "combos.toastMode.de": {
     "detail": "Feuert 3 Toasts im Fächer. Jeder macht 75% Schaden und setzt Gegner in Brand (Brand stapelt sich nicht). Ventilator-Tempo und -Reichweite gelten weiterhin.",
@@ -8594,11 +8738,11 @@
   "items.sourdough.de": {
     "blurb": "Füttern, und er wächst. Blubbert vor Potenzial.",
     "name": "Sauerteig-Ansatz",
-    "rules": "Angrenzende Waffen erhalten {0} Schaden. Wächst alle 2 Gänge um eine Stufe (braucht Platz zum Aufgehen): 2 Felder bei ★2, 3 Felder bei ★3.",
+    "rules": "Angrenzende Waffen erhalten {0} Schaden. Wächst alle 2 Gänge um eine Stufe (braucht Platz zum Aufgehen): 2 Felder bei ★2, 3 Felder bei ★3. Combo: Frisches Brot mit Toaster.",
     "rulesByTier": {
-      "1": "Angrenzende Waffen erhalten +6% Schaden. Wächst alle 2 Gänge um eine Stufe (braucht Platz zum Aufgehen): 2 Felder bei ★2, 3 Felder bei ★3.",
-      "2": "Angrenzende Waffen erhalten +12% Schaden. Wächst alle 2 Gänge um eine Stufe (braucht Platz zum Aufgehen): 2 Felder bei ★2, 3 Felder bei ★3.",
-      "3": "Angrenzende Waffen erhalten +18% Schaden. Wächst alle 2 Gänge um eine Stufe (braucht Platz zum Aufgehen): 2 Felder bei ★2, 3 Felder bei ★3."
+      "1": "Angrenzende Waffen erhalten +6% Schaden. Wächst alle 2 Gänge um eine Stufe (braucht Platz zum Aufgehen): 2 Felder bei ★2, 3 Felder bei ★3. Combo: Frisches Brot mit Toaster.",
+      "2": "Angrenzende Waffen erhalten +12% Schaden. Wächst alle 2 Gänge um eine Stufe (braucht Platz zum Aufgehen): 2 Felder bei ★2, 3 Felder bei ★3. Combo: Frisches Brot mit Toaster.",
+      "3": "Angrenzende Waffen erhalten +18% Schaden. Wächst alle 2 Gänge um eine Stufe (braucht Platz zum Aufgehen): 2 Felder bei ★2, 3 Felder bei ★3. Combo: Frisches Brot mit Toaster."
     },
     "tierScaling": [
       {
@@ -8614,11 +8758,11 @@
   "items.sourdough.en": {
     "blurb": "Feed it and it grows. Bubbles with potential.",
     "name": "Sourdough Starter",
-    "rules": "Weapons touching it gain {0} damage. Grows one level every 2 aisles (needs room to rise): 2 cells at ★2, 3 cells at ★3.",
+    "rules": "Weapons touching it gain {0} damage. Grows one level every 2 aisles (needs room to rise): 2 cells at ★2, 3 cells at ★3. Combo: Fresh Bread with Toaster.",
     "rulesByTier": {
-      "1": "Weapons touching it gain +6% damage. Grows one level every 2 aisles (needs room to rise): 2 cells at ★2, 3 cells at ★3.",
-      "2": "Weapons touching it gain +12% damage. Grows one level every 2 aisles (needs room to rise): 2 cells at ★2, 3 cells at ★3.",
-      "3": "Weapons touching it gain +18% damage. Grows one level every 2 aisles (needs room to rise): 2 cells at ★2, 3 cells at ★3."
+      "1": "Weapons touching it gain +6% damage. Grows one level every 2 aisles (needs room to rise): 2 cells at ★2, 3 cells at ★3. Combo: Fresh Bread with Toaster.",
+      "2": "Weapons touching it gain +12% damage. Grows one level every 2 aisles (needs room to rise): 2 cells at ★2, 3 cells at ★3. Combo: Fresh Bread with Toaster.",
+      "3": "Weapons touching it gain +18% damage. Grows one level every 2 aisles (needs room to rise): 2 cells at ★2, 3 cells at ★3. Combo: Fresh Bread with Toaster."
     },
     "tierScaling": [
       {

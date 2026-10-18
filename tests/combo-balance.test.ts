@@ -47,6 +47,10 @@ export function comboDps(w: WeaponStats, shoveCd: number): { single: number; cro
   if (has('shrapnel')) { const x = contentComboTune('shrapnel').count * contentComboTune('shrapnel').damageMult * w.damage * 0.5 * r; single += x; crowd += x; }
   if (has('fireworksShow')) { const k = contentComboTune('fireworksShow'); single += k.count * k.damageMult * w.damage * 0.3 * r; crowd += k.count * k.damageMult * w.damage * 1.5 * r; } // ring blasts mostly miss one target, ~1.5 hit a pack
   if (has('kettleCorn')) { const k = contentComboTune('kettleCorn'), x = k.count * k.damage * w.count * r * 0.4; single += x; crowd += x; } // ~40% of volleys kill, each kill scatters kernels
+  if (has('freshBread')) crowd *= 2; // one extra pierce roughly doubles the pack hits
+  if (has('liveWire')) { const k = contentComboTune('liveWire'); single += (w.damage * k.damageMult * k.targets) / k.every * 0.3; crowd += (w.damage * k.damageMult * k.targets) / k.every * 0.8; } // zaps need Wet targets that just stood in a puddle
+  if (has('thunderstorm')) { const k = contentComboTune('thunderstorm'); single += (w.damage * k.damageMult) / (k.every * w.cooldown) * 0.5; crowd += (w.damage * k.damageMult * k.targets) / (k.every * w.cooldown) * 0.7; } // every 3rd blast, only already-Wet targets
+  if (has('slushie')) { single *= 1.05; crowd *= 1.25; } // slow ramp and a freeze: crowd-control value
   if (has('frostbiteNails')) crowd *= 1.15; // crowd-control value
   if (has('smoothieShield')) crowd *= 1.2;  // defensive value
   if (has('blackIce')) crowd *= 1.2;        // crowd-control value

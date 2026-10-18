@@ -42,6 +42,8 @@ export interface CombatShot {
   stats: WeaponStats | null;
   /** A hook may hang a splash on a player shot (Ray Gun: radius and fraction of the hit damage); the hook's own `pattern:shotHit` reads it back. */
   splash: { r: number; m: number } | null;
+  /** Enemies this shot has hit so far (including the hit being handled in `pattern:shotHit`). */
+  tracker: { readonly hits: ReadonlySet<number> };
   /** Armed by a hook (Nailstorm, after the first hit): `pattern:shotMove` fires for the shot every frame so a hook can steer it. */
   homing?: boolean;
 }

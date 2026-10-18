@@ -12,8 +12,8 @@ export default defineItem({
   // `every` = aisles between rises (read by state/run.ts). cellsMid/cellsMax = footprint sizes at ★2/★3, for the text.
   tune: { perStar: PER_STAR, damage: [PER_STAR * 1, PER_STAR * 2, PER_STAR * 3], every: 2, cellsMid: SHAPES[1].length, cellsMax: SHAPES[2].length },
   text: {
-    en: { name: 'Sourdough Starter', blurb: 'Feed it and it grows. Bubbles with potential.', rules: 'Weapons touching it gain {damage|+pct} damage. Grows one level every {every|int} aisles (needs room to rise): {cellsMid|int} cells at ★2, {cellsMax|int} cells at ★3.' },
-    de: { name: 'Sauerteig-Ansatz', blurb: 'Füttern, und er wächst. Blubbert vor Potenzial.', rules: 'Angrenzende Waffen erhalten {damage|+pct} Schaden. Wächst alle {every|int} Gänge um eine Stufe (braucht Platz zum Aufgehen): {cellsMid|int} Felder bei ★2, {cellsMax|int} Felder bei ★3.' },
+    en: { name: 'Sourdough Starter', blurb: 'Feed it and it grows. Bubbles with potential.', rules: 'Weapons touching it gain {damage|+pct} damage. Grows one level every {every|int} aisles (needs room to rise): {cellsMid|int} cells at ★2, {cellsMax|int} cells at ★3. Combo: Fresh Bread with Toaster.' },
+    de: { name: 'Sauerteig-Ansatz', blurb: 'Füttern, und er wächst. Blubbert vor Potenzial.', rules: 'Angrenzende Waffen erhalten {damage|+pct} Schaden. Wächst alle {every|int} Gänge um eine Stufe (braucht Platz zum Aufgehen): {cellsMid|int} Felder bei ★2, {cellsMax|int} Felder bei ★3. Combo: Frisches Brot mit Toaster.' },
   },
   rows: [{ label: { en: 'Damage', de: 'Schaden' }, key: 'damage', fmt: '+pct' }],
   build: {

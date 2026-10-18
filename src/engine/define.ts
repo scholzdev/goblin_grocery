@@ -39,7 +39,7 @@ export const RECIPE_ORDER = [
   'toastMode', 'nailstorm', 'coldStorage', 'expressCheckout', 'brainFreeze', 'tvDinner', 'clearanceSale', 'greaseFire', 'pressurePoint', 'mistMachine',
   'fiveAlarm', 'sizzlingSkillet', 'chickenDinner', 'frostbiteNails', 'staticCling', 'reheat', 'smoothieShield', 'confettiCannon', 'blackIce', 'shrapnel',
   'pressureWasher', 'powerSurge', 'potSlam', 'priceCheck', 'sugarRush', 'smashBank', 'bagIt', 'sourMist', 'sparksFly', 'rayGun', 'tailwind', 'crackOpen',
-  'fireworksShow', 'kettleCorn',
+  'fireworksShow', 'kettleCorn', 'freshBread', 'liveWire', 'thunderstorm', 'slushie',
 ] as const;
 
 /**

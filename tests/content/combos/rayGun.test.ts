@@ -57,7 +57,7 @@ describe('Ray Gun: runtime', () => {
   it('a plain nail (no splash) and a Nail Gun without the combo do nothing', () => {
     const { fake, stats } = arena(partsOf(rayGun));
     const e = fake.spawnEnemy();
-    fake.hooks.emit('pattern:shotHit', { stats, enemy: e, shot: { active: true, x: 0, y: 0, vx: 0, vy: 0, life: 1, damage: 3, stats, splash: null } });
+    fake.hooks.emit('pattern:shotHit', { stats, enemy: e, shot: { active: true, x: 0, y: 0, vx: 0, vy: 0, life: 1, damage: 3, stats, splash: null, tracker: { hits: new Set<number>() } } });
     const plain = arena([at('nailgun')]);
     const ev = fire(plain.stats as never);
     plain.fake.hooks.emit('pattern:fire', ev);
