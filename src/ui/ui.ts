@@ -297,7 +297,7 @@ function settingsHtml(): string {
   </div>`;
 }
 
-const CTL_LABEL: Record<KeyAction, UIKey> = { up: 'ctlUp', down: 'ctlDown', left: 'ctlLeft', right: 'ctlRight', shove: 'ctlShove', loadout: 'ctlLoadout', rotate: 'ctlRotate', pause: 'ctlPause' };
+const CTL_LABEL: Record<KeyAction, UIKey> = { up: 'ctlUp', down: 'ctlDown', left: 'ctlLeft', right: 'ctlRight', shove: 'ctlShove', loadout: 'ctlLoadout', rotate: 'ctlRotate', pause: 'ctlPause', useActive: 'ctlUseActive' };
 /** Key currently being rebound (waiting for the next key press), or null. */
 let listening: { action: KeyAction; slot: number } | null = null;
 
@@ -316,7 +316,7 @@ function controlsHtml(): string {
     <div class="kb-note" role="status"></div>
     <button class="btn small" data-act="reset-keys">${t('ctlReset')}</button>
     <div class="padinfo"><b>${t('ctlPadTitle')}</b>
-      <div>${t('ctlPadMove')}</div><div>${t('ctlPadShove')}</div><div>${t('ctlPadPause')}</div><div>${t('ctlPadLoadout')}</div><div>${t('ctlPadBack')}</div><div>${t('ctlPadShop')}</div></div>
+      <div>${t('ctlPadMove')}</div><div>${t('ctlPadShove')}</div><div>${t('ctlPadPause')}</div><div>${t('ctlPadActive')}</div><div>${t('ctlPadLoadout')}</div><div>${t('ctlPadBack')}</div><div>${t('ctlPadShop')}</div></div>
   </details>`;
 }
 

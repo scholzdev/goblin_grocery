@@ -1,5 +1,6 @@
 import type { Unlock } from '../data/unlocks';
 import type { HookName, RuntimeHookMap } from './hooks';
+import type { RuntimeCtx } from './ctx';
 import type { ActiveRecipe, BuffId, Build, Cell, DepartmentId, ElementTag, EnemyBehavior, EnemyId, FamilyTag, Inventory, ItemDef, ItemInstance, ItemTypeId, Perk, RecipeId, SetId, StarterWeapon, WeaponBase, WeaponStats } from '../types';
 
 // Content definitions for the item-hooks refactor (docs/item-hooks-refactor.md). Types only plus identity `define*` helpers:
@@ -32,6 +33,7 @@ export const ITEM_ORDER = [
   'microwave', 'blender', 'fizz', 'mop', 'pricegun', 'tape', 'coupon', 'bubblewrap', 'energy', 'fortune', 'sample', 'piggy', 'expiredmilk', 'tinfoilhat', 'jellybeans',
   'leafblower', 'sourdough', 'powerstrip', 'goldstar', 'laser', 'snackbag', 'cooker', 'spray', 'popper', 'doublebag', 'multipack', 'canopener', 'decaf',
   'expiredcoupon', 'popcorn', 'sparklers', 'barter', 'binder',
+  'fireextinguisher', 'airhorn',
 ] as const;
 
 /** Every combo, in the order `computeBuild` applies the matching ones (it decides which combo hook runs first on a weapon) and the codex lists them. */
@@ -229,6 +231,14 @@ export type EnhancedBy = 'always' | 'anyWeapon' | readonly ItemTypeId[]; // an a
 
 // ---- content ----------------------------------------------------------------------------------------------------------
 
+/**
+ * An active item ("spell"): the E key spends one charge of every instance in the cart that has one left (engine/actives.ts). The item's
+ * `tune.charges` is the charges per aisle at ★1..★3 and the only thing the engine reads; every other number of the effect is also in `tune`.
+ */
+export interface ActiveSpec<T extends Tune = Tune> {
+  use(ctx: RuntimeCtx, c: { readonly tier: number; tune(): Resolved<T>; /** The instance's uid (= its weapon uid when the item is a weapon). */ readonly uid: string }): void;
+}
+
 export interface ItemContent<T extends Tune = Tune> {
   id: ItemTypeId;
   kind: ItemDef['kind'];
@@ -267,6 +277,8 @@ export interface ItemContent<T extends Tune = Tune> {
   build?: BuildSpec<T>;
   /** Combat hooks (onHit, onKill, pattern:sweep ...): see RuntimeHooks. */
   hooks?: RuntimeHooks<T>;
+  /** E-key active, see `ActiveSpec`. Needs a `charges` tune entry. */
+  active?: ActiveSpec<T>;
   /** More hooks for other phases when one item needs two (Multipack: `module` damage + `post-combo` count). Never `module`. */
   extraBuild?: readonly BuildSpec<T>[];
   shopBias?: readonly DepartmentId[];

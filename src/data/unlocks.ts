@@ -80,6 +80,8 @@ export const UNLOCKS: Unlock[] = [
   { id: 'decaf', kind: 'item', item: 'decaf', need: 'Reach aisle 4', check: (s) => s.bestWave >= 4, progress: (s) => at(4)(s.bestWave) },
   { id: 'barter', kind: 'item', item: 'barter', need: 'Earn 600 coins (lifetime)', check: (s) => s.coins >= 600, progress: (s) => at(600)(s.coins) },
   { id: 'binder', kind: 'item', item: 'binder', need: 'Discover 5 combos', check: (s) => s.combos >= 5, progress: (s) => at(5)(s.combos) },
+  { id: 'fireextinguisher', kind: 'item', item: 'fireextinguisher', need: 'Reach aisle 3', check: (s) => s.bestWave >= 3, progress: (s) => at(3)(s.bestWave) },
+  { id: 'airhorn', kind: 'item', item: 'airhorn', need: 'Earn 150 coins (lifetime)', check: (s) => s.coins >= 150, progress: (s) => at(150)(s.coins) },
   { id: 'laser', kind: 'item', item: 'laser', need: 'Win 3 runs', check: (s) => s.wins >= 3, progress: (s) => at(3)(s.wins) },
   { id: 'starter-coupon', kind: 'starter', starter: 'coupon', need: 'Earn 400 coins (lifetime)', check: (s) => s.coins >= 400, progress: (s) => at(400)(s.coins) },
   { id: 'starter-night', kind: 'starter', starter: 'night', need: 'Reach aisle 6', check: (s) => s.bestWave >= 6, progress: (s) => at(6)(s.bestWave) },

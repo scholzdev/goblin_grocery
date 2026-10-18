@@ -84,6 +84,8 @@ export interface ItemInstance {
   /** Collector's Binder only: the family it was bought for, and how many of that family were sold since. */
   binderFamily?: FamilyTag;
   binderSold?: number;
+  /** Active items only: uses left this aisle. Missing = full (`engine/actives.ts`); refilled by `startNextWave`. */
+  charges?: number;
 }
 
 export interface Inventory {

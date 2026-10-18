@@ -90,6 +90,14 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 }
 #hud .shove.ready .ring { box-shadow: 0 0 0 3px var(--gold); }
 #hud .recipes { display: flex; gap: 8px; }
+#hud .actives { display: flex; gap: 8px; margin-top: 6px; }
+.active-item { display: flex; align-items: center; gap: 6px; padding: 3px 8px; background: #FFF2D5; border: 3px solid #30203F; border-radius: 10px; }
+.active-item img { width: 28px; height: 28px; }
+.active-item kbd { font: 700 12px/1 inherit; padding: 2px 5px; border: 2px solid #30203F; border-radius: 5px; background: #fff; }
+.active-item .pips { display: flex; gap: 3px; }
+.active-item .pips i { width: 9px; height: 9px; border-radius: 50%; border: 2px solid #30203F; background: transparent; }
+.active-item .pips i.on { background: #F45F52; }
+.active-item.spent { opacity: 0.55; }
 .badge {
   display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 2px 4px; border: 2px solid var(--plum); border-radius: 999px;
   background: var(--gold); font-family: var(--display); font-size: 15px; box-shadow: 0 3px 0 var(--plum);

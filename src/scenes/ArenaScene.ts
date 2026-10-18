@@ -54,7 +54,8 @@ import { ZONES, type ZoneDef } from '../data/zones';
 import { type Rect, inLane, pushOutCapsule, pushOutCircle, rectsOverlap, segmentHitsRect, steerAround } from '../systems/obstacles';
 
 import { isDown, resetKeyboard, takePressed } from '../input/keyboard';
-import { padMove, takePadShove } from '../input/gamepad';
+import { padMove, takePadActive, takePadShove } from '../input/gamepad';
+import { activeSlots, fireActives } from '../engine/actives';
 import { ARENA, ENTRIES, SIDE_UNITS, DECO_SPOTS, edgeSolids } from '../data/arena';
 import { labDummies, type LabDummy } from '../lab';
 export { ARENA };
@@ -501,7 +502,7 @@ export class ArenaScene extends Phaser.Scene {
     this.arsenal.clearAll(true);
     this.groups.forEach((g) => (g.done = true));
     this.enemies.filter((e) => e.alive).forEach((e) => this.killEnemy(e, false));
-    this.time.delayedCall(600, () => this.coins.forEach((c) => (c.pull = c.active)));
+    this.time.delayedCall(600, () => this.pullCoins());
     this.time.delayedCall(1300, () => this.offerCrates(rollMiniCrates(store.state, flow.rng), { title: t('miniCratesTitle'), hint: t('miniCratesHint') }, () => {
       this.miniDue = false;
       this.ending = '';
@@ -546,8 +547,15 @@ export class ArenaScene extends Phaser.Scene {
    * Stun from hazards and hooks. The boss shrugs it off to keep its patterns readable (see `staggerEnemy`). `tag` is the element of a frost or
    * electric stun: the time scales with the enemy's affinity (engine/affinity). Returns the seconds applied, 0 if refused.
    */
-  stunEnemy(e: Enemy, t: number, tag?: AffinityTag): number {
-    if (!e.alive || e.def.behavior === 'boss') return 0;
+  stunEnemy(e: Enemy, t: number, tag?: AffinityTag, bossSeconds = 0): number {
+    if (!e.alive) return 0;
+    if (e.def.behavior === 'boss') { // only a walking boss can be stunned, and only for the cap: it must not cut a tell or attack short
+      if (bossSeconds <= 0 || e.state !== 'walk') return 0;
+      e.state = 'stun';
+      e.stateT = Math.max(e.stateT, bossSeconds);
+      e.staggered = true;
+      return bossSeconds;
+    }
     const dur = t * statusDurationMult(e.def, tag);
     e.state = 'stun';
     e.stateT = Math.max(e.stateT, dur);
@@ -571,6 +579,9 @@ export class ArenaScene extends Phaser.Scene {
 
   /** A status the pattern code applied directly (a burning pool's tick) reports it here, so the element reactions see it like a `ctx.ignite` (engine/reactions). */
   reactionApplied(e: Enemy, kind: AppliedStatus): void { this.ctx.reactor.applied(e, kind); }
+
+  /** Every coin on the floor flies to the goblin (the end-of-aisle sweep, also Vacuum's Full Suck). */
+  pullCoins(): void { this.coins.forEach((c) => (c.pull = c.active)); }
 
   /** Floor slow multiplier for enemies (ice). */
   groundSlow(e: Enemy): number {
@@ -1021,6 +1032,7 @@ export class ArenaScene extends Phaser.Scene {
       hud.tick({
         timeLeft: this.wave.boss || this.miniDue || s.labSandbox || s.modifier === 'stockroom' ? -1 : Math.max(0, this.wave.duration - this.waveTime),
         elapsed: this.waveTime,
+        actives: activeSlots(s.inventory).map((a) => ({ type: a.inst.type, left: a.left, max: a.max })),
         shoveCd: this.player.chainT > 0 ? 0 : Math.max(0, this.player.shoveCd), shoveMax: s.build.shoveCooldown,
         boss: this.boss ? { hp: Math.max(0, this.boss.hp), max: this.boss.maxHp, enraged: this.enraged, name: enemyT(this.boss.def.id).name.toUpperCase() }
           : this.mini ? { hp: Math.max(0, this.mini.hp), max: this.mini.maxHp, enraged: this.enraged, name: t('miniBossBar', { name: enemyT(this.mini.def.id).name.toUpperCase() }) } : null,
@@ -1053,6 +1065,9 @@ export class ArenaScene extends Phaser.Scene {
     p.invulnT -= dt; p.protectT -= dt; p.hurtT -= dt; p.shoveCd -= dt; p.chainT -= dt;
     const inp = this.input01();
     if (inp.x !== 0) p.facing = inp.x > 0 ? 1 : -1;
+
+    const keyActive = takePressed('useActive'), padActive = takePadActive();
+    if ((keyActive || padActive) && fireActives(s.inventory, this.ctx)) this.fx.shake(0.002, 90);
 
     const devShove = import.meta.env.DEV && this.devInput?.shove;
     if (devShove) this.devInput!.shove = false;

@@ -208,3 +208,7 @@ Element reactions (docs/item-hooks-refactor.md "Reactions"). A teal name pops ov
 - `src/flow.ts`: `flow.startSim(sim)`, `flow.restartSim()`, `flow.sim`.
 - `src/systems/spread.ts`: pure cluster / ring positions. The arena side is `ArenaScene.labSpawnAll`.
 - `src/ui/simTag.ts`: HUD tag, notes, error card, `launchSim(id)`.
+
+## Active items
+
+`?sim=actives`: Vacuum, Bubble Wrap, Air Horn and Fire Extinguisher in one cart, 10 immortal milk. Press E to fire every active that has a charge (the HUD shows the charges under the receipt strip). All active numbers are in the items' `tune` (`src/content/items/{airhorn,fireextinguisher,bubblewrap,vacuum}.ts`).

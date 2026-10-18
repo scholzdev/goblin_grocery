@@ -33,6 +33,8 @@ import { applyKillEffects } from './onKillEffects';
 export type Call = { at: number } & (
   | { kind: 'damage'; enemy: number; dmg: number; source: string | null; opts: HitOpts }
   | { kind: 'stun'; enemy: number; seconds: number; tag?: AffinityTag }
+  | { kind: 'pullCoins' }
+  | { kind: 'boostWeapon'; weapon: string; pull: number; range: number; seconds: number }
   | { kind: 'stagger'; enemy: number }
   | { kind: 'ignite'; enemy: number; burn: BurnEffect }
   | { kind: 'slow'; enemy: number; slow: SlowEffect }
@@ -233,9 +235,15 @@ export class FakeCtx implements RuntimeCtx {
     return hit.length;
   }
   /** Mirrors `ArenaScene.stunEnemy`: bosses are immune, the time scales with the enemy's affinity for `tag`. The log keeps the requested seconds. */
-  stun(e: CombatEnemy, seconds: number, tag?: AffinityTag): number {
+  stun(e: CombatEnemy, seconds: number, tag?: AffinityTag, bossSeconds = 0): number {
     this.log({ kind: 'stun', enemy: e.id, seconds, ...(tag ? { tag } : {}) });
-    if (!e.alive || e.def.behavior === 'boss') return 0;
+    if (!e.alive) return 0;
+    if (e.def.behavior === 'boss') { // mirrors the scene: only a walking boss, only for the cap
+      if (bossSeconds <= 0 || e.state !== 'walk') return 0;
+      e.state = 'stun';
+      e.stateT = Math.max(e.stateT ?? 0, bossSeconds);
+      return bossSeconds;
+    }
     const applied = seconds * statusDurationMult(e.def, tag);
     e.state = 'stun';
     e.stateT = Math.max(e.stateT ?? 0, applied);
@@ -303,6 +311,8 @@ export class FakeCtx implements RuntimeCtx {
   }
   spawnPool(spec: PoolSpec): void { this.log({ kind: 'spawnPool', spec }); }
   /** Damages every enemy in the radius with `fromPopper` (so poppers never re-trigger), as the scene does. */
+  pullCoins(): void { this.log({ kind: 'pullCoins' }); }
+  boostWeapon(weaponUid: string, boost: { pull: number; range: number }, seconds: number): void { this.log({ kind: 'boostWeapon', weapon: weaponUid, ...boost, seconds }); }
   popperBlast(pos: { x: number; y: number }, pop: { damage: number; radius: number }, setPop = false): void {
     this.log({ kind: 'popperBlast', x: pos.x, y: pos.y, damage: pop.damage, radius: pop.radius, setPop });
     for (const e of this.inRadius(pos, pop.radius)) this.damage(e, pop.damage, null, { fromPopper: true, label: 'Party Popper' });

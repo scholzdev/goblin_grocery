@@ -75,6 +75,8 @@ const unlocks: Record<string, string> = {
   decaf: 'Erreiche Gang 4',
   barter: 'Verdiene 600 Münzen (insgesamt)',
   binder: 'Entdecke 5 Combos',
+  fireextinguisher: 'Erreiche Gang 3',
+  airhorn: 'Verdiene 150 Münzen (insgesamt)',
   laser: 'Gewinne 3 Runs',
   'starter-coupon': 'Verdiene 400 Münzen (insgesamt)',
   'starter-night': 'Erreiche Gang 6',

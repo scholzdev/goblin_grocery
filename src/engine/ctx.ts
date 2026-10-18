@@ -137,8 +137,13 @@ export interface RuntimeCtx {
   /**
    * Stun for `seconds` (bosses are immune). `tag` names the element of a frost or electric stun: the time scales with the enemy's affinity for it
    * (`statusDurationMult`); no tag = x1 (the dash stun). Returns the seconds actually applied (0 = refused), for a hook's ice-block visual.
+   * `bossSeconds` (default 0 = immune): a boss or mini-boss that is walking is staggered for this long instead (Air Horn).
    */
-  stun(e: CombatEnemy, seconds: number, tag?: AffinityTag): number;
+  stun(e: CombatEnemy, seconds: number, tag?: AffinityTag, bossSeconds?: number): number;
+  /** Every coin on the floor flies to the goblin (Vacuum's Full Suck). */
+  pullCoins(): void;
+  /** Multiply a weapon's suction `pull` and `range` for `seconds` (Vacuum's Full Suck). No effect on other patterns. */
+  boostWeapon(weaponUid: string, boost: { pull: number; range: number }, seconds: number): void;
   /** Burn through the aisle's modifiers (`aisle.burn`), as the weapon branches do; its duration scales with the enemy's heat affinity. */
   ignite(e: CombatEnemy, burn: BurnEffect): void;
   /** Slow, its duration scaled by the enemy's frost affinity. */
