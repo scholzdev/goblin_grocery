@@ -4,7 +4,7 @@ import { ITEMS, ITEM_IDS, TIER, cellsFor, cellsOf } from '../data/items';
 import { RECIPES, recipeIcon, recipeParts } from '../data/recipes';
 import { BOSS_WAVE, ECONOMY, SHOP_LEVELS } from '../data/waves';
 import { labAddItem, labClear, cartUpgradeCost, nextCartSize, shelfUpgradeCost, upgradeCart, upgradeShelf, buyOffer, mergeItems, mergeTargetFor, upgradeShop, shopUpgradeCost, moveItem, previewMerge, previewMove, repair, reroll, sellItem, type MoveTarget } from '../state/run';
-import { findItem, rotateCells, footprint } from '../systems/inventory';
+import { findItem, rotateCells, rotatedSize, footprint } from '../systems/inventory';
 import { describeBuffs, tierScaling } from '../systems/synergies';
 import { currentRerollCost, inflation, repairCost, sellPrice } from '../systems/shop';
 import { flow } from '../flow';
@@ -40,6 +40,8 @@ interface Drag {
   ghost: HTMLElement | null;
   startX: number; startY: number;
   lastX: number; lastY: number;
+  /** Screen position of the clamped grid target: while over the grid the ghost sits on its cells instead of following the pointer. */
+  snap: { x: number; y: number } | null;
   target: MoveTarget | { where: 'sell' } | { where: 'merge'; uid: string } | null;
   /** The current target would accept the drop (a gamepad drop on an invalid target keeps holding). */
   valid: boolean;
@@ -666,7 +668,7 @@ function onPointerDown(e: PointerEvent): void {
 
 /** Picks an item up (pointer press or gamepad A): `grab` is the footprint cell held, (x, y) where the ghost is anchored on screen. */
 function beginDrag(inst: ItemInstance, rot: Rotation, grab: { x: number; y: number }, x: number, y: number): void {
-  drag = { uid: inst.uid, type: inst.type, rot, tier: inst.tier ?? 1, grab, ghost: null, startX: x, startY: y, lastX: x, lastY: y, target: null, valid: false, pad: false };
+  drag = { uid: inst.uid, type: inst.type, rot, tier: inst.tier ?? 1, grab, ghost: null, startX: x, startY: y, lastX: x, lastY: y, snap: null, target: null, valid: false, pad: false };
 }
 
 function startGhost(): void {
@@ -702,8 +704,8 @@ function sizeGhost(): void {
 function positionGhost(): void {
   if (!drag?.ghost) return;
   const cellPx = CELL * scale();
-  drag.ghost.style.left = `${drag.lastX - (drag.grab.x + 0.5) * cellPx}px`;
-  drag.ghost.style.top = `${drag.lastY - (drag.grab.y + 0.5) * cellPx}px`;
+  drag.ghost.style.left = `${drag.snap?.x ?? drag.lastX - (drag.grab.x + 0.5) * cellPx}px`;
+  drag.ghost.style.top = `${drag.snap?.y ?? drag.lastY - (drag.grab.y + 0.5) * cellPx}px`;
   if (hint) { // bubble to the right of the ghost, flipped left near the screen edge
     const r = drag.ghost.getBoundingClientRect(), w = hint.offsetWidth;
     hint.style.left = `${r.right + 12 + w > innerWidth ? Math.max(8, r.left - 12 - w) : r.right + 12}px`;
@@ -750,6 +752,7 @@ function updateTarget(): void {
   let preview: Build | null = null;
   let sellHint = '';
   drag.target = null;
+  drag.snap = null;
   drag.valid = false;
   const over = under?.closest<HTMLElement>('.item[data-uid]');
   const overInst = over && over.dataset.uid !== drag.uid ? findItem(s.inventory, over.dataset.uid!)?.inst : null;
@@ -771,7 +774,14 @@ function updateTarget(): void {
     const r = grid.getBoundingClientRect();
     const cellPx = r.width / (s.inventory.cols * CELL - 0) * CELL;
     const px = Math.floor((drag.lastX - r.left) / cellPx), py = Math.floor((drag.lastY - r.top) / cellPx);
-    const target: MoveTarget = { where: 'grid', x: px - drag.grab.x, y: py - drag.grab.y, rot: drag.rot };
+    // Holding a tall item by any cell above its last one and pointing at the bottom row must not push it out of the frame: clamp the footprint into the grid.
+    const size = rotatedSize(drag.type, drag.rot, drag.tier);
+    const target: MoveTarget = {
+      where: 'grid', rot: drag.rot,
+      x: Math.min(Math.max(px - drag.grab.x, 0), s.inventory.cols - size.w),
+      y: Math.min(Math.max(py - drag.grab.y, 0), s.inventory.rows - size.h),
+    };
+    drag.snap = { x: r.left + target.x * cellPx, y: r.top + target.y * cellPx };
     const res = previewMove(s, drag.uid, target);
     drag.target = target;
     drag.valid = res.result.ok;

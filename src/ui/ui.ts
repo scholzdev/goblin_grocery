@@ -24,7 +24,7 @@ import { SET_EVENTS, type SetEventKind } from '../data/events';
 import { CART_SKINS, GOBLIN_SKINS, UNLOCKS, type CartSkin, type GoblinSkin } from '../data/unlocks';
 import { COUPON_COINS, STAMPS_PER_CARD, cartUnlocked, dailyBestToday, discoverRecipe, goblinUnlocked, isNew, markSeen, newCount, profile, saveProfile, shiftUnlocked, starterUnlocked, unlockedItems } from '../state/profile';
 import { ITEM_IDS } from '../data/items';
-import type { DepartmentId, EnemyId, ItemTypeId, LabOpts, Perk, RecipeId, StarterId, StarterWeapon } from '../types';
+import type { DepartmentId, EnemyId, ItemTypeId, LabOpts, Perk, RecipeId, SetId, StarterId, StarterWeapon } from '../types';
 import type { Fresh } from '../state/profile';
 import { modIcon, setIcon } from './icons';
 import { affinityRowsHtml } from './affinity';
@@ -32,10 +32,9 @@ import { damageBreakdownHtml } from './damageBreakdown';
 import { REACTION_LABEL, REACTION_TEXT } from '../engine/reactions';
 import { weaponTags } from '../engine/hitTags';
 import { t, fmtNum, lang, setLang, LANGS, type Lang, type UIKey } from '../i18n';
-import { newSetLevels, setsOf } from '../data/sets';
-import { flavorOf } from '../engine/define';
+import { newSetLevels } from '../data/sets';
 import { ZONES } from '../data/zones';
-import { cartSkinT, deptT, enemyT, goblinSkinT, itemT, recipeT, shiftT, starterT, tagT, unlockNeedT, zoneT } from '../i18n/data';
+import { cartSkinT, deptT, enemyT, goblinSkinT, itemT, recipeT, setBonusT, shiftT, starterT, tagT, unlockNeedT, zoneT } from '../i18n/data';
 
 // DOM controllers are created exactly once at boot and driven by store events,
 // so restarting a run never duplicates listeners or overlays.
@@ -127,12 +126,11 @@ export function initUi(_game: Phaser.Game): void {
   store.on('run-start', () => { setBase = null; });
   store.on('change', () => {
     const st = store.state;
-    if (st.phase !== 'shop') { setBase = null; return; }
+    if (st.phase !== 'shop') { setBase = null; closeSetCard(); return; }
     const now = snap();
-    if (setBase) for (const { id, lv } of newSetLevels(setBase, now)) {
-      const last = st.inventory.placed[st.inventory.placed.length - 1];
-      const member = (last && setsOf(last.type, flavorOf(last)).includes(id) ? last.type : ITEM_IDS.find((i) => setsOf(i).includes(id))) as ItemTypeId;
-      celebrate(t('setUp'), t('setUpName', { set: tagT(id), n: lv }), `icon_${member}`, t('setUpLine'));
+    if (setBase) {
+      const ups = newSetLevels(setBase, now);
+      if (ups.length) setBonusCard(ups);
     }
     setBase = now;
   });
@@ -172,6 +170,48 @@ export function initUi(_game: Phaser.Game): void {
     }
     panel.innerHTML = inspectorHtml(inst.type as ItemTypeId, inst.uid);
   });
+}
+
+// One compact card collects every set level reached while it is showing: a row per set, the timer restarts on each addition.
+const SET_CARD_MS = 3600;
+let setCard: { el: HTMLElement; timer: number } | null = null;
+
+function closeSetCard(): void {
+  if (!setCard) return;
+  clearTimeout(setCard.timer);
+  setCard.el.remove();
+  setCard = null;
+}
+
+function setBonusCard(ups: { id: SetId; lv: number }[]): void {
+  if (!setCard) {
+    const el = document.createElement('div');
+    el.className = 'setcard';
+    el.innerHTML = `<small>${t('setUp')}</small>`;
+    ui.append(el);
+    setCard = { el, timer: 0 };
+  }
+  const card = setCard;
+  for (const { id, lv } of ups) {
+    card.el.querySelector(`.srow[data-set="${id}"]`)?.remove();
+    const row = document.createElement('div');
+    row.className = 'srow';
+    row.dataset.set = id;
+    row.innerHTML = `${setIcon(id, 22)}<div><b>${t('setCardRow', { set: tagT(id), n: lv })}</b><span>${setBonusT(id, lv as 1 | 2 | 3)}</span></div>`;
+    card.el.append(row);
+  }
+  card.el.classList.remove('out');
+  // Sits under the receipt column, clear of the cart grid (the receipt grows with the ledger).
+  const rcpt = document.querySelector('#shop .col-left')?.getBoundingClientRect();
+  const k = ui.getBoundingClientRect(), sc = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--s')) || 1;
+  const below = rcpt ? (rcpt.bottom - k.top) / sc + 12 : 520;
+  card.el.style.top = `${Math.min(below, ui.clientHeight - card.el.offsetHeight - 8)}px`;
+  play('upgrade');
+  clearTimeout(card.timer);
+  card.timer = window.setTimeout(() => {
+    card.el.classList.add('out');
+    card.timer = window.setTimeout(closeSetCard, 350);
+  }, SET_CARD_MS);
 }
 
 function celebrate(title: string, name: string, icon: string, line: string | null = t('addedCatalog')): void {
