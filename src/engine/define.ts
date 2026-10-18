@@ -31,7 +31,7 @@ export const ITEM_ORDER = [
   'toaster', 'pan', 'nailgun', 'vacuum', 'fan', 'fuel', 'battery', 'magnet', 'ice', 'hotsauce', 'lunchbox', 'bell', 'boot', 'bumper', 'sparewheel', 'tipjar', 'flag',
   'microwave', 'blender', 'fizz', 'mop', 'pricegun', 'tape', 'coupon', 'bubblewrap', 'energy', 'fortune', 'sample', 'piggy', 'expiredmilk', 'tinfoilhat', 'jellybeans',
   'leafblower', 'sourdough', 'powerstrip', 'goldstar', 'laser', 'snackbag', 'cooker', 'spray', 'popper', 'doublebag', 'multipack', 'canopener', 'decaf',
-  'expiredcoupon',
+  'expiredcoupon', 'popcorn', 'sparklers',
 ] as const;
 
 /** Every combo, in the order `computeBuild` applies the matching ones (it decides which combo hook runs first on a weapon) and the codex lists them. */
@@ -39,6 +39,7 @@ export const RECIPE_ORDER = [
   'toastMode', 'nailstorm', 'coldStorage', 'expressCheckout', 'brainFreeze', 'tvDinner', 'clearanceSale', 'greaseFire', 'pressurePoint', 'mistMachine',
   'fiveAlarm', 'sizzlingSkillet', 'chickenDinner', 'frostbiteNails', 'staticCling', 'reheat', 'smoothieShield', 'confettiCannon', 'blackIce', 'shrapnel',
   'pressureWasher', 'powerSurge', 'potSlam', 'priceCheck', 'sugarRush', 'smashBank', 'bagIt', 'sourMist', 'sparksFly', 'rayGun', 'tailwind', 'crackOpen',
+  'fireworksShow', 'kettleCorn',
 ] as const;
 
 /**

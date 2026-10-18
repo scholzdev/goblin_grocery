@@ -26,6 +26,7 @@ export function comboDps(w: WeaponStats, shoveCd: number): { single: number; cro
     case 'puddle': single = (w.damage / w.tick) * (1 + w.critChance) + burn; crowd = single * 3; break;
     case 'cone': single = per * w.count * r; crowd = per * w.count * (w.arcDeg >= 110 ? 5 : 3) * r; break;
     case 'mortar': single = per * w.count * r + burn; crowd = per * w.count * 4 * r + (w.recipes.includes('pressurePoint') ? burn * 3 : 0); break;
+    case 'popcorn': single = per * w.count * r; crowd = single; break; // a kernel per random target
     case 'laser': single = per * r; crowd = per * 3 * r; break;
   }
   if (w.recipes.includes('expressCheckout')) {
@@ -44,6 +45,8 @@ export function comboDps(w: WeaponStats, shoveCd: number): { single: number; cro
   if (has('staticCling')) { single += per * contentComboTune('staticCling').damageMult * r; crowd += per * contentComboTune('staticCling').damageMult * 3 * r; }
   if (has('confettiCannon')) { single += contentComboTune('confettiCannon').damageMult * per * w.count * r; crowd += contentComboTune('confettiCannon').damageMult * per * 2 * w.bounces * w.count * r; }
   if (has('shrapnel')) { const x = contentComboTune('shrapnel').count * contentComboTune('shrapnel').damageMult * w.damage * 0.5 * r; single += x; crowd += x; }
+  if (has('fireworksShow')) { const k = contentComboTune('fireworksShow'); single += k.count * k.damageMult * w.damage * 0.3 * r; crowd += k.count * k.damageMult * w.damage * 1.5 * r; } // ring blasts mostly miss one target, ~1.5 hit a pack
+  if (has('kettleCorn')) { const k = contentComboTune('kettleCorn'), x = k.count * k.damage * w.count * r * 0.4; single += x; crowd += x; } // ~40% of volleys kill, each kill scatters kernels
   if (has('frostbiteNails')) crowd *= 1.15; // crowd-control value
   if (has('smoothieShield')) crowd *= 1.2;  // defensive value
   if (has('blackIce')) crowd *= 1.2;        // crowd-control value

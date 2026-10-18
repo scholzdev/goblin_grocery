@@ -220,9 +220,9 @@ describe('combo sims', () => {
   const ACTIVE: Partial<Record<RecipeId, RecipeId[]>> = { tailwind: ['sugarRush', 'tailwind'], sourMist: ['mistMachine', 'sourMist'] };
 
   it('there is one sim for every combo', () => {
-    expect(RECIPE_ORDER).toHaveLength(32);
+    expect(RECIPE_ORDER).toHaveLength(34);
     for (const [id, simId] of Object.entries(COMBO_SIMS)) expect(simRegistry.get(simId), `${id} -> ${simId}`).toBeDefined();
-    expect(simRegistry.ids.filter((i) => i.startsWith('combo-'))).toHaveLength(32);
+    expect(simRegistry.ids.filter((i) => i.startsWith('combo-'))).toHaveLength(34);
   });
   it('each sim activates its combo, and exactly the combos listed in ACTIVE besides it', () => {
     for (const [id, simId] of Object.entries(COMBO_SIMS) as [RecipeId, string][]) {
@@ -239,8 +239,8 @@ describe('combo sims', () => {
       expect(simDummies(s).length, simId).toBeGreaterThan(0);
     }
   });
-  it('kill-driven combos (Bag It, Clearance Sale) have mortal dummies, and the crit combo has crit chance', () => {
-    for (const simId of ['combo-bag-it', 'combo-clearance-sale']) expect(simDummies(sim(simId)).every((d) => !d.immortal), simId).toBe(true);
+  it('kill-driven combos (Bag It, Clearance Sale, Kettle Corn) have mortal dummies, and the crit combo has crit chance', () => {
+    for (const simId of ['combo-bag-it', 'combo-clearance-sale', 'combo-kettle-corn']) expect(simDummies(sim(simId)).every((d) => !d.immortal), simId).toBe(true);
     expect(createSimRun(sim('combo-clearance-sale')).build.weapons[0].critChance).toBeGreaterThan(0);
   });
   it('Smoothie Shield has shooters to block, and Ray Gun replaces Nailstorm', () => {
@@ -255,9 +255,9 @@ describe('weapon sims', () => {
   const simOf = (id: string): SimDef => sim(`weapon-${id}`);
 
   it('there is one sim for every weapon', () => {
-    expect(WEAPON_IDS).toHaveLength(12);
+    expect(WEAPON_IDS).toHaveLength(13);
     for (const id of WEAPON_IDS) expect(simRegistry.get(`weapon-${id}`), id).toBeDefined();
-    expect(simRegistry.ids.filter((i) => i.startsWith('weapon-'))).toHaveLength(12);
+    expect(simRegistry.ids.filter((i) => i.startsWith('weapon-'))).toHaveLength(13);
   });
   it('each sim has exactly that weapon, at ★3 (the legendary at ★1), with an explicit spot, notes and dummies in the arena sandbox', () => {
     for (const id of WEAPON_IDS) {

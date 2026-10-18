@@ -173,6 +173,24 @@
       "weapon": "pan"
     }
   ],
+  "buffs.combo.fireworksShow.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Feuerwerk"
+      ],
+      "weapon": "cooker"
+    }
+  ],
+  "buffs.combo.fireworksShow.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Fireworks Show"
+      ],
+      "weapon": "cooker"
+    }
+  ],
   "buffs.combo.fiveAlarm.de": [
     {
       "lines": [
@@ -233,6 +251,26 @@
         "Combo: Grease Fire"
       ],
       "weapon": "mop"
+    }
+  ],
+  "buffs.combo.kettleCorn.de": [
+    {
+      "lines": [
+        "Kills explodieren: 6 Schaden, Radius 70 (Partyknaller)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Karamell-Popcorn"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.combo.kettleCorn.en": [
+    {
+      "lines": [
+        "Kills explode: 6 dmg, 70 radius (Party Popper)",
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Kettle Corn"
+      ],
+      "weapon": "popcorn"
     }
   ],
   "buffs.combo.mistMachine.de": [
@@ -1919,6 +1957,24 @@
       "weapon": "pan"
     }
   ],
+  "buffs.item.battery.t1.on.popcorn.de": [
+    {
+      "lines": [
+        "+12 % Angriffstempo (Batterie)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.item.battery.t1.on.popcorn.en": [
+    {
+      "lines": [
+        "+12% attack rate (Battery)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
   "buffs.item.battery.t1.on.spray.de": [
     {
       "lines": [
@@ -2395,6 +2451,24 @@
       "weapon": "pan"
     }
   ],
+  "buffs.item.doublebag.t1.on.popcorn.de": [
+    {
+      "lines": [
+        "Treffer wiederholen sich mit 50 % Schaden (Doppeltüte)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.item.doublebag.t1.on.popcorn.en": [
+    {
+      "lines": [
+        "Hits repeat for 50% damage (Double Bag)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
   "buffs.item.doublebag.t1.on.spray.de": [
     {
       "lines": [
@@ -2743,6 +2817,24 @@
       "weapon": "pan"
     }
   ],
+  "buffs.item.fan.t1.on.popcorn.de": [
+    {
+      "lines": [
+        "+30 % Reichweite (Tischventilator)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.item.fan.t1.on.popcorn.en": [
+    {
+      "lines": [
+        "+30% reach (Desk Fan)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
   "buffs.item.fan.t1.on.spray.de": [
     {
       "lines": [
@@ -3067,6 +3159,24 @@
       "weapon": "pan"
     }
   ],
+  "buffs.item.fuel.t1.on.popcorn.de": [
+    {
+      "lines": [
+        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.item.fuel.t1.on.popcorn.en": [
+    {
+      "lines": [
+        "Burn 2.5/s for 2s (Fuel Can)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
   "buffs.item.fuel.t1.on.spray.de": [
     {
       "lines": [
@@ -3353,6 +3463,24 @@
       "weapon": "pan"
     }
   ],
+  "buffs.item.hotsauce.t1.on.popcorn.de": [
+    {
+      "lines": [
+        "+25 % Schaden (Scharfe Soße)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.item.hotsauce.t1.on.popcorn.en": [
+    {
+      "lines": [
+        "+25% damage (Hot Sauce)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
   "buffs.item.hotsauce.t1.on.spray.de": [
     {
       "lines": [
@@ -3609,6 +3737,24 @@
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "pan"
+    }
+  ],
+  "buffs.item.ice.t1.on.popcorn.de": [
+    {
+      "lines": [
+        "Verlangsamung 25 % für 1 s (Kühlakku)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.item.ice.t1.on.popcorn.en": [
+    {
+      "lines": [
+        "Slow 25% for 1s (Ice Pack)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "popcorn"
     }
   ],
   "buffs.item.ice.t1.on.spray.de": [
@@ -3961,6 +4107,24 @@
       "weapon": "pan"
     }
   ],
+  "buffs.item.multipack.t1.on.popcorn.de": [
+    {
+      "lines": [
+        "+20 % Schaden (Multipack)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.item.multipack.t1.on.popcorn.en": [
+    {
+      "lines": [
+        "+20% damage (Multipack)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
   "buffs.item.multipack.t1.on.spray.de": [
     {
       "lines": [
@@ -4245,6 +4409,26 @@
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "pan"
+    }
+  ],
+  "buffs.item.popper.t1.on.popcorn.de": [
+    {
+      "lines": [
+        "Kills explodieren: 6 Schaden, Radius 70 (Partyknaller)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Karamell-Popcorn"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.item.popper.t1.on.popcorn.en": [
+    {
+      "lines": [
+        "Kills explode: 6 dmg, 70 radius (Party Popper)",
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Kettle Corn"
+      ],
+      "weapon": "popcorn"
     }
   ],
   "buffs.item.popper.t1.on.spray.de": [
@@ -4533,6 +4717,24 @@
       "weapon": "pan"
     }
   ],
+  "buffs.item.pricegun.t1.on.popcorn.de": [
+    {
+      "lines": [
+        "15 % Kritchance (Preisauszeichner)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.item.pricegun.t1.on.popcorn.en": [
+    {
+      "lines": [
+        "15% crit chance (Price Gun)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
   "buffs.item.pricegun.t1.on.spray.de": [
     {
       "lines": [
@@ -4751,6 +4953,38 @@
       "weapon": "toaster"
     }
   ],
+  "buffs.item.sparklers.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.sparklers.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.sparklers.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.sparklers.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
   "buffs.item.tape.t1.on.blender.de": [
     {
       "lines": [
@@ -4913,6 +5147,24 @@
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "pan"
+    }
+  ],
+  "buffs.item.tape.t1.on.popcorn.de": [
+    {
+      "lines": [
+        "Mehr Reichweite / extra Durchschlag (Panzertape)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.item.tape.t1.on.popcorn.en": [
+    {
+      "lines": [
+        "Bigger reach / extra pierce (Duct Tape)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "popcorn"
     }
   ],
   "buffs.item.tape.t1.on.spray.de": [
@@ -6109,6 +6361,42 @@
       "weapon": "pan"
     }
   ],
+  "buffs.weapon.popcorn.t1.de": [
+    {
+      "lines": [],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.weapon.popcorn.t1.en": [
+    {
+      "lines": [],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.weapon.popcorn.t2.de": [
+    {
+      "lines": [],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.weapon.popcorn.t2.en": [
+    {
+      "lines": [],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.weapon.popcorn.t3.de": [
+    {
+      "lines": [],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.weapon.popcorn.t3.en": [
+    {
+      "lines": [],
+      "weapon": "popcorn"
+    }
+  ],
   "buffs.weapon.spray.t1.de": [
     {
       "lines": [],
@@ -6325,6 +6613,18 @@
     "short": "Dash → bonus pan sweep",
     "summary": "Frying Pan touching a Shopping Bell: dash triggers a bonus sweep."
   },
+  "combos.fireworksShow.de": {
+    "detail": "Jede Explosion löst 6 weitere Explosionen in einem Ring von 110 um sie herum aus: 40% Schaden im Umkreis von 45 (Explosionen lösen keine Kettenreaktion aus).",
+    "name": "Feuerwerk",
+    "short": "Topfexplosionen platzen zu Feuerwerk",
+    "summary": "Schnellkochtopf berührt Wunderkerzen: der Deckel fliegt ab. Festlich."
+  },
+  "combos.fireworksShow.en": {
+    "detail": "Each explosion sets off 6 more blasts in a ring of 110 around it: 40% damage within 45 (blasts never chain).",
+    "name": "Fireworks Show",
+    "short": "Pot blasts burst into fireworks",
+    "summary": "Pressure Cooker touching Sparklers: the lid comes off. Festively."
+  },
   "combos.fiveAlarm.de": {
     "detail": "Toast macht +80% Schaden an Gegnern, die bereits brennen.",
     "name": "Fünf-Alarm-Toast",
@@ -6360,6 +6660,18 @@
     "name": "Grease Fire",
     "short": "Huge burning slicks",
     "summary": "Mop touching a Fuel Can: huge burning grease slicks."
+  },
+  "combos.kettleCorn.de": {
+    "detail": "Von einem Korn besiegte Gegner streuen 3 weitere Körner (2,5 Schaden, 160 Reichweite). Diese Körner streuen nie erneut und lösen kein Konfetti aus.",
+    "name": "Karamell-Popcorn",
+    "short": "Korn-Kills streuen weitere Körner",
+    "summary": "Popcornmaschine berührt Partyknaller: süß, salzig, explosiv."
+  },
+  "combos.kettleCorn.en": {
+    "detail": "Enemies killed by a kernel scatter 3 more kernels (2.5 damage, 160 range). Those kernels never scatter again and set off no confetti.",
+    "name": "Kettle Corn",
+    "short": "Kernel kills scatter more kernels",
+    "summary": "Popcorn Maker touching a Party Popper: sweet, salty, explosive."
   },
   "combos.mistMachine.de": {
     "detail": "Der Sprühkegel wird 120° breit und reicht 40% weiter. (Der Ventilator-Bonus auf Tempo/Reichweite gilt nicht für Sprühstöße, dies ersetzt ihn.)",
@@ -8059,6 +8371,62 @@
       }
     ]
   },
+  "items.popcorn.de": {
+    "blurb": "Popp. Popp. Popp-popp-popp.",
+    "name": "Popcornmaschine",
+    "rules": "Schießt alle {1} 6 Körner, jedes auf einen zufälligen Gegner in Reichweite. {0} Schaden pro Korn. 240 Reichweite.",
+    "rulesByTier": {
+      "1": "Schießt alle 1,3 s 6 Körner, jedes auf einen zufälligen Gegner in Reichweite. 3 Schaden pro Korn. 240 Reichweite.",
+      "2": "Schießt alle 1,17 s 6 Körner, jedes auf einen zufälligen Gegner in Reichweite. 4,5 Schaden pro Korn. 240 Reichweite.",
+      "3": "Schießt alle 1,04 s 6 Körner, jedes auf einen zufälligen Gegner in Reichweite. 6 Schaden pro Korn. 240 Reichweite."
+    },
+    "tierScaling": [
+      {
+        "label": "Schaden",
+        "values": [
+          "3",
+          "4,5",
+          "6"
+        ]
+      },
+      {
+        "label": "Intervall",
+        "values": [
+          "1,3 s",
+          "1,17 s",
+          "1,04 s"
+        ]
+      }
+    ]
+  },
+  "items.popcorn.en": {
+    "blurb": "Pop. Pop. Pop-pop-pop.",
+    "name": "Popcorn Maker",
+    "rules": "Pops 6 kernels every {1}, each at a random enemy in range. {0} damage per kernel. 240 range.",
+    "rulesByTier": {
+      "1": "Pops 6 kernels every 1.3 s, each at a random enemy in range. 3 damage per kernel. 240 range.",
+      "2": "Pops 6 kernels every 1.17 s, each at a random enemy in range. 4.5 damage per kernel. 240 range.",
+      "3": "Pops 6 kernels every 1.04 s, each at a random enemy in range. 6 damage per kernel. 240 range."
+    },
+    "tierScaling": [
+      {
+        "label": "Damage",
+        "values": [
+          "3",
+          "4.5",
+          "6"
+        ]
+      },
+      {
+        "label": "Interval",
+        "values": [
+          "1.3 s",
+          "1.17 s",
+          "1.04 s"
+        ]
+      }
+    ]
+  },
   "items.popper.de": {
     "blurb": "Jeder Abschuss ist ein Fest.",
     "name": "Partyknaller",
@@ -8299,6 +8667,46 @@
           "1 s",
           "1.5 s",
           "2 s"
+        ]
+      }
+    ]
+  },
+  "items.sparklers.de": {
+    "blurb": "Mit ausgestrecktem Arm halten. Oder auch nicht.",
+    "name": "Wunderkerzen",
+    "rules": "Jeder {0}. direkte Treffer der angrenzenden Waffe löst eine Explosion aus: 6 Schaden im Umkreis von 50. Pro Waffe höchstens eine Explosion alle 0,5 s.",
+    "rulesByTier": {
+      "1": "Jeder 6. direkte Treffer der angrenzenden Waffe löst eine Explosion aus: 6 Schaden im Umkreis von 50. Pro Waffe höchstens eine Explosion alle 0,5 s.",
+      "2": "Jeder 4. direkte Treffer der angrenzenden Waffe löst eine Explosion aus: 6 Schaden im Umkreis von 50. Pro Waffe höchstens eine Explosion alle 0,5 s.",
+      "3": "Jeder 3. direkte Treffer der angrenzenden Waffe löst eine Explosion aus: 6 Schaden im Umkreis von 50. Pro Waffe höchstens eine Explosion alle 0,5 s."
+    },
+    "tierScaling": [
+      {
+        "label": "Jeder n-te Treffer",
+        "values": [
+          "6",
+          "4",
+          "3"
+        ]
+      }
+    ]
+  },
+  "items.sparklers.en": {
+    "blurb": "Hold at arm's length. Or don't.",
+    "name": "Sparklers",
+    "rules": "Every {0}th direct hit of an adjacent weapon sets off a blast: 6 damage within 50. At most one blast every 0.5 s per weapon.",
+    "rulesByTier": {
+      "1": "Every 6th direct hit of an adjacent weapon sets off a blast: 6 damage within 50. At most one blast every 0.5 s per weapon.",
+      "2": "Every 4th direct hit of an adjacent weapon sets off a blast: 6 damage within 50. At most one blast every 0.5 s per weapon.",
+      "3": "Every 3th direct hit of an adjacent weapon sets off a blast: 6 damage within 50. At most one blast every 0.5 s per weapon."
+    },
+    "tierScaling": [
+      {
+        "label": "Every nth hit",
+        "values": [
+          "6",
+          "4",
+          "3"
         ]
       }
     ]
