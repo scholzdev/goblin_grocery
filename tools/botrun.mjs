@@ -1,8 +1,11 @@
 // DEV bot that kites enemies like a cautious human, auto-shops with a simple recipe-aware layout.
-// Usage: node tools/botrun.mjs [url] [runs=1]
+// Usage: node tools/botrun.mjs [url] [runs=1] [build=default|toast]  (toast: follow Toast Stack target list; default: buy everything)
 import { chromium } from 'playwright';
 const url = process.argv[2] ?? 'http://localhost:5173/';
 const runs = Number(process.argv[3] ?? 1);
+const build = process.argv[4] ?? 'default';
+const BUILDS = { toast: ['toaster', 'fuel', 'fan', 'hotsauce', 'battery', 'multipack', 'doublebag'] };
+const targets = BUILDS[build] ?? null;
 const browser = await chromium.launch({ channel: 'chrome' });
 for (let r = 0; r < runs; r++) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
@@ -34,15 +37,20 @@ for (let r = 0; r < runs; r++) {
       a.devInput = l > 0.05 ? { x: vx / l, y: vy / l, shove: near } : { x: 0, y: 0, shove: near };
     }, 80);
   });
-  const st = () => page.evaluate(() => { const s = window.__gg.store.state; return { phase: s.phase, wave: s.wave, hp: Math.round(s.hp), money: s.money, kills: s.stats.kills, rec: s.build.recipes.map((x) => x.id).join('+'), cells: s.inventory.placed.reduce((n, i) => n + (i.type==='pan'||i.type==='vacuum'?(i.type==='pan'?3:4):(['toaster','nailgun','fan','fuel','ice','lunchbox'].includes(i.type)?2:1)), 0), shelf: s.inventory.shelf.filter(Boolean).length, lv: s.shopLevel, tiers: s.inventory.placed.map((i) => i.type + (i.tier > 1 ? '*' + i.tier : '')).join(' ') }; });
+  const st = () => page.evaluate(() => { const s = window.__gg.store.state; return { phase: s.phase, wave: s.wave, hp: Math.round(s.hp), maxHp: s.build.maxHp, money: s.money, kills: s.stats.kills, rec: s.build.recipes.map((x) => x.id).join('+'), cells: s.inventory.placed.reduce((n, i) => n + (i.type==='pan'||i.type==='vacuum'?(i.type==='pan'?3:4):(['toaster','nailgun','fan','fuel','ice','lunchbox'].includes(i.type)?2:1)), 0), shelf: s.inventory.shelf.filter(Boolean).length, lv: s.shopLevel, tiers: s.inventory.placed.map((i) => i.type + (i.tier > 1 ? '*' + i.tier : '')).join(' ') }; });
   const t0 = Date.now();
-  let last = '';
+  let last = '', finished = false;
   while (Date.now() - t0 < 15 * 60_000) {
     const s = await st();
-    if (s.phase === 'victory' || s.phase === 'defeat') { console.log(`run ${r}: ${s.phase} wave=${s.wave} hp=${s.hp} kills=${s.kills} ${s.rec} [${s.tiers}] time=${Math.round((Date.now() - t0) / 1000)}s`); break; }
+    if (s.phase === 'victory' || s.phase === 'defeat') { console.log(`run ${r}: ${s.phase} wave=${s.wave} hp=${s.hp} kills=${s.kills} ${s.rec} [${s.tiers}] time=${Math.round((Date.now() - t0) / 1000)}s`); finished = true; break; }
     if (s.phase === 'route') {
       const doors = await page.$$('[data-act="door"]');
-      const pick = doors[Math.floor(Math.random() * doors.length)];
+      let pick = doors[Math.floor(Math.random() * doors.length)];
+      if (s.hp < s.maxHp * 0.6 || s.wave <= 3) { // avoid the rush door when weak or early
+        const ids = await Promise.all(doors.map((d) => d.getAttribute('data-id')));
+        const safe = doors.filter((_, i) => ids[i] !== 'rush');
+        if (safe.length) pick = safe[Math.floor(Math.random() * safe.length)];
+      }
       console.log('  door:', await pick.getAttribute('data-id'));
       await pick.click();
       continue;
@@ -50,11 +58,19 @@ for (let r = 0; r < runs; r++) {
     if (s.phase === 'shop') {
       const line = `  shop ${s.wave} lv${s.lv}: hp=${s.hp} money=${s.money} kills=${s.kills} cells=${s.cells}/20 shelf=${s.shelf} ${s.rec}`;
       if (line !== last) console.log(line); last = line;
-      await page.evaluate(() => {
-        const { store, rules } = window.__gg; const s = store.state;
+      const log = await page.evaluate((targets) => {
+        const { store, rules, flow } = window.__gg; const s = store.state;
+        const bought = [], rolls = []; let rr = 0;
         if (s.hp < s.build.maxHp - 9) rules.repair(s);
         if (s.money > 45) rules.upgradeShop(s);
-        for (const o of s.shop.offers) rules.buyOffer(s, o.slot);
+        if (!targets) for (const o of s.shop.offers) rules.buyOffer(s, o.slot);
+        else {
+          const buy = () => { for (const t of targets) s.shop.offers.forEach((o, i) => { if (!o.sold && o.type === t && rules.buyOffer(s, i).ok) bought.push(t); }); };
+          const want = () => s.shop.offers.some((o) => !o.sold && targets.includes(o.type));
+          buy();
+          while (!want() && rr < 6 && s.money >= 20) { const m = s.money; if (!rules.reroll(s, flow.rng).ok) break; rolls.push(m - s.money); rr++; buy(); }
+          if (s.money > 60) s.shop.offers.forEach((o, i) => { if (!o.sold && s.money - o.price > 40 && rules.buyOffer(s, i).ok) bought.push('+' + o.type); });
+        }
         // Merge any identical pairs (shelf onto grid first).
         const all = () => [...s.inventory.placed, ...s.inventory.shelf.filter(Boolean)];
         for (let pass = 0; pass < 3; pass++) for (const a of all()) for (const b of all()) if (a !== b && a.type === b.type) rules.mergeItems(s, a.uid, b.uid);
@@ -73,11 +89,14 @@ for (let r = 0; r < runs; r++) {
         if (s.money > 30) rules.upgradeCart(s);
         if (s.money > 25) rules.upgradeShelf(s);
         store.changed();
-      });
+        return targets ? `    buy=[${bought}] rerolls=${rr}(${rolls}) money=${s.money}` : '';
+      }, targets);
+      if (log) console.log(log);
       await page.click('[data-act="next"]');
     }
     await page.waitForTimeout(400);
   }
+  if (!finished) console.log(`run ${r}: timeout after 15min`);
   if (errors.length) console.log(errors.join('\n'));
   await page.screenshot({ path: `screenshots/botrun-${r}.png` });
   await page.close();
