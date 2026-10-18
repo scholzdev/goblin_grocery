@@ -87,7 +87,7 @@ describe('Sourdough Starter', () => {
     s.inventory.placed.push({ uid: 'wall', type: 'battery', x: 1, y: 2, rot: 0 });
     openShop(s, rng); openShop(s, rng);
     expect(d.tier ?? 1).toBe(1);
-    expect(d.rise).toBe(contentTune('sourdough', 1).every);
+    expect(d.age).toBe(contentTune('sourdough', 1).every);
     expect(s.shop!.riseWait).toBe(true);
     openShop(s, rng);
     expect(d.tier ?? 1).toBe(1);

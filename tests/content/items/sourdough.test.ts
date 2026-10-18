@@ -4,7 +4,7 @@ import sourdough from '../../../src/content/items/sourdough';
 import { contentItem, contentTune } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
-import { createRun, openShop, riseSourdough } from '../../../src/state/run';
+import { createRun, openShop, ageItems } from '../../../src/state/run';
 import { mulberry32 } from '../../../src/systems/rng';
 import { computeBuild, tierScaling } from '../../../src/systems/synergies';
 import type { ItemInstance, RunState } from '../../../src/types';
@@ -105,11 +105,11 @@ describe('Sourdough Starter: growth reads the tune', () => {
 
   it('rises one level after `every` aisles', () => {
     const every = contentTune('sourdough', 1).every, s = shopRun(), d = shelfDough(s);
-    for (let i = 1; i < every; i++) riseSourdough(s);
+    for (let i = 1; i < every; i++) ageItems(s);
     expect(d.tier ?? 1).toBe(1);
-    riseSourdough(s);
+    ageItems(s);
     expect(d.tier).toBe(2);
-    expect(d.rise).toBe(0);
+    expect(d.age).toBe(0);
   });
 
   it('follows a changed tune (no copy of the interval in run.ts)', () => {
@@ -117,9 +117,9 @@ describe('Sourdough Starter: growth reads the tune', () => {
     try {
       tune.every = 3;
       const s = shopRun(), d = shelfDough(s);
-      riseSourdough(s); riseSourdough(s);
+      ageItems(s); ageItems(s);
       expect(d.tier ?? 1).toBe(1);
-      riseSourdough(s);
+      ageItems(s);
       expect(d.tier).toBe(2);
     } finally { tune.every = was; }
   });
@@ -136,9 +136,9 @@ describe('Sourdough Starter: growth reads the tune', () => {
     const s = shopRun(), every = contentTune('sourdough', 1).every;
     const d: ItemInstance = { uid: 'd', type: 'sourdough', x: 0, y: 2, rot: 0 };
     s.inventory.placed.push(d, { uid: 'wall', type: 'battery', x: 1, y: 2, rot: 0 });
-    for (let i = 0; i < every; i++) expect(riseSourdough(s)).toBe(i === every - 1);
+    for (let i = 0; i < every; i++) expect(ageItems(s)).toBe(i === every - 1);
     expect(d.tier ?? 1).toBe(1);
-    expect(d.rise).toBe(every);
+    expect(d.age).toBe(every);
   });
 });
 

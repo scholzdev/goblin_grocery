@@ -79,8 +79,10 @@ export interface ItemInstance {
   double?: boolean;
   /** Jelly Beans only: current flavor (= which element set it counts for). Missing = heat. */
   flavor?: ElementTag;
-  /** Sourdough Starter only: completed waves since bought / last rise (grows at 2). */
-  rise?: number;
+  /** Aisles completed since bought (placed only, or placed + shelf with `ItemContent.age: 'owned'`); Sourdough resets it on each rise. See `ageItems` (state/run.ts). */
+  age?: number;
+  /** Potted Basil: kills made by adjacent weapons. Persists across aisles, gone when the instance is sold. */
+  kills?: number;
 }
 
 export interface Inventory {

@@ -1879,6 +1879,70 @@
       "weapon": "pan"
     }
   ],
+  "buffs.item.avocado.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.avocado.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.avocado.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.avocado.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.basil.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.basil.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.basil.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.basil.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
   "buffs.item.battery.t1.on.blender.de": [
     {
       "lines": [
@@ -3006,6 +3070,38 @@
     {
       "lines": [
         "+60% speed & range (Desk Fan ★3)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.fish.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.fish.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.fish.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.fish.t3.on.toaster.en": [
+    {
+      "lines": [
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "toaster"
@@ -4938,6 +5034,38 @@
     }
   ],
   "buffs.item.sample.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.scoby.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.scoby.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.scoby.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.scoby.t3.on.toaster.en": [
     {
       "lines": [
         "Bundle Deal: 1 item → +6% damage"
@@ -7057,6 +7185,86 @@
     "short": "Zaps chain to +1 enemy",
     "summary": "Microwave touching a Lunchbox AND a Battery: chain-zapping meals."
   },
+  "items.avocado.de": {
+    "blurb": "Etwa fünf Minuten lang perfekt reif.",
+    "name": "Avocado",
+    "rules": "Angrenzende Waffen erhalten {0} Schaden pro Gang im Wagen (bis zu 3 Gänge), und der Verkaufswert steigt jeden Gang um 4 Münzen. Danach ist sie für immer braun: Angrenzende Waffen richten 20% weniger Schaden an, und sie bringt 1.",
+    "rulesByTier": {
+      "1": "Angrenzende Waffen erhalten +10% Schaden pro Gang im Wagen (bis zu 3 Gänge), und der Verkaufswert steigt jeden Gang um 4 Münzen. Danach ist sie für immer braun: Angrenzende Waffen richten 20% weniger Schaden an, und sie bringt 1.",
+      "2": "Angrenzende Waffen erhalten +12% Schaden pro Gang im Wagen (bis zu 3 Gänge), und der Verkaufswert steigt jeden Gang um 4 Münzen. Danach ist sie für immer braun: Angrenzende Waffen richten 20% weniger Schaden an, und sie bringt 1.",
+      "3": "Angrenzende Waffen erhalten +15% Schaden pro Gang im Wagen (bis zu 3 Gänge), und der Verkaufswert steigt jeden Gang um 4 Münzen. Danach ist sie für immer braun: Angrenzende Waffen richten 20% weniger Schaden an, und sie bringt 1."
+    },
+    "tierScaling": [
+      {
+        "label": "Schaden / Gang",
+        "values": [
+          "+10%",
+          "+12%",
+          "+15%"
+        ]
+      }
+    ]
+  },
+  "items.avocado.en": {
+    "blurb": "Perfectly ripe for about five minutes.",
+    "name": "Avocado",
+    "rules": "Weapons touching it gain {0} damage per aisle in the cart (up to 3 aisles) and it sells for 4 more coins each aisle. After that it is brown for good: touching weapons deal 20% less damage and it sells for 1.",
+    "rulesByTier": {
+      "1": "Weapons touching it gain +10% damage per aisle in the cart (up to 3 aisles) and it sells for 4 more coins each aisle. After that it is brown for good: touching weapons deal 20% less damage and it sells for 1.",
+      "2": "Weapons touching it gain +12% damage per aisle in the cart (up to 3 aisles) and it sells for 4 more coins each aisle. After that it is brown for good: touching weapons deal 20% less damage and it sells for 1.",
+      "3": "Weapons touching it gain +15% damage per aisle in the cart (up to 3 aisles) and it sells for 4 more coins each aisle. After that it is brown for good: touching weapons deal 20% less damage and it sells for 1."
+    },
+    "tierScaling": [
+      {
+        "label": "Damage / aisle",
+        "values": [
+          "+10%",
+          "+12%",
+          "+15%"
+        ]
+      }
+    ]
+  },
+  "items.basil.de": {
+    "blurb": "Red mit ihm. Er hört zu. Meistens.",
+    "name": "Basilikumtopf",
+    "rules": "Angrenzende Waffen erhalten {0} Schaden pro 25 Kills, die sie erzielen, ohne Obergrenze. Der Zähler bleibt an der Pflanze und geht beim Verkauf verloren.",
+    "rulesByTier": {
+      "1": "Angrenzende Waffen erhalten +2% Schaden pro 25 Kills, die sie erzielen, ohne Obergrenze. Der Zähler bleibt an der Pflanze und geht beim Verkauf verloren.",
+      "2": "Angrenzende Waffen erhalten +3% Schaden pro 25 Kills, die sie erzielen, ohne Obergrenze. Der Zähler bleibt an der Pflanze und geht beim Verkauf verloren.",
+      "3": "Angrenzende Waffen erhalten +4% Schaden pro 25 Kills, die sie erzielen, ohne Obergrenze. Der Zähler bleibt an der Pflanze und geht beim Verkauf verloren."
+    },
+    "tierScaling": [
+      {
+        "label": "Schaden / 25 Kills",
+        "values": [
+          "+2%",
+          "+3%",
+          "+4%"
+        ]
+      }
+    ]
+  },
+  "items.basil.en": {
+    "blurb": "Talk to it. It listens. Mostly.",
+    "name": "Potted Basil",
+    "rules": "Weapons touching it gain {0} damage per 25 kills they make, with no cap. The count stays on the plant and is lost if you sell it.",
+    "rulesByTier": {
+      "1": "Weapons touching it gain +2% damage per 25 kills they make, with no cap. The count stays on the plant and is lost if you sell it.",
+      "2": "Weapons touching it gain +3% damage per 25 kills they make, with no cap. The count stays on the plant and is lost if you sell it.",
+      "3": "Weapons touching it gain +4% damage per 25 kills they make, with no cap. The count stays on the plant and is lost if you sell it."
+    },
+    "tierScaling": [
+      {
+        "label": "Damage / 25 kills",
+        "values": [
+          "+2%",
+          "+3%",
+          "+4%"
+        ]
+      }
+    ]
+  },
   "items.battery.de": {
     "blurb": "Zack! Schnellere Angriffe, bei Elektrogeräten besonders.",
     "name": "Batterie",
@@ -7715,6 +7923,46 @@
           "+30%",
           "+45%",
           "+60%"
+        ]
+      }
+    ]
+  },
+  "items.fish.de": {
+    "blurb": "Heute früh gefangen. Am Donnerstag lieber nicht mehr hinsehen.",
+    "name": "Frischer Fisch",
+    "rules": "Für 2 Gänge im Wagen: Alle Waffen erhalten {0} Kritchance. Danach stinkt er für immer: Er vergiftet Gegner im Umkreis von 110 um den Wagen (3/s Giftschaden), und die Shop-Preise steigen um 20%, solange er im Wagen liegt.",
+    "rulesByTier": {
+      "1": "Für 2 Gänge im Wagen: Alle Waffen erhalten +15% Kritchance. Danach stinkt er für immer: Er vergiftet Gegner im Umkreis von 110 um den Wagen (3/s Giftschaden), und die Shop-Preise steigen um 20%, solange er im Wagen liegt.",
+      "2": "Für 2 Gänge im Wagen: Alle Waffen erhalten +20% Kritchance. Danach stinkt er für immer: Er vergiftet Gegner im Umkreis von 110 um den Wagen (3/s Giftschaden), und die Shop-Preise steigen um 20%, solange er im Wagen liegt.",
+      "3": "Für 2 Gänge im Wagen: Alle Waffen erhalten +25% Kritchance. Danach stinkt er für immer: Er vergiftet Gegner im Umkreis von 110 um den Wagen (3/s Giftschaden), und die Shop-Preise steigen um 20%, solange er im Wagen liegt."
+    },
+    "tierScaling": [
+      {
+        "label": "Kritchance",
+        "values": [
+          "+15%",
+          "+20%",
+          "+25%"
+        ]
+      }
+    ]
+  },
+  "items.fish.en": {
+    "blurb": "Caught this morning. Do not look at it on Thursday.",
+    "name": "Fresh Fish",
+    "rules": "For 2 aisles in the cart: all weapons gain {0} crit chance. After that it stinks for good: it poisons enemies within 110 of the cart (3/s poison damage) and shop prices rise by 20% while it is in the cart.",
+    "rulesByTier": {
+      "1": "For 2 aisles in the cart: all weapons gain +15% crit chance. After that it stinks for good: it poisons enemies within 110 of the cart (3/s poison damage) and shop prices rise by 20% while it is in the cart.",
+      "2": "For 2 aisles in the cart: all weapons gain +20% crit chance. After that it stinks for good: it poisons enemies within 110 of the cart (3/s poison damage) and shop prices rise by 20% while it is in the cart.",
+      "3": "For 2 aisles in the cart: all weapons gain +25% crit chance. After that it stinks for good: it poisons enemies within 110 of the cart (3/s poison damage) and shop prices rise by 20% while it is in the cart."
+    },
+    "tierScaling": [
+      {
+        "label": "Crit chance",
+        "values": [
+          "+15%",
+          "+20%",
+          "+25%"
         ]
       }
     ]
@@ -8709,6 +8957,46 @@
           "+1",
           "+1.5",
           "+2"
+        ]
+      }
+    ]
+  },
+  "items.scoby.de": {
+    "blurb": "Sie lebt. Alles gut. Nicht schütteln.",
+    "name": "Kombucha-Mutter",
+    "rules": "Direkte Treffer der angrenzenden Waffe vergiften: {0} für 3 s. Das Gift wird für jeden Gang, den die Kombucha-Mutter im Wagen bleibt, um 10% stärker. Ein Kill an einem brennenden, vergifteten Gegner (Giftwolke) zählt als zusätzlicher Gang, einmal pro Gang.",
+    "rulesByTier": {
+      "1": "Direkte Treffer der angrenzenden Waffe vergiften: 2/s für 3 s. Das Gift wird für jeden Gang, den die Kombucha-Mutter im Wagen bleibt, um 10% stärker. Ein Kill an einem brennenden, vergifteten Gegner (Giftwolke) zählt als zusätzlicher Gang, einmal pro Gang.",
+      "2": "Direkte Treffer der angrenzenden Waffe vergiften: 3/s für 3 s. Das Gift wird für jeden Gang, den die Kombucha-Mutter im Wagen bleibt, um 10% stärker. Ein Kill an einem brennenden, vergifteten Gegner (Giftwolke) zählt als zusätzlicher Gang, einmal pro Gang.",
+      "3": "Direkte Treffer der angrenzenden Waffe vergiften: 4/s für 3 s. Das Gift wird für jeden Gang, den die Kombucha-Mutter im Wagen bleibt, um 10% stärker. Ein Kill an einem brennenden, vergifteten Gegner (Giftwolke) zählt als zusätzlicher Gang, einmal pro Gang."
+    },
+    "tierScaling": [
+      {
+        "label": "Gift",
+        "values": [
+          "2/s",
+          "3/s",
+          "4/s"
+        ]
+      }
+    ]
+  },
+  "items.scoby.en": {
+    "blurb": "It is alive. It is fine. Do not shake it.",
+    "name": "Kombucha Scoby",
+    "rules": "Direct hits of an adjacent weapon poison: {0} for 3 s. The poison gets 10% stronger for every aisle the Scoby stays in the cart. A kill on a burning, poisoned enemy (Toxic Fumes) counts as an extra aisle, once per aisle.",
+    "rulesByTier": {
+      "1": "Direct hits of an adjacent weapon poison: 2/s for 3 s. The poison gets 10% stronger for every aisle the Scoby stays in the cart. A kill on a burning, poisoned enemy (Toxic Fumes) counts as an extra aisle, once per aisle.",
+      "2": "Direct hits of an adjacent weapon poison: 3/s for 3 s. The poison gets 10% stronger for every aisle the Scoby stays in the cart. A kill on a burning, poisoned enemy (Toxic Fumes) counts as an extra aisle, once per aisle.",
+      "3": "Direct hits of an adjacent weapon poison: 4/s for 3 s. The poison gets 10% stronger for every aisle the Scoby stays in the cart. A kill on a burning, poisoned enemy (Toxic Fumes) counts as an extra aisle, once per aisle."
+    },
+    "tierScaling": [
+      {
+        "label": "Poison",
+        "values": [
+          "2/s",
+          "3/s",
+          "4/s"
         ]
       }
     ]

@@ -2192,6 +2192,64 @@ add('icon_sourdough', () => {
   return icon(s, 164);
 });
 
+// Perishables: `icon_<id>` is fresh, `icon_<id>_rotten` the spoiled look (ItemContent.look). Same silhouette, different material colours.
+const avocadoIcon = (rotten) => {
+  const skin = rotten ? '#5A4030' : C.greenD, skinS = rotten ? '#3E2A20' : '#3F7A2A', flesh = rotten ? '#A58558' : '#E4EE9C', fleshS = rotten ? '#7C6240' : '#C4D86E', pit = rotten ? '#2E2018' : C.breadD;
+  const body = (cx, cy, rx, ry) => ell(cx, cy, rx, ry, skin, skinS, { sw: SWi, dx: 6, dy: 5 });
+  let s = body(96, 112, 56, 50) + body(96, 64, 32, 40);
+  s += ell(96, 112, 44, 38, flesh, fleshS, { sw: 3, dx: 0, dy: 0 }) + ell(96, 66, 22, 30, flesh, fleshS, { sw: 0, dx: 0, dy: 0 });
+  s += ell(96, 116, 21, 22, pit, null, { sw: 4 }) + flat(ellPath(88, 108, 6, 8), rotten ? '#5A4030' : C.breadL, 'opacity=".8"');
+  if (rotten) for (const [x, y, r] of [[66, 100, 6], [124, 128, 7], [104, 74, 5], [74, 134, 4]]) s += `<circle cx="${x}" cy="${y}" r="${r}" fill="#3E2A20" opacity=".85"/>`;
+  else s += flat([[58, 98], [66, 90], [70, 104]], C.white, 'opacity=".6"');
+  return icon(s, 166);
+};
+add('icon_avocado', () => avocadoIcon(false));
+add('icon_avocado_rotten', () => avocadoIcon(true));
+
+const fishIcon = (rotten) => {
+  const body = rotten ? '#8FA68A' : C.sky, bodyS = rotten ? '#6C846A' : '#4F9FC9', belly = rotten ? '#C9CDA0' : C.chromeL, fin = rotten ? '#6C846A' : C.blue;
+  let s = S5([[150, 104], [186, 74], [180, 104], [186, 134]], fin, rotten ? '#4F6350' : C.blueD, { dx: 4, dy: 4 });
+  s += ell(98, 104, 62, 36, body, bodyS, { sw: SWi, dx: 6, dy: 5 });
+  s += flat(ellPath(96, 118, 48, 16), belly, 'opacity=".9"');
+  s += S5([[88, 70], [112, 52], [128, 74]], fin, rotten ? '#4F6350' : C.blueD, { dx: 3, dy: 3 });
+  s += line([[64, 88], [60, 118]], C.plum, 4);
+  if (rotten) {
+    s += line([[40, 88], [58, 100]], C.plum, 5) + line([[58, 88], [40, 100]], C.plum, 5);
+    for (const [x, y] of [[100, 92], [118, 100], [86, 106], [126, 114]]) s += `<circle cx="${x}" cy="${y}" r="3.5" fill="#6C846A"/>`;
+    for (const x of [74, 98, 122]) s += curve(`M${x} 56 C${x - 10} 44 ${x + 10} 34 ${x} 20`, 3.5, '#9BBF6A', 2);
+  } else {
+    s += `<circle cx="48" cy="96" r="9" fill="${C.white}" stroke="${C.plum}" stroke-width="3.5"/><circle cx="46" cy="97" r="4" fill="${C.plum}"/>`;
+    for (const [x, y] of [[100, 92], [118, 100], [86, 106], [126, 114]]) s += `<circle cx="${x}" cy="${y}" r="3.5" fill="${C.chromeL}"/>`;
+    s += flat([[72, 82], [110, 72], [96, 84]], C.white, 'opacity=".6"');
+  }
+  return icon(s, 160);
+};
+add('icon_fish', () => fishIcon(false));
+add('icon_fish_rotten', () => fishIcon(true));
+
+add('icon_basil', () => {
+  let s = '';
+  const leaf = (x, y, a, big = 1) => rot(ell(x, y, 22 * big, 12 * big, C.green, C.greenD, { sw: 3.5, dx: 2, dy: 3 }) + line([[x - 16 * big, y], [x + 16 * big, y]], C.greenD, 2), a, x, y);
+  s += line([[96, 96], [96, 56]], C.greenD, 6);
+  s += leaf(66, 62, -35) + leaf(126, 62, 35) + leaf(72, 92, -20, 0.9) + leaf(120, 92, 20, 0.9) + leaf(96, 36, -90, 0.95);
+  s += S5([[52, 106], [140, 106], [128, 166], [64, 166]], C.coral, C.coralD, { dx: 7, dy: 5 });
+  s += S5([[46, 98], [146, 98], [146, 114], [46, 114]], C.coralL, C.coral, { dx: 4, dy: 3 });
+  s += flat([[60, 120], [70, 120], [76, 158], [70, 158]], C.white, 'opacity=".45"');
+  return icon(s, 170);
+});
+
+add('icon_scoby', () => {
+  let s = '';
+  s += S5([[54, 52], [138, 52], [152, 74], [152, 158], [40, 158], [40, 74]], '#E4F4F8', '#B7DCE6', { dx: 7, dy: 0 });
+  s += S5([[44, 84], [148, 84], [148, 154], [44, 154]], '#E8A93C', '#C27F1E', { sw: 3, dx: 0, dy: 0 });
+  s += ell(96, 90, 44, 12, '#F6E3B8', '#DDBE86', { sw: 3.5, dx: 0, dy: 2 });
+  s += ell(96, 118, 36, 11, '#F6E3B8', '#DDBE86', { sw: 3, dx: 0, dy: 2 });
+  for (const [x, y, r] of [[62, 134, 5], [124, 142, 6], [86, 146, 3.5], [134, 110, 4]]) s += `<circle cx="${x}" cy="${y}" r="${r}" fill="#F9D27A" stroke="#C27F1E" stroke-width="2"/>`;
+  s += flat([[46, 60], [54, 60], [52, 150], [46, 142]], C.white, 'opacity=".55"');
+  s += S5([[40, 40], [152, 40], [156, 56], [36, 56]], C.teal, C.tealD, { dx: 0, dy: 4, sw: 4 });
+  return icon(s, 164);
+});
+
 add('icon_popper', () => {
   const tip = [34, 168], A = [66, 90], B = [128, 128], cone = [tip, A, B];
   const at = (t) => [[tip[0] + (A[0] - tip[0]) * t, tip[1] + (A[1] - tip[1]) * t], [tip[0] + (B[0] - tip[0]) * t, tip[1] + (B[1] - tip[1]) * t]];
