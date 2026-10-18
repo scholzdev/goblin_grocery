@@ -536,6 +536,20 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .celebrate span { font-size: 12px; font-weight: 800; opacity: 0.75; }
 @keyframes pop-in { 0% { opacity: 0; transform: translateX(-50%) scale(0.6); } 10% { opacity: 1; transform: translateX(-50%) scale(1.06); } 18% { transform: translateX(-50%) scale(1); } 85% { opacity: 1; } 100% { opacity: 0; transform: translateX(-50%) translateY(-16px); } }
 
+/* set bonus card: one compact slip under the receipt, rows are added while it shows */
+.setcard { position: absolute; left: 24px; top: 520px; width: 290px; z-index: 60; background: var(--gold); border: 3px solid var(--plum); border-radius: 12px; padding: 6px 10px 8px;
+  box-shadow: 0 4px 0 var(--plum); animation: setcard-in 0.35s ease both; pointer-events: none; transform-origin: 50% 0; }
+.setcard.out { animation: setcard-out 0.35s ease forwards; }
+.setcard small { display: block; font-weight: 800; letter-spacing: 0.08em; font-size: 11px; opacity: 0.75; }
+.setcard .srow { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
+.setcard .srow > svg, .setcard .srow > img { flex: none; }
+.setcard .srow b { display: block; font: 400 17px var(--display); line-height: 1.05; }
+.setcard .srow span { display: block; font-size: 11px; font-weight: 800; line-height: 1.2; opacity: 0.8; }
+@keyframes setcard-in { 0% { opacity: 0; transform: scale(0.6); } 60% { opacity: 1; transform: scale(1.06); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes setcard-out { to { opacity: 0; transform: translateY(-10px); } }
+@media (prefers-reduced-motion: reduce) { .setcard { animation: none; } }
+:root.reduced-motion .setcard { animation: none; }
+
 .combo.empty, .combo.empty > div { height: auto; overflow: visible; -webkit-line-clamp: unset; white-space: normal; text-overflow: clip; }
 .combo.empty { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; gap: 1px; text-align: center; padding: 6px 10px; font-size: 13px; border-style: dashed; }
 .combo.empty .hint { font-size: 12px; font-weight: 700; opacity: 0.7; line-height: 1.2; }
