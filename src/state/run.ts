@@ -11,7 +11,7 @@ import { zonesOf } from '../data/zones';
 import { currentRerollCost, repairCost, rollDoors, rollOffers, rollZones, sellPrice } from '../systems/shop';
 import { computeBuild } from '../systems/synergies';
 import { newDamageStats } from '../systems/damageStats';
-import { contentSetTune, contentTune } from '../engine/registry';
+import { contentItem, contentSetTune, contentTune, sellValue } from '../engine/registry';
 import { FAMILIES, FLAVORS } from '../engine/define';
 
 const fail = (reason: string): OpResult => ({ ok: false, reason });
@@ -246,7 +246,7 @@ export function sellItem(state: RunState, uid: string): OpResult {
   if (!f) return fail(t('rNoItem'));
   if (f.where === 'grid') state.inventory.placed.splice(state.inventory.placed.indexOf(f.inst), 1);
   else state.inventory.shelf[f.slot] = null;
-  state.money += sellPrice(f.inst.type, f.inst.tier ?? 1, state.build);
+  state.money += sellValue(f.inst, sellPrice(f.inst.type, f.inst.tier ?? 1, state.build));
   creditBinders(state, f.inst.type);
   recomputeBuild(state);
   return OK;
@@ -277,31 +277,45 @@ export function repair(state: RunState): OpResult {
 }
 
 /**
- * Sourdough Starter: one aisle more cooked; every `every` aisles (content tune) it rises a star (and a cell).
+ * One aisle more for every aging item (`ItemContent.age`: Avocado, Fresh Fish, Basil, Scoby; Sourdough also on the shelf), then
+ * Sourdough's rise. Returns true if a rise is pending.
+ */
+export function ageItems(state: RunState): boolean {
+  const inv = state.inventory;
+  for (const i of [...inv.placed, ...inv.shelf]) {
+    const mode = i && contentItem(i.type)?.age;
+    if (i && mode && (mode === 'owned' || inv.placed.includes(i))) i.age = (i.age ?? 0) + 1;
+  }
+  return riseSourdough(state);
+}
+
+/**
+ * Sourdough Starter: every `every` aisles (content tune) of age it rises a star (and a cell).
  * In the cart the grown shape must fit at its anchor and rotation, otherwise it stays pending and retries next shop. Returns true if any is pending.
  */
-export function riseSourdough(state: RunState): boolean {
+function riseSourdough(state: RunState): boolean {
   let wait = false;
   const every = contentTune('sourdough', 1).every;
   for (const i of [...state.inventory.placed, ...state.inventory.shelf]) {
-    if (i?.type !== 'sourdough' || (i.tier ?? 1) >= TIER.max) continue;
-    if ((i.rise = (i.rise ?? 0) + 1) < every) continue;
+    if (i?.type !== 'sourdough' || (i.tier ?? 1) >= TIER.max || (i.age ?? 0) < every) continue;
     const nt = (i.tier ?? 1) + 1;
-    if (state.inventory.placed.includes(i) && !canPlace(state.inventory, i.type, i.x, i.y, i.rot, i.uid, nt).ok) { i.rise = every; wait = true; continue; }
-    i.tier = nt; i.rise = 0;
+    if (state.inventory.placed.includes(i) && !canPlace(state.inventory, i.type, i.x, i.y, i.rot, i.uid, nt).ok) { i.age = every; wait = true; continue; }
+    i.tier = nt; i.age = 0;
   }
   return wait;
 }
 
 export function openShop(state: RunState, rng: Rng): void {
   state.phase = 'shop';
+  const riseWait = ageItems(state);
+  recomputeBuild(state); // before the offers: Fresh Fish's price markup starts the shop it begins to stink
   const d = DEPARTMENTS[state.department];
   const m = MODIFIERS[state.modifier];
   const opts = { bias: [...d.shopBias], legendaryBonus: d.legendaryBonus, forceLegendary: d.forceLegendary || m.forceLegendary };
   const carried = state.shopLock;
   state.shopLock = undefined;
   state.shop = { offers: rollOffers(state, rng, state.wave, state.wave === 1 && !carried, carried ? { ...opts, keep: carried } : opts), locked: !!carried, rerolls: 0, repairUsed: false, freeRerollUsed: false, bonusFreeRerolls: m.freeRerolls, shopIndex: state.wave, ...opts };
-  state.shop.riseWait = riseSourdough(state);
+  state.shop.riseWait = riseWait;
   rollFlavors(state, rng); // recomputes the build (after sourdough tiers changed)
 }
 

@@ -7,6 +7,7 @@ import { labAddItem, labClear, cartUpgradeCost, nextCartSize, shelfUpgradeCost, 
 import { findItem, rotateCells, rotatedSize, footprint } from '../systems/inventory';
 import { describeBuffs, tierScaling } from '../systems/synergies';
 import { currentRerollCost, inflation, repairCost, sellPrice } from '../systems/shop';
+import { iconOf, sellValue } from '../engine/registry';
 import { flow } from '../flow';
 import { play } from '../audio/sfx';
 import { svg } from './hud';
@@ -117,11 +118,11 @@ export const starsHtml = (tier = 1): string =>
  * shape (tiles bridge the 4px gutters toward same-item neighbours) and keep icon/label/stars inside the
  * shape's best-connected "anchor" cell, so nothing spills over items sitting in the empty corners.
  */
-function itemInner(type: ItemTypeId, rot: Rotation, tier = 1, cellPx = CELL): { html: string; w: number; h: number; shaped: boolean } {
+function itemInner(type: ItemTypeId, rot: Rotation, tier = 1, cellPx = CELL, icon = `icon_${type}`): { html: string; w: number; h: number; shaped: boolean } {
   const cells = rotateCells(cellsFor(type, tier), rot);
   const w = Math.max(...cells.map((c) => c.x)) + 1, h = Math.max(...cells.map((c) => c.y)) + 1;
   const shaped = cells.length !== w * h;
-  const content = `<img src="${svg(`icon_${type}`)}" alt="${itemT(type).name}"><span class="tag">${itemT(type).name}</span>${starsHtml(tier)}`;
+  const content = `<img src="${svg(icon)}" alt="${itemT(type).name}"><span class="tag">${itemT(type).name}</span>${starsHtml(tier)}`;
   if (!shaped) return { w, h, shaped, html: content };
   const has = (x: number, y: number) => cells.some((c) => c.x === x && c.y === y);
   const n = (c: { x: number; y: number }) => [has(c.x + 1, c.y), has(c.x, c.y + 1), has(c.x - 1, c.y), has(c.x, c.y - 1)];
@@ -139,7 +140,7 @@ function itemInner(type: ItemTypeId, rot: Rotation, tier = 1, cellPx = CELL): { 
 
 function itemEl(it: ItemInstance, build: Build, extra = '', compact = false): string {
   const def = ITEMS[it.type];
-  const full = itemInner(it.type, it.rot, it.tier);
+  const full = itemInner(it.type, it.rot, it.tier, CELL, iconOf(it));
   // Shelf slots hold whole items regardless of footprint: draw them as one tile.
   const inner = compact ? { ...full, shaped: false, html: full.html.replace(/<i class="icell"[^>]*><\/i>/g, '') } : full;
   const on = build.recipes.some((r) => r.weaponUid === it.uid || r.supportUids.includes(it.uid));
@@ -371,11 +372,11 @@ export function inspectorHtml(type: ItemTypeId, uid: string | null, offerTier?: 
   const flavor = type === 'jellybeans' ? (loc ? flavorOf(loc.inst) : null) : null;
   const binder = type === 'binder' && loc?.inst.binderFamily ? `<span class="chip">${esc(t('binderChip', { f: tagT(loc.inst.binderFamily), n: Math.min(20, (loc.inst.binderSold ?? 0) * 2) }))}</span>` : '';
   const setChips = setsOf(type, flavor ?? undefined).map((id) => { const g = gains.find((x) => x.id === id); return `<span class="chip set-${id}${s?.build?.sets?.[id] ? ' act' : ''}">${setIcon(id, 14)}${tagT(id)}${g ? ` <small>(${gainText(g)})</small>` : ''}</span>`; }).join('');
-  const head = `<header><span class="ico-tile ${rc}"><img src="${svg(`icon_${type}`)}" alt=""></span>
+  const head = `<header><span class="ico-tile ${rc}"><img src="${svg(loc ? iconOf(loc.inst) : `icon_${type}`)}" alt=""></span>
     <div class="hd"><div class="nm"><span style="font-size:${fitName(itemT(type).name)}px">${itemT(type).name}</span><b class="lv ${def.legendary ? 'leg' : `t${tier}`}">★${def.legendary ? '' : tier}</b></div>
     <span class="sub ${rc}">${rarity} · ${kind}</span></div></header>
     <div class="chips">${dblNote}${binder}${flavor ? `<span class="chip flavor-chip flavor-${flavor}">${esc(t('flavorLabel', { f: tagT(flavor) }))}</span>` : ''}${setChips}${otherTags.map((tg) => `<span class="chip">${tagT(tg)}</span>`).join('')}<span class="chip">${icons.grid(15)}${w}×${h}</span>
-    <span class="chip coin"><img class="coin-ico" src="${svg('coin')}" alt="">${loc ? t('sells', { n: sellPrice(type, tier, s?.build) }) : def.price}</span></div>${strongVsHtml(type)}`;
+    <span class="chip coin"><img class="coin-ico" src="${svg('coin')}" alt="">${loc ? t('sells', { n: sellValue(loc.inst, sellPrice(type, tier, s?.build)) }) : def.price}</span></div>${strongVsHtml(type)}`;
 
   let body = '';
   // Weapon stats: live values when in the cart, the base values at this level otherwise (shelf / offer).
@@ -692,7 +693,7 @@ function startGhost(): void {
 
 function sizeGhost(): void {
   if (!drag?.ghost) return;
-  const inner = itemInner(drag.type, drag.rot, drag.tier);
+  const inner = itemInner(drag.type, drag.rot, drag.tier, CELL, dragIcon(drag));
   const { w, h } = inner;
   drag.ghost.innerHTML = inner.html;
   drag.ghost.classList.toggle('shaped', inner.shaped);
@@ -803,8 +804,9 @@ function updateTarget(): void {
     if (res.result.ok) { slot.classList.add('ok'); drag.target = target; drag.valid = true; preview = res.build; }
   } else if (sell) {
     sell.classList.add('ok');
-    sell.textContent = t('sellFor', { name: itemT(drag.type).name, n: sellPrice(drag.type, drag.tier, store.state.build) });
-    sellHint = `<div class="nm">${t('sellFor', { name: itemT(drag.type).name, n: sellPrice(drag.type, drag.tier, store.state.build) })}</div>`;
+    const worth = dragWorth(drag);
+    sell.textContent = t('sellFor', { name: itemT(drag.type).name, n: worth });
+    sellHint = `<div class="nm">${t('sellFor', { name: itemT(drag.type).name, n: worth })}</div>`;
     drag.target = { where: 'sell' };
     drag.valid = true;
   }
@@ -838,13 +840,17 @@ function onPointerUp(): void {
   commitDrop(d);
 }
 
+const dragInst = (d: Drag) => findItem(store.state.inventory, d.uid)?.inst;
+const dragIcon = (d: Drag): string => { const i = dragInst(d); return i ? iconOf(i) : `icon_${d.type}`; };
+const dragWorth = (d: Drag): number => { const i = dragInst(d); const base = sellPrice(d.type, d.tier, store.state.build); return i ? sellValue(i, base) : base; };
+
 /** Applies a finished drag to the run (pointer release or gamepad drop). */
 function commitDrop(d: Drag): void {
   const s = store.state;
   const tg = d.target;
   let ok = false;
   if (tg && tg.where === 'sell') {
-    const price = sellPrice(d.type, d.tier, s.build);
+    const price = dragWorth(d);
     const r = sellItem(s, d.uid);
     ok = r.ok;
     if (r.ok) { ledger.push({ label: t('ledgerSold', { name: itemT(d.type).name }), amount: price }); play('sell'); } else toastLater(r.reason);

@@ -34,6 +34,7 @@ export const ITEM_ORDER = [
   'leafblower', 'sourdough', 'powerstrip', 'goldstar', 'laser', 'snackbag', 'cooker', 'spray', 'popper', 'doublebag', 'multipack', 'canopener', 'decaf',
   'expiredcoupon', 'popcorn', 'sparklers', 'barter', 'binder',
   'fireextinguisher', 'airhorn',
+  'avocado', 'fish', 'basil', 'scoby',
 ] as const;
 
 /** Every combo, in the order `computeBuild` applies the matching ones (it decides which combo hook runs first on a weapon) and the codex lists them. */
@@ -269,6 +270,15 @@ export interface ItemContent<T extends Tune = Tune> {
    * that element's set. Only for items without a static element (`sets` has just the family). Read by `setsOf` (data/sets).
    */
   flavored?: boolean;
+  /**
+   * Counts aisles on `ItemInstance.age` (`ageItems`, state/run.ts): 'cart' = only while placed (Avocado, Fresh Fish, Scoby, Basil),
+   * 'owned' = also on the shelf (Sourdough Starter).
+   */
+  age?: 'cart' | 'owned';
+  /** Replaces the base sell price for this instance (Avocado: grows while fresh, 1 coin once brown). Read by `sellValue` (systems/shop.ts). */
+  sellValue?: (base: number, i: ItemInstance, tune: Resolved<T>) => number;
+  /** Instances for which the art switches to the `icon_<id>_<look>` variant (spoiled Avocado / Fish); `assetFor` (data/assets.ts). */
+  look?: (i: ItemInstance, tune: Resolved<T>) => string | null;
   /** Scalars, or per-tier arrays of 3. Legendaries are ★1 only: scalars. */
   tune?: T;
   text: Localized<ItemText>;

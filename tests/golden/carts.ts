@@ -13,6 +13,9 @@ export interface Spec {
   tier?: number;
   flavor?: ElementTag;
   double?: boolean;
+  /** Aisles in the cart / kills on the item (perishables and growers). */
+  age?: number;
+  kills?: number;
   /** Indices of earlier specs this item must touch. Default: [0] (the first item); [] = anywhere. */
   near?: number[];
   /** Indices of earlier specs this item must NOT touch. */
@@ -42,6 +45,8 @@ export function build(specs: Spec[], cols = 5, rows = 4): Inventory {
       if (s.tier !== undefined) it.tier = s.tier;
       if (s.flavor !== undefined) it.flavor = s.flavor;
       if (s.double) it.double = true;
+      if (s.age !== undefined) it.age = s.age;
+      if (s.kills !== undefined) it.kills = s.kills;
       if (canPlace(inv, s.type, x, y, rot, undefined, s.tier ?? 1).ok && ok(it)) { inv.placed.push(it); return; }
     }
     throw new Error(`golden cart: no spot for #${i} ${s.type} (${specs.map((p) => p.type).join('+')})`);

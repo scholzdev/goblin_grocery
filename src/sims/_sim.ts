@@ -30,6 +30,10 @@ export interface SimItem {
   rot?: Rotation;
   /** Jelly Beans only: its element for set counting. Default 'heat'. Re-rolls whenever you open the cart editor (F8). */
   flavor?: ElementTag;
+  /** Aisles already spent in the cart (Avocado, Fresh Fish, Scoby, Basil): a spoiled item for a sim. */
+  age?: number;
+  /** Potted Basil: kills already on the plant. */
+  kills?: number;
 }
 
 export interface SimShelfItem { id: ItemTypeId; tier?: SimTier }
@@ -174,6 +178,7 @@ export function validateSim(sim: SimDef, fileId?: string): string[] {
     else if (e.tier !== undefined && e.tier > 1 && ITEMS[e.id].legendary) bad(`${where}: legendary items are always tier 1`);
     if (e.rot !== undefined && ![0, 1, 2, 3].includes(e.rot)) bad(`${where}: rot ${e.rot} must be 0..3`);
     if (e.at !== undefined && !(Array.isArray(e.at) && e.at.length === 2 && e.at.every(isInt))) bad(`${where}: at must be [x, y] whole numbers`);
+    for (const k of ['age', 'kills'] as const) if (e[k] !== undefined && (!isInt(e[k]) || e[k]! < 0)) bad(`${where}: ${k} must be a whole number >= 0`);
     if (e.flavor !== undefined && (!ITEMS[e.id].flavored || !FLAVORS.includes(e.flavor))) bad(`${where}: flavor only applies to Jelly Beans (heat, frost or blast)`);
   });
   if (!errs.some((m) => m.startsWith('cart[') || m.startsWith('cartSize'))) errs.push(...layoutCart(sim).errors);

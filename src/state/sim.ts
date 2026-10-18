@@ -27,6 +27,8 @@ export function createSimRun(sim: SimDef, rng: Rng = mulberry32(sim.seed ?? SIM_
     const p = slots[i]!;
     const inst: ItemInstance = { uid: newUid(s), type: p.type, x: p.x, y: p.y, rot: p.rot, tier: p.tier };
     if (e.id === 'jellybeans') inst.flavor = p.flavor ?? 'heat';
+    if (e.age !== undefined) inst.age = e.age;
+    if (e.kills !== undefined) inst.kills = e.kills;
     s.inventory.placed.push(inst);
   });
   sim.shelf?.forEach((e, i) => {
