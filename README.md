@@ -90,14 +90,13 @@ Weapons fire automatically. Losing window focus pauses the game, and you need to
 | F6 | +100 coins (also in the shop). |
 | F7 | +500,000 coins (also in the shop). |
 
-**Test Lab** (any build, gated by a launch flag): adds a "Test Lab" button on the title screen to jump to any aisle, department, shift, character and weapon with a hand-built cart (item palette, god mode, "Back to Lab" after each attempt). Lab runs never touch your progress, and the dev shortcuts above are on too.
+**Test Lab** (dev server or a test build made with `VITE_DEV_KEYS=1`, gated by a launch flag; release builds ignore it): adds a "Test Lab" button on the title screen to jump to any aisle, department, shift, character and weapon with a hand-built cart (item palette, god mode, "Back to Lab" after each attempt). Lab runs never touch your progress, and the dev shortcuts above are on too.
 
 | Where | How |
 |---|---|
 | Dev | http://localhost:5173/?lab=1 |
 | macOS | `open "release/mac-arm64/Goblin Grocery.app" --args --lab`, or `npm run lab` to rebuild and launch |
-| Windows | `"Goblin Grocery.exe" --lab` |
-| Steam | Launch options: `--lab` |
+| Windows | build with `VITE_DEV_KEYS=1 npm run dist:win`, then `"Goblin Grocery.exe" --lab` |
 
 ## Run structure
 

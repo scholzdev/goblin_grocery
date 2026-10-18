@@ -4,10 +4,12 @@ import type { SpreadKind } from './systems/spread';
 import type { EnemyId, LabOpts } from './types';
 
 const QUERY = new URLSearchParams(location.search);
-/** `?sim=<id>`: boot straight into that sim (see src/sims). Null when the parameter is absent. */
-export const SIM_PARAM: string | null = QUERY.get('sim');
-/** Test Lab gate: launch with `--lab` (desktop) or `?lab=1` (web); a sim launch (`?sim=`) turns the lab features on too. Works in any build. */
-export const LAB = QUERY.has('lab') || QUERY.has('sim');
+/** Dev server or a test build (`VITE_DEV_KEYS=1`, e.g. `npm run lab`). Release builds ignore the lab/sim flags and the dev shortcuts. */
+export const DEV_BUILD = import.meta.env.DEV || import.meta.env.VITE_DEV_KEYS === '1';
+/** `?sim=<id>`: boot straight into that sim (see src/sims). Null when the parameter is absent or in a release build. */
+export const SIM_PARAM: string | null = DEV_BUILD ? QUERY.get('sim') : null;
+/** Test Lab gate: launch with `--lab` (desktop) or `?lab=1` (web); a sim launch (`?sim=`) turns the lab features on too. Dev and test builds only. */
+export const LAB = DEV_BUILD && (QUERY.has('lab') || QUERY.has('sim'));
 /** Dev-only autoplayer (src/bot): `?bot=1` on the dev server. Its runs never touch the profile or the best receipts. */
 export const BOT = import.meta.env.DEV && QUERY.has('bot');
 

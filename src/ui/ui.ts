@@ -6,7 +6,7 @@ import { ITEMS, PLAYER, STARTER_LOOKS, STARTER_WEAPONS } from '../data/items';
 import { RECIPES, recipeIcon, recipeParts } from '../data/recipes';
 import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS, enemyAppears } from '../data/waves';
 import { CODEX_ENEMIES, ELITE, ENEMIES, MINI_BOSS, bossFor, enemyFrame, isBossId } from '../data/enemies';
-import { LAB, SIM_PARAM, loadLab, saveLab } from '../lab';
+import { DEV_BUILD, LAB, SIM_PARAM, loadLab, saveLab } from '../lab';
 import { play, refreshVolumes, startMusic } from '../audio/sfx';
 import { initHud, hud, svg, relabelHud } from './hud';
 import { initSandbox, sandboxKey } from './sandbox';
@@ -881,8 +881,8 @@ function initPad(): void {
   });
 }
 
-/** Dev shortcuts: on in `npm run dev` and in test builds (`npm run launch:test`), stripped from release builds. */
-const DEV_KEYS = import.meta.env.DEV || import.meta.env.VITE_DEV_KEYS === '1' || LAB;
+/** Dev shortcuts: on in `npm run dev` and in test builds (`npm run lab`), stripped from release builds. */
+const DEV_KEYS = DEV_BUILD;
 
 function devKey(e: KeyboardEvent): void {
   const arena = (window as unknown as { __arena: { devEndWave(): void; devStress(): void } }).__arena;
