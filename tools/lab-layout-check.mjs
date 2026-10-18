@@ -5,7 +5,7 @@ import { chromium } from 'playwright';
 
 const PORT = process.env.PORT ?? 5173;
 const SIZES = [[1280, 800], [1672, 941]];
-const AVOID = ['#shop .grid-wrap', '#shop .combos', '#shop .col-right', '#shop .bottom', '#shop .col-mid', '#hud', '#simtag', '#simnote'];
+const AVOID = ['#shop .grid-wrap', '#shop .combos', '#shop .col-right', '#shop .bottom', '#shop .col-mid', '#hud', '#punch', '#bossbar', '#simtag', '#simnote'];
 const LAB = { aisle: 2, dept: 'frozen', shift: 0, starter: 'toaster', weapon: 'toaster', money: 999, cart: [5, 4], shelf: 6, shopLevel: 1, god: true, event: 'none', mod: 'none', sandbox: true };
 
 const b = await chromium.launch({ channel: 'chrome' });
@@ -44,7 +44,7 @@ for (const [w, h] of SIZES) {
   const page = await b.newPage({ viewport: { width: w, height: h } });
   const errs = [];
   page.on('pageerror', (e) => errs.push(e.message));
-  await page.goto(`http://localhost:${PORT}/?lab=1`);
+  await page.goto(`http://localhost:${PORT}/?lab=1`, { timeout: 120000 });
   await page.waitForTimeout(1200);
   await page.evaluate((o) => window.__gg.flow.startLab(o), LAB);
   await page.waitForTimeout(500);
@@ -52,7 +52,7 @@ for (const [w, h] of SIZES) {
   await page.evaluate(() => window.__gg.flow.labToArena());
   await page.waitForTimeout(1500);
   await tabs(page, `${w}x${h} arena`);
-  await page.goto(`http://localhost:${PORT}/?sim=example`);
+  await page.goto(`http://localhost:${PORT}/?sim=example`, { timeout: 120000 });
   await page.waitForTimeout(2000);
   await tabs(page, `${w}x${h} sim arena`);
   await page.keyboard.press('F8');

@@ -5,7 +5,7 @@ import { ITEMS, ITEM_IDS } from '../data/items';
 import { ELEMENT_COLORS } from '../engine/damageType';
 import { store } from '../state/store';
 import { settings } from '../state/settings';
-import { labAddItem, labClear, reroll } from '../state/run';
+import { labAddItem, labAisle, labClear, reroll } from '../state/run';
 import { LAB_SLOT_COUNT, captureSlot, restoreSlot, slotItems } from '../state/lab';
 import { currentRerollCost } from '../systems/shop';
 import { DpsMeter } from '../systems/dpsMeter';
@@ -115,7 +115,7 @@ function meterHtml(): string {
 
 function setupHtml(): string {
   const o = flow.labSetup;
-  return o ? `<div class="settings lab-bench-form">${labFormHtml(o, inFight() ? 'arena' : 'shop')}</div>` : '';
+  return o ? `<div class="settings lab-bench-form">${labFormHtml({ ...o, aisle: labAisle(store.state) }, inFight() ? 'arena' : 'shop')}</div>` : ''; // the run's aisle, which a real run moves on by itself
 }
 
 /** One chip per set the cart has items of: name, bonus level (or progress toward the first one), the bonus text as the tooltip. */
@@ -130,7 +130,7 @@ function setsRowHtml(): string {
 function html(tabs: Tab[]): string {
   const s = store.state, shop = s.phase === 'shop';
   const body = { items: itemsHtml, foes: foesHtml, meter: meterHtml, setup: setupHtml }[tab]();
-  const foot = shop ? '' : `<button class="btn small coral" data-lb="cart">${t('lbEditCart')}</button>`;
+  const foot = shop || !s.labSandbox ? '' : `<button class="btn small coral" data-lb="cart">${t('lbEditCart')}</button>`;
   return `<div class="lb-head"><h3>${t('lbTitle')}</h3>
       <span class="lb-live"><img class="coin-ico" src="${svg('coin')}" alt=""><b data-lb-money></b><img src="${svg('heart')}" width="18" alt=""><b data-lb-hp></b></span>
       ${shop ? '' : `<button class="btn small" data-lb="collapse" title="${t('lbCollapse')}" aria-label="${t('lbCollapse')}">–</button>`}</div>
