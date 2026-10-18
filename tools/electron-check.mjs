@@ -1,6 +1,8 @@
-// Launches the PACKAGED desktop app and verifies boot → play → shop, with a screenshot.
+// Launches the PACKAGED desktop app (`npm run app` builds it) and verifies boot → play → shop, with a screenshot.
 import { _electron as electron } from 'playwright';
-const exe = process.argv[2] ?? 'release/mac-arm64/Goblin Grocery.app/Contents/MacOS/Goblin Grocery';
+import { mkdirSync } from 'node:fs';
+mkdirSync('screenshots', { recursive: true });
+const exe = process.argv[2] ?? `release/${process.arch === 'arm64' ? 'mac-arm64' : 'mac'}/Goblin Grocery.app/Contents/MacOS/Goblin Grocery`;
 const app = await electron.launch({ executablePath: exe, args: process.argv.slice(3) }); // e.g. node tools/electron-check.mjs <exe> --lab
 const win = await app.firstWindow();
 const errs = []; win.on('pageerror', (e) => errs.push(e.message)); win.on('console', (m) => m.type() === 'error' && errs.push(m.text()));

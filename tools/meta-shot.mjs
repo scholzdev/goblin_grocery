@@ -1,9 +1,10 @@
 // DEV: meta-progression screens (Codex combos/items, Wardrobe), discovery pop-up, skinned goblin in combat.
 import { chromium } from 'playwright';
+import { devUrl } from './lib/dev.mjs';
 const b = await chromium.launch({ channel: 'chrome' });
 const page = await b.newPage({ viewport: { width: 1440, height: 900 } });
 const errs = []; page.on('pageerror', (e) => errs.push(e.message)); page.on('console', (m) => m.type() === 'error' && errs.push(m.text()));
-await page.goto(process.argv[2] ?? 'http://localhost:5173/');
+await page.goto(await devUrl(process.argv[2]));
 await page.evaluate(() => localStorage.setItem('goblin-grocery.profile.v1', JSON.stringify({
   v: 1, stats: { runs: 5, wins: 1, losses: 4, kills: 420, coins: 380, bestWave: 8, combos: 3, deptClears: { frozen: 2, bakery: 1 } },
   recipes: ['toastMode', 'expressCheckout', 'coldStorage'],

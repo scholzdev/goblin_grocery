@@ -1,7 +1,8 @@
 // DEV: shop with a fresh and a spoiled Avocado and Fresh Fish side by side, plus Basil and Scoby: the cart art switches to the `_rotten` icons.
 // Usage: node tools/perishables-shot.mjs [url]  ->  screenshots/perishables-shop.png
 import { chromium } from 'playwright';
-const url = process.argv[2] ?? 'http://localhost:5173/';
+import { devUrl } from './lib/dev.mjs';
+const url = await devUrl(process.argv[2]);
 const b = await chromium.launch({ channel: 'chrome' });
 const page = await b.newPage({ viewport: { width: 1440, height: 900 } });
 const errs = []; page.on('pageerror', (e) => errs.push(e.message)); page.on('console', (m) => m.type() === 'error' && errs.push(m.text()));

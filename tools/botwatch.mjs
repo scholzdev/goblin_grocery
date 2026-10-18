@@ -1,7 +1,8 @@
 // Watches the in-page dev bot (src/bot/bot.ts, `?bot=1`) play whole runs and prints one line per run plus one per shop visit.
-// Usage: node tools/botwatch.mjs [url=http://localhost:5173/?bot=1] [runs=3]   (needs the dev server running; the bot starts the runs and restarts itself)
+// Usage: node tools/botwatch.mjs [url] [runs=3]   (starts its own dev server when no url is given; the bot starts the runs and restarts itself)
 import { chromium } from 'playwright';
-const url = process.argv[2] ?? 'http://localhost:5173/?bot=1';
+import { devUrl } from './lib/dev.mjs';
+const url = await devUrl(process.argv[2], '?bot=1');
 const runs = Number(process.argv[3] ?? 3);
 const RUN_TIMEOUT = 15 * 60_000;
 const browser = await chromium.launch({ channel: 'chrome' });

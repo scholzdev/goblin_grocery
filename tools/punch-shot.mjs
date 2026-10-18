@@ -1,7 +1,8 @@
 // DEV: screenshots of the Punch Card sticker (banner, in progress, done, failed), the Staff Only door and the goblin select signatures.
-// Usage: npm run dev -- --port 5188, then `node tools/punch-shot.mjs http://localhost:5188/ [outDir]`.
+// Usage: node tools/punch-shot.mjs [url] [outDir]  (starts its own dev server when no url is given)
 import { chromium } from 'playwright';
-const base = process.argv[2] ?? 'http://localhost:5173/', out = process.argv[3] ?? 'screenshots';
+import { devUrl } from './lib/dev.mjs';
+const base = await devUrl(process.argv[2]), out = process.argv[3] ?? 'screenshots';
 const b = await chromium.launch({ channel: 'chrome' });
 const page = await b.newPage({ viewport: { width: 1280, height: 800 } });
 const errs = []; page.on('pageerror', (e) => errs.push(e.message));

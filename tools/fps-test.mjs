@@ -1,8 +1,9 @@
 // DEV: F4 stress (70 enemies + 150 projectiles) on top of a developed build; samples actualFps.
 import { chromium } from 'playwright';
+import { devUrl } from './lib/dev.mjs';
 const b = await chromium.launch({ channel: 'chrome', args: ['--disable-gpu-vsync', '--disable-frame-rate-limit'] });
 const page = await b.newPage({ viewport: { width: 1920, height: 1080 } });
-await page.goto(process.argv[2] ?? 'http://localhost:5173/');
+await page.goto(await devUrl(process.argv[2]));
 await page.waitForSelector('#title:not(.hidden)');
 await page.click('[data-act="play"]'); await page.click('[data-starter="toaster"]'); await page.click('[data-act="start-run"]'); await page.waitForTimeout(500);
 await page.keyboard.press('F3'); await page.waitForTimeout(2500);

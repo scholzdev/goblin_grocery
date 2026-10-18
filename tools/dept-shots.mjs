@@ -1,6 +1,7 @@
 // DEV: screenshot each department mid-fight, the route screen, and the Tab view with hover stats.
 import { chromium } from 'playwright';
-const url = process.argv[2] ?? 'http://localhost:5173/';
+import { devUrl } from './lib/dev.mjs';
+const url = await devUrl(process.argv[2]);
 const b = await chromium.launch({ channel: 'chrome' });
 const page = await b.newPage({ viewport: { width: 1600, height: 900 } });
 const errs = []; page.on('pageerror', (e) => errs.push(e.message)); page.on('console', (m) => (m.type() === 'error' || m.text().includes('failed to load')) && errs.push(m.text()));
