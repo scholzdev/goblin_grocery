@@ -268,12 +268,12 @@ function render(): void {
     // Undiscounted price: struck through when a discount (Checkout, coupons, starter perk) baked a lower price in.
     const list = Math.max(1, Math.round(TIER.value(def.price, o.tier) * infl));
     const was = list > o.price ? list : Math.max(1, Math.round(o.price / infl));
-    const struck = !o.sold && (list > o.price || infl > 1) ? `<s class="base">${was}</s>` : '';
+    const struck = !o.sold && (list > o.price || infl > 1) ? was : undefined;
     return `<div class="card ${rarityClass(o.type, o.tier)} ${o.sold ? 'sold' : ''} ${why || poor ? 'blocked' : ''} ${lv ? 'lvl' : ''}" data-offer="${o.slot}" data-type="${o.type}" ${poor ? `title="${t('needCoins', { n: o.price - s.money })}"` : ''} ${o.sold ? `data-sold="${t('soldStamp')}"` : ''} role="button" tabindex="0"
       aria-label="${t('buyAria', { rar, name: itemT(o.type).name, price: o.price })}">
       <img class="art" src="${svg(`icon_${o.type}`)}" alt="">
       <div class="nm">${itemT(o.type).name}</div><div class="fp" style="grid-template-columns:repeat(${w},10px)">${fp}</div>
-      <span class="price-tag">${costPill(o.price, s.money >= o.price)}${struck}</span>
+      <span class="price-tag">${costPill(o.price, s.money >= o.price, struck)}</span>
       ${lv ? `<span class="lvlup" title="${t('combinesTip', { name: itemT(o.type).name })}">${t('combinesTag', { n: (lv.tier ?? 1) + 1 })}</span>` : ''}
       ${o.double && !o.sold ? `<span class="dblpack" title="${esc(t('setDouble', { set: tagT(def.family) }))}">${t('packSticker')}</span>` : ''}
       ${stks ? `<div class="seticons">${stks}</div>` : ''}
@@ -857,7 +857,7 @@ const slotPx = (n: number) => (n <= 4 ? 86 : Math.floor((372 - (n - 1) * 8) / n)
 
 /** Store services: grow the cart or the staging shelf (prices rise each time), plus reroll. */
 /** Coin cost pill; red when unaffordable, green FREE at 0. */
-const costPill = (n: number, can: boolean): string => n === 0 ? `<span class="cost free">${t('free')}</span>` : `<span class="cost ${can ? '' : 'no'}"><img class="coin-ico" src="${svg('coin')}" alt="">${n}</span>`;
+const costPill = (n: number, can: boolean, was?: number): string => n === 0 ? `<span class="cost free">${t('free')}</span>` : `<span class="cost ${can ? '' : 'no'}"><img class="coin-ico" src="${svg('coin')}" alt="">${was ? `<s class="was">${was}</s>` : ''}${n}</span>`;
 
 function serviceHtml(s: RunState): string {
   const cc = cartUpgradeCost(s), size = nextCartSize(s), sc = shelfUpgradeCost(s);
