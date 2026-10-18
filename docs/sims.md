@@ -103,7 +103,7 @@ One sim per combo, `src/sims/combo-<id>.ts` with the combo id in kebab-case (`?s
 
 ## Weapon sims
 
-One sim per weapon, `src/sims/weapon-<id>.ts` (`?sim=weapon-toaster`, `weapon-pan`, `weapon-nailgun`, `weapon-vacuum`, `weapon-microwave`, `weapon-blender`, `weapon-fizz`, `weapon-mop`, `weapon-leafblower`, `weapon-laser`, `weapon-cooker`, `weapon-spray`). The cart is the weapon alone at ★3 (the legendary Laser has no tiers) at `[2, 1]`, no modules and no combo, so you see the bare pattern of `src/engine/patterns`. God mode on, dummies immortal unless the notes say otherwise. The notes name the ★3 damage and interval and what to look for:
+One sim per weapon, `src/sims/weapon-<id>.ts` (`?sim=weapon-toaster`, `weapon-pan`, `weapon-nailgun`, `weapon-vacuum`, `weapon-microwave`, `weapon-blender`, `weapon-fizz`, `weapon-mop`, `weapon-leafblower`, `weapon-laser`, `weapon-cooker`, `weapon-spray`, `weapon-snowcone`). The cart is the weapon alone at ★3 (the legendary Laser has no tiers) at `[2, 1]`, no modules and no combo, so you see the bare pattern of `src/engine/patterns`. God mode on, dummies immortal unless the notes say otherwise. The notes name the ★3 damage and interval and what to look for:
 
 | Sim | Enemies | Look for |
 | --- | --- | --- |
@@ -119,6 +119,7 @@ One sim per weapon, `src/sims/weapon-<id>.ts` (`?sim=weapon-toaster`, `weapon-pa
 | `weapon-laser` | a far bunch and a ring of 5 milk | One beam down the line with the most enemies. |
 | `weapon-cooker` | a big bunch right, a small one left | The pot goes to the densest group; the blast pushes everything back. |
 | `weapon-spray` | 8 milk close in front | The 70° cone hits all of them each spray, with a light push. |
+| `weapon-snowcone` | 8 baguettes in a bunch on the right | A slush puddle behind you every 1.6 s even with nobody around; Wet, a 35% slow and a frost tick per 0.5 s. It never slides what it soaks itself: it needs another frost hit (see `reaction-ice-sheet`). |
 
 `tests/sims/sims.test.ts` checks that each weapon sim has exactly its weapon (★3, or ★1 for the legendary), an explicit `at`, notes and dummies, and that the build `createSimRun` computes carries the weapon's pattern with its base damage and interval scaled by the tier. Each weapon's behaviour in the patterns is tested in `tests/content/items/<weapon>.test.ts`.
 

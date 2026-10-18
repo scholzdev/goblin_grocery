@@ -48,6 +48,8 @@ export interface Enemy {
   blownDmg?: number;
   /** Ice Sheet: slides (no steering, little friction) until this time (s); the slam uses `blownDmg` like the Leaf Blower's, and also fires on another enemy. */
   slideUntil?: number;
+  /** Ice Sheet: the enemies already touching it when the slide began (they are not a collision). */
+  slideTouch?: Set<number>;
   /** Frostbite Nails hit counter. */
   nailHits?: number;
   /** Cereal Box: shots its cardboard front has blocked so far. */
@@ -268,7 +270,7 @@ export function updateEnemy(scene: ArenaScene, e: Enemy, dt: number, now: number
   if (prop && e.state === 'attack' && d.behavior === 'charger') {
     e.stateT = 0; e.kx -= e.dirX * 140; e.ky -= e.dirY * 140; // lunge bumps into the prop
   }
-  if (blownFast && (wall || prop || (sliding && scene.enemies.some((o) => o !== e && o.alive && o.state !== 'spawn' && Math.hypot(o.x - e.x, o.y - e.y) < o.def.radius + d.radius)))) { scene.slamEnemy(e); if (!e.alive) return; }
+  if (blownFast && (wall || prop || (sliding && scene.enemies.some((o) => o !== e && o.alive && o.state !== 'spawn' && !e.slideTouch?.has(o.id) && Math.hypot(o.x - e.x, o.y - e.y) < o.def.radius + d.radius)))) { scene.slamEnemy(e); if (!e.alive) return; }
   if (Math.abs(mx) > 0.05) e.facing = mx > 0 ? 1 : -1;
   else if (e.state === 'tell' || e.state === 'walk') e.facing = nx > 0 ? 1 : -1;
 

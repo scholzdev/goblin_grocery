@@ -535,7 +535,7 @@ export class ArenaScene extends Phaser.Scene {
   /** Leaf Blower slam: a blown grocery stopped by the arena edge or a prop takes impact damage once. */
   slamEnemy(e: Enemy): void {
     const dmg = e.blownDmg ?? 0;
-    e.blownUntil = 0; e.slideUntil = 0;
+    e.blownUntil = 0; // the slam lands once; a slide goes on (no steering) until `slideUntil`
     this.fx.puff(e.x, e.y - 10, 2);
     this.fx.spark(e.x, e.y - 30, 4, 0xcfefff);
     this.fx.shake(0.003, 80);
@@ -549,6 +549,7 @@ export class ArenaScene extends Phaser.Scene {
     const k = 1 - e.def.knockbackResist;
     e.kx = (dx / d) * speed * k; e.ky = (dy / d) * speed * k;
     e.slideUntil = now + seconds; e.blownUntil = now + seconds; e.blownDmg = slam;
+    e.slideTouch = new Set(this.enemies.filter((o) => o !== e && o.alive && Math.hypot(o.x - e.x, o.y - e.y) < o.def.radius + e.def.radius).map((o) => o.id)); // already in contact: not a collision
     return seconds;
   }
 
