@@ -925,3 +925,34 @@ body.pad-nav :focus { outline: 4px solid var(--gold); outline-offset: 3px; }
 /* dev autoplayer status (src/bot, ?bot=1) */
 #botpanel { position: absolute; left: 10px; top: 10px; max-width: 360px; margin: 0; padding: 6px 10px; z-index: 80; border-radius: 8px; background: rgba(48, 32, 63, 0.82); color: var(--cream); font: 700 12px/1.35 var(--ui); white-space: pre-wrap; pointer-events: none; }
 #shop .services .btn.on { background: var(--gold); }
+
+/* ───────────── Punch Card sticker (ui/punchcard.ts) ───────────── */
+#punch {
+  position: absolute; left: 50%; top: 76px; transform: translateX(-50%) rotate(-0.8deg); width: 330px; padding: 6px 12px 8px;
+  background: var(--paper); border: 3px solid var(--plum); border-radius: 10px; box-shadow: 0 4px 0 var(--plum); font-family: var(--display);
+  transition: background 200ms;
+}
+#hud.has-punch .recipes { margin-top: 74px; }
+#punch .pc-head { display: flex; align-items: center; gap: 8px; }
+#punch .pc-head img { width: 26px; height: 26px; }
+#punch .pc-title { font-size: 13px; letter-spacing: 0.08em; color: var(--lavender-deep); flex: 1; }
+#punch .pc-count { font-size: 26px; line-height: 1; }
+#punch .pc-goal { font-family: var(--ui); font-weight: 800; font-size: 15px; margin: 1px 0 4px; }
+#punch .pc-bar { position: relative; height: 14px; border: 3px solid var(--plum); border-radius: 8px; background: #e9d9f1; overflow: hidden; }
+#punch .pc-bar > i { position: absolute; inset: 0 auto 0 0; background: var(--teal); transition: width 120ms; }
+#punch .pc-bar > b { position: absolute; inset: 0; display: flex; justify-content: space-around; align-items: center; }
+#punch .pc-bar u { width: 5px; height: 5px; border-radius: 50%; background: rgba(48, 32, 63, 0.35); }
+#punch .pc-bar u.on { background: var(--paper); box-shadow: 0 0 0 1px var(--plum); }
+#punch.punch-done { background: var(--gold); animation: punch-stamp 380ms ease; }
+#punch.punch-done .pc-bar > i { background: var(--gold-deep); }
+#punch.punch-failed { background: #cfc6d6; color: rgba(48, 32, 63, 0.6); }
+#punch.punch-failed .pc-bar > i { background: #9d93a8; }
+#punch.punch-failed .pc-head img { filter: grayscale(1); }
+@keyframes punch-stamp { 0% { transform: translateX(-50%) scale(1.25) rotate(-4deg); } 60% { transform: translateX(-50%) scale(0.96) rotate(-0.8deg); } 100% { transform: translateX(-50%) scale(1) rotate(-0.8deg); } }
+
+.door.shortcut .modicon img { width: 76px; height: 76px; }
+.loadout-pick .detail .sig { font: 700 14px/1.35 var(--ui); margin-bottom: 8px; padding: 4px 8px; background: var(--gold); border: 2px solid var(--plum); border-radius: 8px; }
+.loadout-pick .detail .sig b { font-family: var(--display); font-weight: 400; margin-right: 4px; }
+/* Loyalty 3 plus the Staff Only door: four cards must fit the 1280-wide root. */
+.route .doors:has(> .door:nth-child(4)) { gap: 14px; }
+.route .doors:has(> .door:nth-child(4)) .door { width: 280px; }

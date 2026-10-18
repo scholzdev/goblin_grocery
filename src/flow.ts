@@ -158,7 +158,7 @@ export const flow = {
     const s = store.state;
     if (s.lab) labSnap = structuredClone({ inventory: s.inventory, money: s.money, nextUid: s.nextUid });
     if (!leaveShop(s, rng).ok) return;
-    if (s.lab) this.chooseDoor(s.doors![0]); else store.changed();
+    if (s.lab && s.doors!.length === 1) this.chooseDoor(s.doors![0]); else store.changed(); // a lab aisle has one door (the route screen shows only with the Staff Only door)
   },
 
   chooseDoor(id: DoorId): void {

@@ -6,6 +6,7 @@ import type { DepartmentId, ItemTypeId, StarterId } from '../types';
 export const STARTING_ITEMS: ItemTypeId[] = [
   'toaster', 'pan', 'nailgun', 'vacuum', 'fan', 'fuel', 'battery', 'magnet', 'ice', 'hotsauce', 'lunchbox', 'bell', 'fortune', 'sample', 'piggy',
   'popcorn', 'sparklers', 'expiredcoupon',
+  'spentkey', // never offered (noShop), listed so every item is reachable for the catalog
 ];
 
 export type GoblinSkin = 'classic' | 'night' | 'frost' | 'gold';
@@ -93,6 +94,8 @@ export const UNLOCKS: Unlock[] = [
   { id: 'laser', kind: 'item', item: 'laser', need: 'Win 3 runs', check: (s) => s.wins >= 3, progress: (s) => at(3)(s.wins) },
   { id: 'snowcone', kind: 'item', item: 'snowcone', need: 'Clear 5 Frozen Foods aisles', check: (s) => dept(s, 'frozen') >= 5, progress: (s) => at(5)(dept(s, 'frozen')) },
   { id: 'moldybread', kind: 'item', item: 'moldybread', need: 'Discover 5 combos', check: (s) => s.combos >= 5, progress: (s) => at(5)(s.combos) },
+  { id: 'punchcard', kind: 'item', item: 'punchcard', need: 'Earn 150 coins (lifetime)', check: (s) => s.coins >= 150, progress: (s) => at(150)(s.coins) },
+  { id: 'shortcut', kind: 'item', item: 'shortcut', need: 'Get wiped out twice', check: (s) => s.losses >= 2, progress: (s) => at(2)(s.losses) },
   { id: 'starter-coupon', kind: 'starter', starter: 'coupon', need: 'Earn 400 coins (lifetime)', check: (s) => s.coins >= 400, progress: (s) => at(400)(s.coins) },
   { id: 'starter-night', kind: 'starter', starter: 'night', need: 'Reach aisle 6', check: (s) => s.bestWave >= 6, progress: (s) => at(6)(s.bestWave) },
   { id: 'skin-night', kind: 'goblin', skin: 'night', need: 'Finish 5 runs', check: (s) => s.runs >= 5, progress: (s) => at(5)(s.runs) },

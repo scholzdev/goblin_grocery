@@ -123,9 +123,10 @@ export function recordRun(s: RunState, won: boolean): Unlock[] {
   st.kills += s.stats.kills;
   st.coins += s.stats.coinsEarned;
   st.bestWave = Math.max(st.bestWave, won ? BOSS_WAVE : s.wave);
-  // route[i] is the department of aisle i+1; the first `wavesCleared` aisles were cleared.
+  // route[i] is the department of aisle i+1; the first `wavesCleared` aisles that were played (not skipped by a Staff Only door) were cleared.
   const bump = (d: string) => (st.deptClears[d as DepartmentId] = (st.deptClears[d as DepartmentId] ?? 0) + 1);
-  s.route.slice(0, s.stats.wavesCleared).forEach((d, i) => { bump(d); if (s.mods[i] === 'clearance') bump('clearance'); });
+  s.route.map((d, i) => ({ d, m: s.mods[i], aisle: i + 1 })).filter((a) => !s.skippedAisles?.includes(a.aisle)).slice(0, s.stats.wavesCleared)
+    .forEach(({ d, m }) => { bump(d); if (m === 'clearance') bump('clearance'); });
   if (won) {
     st.deptClears.boss = (st.deptClears.boss ?? 0) + 1;
     st.bestShift[s.starter] = Math.max(st.bestShift[s.starter] ?? 0, s.shift);

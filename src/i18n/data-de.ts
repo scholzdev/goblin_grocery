@@ -24,7 +24,7 @@ const shifts: NB[] = [
 ];
 
 const starters: Record<StarterId, NB> = {
-  toaster: { name: 'Toast-Goblin', blurb: 'Der Allrounder. Keine Boni, keine Nachteile.' },
+  toaster: { name: 'Toast-Goblin', blurb: 'Der Allrounder. Keine Wertänderungen, keine Nachteile.' },
   pan: { name: 'Küchenchef', blurb: 'Abgehärtet vom Küchendienst, im Gang etwas langsam.' },
   coupon: { name: 'Couponsammler', blurb: 'Feilscht um alles, hat aber schnell blaue Flecken.' },
   night: { name: 'Nachtschicht', blurb: 'Flink auf den Beinen, müde Arme.' },
@@ -87,6 +87,8 @@ const unlocks: Record<string, string> = {
   bowlingball: 'Erreiche Gang 6',
   ghostpepper: 'Erreiche Gang 4',
   scratchticket: 'Verdiene 150 Münzen (insgesamt)',
+  punchcard: 'Verdiene 150 Münzen (insgesamt)',
+  shortcut: 'Geh zweimal k.o.',
   laser: 'Gewinne 3 Runs',
   'starter-coupon': 'Verdiene 400 Münzen (insgesamt)',
   'starter-night': 'Erreiche Gang 6',

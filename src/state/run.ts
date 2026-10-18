@@ -1,6 +1,6 @@
 import { refillCharges } from '../engine/actives';
 import { t } from '../i18n';
-import { ITEMS, ITEM_IDS, PLAYER, STARTER_WEAPONS, TIER } from '../data/items';
+import { ITEMS, ITEM_IDS, PLAYER, SIGNATURE, STARTER_WEAPONS, TIER, signatureOf } from '../data/items';
 import { DEPARTMENTS } from '../data/departments';
 import { MODIFIERS, type DoorId } from '../data/modifiers';
 import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS } from '../data/waves';
@@ -13,6 +13,8 @@ import { computeBuild } from '../systems/synergies';
 import { newDamageStats } from '../systems/damageStats';
 import { contentItem, contentSetTune, contentTune, sellValue } from '../engine/registry';
 import { FAMILIES, FLAVORS } from '../engine/define';
+import { PUNCH_REROLLS } from '../systems/contracts';
+import { canShortcut, spendKey } from '../systems/shortcut';
 
 const fail = (reason: string): OpResult => ({ ok: false, reason });
 const OK: OpResult = { ok: true };
@@ -180,7 +182,10 @@ export function mergeTargetFor(inv: Inventory, type: ItemTypeId, tier: number, e
 export function mergeItems(state: RunState, uid: string, targetUid: string): OpResult {
   if (state.phase !== 'shop') return fail(t('rNoRearrange'));
   const r = applyMerge(state.inventory, uid, targetUid);
-  if (r.ok) recomputeBuild(state);
+  if (r.ok) {
+    recomputeBuild(state);
+    if (signatureOf(state.starter) === 'mergeHeal') state.hp = Math.min(state.build.maxHp, state.hp + SIGNATURE.mergeHeal.hp); // Line Cook
+  }
   return r;
 }
 
@@ -314,7 +319,8 @@ export function openShop(state: RunState, rng: Rng): void {
   const opts = { bias: [...d.shopBias], legendaryBonus: d.legendaryBonus, forceLegendary: d.forceLegendary || m.forceLegendary };
   const carried = state.shopLock;
   state.shopLock = undefined;
-  state.shop = { offers: rollOffers(state, rng, state.wave, state.wave === 1 && !carried, carried ? { ...opts, keep: carried } : opts), locked: !!carried, rerolls: 0, repairUsed: false, freeRerollUsed: false, bonusFreeRerolls: m.freeRerolls, shopIndex: state.wave, ...opts };
+  state.shop = { offers: rollOffers(state, rng, state.wave, state.wave === 1 && !carried, carried ? { ...opts, keep: carried } : opts), locked: !!carried, rerolls: 0, repairUsed: false, freeRerollUsed: false, bonusFreeRerolls: m.freeRerolls + (signatureOf(state.starter) === 'freeReroll' ? SIGNATURE.freeReroll.rerolls : 0), shopIndex: state.wave, ...opts };
+  if (state.punch?.status === 'done') { state.shop.bonusFreeRerolls += PUNCH_REROLLS; state.punch = undefined; } // Punch Card: the completed goal's free reroll
   state.shop.riseWait = riseWait;
   rollFlavors(state, rng); // recomputes the build (after sourdough tiers changed)
 }
@@ -331,6 +337,11 @@ export function addCoins(state: RunState, amount: number, label: string): void {
   state.stats.coinsEarned += amount;
   const e = state.coinLog.find((c) => c.label === label);
   if (e) e.amount += amount; else state.coinLog.push({ label, amount });
+}
+
+/** Punch Card completed: its coins (the receipt lists them); the free reroll comes with the next shop. */
+export function payPunchCard(state: RunState): void {
+  if (state.punch?.status === 'done') addCoins(state, state.punch.coins, t('coinPunchCard'));
 }
 
 export function finishWave(state: RunState): void {
@@ -361,15 +372,39 @@ export function damagePlayer(state: RunState, amount: number): boolean {
 
 export function leaveShop(state: RunState, rng: Rng): OpResult {
   if (state.phase !== 'shop' || !state.shop) return fail(t('rShopClosed'));
-  state.doors = state.lab ? [labDoor(state)] : rollDoors(state, rng);
+  state.doors = state.lab ? [labDoor(state), ...(canShortcut(state, state.wave) ? ['shortcut' as const] : [])] : rollDoors(state, rng); // a lab aisle has its one door, plus Staff Only while a key is owned
   state.doorZones = rollZones(state, rng, state.doors);
   state.phase = 'route';
+  return OK;
+}
+
+/**
+ * Staff Only door: the next aisle is skipped (no fight, no clear bonus, no shop), the goblin heals to full and `startNextWave` then lands on the aisle after it.
+ * The skipped aisle keeps a plain entry in route / mods / zones, which are indexed by aisle. The key turns into a Spent Key.
+ */
+function takeShortcut(state: RunState): OpResult {
+  if (!canShortcut(state, state.wave)) return fail(t('rDoorUnavailable'));
+  spendKey(state.inventory);
+  state.route.push(state.theme); state.mods.push('none'); state.zones.push(null);
+  state.skipped = state.wave + 1;
+  (state.skippedAisles ??= []).push(state.skipped);
+  state.wave++;
+  const landing = state.wave + 1, boss = landing === BOSS_WAVE && !state.overtime;
+  const zone = boss ? null : rollZones(state, mulberry32(state.seed ^ Math.imul(landing, 0x9e3779b1)), ['none'])[0];
+  state.department = boss ? 'boss' : state.labDept ?? state.theme;
+  state.modifier = state.lab && !boss ? state.labMod ?? 'none' : 'none';
+  state.route.push(state.department); state.mods.push(state.modifier); state.zone = zone; state.zones.push(zone);
+  state.doors = null;
+  state.doorZones = null;
+  recomputeBuild(state);
+  state.hp = state.build.maxHp;
   return OK;
 }
 
 export function chooseDoor(state: RunState, id: DoorId): OpResult {
   if (state.phase !== 'route' || !state.doors) return fail(t('rNoDoors'));
   if (!state.doors.includes(id)) return fail(t('rDoorUnavailable'));
+  if (id === 'shortcut') return takeShortcut(state);
   const zone = state.doorZones?.[state.doors.indexOf(id)] ?? null;
   state.department = id === 'boss' ? 'boss' : state.theme;
   state.modifier = id === 'boss' ? 'none' : id;

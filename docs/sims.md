@@ -226,3 +226,10 @@ Sandboxes for items with a mechanic you have to see, `src/sims/item-<id>.ts`:
 | `item-ghost-pepper` | Toaster, Fuel Can, Ghost Pepper (god mode off, 3 milk) | BURNING over the goblin after a hit: 1.5 dps over 2 s, no flinch, no i-frames, never below 1 HP |
 | `item-scratch-ticket` | Toaster, Scratch Ticket (god mode off, a real aisle) | The aisle-start roll: 1 in 5 for +30 coins, else -4 HP. A sim boots the arena twice, so the roll can fire twice |
 | `item-dash-boot-bumper`, `item-dash-ball` | Pan ★1 plus Boot + Bumper (5 cells) / plus a Bowling Ball with 12 Piggy Banks as filler (19 cells) | The same milk cluster: switch between them to compare the dash. Boot + Bumper: 12 + an 8 blast. Ball: 25 on every enemy touched |
+
+## Contract and shortcut sims
+
+| Sim | What to look at |
+| --- | --- |
+| `punch-card` | A real aisle 4 with a Punch Card and a heat cart (`waves: true`, `god: false`). The goal is on the banner, the sticker sits under the HUD strip. |
+| `shortcut-key` | Starts in the cart editor before aisle 3 with a Shortcut Key and 8 HP. Leave the shop: the route screen shows a Staff Only door (a lab aisle normally has one door and skips that screen). Take it to land in aisle 4 at full HP. |
