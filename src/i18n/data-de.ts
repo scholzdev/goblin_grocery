@@ -73,6 +73,8 @@ const unlocks: Record<string, string> = {
   flag: 'Räume 2 Tiefkühlkost-Gänge',
   canopener: 'Erreiche Gang 3',
   decaf: 'Erreiche Gang 4',
+  barter: 'Verdiene 600 Münzen (insgesamt)',
+  binder: 'Entdecke 5 Combos',
   laser: 'Gewinne 3 Runs',
   'starter-coupon': 'Verdiene 400 Münzen (insgesamt)',
   'starter-night': 'Erreiche Gang 6',

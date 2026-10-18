@@ -1459,6 +1459,31 @@ add('icon_expiredcoupon', () => {
   return icon(s, 166);
 });
 
+add('icon_barter', () => {
+  // rubber stamp (wooden knob, handle, base) over a haggled coin trail
+  let s = S5(rect(46, 138, 104, 14), C.chrome, C.chromeD, { dx: 4, dy: 3 });
+  s += S5(rect(60, 112, 76, 26), C.coral, C.coralD, { dx: 5, dy: 4 });
+  s += S5(rect(84, 56, 28, 56), C.cream, C.creamD, { dx: 4, dy: 3 });
+  s += ell(98, 44, 26, 18, C.coral, C.coralD, { sw: SWi, dx: 4, dy: 4 });
+  s += flat([[78, 36], [92, 30], [84, 44]], C.white, 'opacity=".7"');
+  s += ell(52, 160, 14, 6, C.gold, C.goldD, { sw: 3, dx: 1, dy: 1 }) + ell(148, 160, 14, 6, C.gold, C.goldD, { sw: 3, dx: 1, dy: 1 });
+  s += spk(156, 62, 10) + spk(36, 96, 6);
+  return icon(s, 170);
+});
+
+add('icon_binder', () => {
+  // ring binder with a gold corner, a card peeking out
+  let s = S5(rect(52, 22, 92, 128), C.cream, C.creamD, { dx: 5, dy: 4 });
+  s += S5(rect(40, 32, 100, 132), C.coral, C.coralD, { dx: 8, dy: 6 });
+  s += flat(rect(40, 32, 14, 132), C.coralD);
+  s += [54, 86, 118].map((y) => ell(46, y, 9, 7, C.chrome, C.chromeD, { sw: 3.5, dx: 1, dy: 1 })).join('');
+  s += S5(rect(70, 60, 54, 44), C.cream, C.creamD, { dx: 3, dy: 3, sw: 3.5 });
+  s += spk(97, 82, 13);
+  s += flat([[64, 40], [96, 38], [66, 52]], C.white, 'opacity=".5"');
+  s += S5([[118, 152], [140, 152], [140, 130]], C.gold, C.goldD, { dx: 1, dy: 1, sw: 3.5 });
+  return icon(s, 172);
+});
+
 add('icon_bubblewrap', () => {
   const A = [30, 62], B = [150, 48], Cc = [166, 128], Dd = [42, 146];
   const bil = (u, v) => [A[0] * (1 - u) * (1 - v) + B[0] * u * (1 - v) + Cc[0] * u * v + Dd[0] * (1 - u) * v, A[1] * (1 - u) * (1 - v) + B[1] * u * (1 - v) + Cc[1] * u * v + Dd[1] * (1 - u) * v];

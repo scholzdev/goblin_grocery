@@ -1879,6 +1879,38 @@
       "weapon": "pan"
     }
   ],
+  "buffs.item.barter.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.barter.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.barter.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.barter.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
   "buffs.item.battery.t1.on.blender.de": [
     {
       "lines": [
@@ -2180,6 +2212,38 @@
     }
   ],
   "buffs.item.bell.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.binder.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.binder.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.binder.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.binder.t3.on.toaster.en": [
     {
       "lines": [
         "Bundle Deal: 1 item → +6% damage"
@@ -7057,6 +7121,46 @@
     "short": "Zaps chain to +1 enemy",
     "summary": "Microwave touching a Lunchbox AND a Battery: chain-zapping meals."
   },
+  "items.barter.de": {
+    "blurb": "Abgestempelt, gefeilscht, verkauft.",
+    "name": "Tauschstempel",
+    "rules": "Verkäufe zahlen {0} des Werts statt 50% (stapelt sich nicht).",
+    "rulesByTier": {
+      "1": "Verkäufe zahlen 65% des Werts statt 50% (stapelt sich nicht).",
+      "2": "Verkäufe zahlen 75% des Werts statt 50% (stapelt sich nicht).",
+      "3": "Verkäufe zahlen 85% des Werts statt 50% (stapelt sich nicht)."
+    },
+    "tierScaling": [
+      {
+        "label": "Verkaufswert",
+        "values": [
+          "65%",
+          "75%",
+          "85%"
+        ]
+      }
+    ]
+  },
+  "items.barter.en": {
+    "blurb": "Stamped, haggled, sold.",
+    "name": "Barter Stamp",
+    "rules": "Selling items pays {0} of their value instead of 50% (does not stack).",
+    "rulesByTier": {
+      "1": "Selling items pays 65% of their value instead of 50% (does not stack).",
+      "2": "Selling items pays 75% of their value instead of 50% (does not stack).",
+      "3": "Selling items pays 85% of their value instead of 50% (does not stack)."
+    },
+    "tierScaling": [
+      {
+        "label": "Sell value",
+        "values": [
+          "65%",
+          "75%",
+          "85%"
+        ]
+      }
+    ]
+  },
   "items.battery.de": {
     "blurb": "Zack! Schnellere Angriffe, bei Elektrogeräten besonders.",
     "name": "Batterie",
@@ -7149,6 +7253,46 @@
           "−0.5 s",
           "−0.75 s",
           "−1 s"
+        ]
+      }
+    ]
+  },
+  "items.binder.de": {
+    "blurb": "Muss man alle verkaufen.",
+    "name": "Sammelmappe",
+    "rules": "Bindet sich beim Kauf an die Familie, von der du die meisten Gegenstände besitzt. Gegenstände dieser Familie verkaufen sich zum vollen Wert, und jeder verkaufte erhöht den Schaden der Waffen dieser Familie um {0} (bis 20%).",
+    "rulesByTier": {
+      "1": "Bindet sich beim Kauf an die Familie, von der du die meisten Gegenstände besitzt. Gegenstände dieser Familie verkaufen sich zum vollen Wert, und jeder verkaufte erhöht den Schaden der Waffen dieser Familie um 2% (bis 20%).",
+      "2": "Bindet sich beim Kauf an die Familie, von der du die meisten Gegenstände besitzt. Gegenstände dieser Familie verkaufen sich zum vollen Wert, und jeder verkaufte erhöht den Schaden der Waffen dieser Familie um 2% (bis 20%).",
+      "3": "Bindet sich beim Kauf an die Familie, von der du die meisten Gegenstände besitzt. Gegenstände dieser Familie verkaufen sich zum vollen Wert, und jeder verkaufte erhöht den Schaden der Waffen dieser Familie um 2% (bis 20%)."
+    },
+    "tierScaling": [
+      {
+        "label": "Schaden pro Verkauf",
+        "values": [
+          "2%",
+          "2%",
+          "2%"
+        ]
+      }
+    ]
+  },
+  "items.binder.en": {
+    "blurb": "Gotta sell 'em all.",
+    "name": "Collector's Binder",
+    "rules": "Bound to the family you own the most items of when you buy it. Items of that family sell at full value, and each one you sell adds {0} damage to that family's weapons (up to 20%).",
+    "rulesByTier": {
+      "1": "Bound to the family you own the most items of when you buy it. Items of that family sell at full value, and each one you sell adds 2% damage to that family's weapons (up to 20%).",
+      "2": "Bound to the family you own the most items of when you buy it. Items of that family sell at full value, and each one you sell adds 2% damage to that family's weapons (up to 20%).",
+      "3": "Bound to the family you own the most items of when you buy it. Items of that family sell at full value, and each one you sell adds 2% damage to that family's weapons (up to 20%)."
+    },
+    "tierScaling": [
+      {
+        "label": "Damage per sale",
+        "values": [
+          "2%",
+          "2%",
+          "2%"
         ]
       }
     ]

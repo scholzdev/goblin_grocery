@@ -81,6 +81,9 @@ export interface ItemInstance {
   flavor?: ElementTag;
   /** Sourdough Starter only: completed waves since bought / last rise (grows at 2). */
   rise?: number;
+  /** Collector's Binder only: the family it was bought for, and how many of that family were sold since. */
+  binderFamily?: FamilyTag;
+  binderSold?: number;
 }
 
 export interface Inventory {
@@ -172,6 +175,8 @@ export interface Build {
   /** Set-bonus level per set (0/1/2), counted over distinct placed types. */
   sets: Record<SetId, 0 | 1 | 2 | 3>;
   priceMult: number;       // checkout L1: shop price multiplier
+  sellRate: number;        // share of an item's value a sale pays (0.5; Barter Stamp raises it)
+  sellFullFamilies: FamilyTag[]; // families that sell at full value (Collector's Binder)
   /** Deduplicated adjacent pairs, uid order a < b. */
   adjacency: [string, string][];
 }
@@ -265,6 +270,8 @@ export interface ShopState {
   shopIndex: number;     // 1-based (after wave N)
   /** Sourdough could not rise this shop visit (no room): shown once as a toast. */
   riseWait?: boolean;
+  /** Shop lock: unsold offers carry over to the next shop at their price; reroll is refused. */
+  locked: boolean;
 }
 
 export type Phase = 'title' | 'combat' | 'checkout' | 'shop' | 'route' | 'victory' | 'defeat';
@@ -317,6 +324,8 @@ export interface RunState {
   inventory: Inventory;
   build: Build;
   shop: ShopState | null;
+  /** Offers of a locked shop, waiting for the next `openShop` (set by `startNextWave`). */
+  shopLock?: ShopOffer[];
   /** Loyalty Card level 1..4 — better offers; persists for the run. */
   shopLevel: number;
   /** Items allowed in this run's shops (meta-progression). Undefined = everything. */
