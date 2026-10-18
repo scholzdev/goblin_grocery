@@ -1879,6 +1879,38 @@
       "weapon": "pan"
     }
   ],
+  "buffs.item.balloon.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.balloon.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.balloon.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.balloon.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
   "buffs.item.battery.t1.on.blender.de": [
     {
       "lines": [
@@ -2212,6 +2244,38 @@
     }
   ],
   "buffs.item.boot.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.bowlingball.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.bowlingball.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.bowlingball.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.bowlingball.t3.on.toaster.en": [
     {
       "lines": [
         "Bundle Deal: 1 item → +6% damage"
@@ -3350,6 +3414,38 @@
     {
       "lines": [
         "Burn 5/s for 2s (Fuel Can ★3)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.ghostpepper.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.ghostpepper.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.ghostpepper.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.ghostpepper.t3.on.toaster.en": [
+    {
+      "lines": [
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "toaster"
@@ -4938,6 +5034,38 @@
     }
   ],
   "buffs.item.sample.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.scratchticket.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.scratchticket.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.scratchticket.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.scratchticket.t3.on.toaster.en": [
     {
       "lines": [
         "Bundle Deal: 1 item → +6% damage"
@@ -7057,6 +7185,46 @@
     "short": "Zaps chain to +1 enemy",
     "summary": "Microwave touching a Lunchbox AND a Battery: chain-zapping meals."
   },
+  "items.balloon.de": {
+    "blurb": "Leichter, als er aussieht.",
+    "name": "Heliumballon",
+    "rules": "{0} Bewegungstempo (stapelt sich nicht). Gegenstände, die ihn berühren, bremsen dich nicht durch die Bowlingkugel.",
+    "rulesByTier": {
+      "1": "+10% Bewegungstempo (stapelt sich nicht). Gegenstände, die ihn berühren, bremsen dich nicht durch die Bowlingkugel.",
+      "2": "+15% Bewegungstempo (stapelt sich nicht). Gegenstände, die ihn berühren, bremsen dich nicht durch die Bowlingkugel.",
+      "3": "+20% Bewegungstempo (stapelt sich nicht). Gegenstände, die ihn berühren, bremsen dich nicht durch die Bowlingkugel."
+    },
+    "tierScaling": [
+      {
+        "label": "Lauftempo",
+        "values": [
+          "+10%",
+          "+15%",
+          "+20%"
+        ]
+      }
+    ]
+  },
+  "items.balloon.en": {
+    "blurb": "Lighter than it looks.",
+    "name": "Helium Balloon",
+    "rules": "{0} movement speed (does not stack). Items touching it do not slow you down through the Bowling Ball.",
+    "rulesByTier": {
+      "1": "+10% movement speed (does not stack). Items touching it do not slow you down through the Bowling Ball.",
+      "2": "+15% movement speed (does not stack). Items touching it do not slow you down through the Bowling Ball.",
+      "3": "+20% movement speed (does not stack). Items touching it do not slow you down through the Bowling Ball."
+    },
+    "tierScaling": [
+      {
+        "label": "Move speed",
+        "values": [
+          "+10%",
+          "+15%",
+          "+20%"
+        ]
+      }
+    ]
+  },
   "items.battery.de": {
     "blurb": "Zack! Schnellere Angriffe, bei Elektrogeräten besonders.",
     "name": "Batterie",
@@ -7261,6 +7429,46 @@
           "+6",
           "+9",
           "+12"
+        ]
+      }
+    ]
+  },
+  "items.bowlingball.de": {
+    "blurb": "Schwer. Strikes sind der Plan.",
+    "name": "Bowlingkugel",
+    "rules": "Der Leertasten-Dash richtet {0} Schaden pro belegter Wagenzelle an und hat +50% Rückstoß. Du bist 0,5% langsamer pro belegter Zelle (stapelt sich nicht).",
+    "rulesByTier": {
+      "1": "Der Leertasten-Dash richtet +1 Schaden pro belegter Wagenzelle an und hat +50% Rückstoß. Du bist 0,5% langsamer pro belegter Zelle (stapelt sich nicht).",
+      "2": "Der Leertasten-Dash richtet +1,5 Schaden pro belegter Wagenzelle an und hat +50% Rückstoß. Du bist 0,5% langsamer pro belegter Zelle (stapelt sich nicht).",
+      "3": "Der Leertasten-Dash richtet +2 Schaden pro belegter Wagenzelle an und hat +50% Rückstoß. Du bist 0,5% langsamer pro belegter Zelle (stapelt sich nicht)."
+    },
+    "tierScaling": [
+      {
+        "label": "Dash-Schaden pro Zelle",
+        "values": [
+          "+1",
+          "+1,5",
+          "+2"
+        ]
+      }
+    ]
+  },
+  "items.bowlingball.en": {
+    "blurb": "Heavy. Strikes are the plan.",
+    "name": "Bowling Ball",
+    "rules": "The Space dash deals {0} damage per occupied cart cell and +50% knockback. You move 0.5% slower per occupied cell (does not stack).",
+    "rulesByTier": {
+      "1": "The Space dash deals +1 damage per occupied cart cell and +50% knockback. You move 0.5% slower per occupied cell (does not stack).",
+      "2": "The Space dash deals +1.5 damage per occupied cart cell and +50% knockback. You move 0.5% slower per occupied cell (does not stack).",
+      "3": "The Space dash deals +2 damage per occupied cart cell and +50% knockback. You move 0.5% slower per occupied cell (does not stack)."
+    },
+    "tierScaling": [
+      {
+        "label": "Dash damage per cell",
+        "values": [
+          "+1",
+          "+1.5",
+          "+2"
         ]
       }
     ]
@@ -7891,6 +8099,46 @@
           "2.5/s",
           "3.75/s",
           "5/s"
+        ]
+      }
+    ]
+  },
+  "items.ghostpepper.de": {
+    "blurb": "Scharf. Leider für alle.",
+    "name": "Geisterpaprika",
+    "rules": "Hitzetreffer und Brand richten {0} Schaden an. Wenn du getroffen wirst, brennst du mit 1,5/s für 2 s (erneuert sich, stapelt sich nie). Der Brand lässt dich nie unter 1 LP fallen.",
+    "rulesByTier": {
+      "1": "Hitzetreffer und Brand richten +50% Schaden an. Wenn du getroffen wirst, brennst du mit 1,5/s für 2 s (erneuert sich, stapelt sich nie). Der Brand lässt dich nie unter 1 LP fallen.",
+      "2": "Hitzetreffer und Brand richten +65% Schaden an. Wenn du getroffen wirst, brennst du mit 1,5/s für 2 s (erneuert sich, stapelt sich nie). Der Brand lässt dich nie unter 1 LP fallen.",
+      "3": "Hitzetreffer und Brand richten +80% Schaden an. Wenn du getroffen wirst, brennst du mit 1,5/s für 2 s (erneuert sich, stapelt sich nie). Der Brand lässt dich nie unter 1 LP fallen."
+    },
+    "tierScaling": [
+      {
+        "label": "Hitzeschaden",
+        "values": [
+          "+50%",
+          "+65%",
+          "+80%"
+        ]
+      }
+    ]
+  },
+  "items.ghostpepper.en": {
+    "blurb": "Hot. Regrettably, for everyone.",
+    "name": "Ghost Pepper",
+    "rules": "Heat hits and burn deal {0} damage. When you get hit you burn for 1.5/s over 2 s (refreshes, never stacks). The burn cannot take you below 1 HP.",
+    "rulesByTier": {
+      "1": "Heat hits and burn deal +50% damage. When you get hit you burn for 1.5/s over 2 s (refreshes, never stacks). The burn cannot take you below 1 HP.",
+      "2": "Heat hits and burn deal +65% damage. When you get hit you burn for 1.5/s over 2 s (refreshes, never stacks). The burn cannot take you below 1 HP.",
+      "3": "Heat hits and burn deal +80% damage. When you get hit you burn for 1.5/s over 2 s (refreshes, never stacks). The burn cannot take you below 1 HP."
+    },
+    "tierScaling": [
+      {
+        "label": "Heat damage",
+        "values": [
+          "+50%",
+          "+65%",
+          "+80%"
         ]
       }
     ]
@@ -8709,6 +8957,46 @@
           "+1",
           "+1.5",
           "+2"
+        ]
+      }
+    ]
+  },
+  "items.scratchticket.de": {
+    "blurb": "Glück gehabt? Der Gang verrät es.",
+    "name": "Rubbellos",
+    "rules": "Jeder Gang beginnt mit 20 % Chance auf {0} Münzen. Sonst verlierst du 10 % deiner Max.-LP (nie unter 1 LP).",
+    "rulesByTier": {
+      "1": "Jeder Gang beginnt mit 20 % Chance auf 30 Münzen. Sonst verlierst du 10 % deiner Max.-LP (nie unter 1 LP).",
+      "2": "Jeder Gang beginnt mit 20 % Chance auf 45 Münzen. Sonst verlierst du 10 % deiner Max.-LP (nie unter 1 LP).",
+      "3": "Jeder Gang beginnt mit 20 % Chance auf 60 Münzen. Sonst verlierst du 10 % deiner Max.-LP (nie unter 1 LP)."
+    },
+    "tierScaling": [
+      {
+        "label": "Gewinn",
+        "values": [
+          "30",
+          "45",
+          "60"
+        ]
+      }
+    ]
+  },
+  "items.scratchticket.en": {
+    "blurb": "Feeling lucky? The aisle will tell.",
+    "name": "Scratch Ticket",
+    "rules": "Each aisle starts with a 20% chance of {0} coins. Otherwise you lose 10% of your max HP (never below 1 HP).",
+    "rulesByTier": {
+      "1": "Each aisle starts with a 20% chance of 30 coins. Otherwise you lose 10% of your max HP (never below 1 HP).",
+      "2": "Each aisle starts with a 20% chance of 45 coins. Otherwise you lose 10% of your max HP (never below 1 HP).",
+      "3": "Each aisle starts with a 20% chance of 60 coins. Otherwise you lose 10% of your max HP (never below 1 HP)."
+    },
+    "tierScaling": [
+      {
+        "label": "Win",
+        "values": [
+          "30",
+          "45",
+          "60"
         ]
       }
     ]

@@ -2229,6 +2229,40 @@ add('icon_sparklers', () => {
   return icon(s, 176);
 });
 
+add('icon_bowlingball', () => {
+  let s = ell(98, 100, 62, 62, C.plumSoft, C.plum, { sw: SWi, dx: 6, dy: 5 });
+  s += flat(ellPath(78, 74, 20, 12), C.lavL, 'opacity=".55"');
+  s += [[84, 84], [108, 78], [98, 106]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="7.5" fill="${C.plum}"/><circle cx="${x - 1.5}" cy="${y - 1.5}" r="3" fill="${C.lav}" opacity=".6"/>`).join('');
+  s += spk(150, 52, 8);
+  return icon(s, 168);
+});
+
+add('icon_balloon', () => {
+  let s = line([[98, 124], [92, 140], [104, 152], [98, 168]], C.plum, 4.5);
+  s += S5([[90, 122], [106, 122], [98, 132]], C.coralD, null, { sw: 3.5 });
+  s += ell(98, 78, 46, 54, C.coral, C.coralD, { sw: SWi, dx: 6, dy: 5 });
+  s += flat(ellPath(80, 56, 11, 20), C.white, 'opacity=".5"');
+  s += spk(150, 34, 7);
+  return icon(s, 170);
+});
+
+add('icon_ghostpepper', () => {
+  let s = S5([[104, 34], [116, 22], [126, 34], [118, 52]], C.green, C.greenD, { sw: 4.5 });
+  s += S5([[40, 70], [74, 46], [128, 50], [150, 84], [134, 128], [96, 168], [78, 124], [44, 104]], C.coral, C.coralD, { dx: 7, dy: 5 });
+  s += flat([[58, 76], [78, 60], [92, 62], [74, 92]], C.coralL, 'opacity=".6"');
+  s += `<g transform="translate(106 110)">` + flat([[0, -16], [8, -4], [14, -14], [12, 10], [0, 16], [-12, 10], [-14, -12], [-6, -4]], C.gold) + `</g>`;
+  s += flat([[104, 100], [110, 110], [102, 116]], C.white, 'opacity=".8"');
+  s += spk(36, 40, 7);
+  return icon(s, 172);
+});
+
+add('icon_scratchticket', () => {
+  let s = rot(S5(rect(46, 56, 112, 78), C.cream, C.creamD, { dx: 7, dy: 5 }), -8, 102, 95);
+  s += rot(flat(rect(58, 68, 88, 20), C.coral) + flat(rect(58, 96, 88, 26), '#B8B8C4') + [[72, 109], [102, 109], [132, 109]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="7" fill="${C.chromeL}"/>`).join('') + `<circle cx="132" cy="109" r="7" fill="${C.gold}"/>`, -8, 102, 95);
+  s += line([[70, 148], [120, 160]], C.plum, 4.5) + spk(150, 50, 8) + spk(46, 140, 6);
+  return icon(s, 172);
+});
+
 add('icon_doublebag', () => {
   const bag = (x, y, w, h, fill, sh, fold) => shape([[x + w, y + 4], [x + w + 16, y - 4], [x + w + 16, y + h - 6], [x + w, y + h]], sh, fold, { sw: SWi, dx: 3, dy: 3 }) + S5(rect(x, y, w, h), fill, sh, { dx: 7, dy: 5 }) + line([[x + w * 0.5, y + h], [x + w * 0.5, y + h - 14]], sh, 3, 'opacity="0"') + flat([[x + 6, y + 6], [x + 22, y + 6], [x + 6, y + 34]], C.white, 'opacity=".35"') + line([[x, y + 10], [x + w, y + 10]], sh, 3, 'opacity=".7"');
   let s = bag(36, 34, 76, 112, '#D9A15A', '#A8703A', C.breadD);

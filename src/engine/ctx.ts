@@ -170,6 +170,11 @@ export interface RuntimeCtx {
   /** `ArenaScene.hurtPlayer`: i-frames, `onPlayerHit` hooks (Bubble Wrap armor), death. */
   hurt(dmg: number): void;
   heal(hp: number): void;
+  /**
+   * Damage with no hurt reaction, no i-frames and no `onPlayerHit` hooks (Ghost Pepper's burn, Scratch Ticket's loss): the HP never drops below 1, so it never
+   * kills. Ignored in god mode.
+   */
+  drain(hp: number): void;
   /** The flying heart + "+N" popup of a heal at (x, y). */
   healFx(x: number, y: number): void;
 

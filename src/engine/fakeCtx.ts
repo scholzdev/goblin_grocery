@@ -43,6 +43,7 @@ export type Call = { at: number } & (
   | { kind: 'wet'; enemy: number; seconds: number }
   | { kind: 'hurt'; dmg: number }
   | { kind: 'heal'; hp: number }
+  | { kind: 'drain'; hp: number }
   | { kind: 'healFx'; x: number; y: number }
   | { kind: 'spawnShot'; spec: ShotSpec }
   | { kind: 'spawnPool'; spec: PoolSpec }
@@ -292,6 +293,10 @@ export class FakeCtx implements RuntimeCtx {
   heal(hp: number): void {
     this.log({ kind: 'heal', hp });
     this.run.hp = Math.min(this.run.maxHp, this.run.hp + hp);
+  }
+  drain(hp: number): void {
+    this.log({ kind: 'drain', hp });
+    this.run.hp = Math.min(this.run.hp, Math.max(1, this.run.hp - hp));
   }
   healFx(x: number, y: number): void { this.log({ kind: 'healFx', x, y }); }
 

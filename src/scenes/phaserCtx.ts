@@ -82,6 +82,12 @@ export class PhaserCtx implements RuntimeCtx {
     s.hp = Math.min(s.build.maxHp, s.hp + hp);
     store.changed();
   }
+  drain(hp: number): void {
+    const s = store.state;
+    if (s.labGod) return;
+    s.hp = Math.min(s.hp, Math.max(1, s.hp - hp));
+    store.changed();
+  }
   healFx(x: number, y: number): void { this.sc.healHeartFx(x, y); }
 
   spawnShot(spec: ShotSpec): CombatShot | null { return this.sc.arsenal.spawn(spec.key, spec.x, spec.y, spec.angle, spec.speed, spec.life, spec.damage, spec.stats, spec.maxHits); }

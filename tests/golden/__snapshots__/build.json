@@ -44,6 +44,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 12,
     "shoveDistMult": 1.35,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -121,6 +122,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -201,6 +203,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -281,6 +284,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -365,6 +369,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -442,6 +447,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -522,6 +528,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -602,6 +609,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -677,6 +685,7 @@
     "shoveCooldown": 2.5,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -752,6 +761,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -836,6 +846,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -918,6 +929,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -993,6 +1005,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -1073,6 +1086,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -1154,6 +1168,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -1234,6 +1249,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -1311,6 +1327,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -1395,6 +1412,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 12,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -1472,6 +1490,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -1547,6 +1566,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -1622,6 +1642,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -1703,6 +1724,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -1780,6 +1802,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -1871,6 +1894,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 18,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -1948,6 +1972,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -2029,6 +2054,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -2106,6 +2132,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -2187,6 +2214,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -2267,6 +2295,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -2342,6 +2371,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -2429,6 +2459,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 3,
     "weapons": [
       {
@@ -2514,6 +2545,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -2591,6 +2623,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -2669,6 +2702,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 12,
     "shoveDistMult": 1.35,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": []
   },
@@ -2717,6 +2751,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 12,
     "shoveDistMult": 1.35,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -2808,6 +2843,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -2895,6 +2931,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -2986,6 +3023,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -3071,6 +3109,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -3158,6 +3197,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -3237,6 +3277,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -3325,6 +3366,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -3405,6 +3447,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -3477,6 +3520,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -3551,6 +3595,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -3626,6 +3671,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -3688,6 +3734,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -3780,6 +3827,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -3925,6 +3973,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -4023,6 +4072,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -4105,6 +4155,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -4180,6 +4231,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -4255,6 +4307,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -4330,6 +4383,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -4403,6 +4457,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -4468,6 +4523,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -4533,6 +4589,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -4602,6 +4659,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -4679,6 +4737,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -4746,6 +4805,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -4811,6 +4871,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -4879,6 +4940,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -4955,6 +5017,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -5025,6 +5088,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -5093,6 +5157,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -5165,6 +5230,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -5277,6 +5343,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -5347,6 +5414,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -5416,6 +5484,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -5493,6 +5562,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -5572,6 +5642,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -5643,6 +5714,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -5720,6 +5792,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -5820,6 +5893,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -5893,6 +5967,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -5974,6 +6049,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -6041,6 +6117,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -6106,6 +6183,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 3,
     "weapons": [
       {
@@ -6171,6 +6249,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 3,
     "weapons": [
       {
@@ -6252,6 +6331,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 6,
     "weapons": [
       {
@@ -6333,6 +6413,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 3,
     "weapons": [
       {
@@ -6414,6 +6495,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -6491,6 +6573,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -6558,6 +6641,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -6625,6 +6709,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -6692,6 +6777,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -6780,6 +6866,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -6876,6 +6963,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -6972,6 +7060,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 18,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -7037,6 +7126,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -7102,6 +7192,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -7167,6 +7258,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -7232,6 +7324,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -7338,6 +7431,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -7431,6 +7525,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 18,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -7496,6 +7591,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -7561,6 +7657,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -7626,6 +7723,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -7691,6 +7789,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -7760,6 +7859,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -7841,6 +7941,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -7925,6 +8026,138 @@
       }
     ]
   },
+  "item.balloon.t1.on.toaster": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1.1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 9.54,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "toast",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 540,
+        "pull": 0,
+        "range": 455,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
+  "item.balloon.t3.on.toaster": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1.2,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 9.54,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "toast",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 540,
+        "pull": 0,
+        "range": 455,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
   "item.battery.t1.on.blender": {
     "adjacency": [
       [
@@ -7953,6 +8186,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -8020,6 +8254,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -8087,6 +8322,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -8154,6 +8390,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -8221,6 +8458,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -8288,6 +8526,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -8363,6 +8602,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -8432,6 +8672,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -8499,6 +8740,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -8566,6 +8808,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -8641,6 +8884,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -8710,6 +8954,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -8785,6 +9030,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -8854,6 +9100,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -8921,6 +9168,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -8988,6 +9236,7 @@
     "shoveCooldown": 2.5,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -9053,6 +9302,7 @@
     "shoveCooldown": 2,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -9118,6 +9368,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 12,
     "shoveDistMult": 1.35,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -9183,6 +9434,139 @@
     "shoveCooldown": 3,
     "shoveDamage": 18,
     "shoveDistMult": 1.7,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 9.54,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "toast",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 540,
+        "pull": 0,
+        "range": 455,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
+  "item.bowlingball.t1.on.toaster": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 0.97,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 12,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1.5,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 9.54,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "toast",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 540,
+        "pull": 0,
+        "range": 455,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
+  "item.bowlingball.t3.on.toaster": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 0.97,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 18,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1.5,
     "stinkDps": 0,
     "weapons": [
       {
@@ -9248,6 +9632,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -9313,6 +9698,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -9378,6 +9764,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -9443,6 +9830,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -9508,6 +9896,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -9573,6 +9962,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -9638,6 +10028,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -9703,6 +10094,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -9768,6 +10160,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -9833,6 +10226,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -9898,6 +10292,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -9963,6 +10358,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -10030,6 +10426,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -10097,6 +10494,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -10164,6 +10562,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -10231,6 +10630,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -10298,6 +10698,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -10363,6 +10764,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -10430,6 +10832,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -10497,6 +10900,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -10564,6 +10968,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -10631,6 +11036,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -10698,6 +11104,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -10765,6 +11172,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -10832,6 +11240,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -10899,6 +11308,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -10964,6 +11374,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -11029,6 +11440,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -11094,6 +11506,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -11159,6 +11572,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 3,
     "weapons": [
       {
@@ -11224,6 +11638,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 6,
     "weapons": [
       {
@@ -11289,6 +11704,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -11356,6 +11772,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -11423,6 +11840,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -11490,6 +11908,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -11557,6 +11976,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -11624,6 +12044,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -11691,6 +12112,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -11758,6 +12180,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -11825,6 +12248,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -11892,6 +12316,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -11967,6 +12392,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -12034,6 +12460,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -12101,6 +12528,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -12168,6 +12596,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -12235,6 +12664,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -12302,6 +12732,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -12367,6 +12798,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -12432,6 +12864,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -12497,6 +12930,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -12562,6 +12996,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -12641,6 +13076,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -12714,6 +13150,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -12785,6 +13222,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -12856,6 +13294,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -12935,6 +13374,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -13016,6 +13456,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -13089,6 +13530,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -13168,6 +13610,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -13241,6 +13684,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -13312,6 +13756,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -13383,6 +13828,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -13454,6 +13900,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -13533,6 +13980,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -13606,6 +14054,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -13629,6 +14078,138 @@
         "count": 1,
         "critChance": 0,
         "damage": 9.54,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "toast",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 540,
+        "pull": 0,
+        "range": 455,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
+  "item.ghostpepper.t1.on.toaster": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 1,
+      "kitchen": 1,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 10.494,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "toast",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 540,
+        "pull": 0,
+        "range": 455,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
+  "item.ghostpepper.t3.on.toaster": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 1,
+      "kitchen": 1,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 10.494,
         "duration": 0,
         "echo": 0,
         "frostRing": false,
@@ -13677,6 +14258,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -13742,6 +14324,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -13807,6 +14390,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -13874,6 +14458,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -13941,6 +14526,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -14008,6 +14594,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -14075,6 +14662,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -14142,6 +14730,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -14209,6 +14798,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -14276,6 +14866,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -14343,6 +14934,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -14410,6 +15002,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -14477,6 +15070,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -14544,6 +15138,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -14611,6 +15206,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -14678,6 +15274,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -14745,6 +15342,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -14820,6 +15418,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -14892,6 +15491,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -14970,6 +15570,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -15042,6 +15643,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -15112,6 +15714,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -15182,6 +15785,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -15260,6 +15864,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -15340,6 +15945,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -15412,6 +16018,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -15482,6 +16089,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -15552,6 +16160,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -15622,6 +16231,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -15700,6 +16310,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -15772,6 +16383,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -15842,6 +16454,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -15912,6 +16525,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -15981,6 +16595,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -16050,6 +16665,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -16115,6 +16731,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -16180,6 +16797,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -16245,6 +16863,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -16310,6 +16929,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -16377,6 +16997,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -16444,6 +17065,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -16511,6 +17133,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -16578,6 +17201,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -16645,6 +17269,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -16712,6 +17337,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -16779,6 +17405,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -16846,6 +17473,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -16913,6 +17541,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -16980,6 +17609,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -17047,6 +17677,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -17114,6 +17745,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -17181,6 +17813,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -17248,6 +17881,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -17315,6 +17949,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -17380,6 +18015,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -17445,6 +18081,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -17515,6 +18152,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -17593,6 +18231,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -17665,6 +18304,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -17735,6 +18375,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -17805,6 +18446,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -17875,6 +18517,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -17945,6 +18588,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -18015,6 +18659,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -18093,6 +18738,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -18165,6 +18811,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -18235,6 +18882,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -18305,6 +18953,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -18375,6 +19024,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -18445,6 +19095,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -18515,6 +19166,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -18580,6 +19232,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -18645,6 +19298,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -18712,6 +19366,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -18779,6 +19434,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -18854,6 +19510,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -18923,6 +19580,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -18990,6 +19648,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -19057,6 +19716,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -19124,6 +19784,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -19191,6 +19852,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -19258,6 +19920,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -19325,6 +19988,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -19392,6 +20056,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -19459,6 +20124,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -19526,6 +20192,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -19593,6 +20260,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -19660,6 +20328,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -19725,6 +20394,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -19742,6 +20412,138 @@
         "count": 1,
         "critChance": 0,
         "damage": 10.494,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "toast",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 540,
+        "pull": 0,
+        "range": 455,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
+  "item.scratchticket.t1.on.toaster": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 9.54,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "toast",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 540,
+        "pull": 0,
+        "range": 455,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
+  "item.scratchticket.t3.on.toaster": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 9.54,
         "duration": 0,
         "echo": 0,
         "frostRing": false,
@@ -19790,6 +20592,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -19855,6 +20658,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -19928,6 +20732,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -20003,6 +20808,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -20070,6 +20876,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -20135,6 +20942,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -20200,6 +21008,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -20265,6 +21074,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -20330,6 +21140,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -20405,6 +21216,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -20474,6 +21286,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -20541,6 +21354,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -20608,6 +21422,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -20675,6 +21490,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -20742,6 +21558,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -20809,6 +21626,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -20876,6 +21694,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -20943,6 +21762,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -21010,6 +21830,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -21077,6 +21898,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -21144,6 +21966,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -21211,6 +22034,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -21278,6 +22102,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -21345,6 +22170,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -21410,6 +22236,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -21475,6 +22302,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -21540,6 +22368,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -21600,6 +22429,7 @@
     "shoveCooldown": 2.5,
     "shoveDamage": 8,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -21678,6 +22508,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -21765,6 +22596,7 @@
     "shoveCooldown": 2,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -21852,6 +22684,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -21939,6 +22772,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -22013,6 +22847,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -22087,6 +22922,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -22169,6 +23005,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -22244,6 +23081,7 @@
     "shoveCooldown": 2.5,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -22317,6 +23155,7 @@
     "shoveCooldown": 2.5,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -22394,6 +23233,7 @@
     "shoveCooldown": 2.5,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -22459,6 +23299,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -22530,6 +23371,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -22638,6 +23480,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -22771,6 +23614,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -22854,6 +23698,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -22982,6 +23827,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -23129,6 +23975,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -23224,6 +24071,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -23363,6 +24211,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -23516,6 +24365,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -23605,6 +24455,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -23699,6 +24550,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -23810,6 +24662,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -23879,6 +24732,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -23964,6 +24818,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -24036,6 +24891,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -24109,6 +24965,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -24186,6 +25043,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -24246,6 +25104,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -24315,6 +25174,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 12,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -24394,6 +25254,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 36,
     "shoveDistMult": 1.35,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -24456,6 +25317,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -24516,6 +25378,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -24576,6 +25439,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -24636,6 +25500,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -24696,6 +25561,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -24756,6 +25622,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -24816,6 +25683,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -24876,6 +25744,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -24936,6 +25805,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -24996,6 +25866,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -25056,6 +25927,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -25116,6 +25988,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -25176,6 +26049,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -25236,6 +26110,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -25296,6 +26171,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -25356,6 +26232,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -25416,6 +26293,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -25476,6 +26354,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -25536,6 +26415,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -25596,6 +26476,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -25656,6 +26537,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -25716,6 +26598,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -25776,6 +26659,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -25836,6 +26720,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -25896,6 +26781,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -25956,6 +26842,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -26016,6 +26903,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -26076,6 +26964,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -26136,6 +27025,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -26196,6 +27086,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -26256,6 +27147,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -26316,6 +27208,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -26376,6 +27269,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -26436,6 +27330,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -26496,6 +27391,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -26556,6 +27452,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -26616,6 +27513,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -26676,6 +27574,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {
@@ -26736,6 +27635,7 @@
     "shoveCooldown": 3,
     "shoveDamage": 6,
     "shoveDistMult": 1,
+    "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
       {

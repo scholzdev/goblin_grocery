@@ -164,6 +164,7 @@ export interface Build {
   shoveCooldown: number;
   shoveDistMult: number;   // running boot: dash distance multiplier
   shoveDamage: number;     // dash hit damage (running boot adds)
+  shoveKnockMult: number;  // bowling ball: dash knockback multiplier
   moveSpeedMult: number;   // energy drink
   stinkDps: number;        // expired milk: poison dps of the toxic aura around the cart (0 = off)
   regen: number;           // HP per second during combat (snack bag)
