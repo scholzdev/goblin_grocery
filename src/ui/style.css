@@ -642,6 +642,8 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 #tutorial.tip { border-color: var(--gold-deep); }
 #tutorial::after { content: ''; position: absolute; left: var(--ax, 50%); bottom: -9px; width: 14px; height: 14px; background: var(--paper); border: solid var(--plum); border-width: 0 3px 3px 0; transform: translateX(-50%) rotate(45deg); }
 #tutorial.below::after { bottom: auto; top: -9px; border-width: 3px 0 0 3px; }
+#tutorial.lside::after { left: auto; right: -9px; bottom: auto; top: var(--ay, 50%); transform: translateY(-50%) rotate(-45deg); border-width: 0 3px 3px 0; }
+#tutorial.rside::after { left: -9px; bottom: auto; top: var(--ay, 50%); transform: translateY(-50%) rotate(135deg); border-width: 0 3px 3px 0; }
 #tutorial .skip { display: block; margin: 6px 0 0 auto; padding: 0; border: none; background: none; font: 800 12px var(--ui); color: var(--lavender-deep); text-decoration: underline; cursor: pointer; pointer-events: auto; }
 /* Loadout screen: goblin panel (left) + run setup (right) + start bar */
 #starter h2 { font-size: 44px; margin-bottom: 14px; }
