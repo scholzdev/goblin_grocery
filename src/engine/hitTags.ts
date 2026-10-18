@@ -49,3 +49,6 @@ export function hitTags(stats: { type: ItemTypeId } | null, o: HitOpts): readonl
   if (o.tags) for (const tag of o.tags) add(tag);
   return out ?? base;
 }
+
+/** Was this hit the Space dash? (the damage label `shove`: dash kills for the Punch Card and Night Shift) */
+export const isDashHit = (o: Pick<HitOpts, 'label'>): boolean => o.label === 'shove';

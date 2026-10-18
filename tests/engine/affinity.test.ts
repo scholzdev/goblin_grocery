@@ -531,7 +531,8 @@ describe('wiring (source guards)', () => {
 
   it('stunEnemy scales by the tag and keeps the boss guard; staggerEnemy is the only way past it and walks only', () => {
     const stun = arena_.slice(arena_.indexOf('stunEnemy(e: Enemy'), arena_.indexOf('staggerEnemy(e: Enemy'));
-    expect(stun).toContain("e.def.behavior === 'boss') return 0");
+    expect(stun).toContain("e.def.behavior === 'boss'");
+    expect(stun).toContain('bossSeconds <= 0 || e.state !== \'walk\') return 0'); // a boss only gets the opt-in cap (Air Horn), never the full stun
     expect(stun).toContain('statusDurationMult(e.def, tag)');
     const stagger = arena_.slice(arena_.indexOf('staggerEnemy(e: Enemy'), arena_.indexOf('/** Floor slow multiplier'));
     expect(stagger).toContain("e.state !== 'walk'");
@@ -543,7 +544,7 @@ describe('wiring (source guards)', () => {
     expect(ctx).toContain('burnFor(e.def, this.sc.aisleEvent.burn(burn))');
     expect(ctx).toContain('slowFor(e.def, slow)');
     expect(ctx).toContain('poisonTimeFor(e.def, duration)');
-    expect(ctx).toContain('stunEnemy(e as Enemy, seconds, tag)');
+    expect(ctx).toContain('stunEnemy(e as Enemy, seconds, tag, bossSeconds)');
     const pud = src('engine/patterns/puddle.ts');
     expect(pud).toContain('burnFor(e.def, sc.aisleEvent.burn(pd.burn))');
     expect(pud).toContain('slowFor(e.def, slow)');

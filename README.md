@@ -118,8 +118,8 @@ All balance values live in `src/data/`.
 
 | Kind | Items |
 |---|---|
-| Weapons | Toaster, Frying Pan, Nail Gun, Vacuum, Microwave, Blender, Fizz Cannon, Mop, Pressure Cooker (AOE mortar), Spray Bottle (multi-hit cone), *Self-Checkout Laser* |
-| Modules | Desk Fan, Fuel Can, Battery, Ice Pack, Hot Sauce, Price Gun, Duct Tape, Party Popper (kills explode), Double Bag (hits strike twice), Multipack (+1 projectile / extra swing), *Power Strip*, *Gold Star Sticker* |
+| Weapons | Toaster, Frying Pan, Nail Gun, Vacuum, Microwave, Blender, Fizz Cannon, Mop, Pressure Cooker (AOE mortar), Spray Bottle (multi-hit cone), Snow Cone Machine (frost puddle), *Self-Checkout Laser* |
+| Modules | Desk Fan, Fuel Can, Battery, Ice Pack, Hot Sauce, Price Gun, Duct Tape, Party Popper (kills explode), Double Bag (hits strike twice), Multipack (+1 projectile / extra swing), Moldy Bread (blasts leave poison spores), *Power Strip*, *Gold Star Sticker* |
 | Passives | Magnet, Lunchbox, Shopping Bell, Running Boot, Coupon Book, Bubble Wrap, Energy Drink, *Family-Size Snack Bag* |
 
 Items in *italics* are legendary.
@@ -143,6 +143,17 @@ Items in *italics* are legendary.
   - Mist Machine
 
   Each combo is an exact adjacency rule. Hover a combo in the shop to see it.
+
+### Element reactions
+
+A hit or a status that meets a status already on the enemy sets off a reaction (one per enemy per second, label pops over the enemy, teal damage numbers). They add to each other; none replaces another.
+
+- **Shatter:** burn + frost. A burst that eats the burn and the slow or freeze.
+- **Fumes:** burn + poison. A poison cloud that poisons the enemies around.
+- **Conduct:** Wet + an electric hit. A chain of hits along the nearest enemies, eats the Wet.
+- **Crack:** Shred at the cap + a blast hit. Shrapnel to the nearest enemies, eats the Shred.
+- **Ice Sheet:** Wet + a frost hit that did not freeze. The enemy slides away helplessly for 1.5 s and takes 12 damage if it hits a wall, a prop or another enemy. Eats the Wet. The Snow Cone Machine sets it up.
+- **Detonate:** poisoned + a blast hit. Eats the poison and bursts for its poison dps x the seconds it had left within 70 px. Moldy Bread sets it up.
 
 ### Themes and aisle modifiers
 

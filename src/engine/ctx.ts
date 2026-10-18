@@ -25,6 +25,8 @@ export interface CombatEnemy {
   markedUntil?: number;
   critCoinDropped?: boolean;
   frozenT?: number;
+  /** Ice Sheet: sliding (no steering) until this time (s). */
+  slideUntil?: number;
   nailHits?: number;
   /** Seconds left in the current stun / stagger / recovery (the real `Enemy` always has it; `FakeCtx.stun` writes it). */
   stateT?: number;
@@ -137,10 +139,20 @@ export interface RuntimeCtx {
   /**
    * Stun for `seconds` (bosses are immune). `tag` names the element of a frost or electric stun: the time scales with the enemy's affinity for it
    * (`statusDurationMult`); no tag = x1 (the dash stun). Returns the seconds actually applied (0 = refused), for a hook's ice-block visual.
+   * `bossSeconds` (default 0 = immune): a boss or mini-boss that is walking is staggered for this long instead (Air Horn).
    */
-  stun(e: CombatEnemy, seconds: number, tag?: AffinityTag): number;
+  stun(e: CombatEnemy, seconds: number, tag?: AffinityTag, bossSeconds?: number): number;
+  /** Every coin on the floor flies to the goblin (Vacuum's Full Suck). */
+  pullCoins(): void;
+  /** Multiply a weapon's suction `pull` and `range` for `seconds` (Vacuum's Full Suck). No effect on other patterns. */
+  boostWeapon(weaponUid: string, boost: { pull: number; range: number }, seconds: number): void;
   /** Burn through the aisle's modifiers (`aisle.burn`), as the weapon branches do; its duration scales with the enemy's heat affinity. */
   ignite(e: CombatEnemy, burn: BurnEffect): void;
+  /**
+   * Ice Sheet: the enemy slides away from the goblin at `speed` px/s for `seconds` and cannot steer (bosses are immune: nothing happens, 0 returned). It takes `slam`
+   * damage once if it hits a wall, a prop or another enemy while sliding (the Leaf Blower's slam). Returns the seconds applied.
+   */
+  slide(e: CombatEnemy, seconds: number, slam: number, speed: number): number;
   /** Slow, its duration scaled by the enemy's frost affinity. */
   slow(e: CombatEnemy, slow: SlowEffect): void;
   /** Poison, its duration scaled by the enemy's poison affinity. */
@@ -170,6 +182,11 @@ export interface RuntimeCtx {
   /** `ArenaScene.hurtPlayer`: i-frames, `onPlayerHit` hooks (Bubble Wrap armor), death. */
   hurt(dmg: number): void;
   heal(hp: number): void;
+  /**
+   * Damage with no hurt reaction, no i-frames and no `onPlayerHit` hooks (Ghost Pepper's burn, Scratch Ticket's loss): the HP never drops below 1, so it never
+   * kills. Ignored in god mode.
+   */
+  drain(hp: number): void;
   /** The flying heart + "+N" popup of a heal at (x, y). */
   healFx(x: number, y: number): void;
 

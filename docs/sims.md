@@ -103,7 +103,7 @@ One sim per combo, `src/sims/combo-<id>.ts` with the combo id in kebab-case (`?s
 
 ## Weapon sims
 
-One sim per weapon, `src/sims/weapon-<id>.ts` (`?sim=weapon-toaster`, `weapon-pan`, `weapon-nailgun`, `weapon-vacuum`, `weapon-microwave`, `weapon-blender`, `weapon-fizz`, `weapon-mop`, `weapon-leafblower`, `weapon-laser`, `weapon-cooker`, `weapon-spray`). The cart is the weapon alone at ★3 (the legendary Laser has no tiers) at `[2, 1]`, no modules and no combo, so you see the bare pattern of `src/engine/patterns`. God mode on, dummies immortal unless the notes say otherwise. The notes name the ★3 damage and interval and what to look for:
+One sim per weapon, `src/sims/weapon-<id>.ts` (`?sim=weapon-toaster`, `weapon-pan`, `weapon-nailgun`, `weapon-vacuum`, `weapon-microwave`, `weapon-blender`, `weapon-fizz`, `weapon-mop`, `weapon-leafblower`, `weapon-laser`, `weapon-cooker`, `weapon-spray`, `weapon-snowcone`). The cart is the weapon alone at ★3 (the legendary Laser has no tiers) at `[2, 1]`, no modules and no combo, so you see the bare pattern of `src/engine/patterns`. God mode on, dummies immortal unless the notes say otherwise. The notes name the ★3 damage and interval and what to look for:
 
 | Sim | Enemies | Look for |
 | --- | --- | --- |
@@ -119,6 +119,7 @@ One sim per weapon, `src/sims/weapon-<id>.ts` (`?sim=weapon-toaster`, `weapon-pa
 | `weapon-laser` | a far bunch and a ring of 5 milk | One beam down the line with the most enemies. |
 | `weapon-cooker` | a big bunch right, a small one left | The pot goes to the densest group; the blast pushes everything back. |
 | `weapon-spray` | 8 milk close in front | The 70° cone hits all of them each spray, with a light push. |
+| `weapon-snowcone` | 8 baguettes in a bunch on the right | A slush puddle behind you every 1.6 s even with nobody around; Wet, a 35% slow and a frost tick per 0.5 s. It never slides what it soaks itself: it needs another frost hit (see `reaction-ice-sheet`). |
 
 `tests/sims/sims.test.ts` checks that each weapon sim has exactly its weapon (★3, or ★1 for the legendary), an explicit `at`, notes and dummies, and that the build `createSimRun` computes carries the weapon's pattern with its base damage and interval scaled by the tier. Each weapon's behaviour in the patterns is tested in `tests/content/items/<weapon>.test.ts`.
 
@@ -191,7 +192,7 @@ Wet (docs/item-hooks-refactor.md "Wet"). Blue droplets drip down a wet enemy. Go
 
 ## Reaction sims
 
-Element reactions (docs/item-hooks-refactor.md "Reactions"). A teal name pops over the enemy and the burst's damage numbers are teal. Each enemy reacts at most once per second (Shatter: once per 3 s). God mode stays on; the groceries are immortal except in `reaction-crack`. `tests/sims/reaction-sims.test.ts` runs each cart headless and checks its reaction goes off.
+Element reactions (docs/item-hooks-refactor.md "Reactions"). A teal name pops over the enemy and the burst's damage numbers are teal. Each enemy reacts at most once per second (Shatter: once per 3 s). Ice Sheet and Detonate are the two newest. God mode stays on; the groceries are immortal except in `reaction-crack`. `tests/sims/reaction-sims.test.ts` runs each cart headless and checks its reaction goes off.
 
 | Sim | Cart | Enemies | Look for |
 |---|---|---|---|
@@ -199,6 +200,8 @@ Element reactions (docs/item-hooks-refactor.md "Reactions"). A teal name pops ov
 | `reaction-fumes` | Toaster ★1 + Fuel Can + Expired Milk | 10 Sour Milk in a bunch | A burning milk that walks into the aura bursts into a green cloud (radius 60, 2 s) that poisons its neighbors |
 | `reaction-conduct` | Spray Bottle ★1 + Laser ★1 | 10 Baguettes in a bunch | The Laser beam on a wet baguette (x1.2) jumps to the 3 nearest for 60%, the Wet is gone |
 | `reaction-crack` | Pressure Cooker ★1 + Can Opener ★3 + Party Popper | 10 Beans (mortal) | A blast on a Beans with 3 Shred stacks throws shrapnel at the 3 nearest within 90 px (+1 Shred each) |
+| `reaction-ice-sheet` | Snow Cone Machine ★1 + Toaster ★1 + Ice Pack | 8 Baguettes in a bunch | The puddle soaks them; a toast slowed by the Ice Pack on a Wet baguette sends it sliding away for 1.5 s: ICE SHEET!, 12 slam damage at a wall, a prop or another baguette, the Wet gone. A Wet applied in the same frame as the hit (Spray, Mop, Snow Cone's own tick) never counts |
+| `reaction-detonate` | Pressure Cooker ★1 + Moldy Bread | 10 Sour Milk in a bunch | A pot leaves a spore cloud (radius 70, 3 s) that poisons; the next pot's blast on a poisoned milk bursts DETONATE!: poison dps x seconds left within 70 px, the poison gone |
 
 ## Where the code lives
 
@@ -208,3 +211,25 @@ Element reactions (docs/item-hooks-refactor.md "Reactions"). A teal name pops ov
 - `src/flow.ts`: `flow.startSim(sim)`, `flow.restartSim()`, `flow.sim`.
 - `src/systems/spread.ts`: pure cluster / ring positions. The arena side is `ArenaScene.labSpawnAll`.
 - `src/ui/simTag.ts`: HUD tag, notes, error card, `launchSim(id)`.
+
+## Active items
+
+`?sim=actives`: Vacuum, Bubble Wrap, Air Horn and Fire Extinguisher in one cart, 10 immortal milk. Press E to fire every active that has a charge (the HUD shows the charges under the receipt strip). All active numbers are in the items' `tune` (`src/content/items/{airhorn,fireextinguisher,bubblewrap,vacuum}.ts`).
+
+## Item sims
+
+Sandboxes for items with a mechanic you have to see, `src/sims/item-<id>.ts`:
+
+| Sim | Cart | Look for |
+|---|---|---|
+| `item-bowling-ball` | Toaster, Bowling Ball, Helium Balloon, Running Boot | Dash damage 6 + 6 + 1 per occupied cell, +50% knockback; the Balloon touching the Ball makes the Ball's cells weightless for the slow |
+| `item-ghost-pepper` | Toaster, Fuel Can, Ghost Pepper (god mode off, 3 milk) | BURNING over the goblin after a hit: 1.5 dps over 2 s, no flinch, no i-frames, never below 1 HP |
+| `item-scratch-ticket` | Toaster, Scratch Ticket (god mode off, a real aisle) | The aisle-start roll: 1 in 5 for +30 coins, else -4 HP. A sim boots the arena twice, so the roll can fire twice |
+| `item-dash-boot-bumper`, `item-dash-ball` | Pan ★1 plus Boot + Bumper (5 cells) / plus a Bowling Ball with 12 Piggy Banks as filler (19 cells) | The same milk cluster: switch between them to compare the dash. Boot + Bumper: 12 + an 8 blast. Ball: 25 on every enemy touched |
+
+## Contract and shortcut sims
+
+| Sim | What to look at |
+| --- | --- |
+| `punch-card` | A real aisle 4 with a Punch Card and a heat cart (`waves: true`, `god: false`). The goal is on the banner, the sticker sits under the HUD strip. |
+| `shortcut-key` | Starts in the cart editor before aisle 3 with a Shortcut Key and 8 HP. Leave the shop: the route screen shows a Staff Only door (a lab aisle normally has one door and skips that screen). Take it to land in aisle 4 at full HP. |

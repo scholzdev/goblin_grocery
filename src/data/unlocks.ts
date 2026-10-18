@@ -6,6 +6,7 @@ import type { DepartmentId, ItemTypeId, StarterId } from '../types';
 export const STARTING_ITEMS: ItemTypeId[] = [
   'toaster', 'pan', 'nailgun', 'vacuum', 'fan', 'fuel', 'battery', 'magnet', 'ice', 'hotsauce', 'lunchbox', 'bell', 'fortune', 'sample', 'piggy',
   'popcorn', 'sparklers', 'expiredcoupon',
+  'spentkey', // never offered (noShop), listed so every item is reachable for the catalog
 ];
 
 export type GoblinSkin = 'classic' | 'night' | 'frost' | 'gold';
@@ -77,8 +78,24 @@ export const UNLOCKS: Unlock[] = [
   { id: 'bumper', kind: 'item', item: 'bumper', need: 'Reach aisle 5', check: (s) => s.bestWave >= 5, progress: (s) => at(5)(s.bestWave) },
   { id: 'flag', kind: 'item', item: 'flag', need: 'Clear 2 Frozen Foods aisles', check: (s) => dept(s, 'frozen') >= 2, progress: (s) => at(2)(dept(s, 'frozen')) },
   { id: 'canopener', kind: 'item', item: 'canopener', need: 'Reach aisle 3', check: (s) => s.bestWave >= 3, progress: (s) => at(3)(s.bestWave) },
+  { id: 'avocado', kind: 'item', item: 'avocado', need: 'Reach aisle 3', check: (s) => s.bestWave >= 3, progress: (s) => at(3)(s.bestWave) },
+  { id: 'fish', kind: 'item', item: 'fish', need: 'Clear 2 Frozen Foods aisles', check: (s) => dept(s, 'frozen') >= 2, progress: (s) => at(2)(dept(s, 'frozen')) },
+  { id: 'basil', kind: 'item', item: 'basil', need: 'Finish 2 runs', check: (s) => s.runs >= 2, progress: (s) => at(2)(s.runs) },
+  { id: 'scoby', kind: 'item', item: 'scoby', need: 'Return 400 groceries (lifetime)', check: (s) => s.kills >= 400, progress: (s) => at(400)(s.kills) },
   { id: 'decaf', kind: 'item', item: 'decaf', need: 'Reach aisle 4', check: (s) => s.bestWave >= 4, progress: (s) => at(4)(s.bestWave) },
+  { id: 'barter', kind: 'item', item: 'barter', need: 'Earn 600 coins (lifetime)', check: (s) => s.coins >= 600, progress: (s) => at(600)(s.coins) },
+  { id: 'binder', kind: 'item', item: 'binder', need: 'Discover 5 combos', check: (s) => s.combos >= 5, progress: (s) => at(5)(s.combos) },
+  { id: 'fireextinguisher', kind: 'item', item: 'fireextinguisher', need: 'Reach aisle 3', check: (s) => s.bestWave >= 3, progress: (s) => at(3)(s.bestWave) },
+  { id: 'airhorn', kind: 'item', item: 'airhorn', need: 'Earn 150 coins (lifetime)', check: (s) => s.coins >= 150, progress: (s) => at(150)(s.coins) },
+  { id: 'balloon', kind: 'item', item: 'balloon', need: 'Finish 2 runs', check: (s) => s.runs >= 2, progress: (s) => at(2)(s.runs) },
+  { id: 'bowlingball', kind: 'item', item: 'bowlingball', need: 'Reach aisle 6', check: (s) => s.bestWave >= 6, progress: (s) => at(6)(s.bestWave) },
+  { id: 'ghostpepper', kind: 'item', item: 'ghostpepper', need: 'Reach aisle 4', check: (s) => s.bestWave >= 4, progress: (s) => at(4)(s.bestWave) },
+  { id: 'scratchticket', kind: 'item', item: 'scratchticket', need: 'Earn 150 coins (lifetime)', check: (s) => s.coins >= 150, progress: (s) => at(150)(s.coins) },
   { id: 'laser', kind: 'item', item: 'laser', need: 'Win 3 runs', check: (s) => s.wins >= 3, progress: (s) => at(3)(s.wins) },
+  { id: 'snowcone', kind: 'item', item: 'snowcone', need: 'Clear 5 Frozen Foods aisles', check: (s) => dept(s, 'frozen') >= 5, progress: (s) => at(5)(dept(s, 'frozen')) },
+  { id: 'moldybread', kind: 'item', item: 'moldybread', need: 'Discover 5 combos', check: (s) => s.combos >= 5, progress: (s) => at(5)(s.combos) },
+  { id: 'punchcard', kind: 'item', item: 'punchcard', need: 'Earn 150 coins (lifetime)', check: (s) => s.coins >= 150, progress: (s) => at(150)(s.coins) },
+  { id: 'shortcut', kind: 'item', item: 'shortcut', need: 'Get wiped out twice', check: (s) => s.losses >= 2, progress: (s) => at(2)(s.losses) },
   { id: 'starter-coupon', kind: 'starter', starter: 'coupon', need: 'Earn 400 coins (lifetime)', check: (s) => s.coins >= 400, progress: (s) => at(400)(s.coins) },
   { id: 'starter-night', kind: 'starter', starter: 'night', need: 'Reach aisle 6', check: (s) => s.bestWave >= 6, progress: (s) => at(6)(s.bestWave) },
   { id: 'skin-night', kind: 'goblin', skin: 'night', need: 'Finish 5 runs', check: (s) => s.runs >= 5, progress: (s) => at(5)(s.runs) },

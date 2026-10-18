@@ -1,5 +1,6 @@
 // Shared contracts. Pure data shapes only — no Phaser, no DOM.
 import type { DoorId, ModifierId } from './data/modifiers';
+import type { PunchCard } from './systems/contracts';
 import type { EventKind } from './data/events';
 import type { ZoneId } from './data/zones';
 import type { DamageStats } from './systems/damageStats';
@@ -56,6 +57,8 @@ export interface ItemDef {
   tags?: WeaponTag[];
   /** Legendary: unique effect, gold border, rare in shops, cannot be upgraded or merged. */
   legendary?: boolean;
+  /** Never offered by a shop or crate (the Spent Key). */
+  noShop?: boolean;
   /** Modules only: the elements its effect deals or applies (see `ItemContent.elements`). */
   elements?: readonly AffinityTag[];
   /** The item's hits shred armor (see `ItemContent.shreds`). */
@@ -81,6 +84,15 @@ export interface ItemInstance {
   flavor?: ElementTag;
   /** Sourdough Starter only: completed waves since bought / last rise (grows at 2). */
   rise?: number;
+  /** Collector's Binder only: the family it was bought for, and how many of that family were sold since. */
+  binderFamily?: FamilyTag;
+  binderSold?: number;
+  /** Active items only: uses left this aisle. Missing = full (`engine/actives.ts`); refilled by `startNextWave`. */
+  charges?: number;
+  /** Aisles completed since bought (placed only, or placed + shelf with `ItemContent.age: 'owned'`); Sourdough resets it on each rise. See `ageItems` (state/run.ts). */
+  age?: number;
+  /** Potted Basil: kills made by adjacent weapons. Persists across aisles, gone when the instance is sold. */
+  kills?: number;
 }
 
 export interface Inventory {
@@ -142,6 +154,8 @@ export interface ActiveRecipe {
 }
 
 export type StarterId = (typeof STARTER_ORDER)[number];
+/** A goblin's passive signature (data/items `SIGNATURE`). */
+export type SignatureId = 'firstCrit' | 'mergeHeal' | 'freeReroll' | 'dashCooldown';
 /** Starting weapons selectable independently of the character. */
 export type StarterWeapon = 'toaster' | 'pan' | 'nailgun';
 
@@ -164,6 +178,7 @@ export interface Build {
   shoveCooldown: number;
   shoveDistMult: number;   // running boot: dash distance multiplier
   shoveDamage: number;     // dash hit damage (running boot adds)
+  shoveKnockMult: number;  // bowling ball: dash knockback multiplier
   moveSpeedMult: number;   // energy drink
   stinkDps: number;        // expired milk: poison dps of the toxic aura around the cart (0 = off)
   regen: number;           // HP per second during combat (snack bag)
@@ -172,6 +187,8 @@ export interface Build {
   /** Set-bonus level per set (0/1/2), counted over distinct placed types. */
   sets: Record<SetId, 0 | 1 | 2 | 3>;
   priceMult: number;       // checkout L1: shop price multiplier
+  sellRate: number;        // share of an item's value a sale pays (0.5; Barter Stamp raises it)
+  sellFullFamilies: FamilyTag[]; // families that sell at full value (Collector's Binder)
   /** Deduplicated adjacent pairs, uid order a < b. */
   adjacency: [string, string][];
 }
@@ -265,6 +282,8 @@ export interface ShopState {
   shopIndex: number;     // 1-based (after wave N)
   /** Sourdough could not rise this shop visit (no room): shown once as a toast. */
   riseWait?: boolean;
+  /** Shop lock: unsold offers carry over to the next shop at their price; reroll is refused. */
+  locked: boolean;
 }
 
 export type Phase = 'title' | 'combat' | 'checkout' | 'shop' | 'route' | 'victory' | 'defeat';
@@ -317,6 +336,8 @@ export interface RunState {
   inventory: Inventory;
   build: Build;
   shop: ShopState | null;
+  /** Offers of a locked shop, waiting for the next `openShop` (set by `startNextWave`). */
+  shopLock?: ShopOffer[];
   /** Loyalty Card level 1..4 — better offers; persists for the run. */
   shopLevel: number;
   /** Items allowed in this run's shops (meta-progression). Undefined = everything. */
@@ -367,6 +388,12 @@ export interface RunState {
   labMod?: ModifierId;
   /** Aisle event forced in every lab aisle ('random' = normal roll). */
   labEvent?: 'random' | 'none' | EventKind;
+  /** This aisle's Punch Card goal (systems/contracts); rolled when the aisle starts, a completed one pays the next shop a free reroll. */
+  punch?: PunchCard;
+  /** Aisle skipped through the Staff Only door, until the next aisle announces it. */
+  skipped?: number;
+  /** Aisles skipped through the Staff Only door, for the run's records (`route` / `mods` hold a placeholder for each). */
+  skippedAisles?: number[];
   /** Lab dummy sandbox: no waves or timer, dummies spawned from a panel, shop ↔ arena on demand. */
   labSandbox?: boolean;
 }

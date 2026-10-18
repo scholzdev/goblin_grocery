@@ -4,7 +4,7 @@ import type { UIKey } from '../i18n';
 import { poisonTimeFor } from './affinity';
 import type { CombatEnemy, RuntimeCtx } from './ctx';
 import { ELEMENT_COLORS } from './damageType';
-import { REACTIONS, SHRED, type AffinityTag, type ReactionId } from './define';
+import { REACTIONS, SHRED, WET_STATUS, type AffinityTag, type ReactionId } from './define';
 import type { HitOpts } from './hooks';
 import { Set as S } from './ids';
 import { contentSetTune } from './registry';
@@ -16,6 +16,8 @@ import { isWet } from './wet';
 //   Fumes    burn + poison       a poison cloud that poisons the OTHER enemies around it, eats the burn
 //   Conduct  wet + electric hit  a chain of hits along the nearest enemies, eats the Wet
 //   Crack    shred at the cap + blast hit   shrapnel to the nearest enemies (+1 Shred each), eats the Shred
+//   Ice Sheet  wet (not from this frame) + frost hit that did not freeze   the enemy slides helplessly, a slam when it hits a wall, a prop or another enemy; eats the Wet
+//   Detonate poisoned + blast hit   eats the poison, a burst of its dps x the seconds it had left around the enemy
 //
 // The rules live here once; `PhaserCtx` and `FakeCtx` each own a `Reactor` and call it from the same three places (a status application, the start and the end of a
 // hit), so the arena, the sims and the tests run the same code. No rng: a reaction is always the same for the same state. Pure over the `RuntimeCtx` (damage, fx, clock).
@@ -26,10 +28,12 @@ export const REACTION_TEXT: Readonly<Record<ReactionId, { label: UIKey; name: UI
   fumes: { label: 'reactFumes', name: 'rnFumes' },
   conduct: { label: 'reactConduct', name: 'rnConduct' },
   crack: { label: 'reactCrack', name: 'rnCrack' },
+  iceSheet: { label: 'reactIceSheet', name: 'rnIceSheet' },
+  detonate: { label: 'reactDetonate', name: 'rnDetonate' },
 };
 
 /** The `damageByWeapon` key of a reaction's burst hits (`HitOpts.label`). */
-export const REACTION_LABEL: Readonly<Record<ReactionId, string>> = { shatter: 'Shatter', fumes: 'Toxic Fumes', conduct: 'Conduct', crack: 'Crack' };
+export const REACTION_LABEL: Readonly<Record<ReactionId, string>> = { shatter: 'Shatter', fumes: 'Toxic Fumes', conduct: 'Conduct', crack: 'Crack', iceSheet: 'Ice Sheet', detonate: 'Detonate' };
 const LABEL = REACTION_LABEL;
 
 const EPS = 1e-9;
@@ -49,10 +53,19 @@ export const isFrosted = (s: StatusFx, now: number): boolean => s.frostUntil > n
 export function markFrostStun(s: StatusFx, seconds: number, now: number): void {
   s.frostUntil = Math.max(s.frostUntil, now + seconds);
 }
-/** Is the per-enemy reaction cooldown (shared by all four) over. */
+/** Is the per-enemy reaction cooldown (shared by all of them) over. */
 export const reactionReady = (s: StatusFx, now: number): boolean => now >= s.reactionCdUntil - EPS;
 /** Is Shatter's own, longer per-enemy cooldown over (on top of the shared one). */
 export const shatterReady = (s: StatusFx, now: number): boolean => now >= s.shatterCdUntil - EPS;
+
+/**
+ * Wet from before: the Wet is running and was not applied this very frame. The Spray, the Mop and the Snow Cone Machine soak and then hit with frost in the same frame, so
+ * their own hit never counts: Ice Sheet needs a frost hit that comes after the Wet, and the Spray's Wet stays for the Laser's Conduct. A Wet longer than `WET_STATUS.duration`
+ * (Thunderstorm's) cannot be told from a fresh one and never counts either: it only ever holds a reaction back.
+ */
+export const soakedBefore = (s: StatusFx, now: number): boolean => s.wetUntil > now && s.wetUntil - now < WET_STATUS.duration - EPS;
+/** Frozen right now: a frost-tagged stun is running (`markFrostStun`). A frost slow alone is not a freeze. */
+export const isFrozen = (e: CombatEnemy, now: number): boolean => e.state === 'stun' && e.status.frostUntil > now;
 
 /** Shatter eats the burn. */
 export function consumeBurn(s: StatusFx): void {
@@ -95,7 +108,7 @@ export interface TriggerHit { dmg: number; tags: readonly AffinityTag[] }
  * hit (a puddle or aura tick, a hook) it is checked at once with no hit damage (Shatter's burst is then its flat part only). A reaction's own burst hits are flagged
  * (`HitOpts.reaction`), never open a hit and apply no status, so they cannot set another reaction off.
  *
- * Order when several apply to the same trigger: Shatter, Fumes, Conduct, Crack. One per enemy per `REACTIONS.cooldown`; a blocked trigger is lost. Shatter also waits
+ * Order when several apply to the same trigger: Shatter, Fumes, Conduct, Detonate, Crack, Ice Sheet. One per enemy per `REACTIONS.cooldown`; a blocked trigger is lost. Shatter also waits
  * `REACTIONS.shatter.cooldown` after its own last one on that enemy; while it waits, the others can still go off once the shared cooldown allows. A new burn on a wet enemy
  * steams first (`burnVsWet` dries it in the application), so by the time the hit ends the Wet is gone and Conduct cannot fire.
  */
@@ -133,7 +146,9 @@ export class Reactor {
     if (e.hp > 0 && burning && isFrosted(s, now) && fresh & (BIT.burn | BIT.frost) && shatterReady(s, now)) id = 'shatter'; // (a burst on a corpse would do nothing: the hit that kills takes no Shatter, the others still go off)
     else if (burning && poisoned && fresh & (BIT.burn | BIT.poison)) id = 'fumes';
     else if (hit && isWet(s, now) && hit.tags.includes('electric')) id = 'conduct';
+    else if (hit && poisoned && hit.tags.includes('blast')) id = 'detonate'; // before Crack: every blast hit also shreds, so Crack's own shrapnel keeps a bunch at the cap and would always win
     else if (hit && shredStacks(s, now) >= SHRED.cap && hit.tags.includes('blast')) id = 'crack';
+    else if (hit && e.hp > 0 && e.def.behavior !== 'boss' && soakedBefore(s, now) && (hit.tags.includes('frost') || fresh & BIT.frost) && !isFrozen(e, now)) id = 'iceSheet'; // (a freeze comes first: a frozen enemy cannot slide; a corpse and a boss have nothing to slide)
     if (!id) return;
 
     s.reactionCdUntil = now + REACTIONS.cooldown;
@@ -143,7 +158,9 @@ export class Reactor {
     if (id === 'shatter') this.shatter(e, hit);
     else if (id === 'fumes') this.fumes(e);
     else if (id === 'conduct') this.conduct(e, hit!);
-    else this.crack(e, hit!);
+    else if (id === 'crack') this.crack(e, hit!);
+    else if (id === 'iceSheet') this.iceSheet(e);
+    else this.detonate(e);
   }
 
   /** The burst is `flat` + `share` of the triggering hit (just the flat part when a status application with no hit set it off); heat + frost for the affinity. */
@@ -200,5 +217,27 @@ export class Reactor {
       ctx.damage(o, R.share * hit.dmg, null, { reaction: 'crack', label: LABEL.crack });
       if (o.alive) ctx.shred(o, R.shred);
     }
+  }
+
+  /** The Wet goes (the enemy is on the ice now); the slide and its slam are the ctx's (`ctx.slide`, the Leaf Blower's slam). */
+  private iceSheet(e: CombatEnemy): void {
+    const ctx = this.ctx, R = REACTIONS.iceSheet;
+    e.status.wetUntil = 0;
+    ctx.fx.frostBurst(e.x, e.y - 10, 6);
+    ctx.fx.ring('fx_pulse', e.x, e.y, 90, 320, 0xbfe8ff);
+    ctx.sound('frost', { rate: 1.2, volume: 0.6 });
+    ctx.slide(e, R.slide, R.slam, R.speed);
+  }
+
+  /** The poison goes and what it had left (dps x seconds) bursts on everything within `radius` of the enemy, itself included. */
+  private detonate(e: CombatEnemy): void {
+    const ctx = this.ctx, R = REACTIONS.detonate, s = e.status;
+    const dmg = s.poisonDps * (s.poisonUntil - ctx.now()), at = { x: e.x, y: e.y };
+    s.poisonDps = 0; s.poisonUntil = 0; s.nextPoisonAt = 0;
+    ctx.fx.puff(at.x, at.y - 20, 4);
+    ctx.fx.ring('fx_pulse', at.x, at.y, R.radius * 2, 320, 0x8fcb57);
+    ctx.fx.shake(0.003, 80);
+    ctx.sound('boom', { rate: 1.4, volume: 0.5 });
+    ctx.damageArea(at, R.radius, dmg, null, { reaction: 'detonate', tags: ['blast', 'poison'], label: LABEL.detonate });
   }
 }

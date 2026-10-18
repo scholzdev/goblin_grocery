@@ -90,6 +90,14 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 }
 #hud .shove.ready .ring { box-shadow: 0 0 0 3px var(--gold); }
 #hud .recipes { display: flex; gap: 8px; }
+#hud .actives { display: flex; gap: 8px; margin-top: 6px; }
+.active-item { display: flex; align-items: center; gap: 6px; padding: 3px 8px; background: #FFF2D5; border: 3px solid #30203F; border-radius: 10px; }
+.active-item img { width: 28px; height: 28px; }
+.active-item kbd { font: 700 12px/1 inherit; padding: 2px 5px; border: 2px solid #30203F; border-radius: 5px; background: #fff; }
+.active-item .pips { display: flex; gap: 3px; }
+.active-item .pips i { width: 9px; height: 9px; border-radius: 50%; border: 2px solid #30203F; background: transparent; }
+.active-item .pips i.on { background: #F45F52; }
+.active-item.spent { opacity: 0.55; }
 .badge {
   display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 2px 4px; border: 2px solid var(--plum); border-radius: 999px;
   background: var(--gold); font-family: var(--display); font-size: 15px; box-shadow: 0 3px 0 var(--plum);
@@ -536,6 +544,20 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .celebrate span { font-size: 12px; font-weight: 800; opacity: 0.75; }
 @keyframes pop-in { 0% { opacity: 0; transform: translateX(-50%) scale(0.6); } 10% { opacity: 1; transform: translateX(-50%) scale(1.06); } 18% { transform: translateX(-50%) scale(1); } 85% { opacity: 1; } 100% { opacity: 0; transform: translateX(-50%) translateY(-16px); } }
 
+/* set bonus card: one compact slip under the receipt, rows are added while it shows */
+.setcard { position: absolute; left: 24px; top: 520px; width: 290px; z-index: 60; background: var(--gold); border: 3px solid var(--plum); border-radius: 12px; padding: 6px 10px 8px;
+  box-shadow: 0 4px 0 var(--plum); animation: setcard-in 0.35s ease both; pointer-events: none; transform-origin: 50% 0; }
+.setcard.out { animation: setcard-out 0.35s ease forwards; }
+.setcard small { display: block; font-weight: 800; letter-spacing: 0.08em; font-size: 11px; opacity: 0.75; }
+.setcard .srow { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
+.setcard .srow > svg, .setcard .srow > img { flex: none; }
+.setcard .srow b { display: block; font: 400 17px var(--display); line-height: 1.05; }
+.setcard .srow span { display: block; font-size: 11px; font-weight: 800; line-height: 1.2; opacity: 0.8; }
+@keyframes setcard-in { 0% { opacity: 0; transform: scale(0.6); } 60% { opacity: 1; transform: scale(1.06); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes setcard-out { to { opacity: 0; transform: translateY(-10px); } }
+@media (prefers-reduced-motion: reduce) { .setcard { animation: none; } }
+:root.reduced-motion .setcard { animation: none; }
+
 .combo.empty, .combo.empty > div { height: auto; overflow: visible; -webkit-line-clamp: unset; white-space: normal; text-overflow: clip; }
 .combo.empty { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; gap: 1px; text-align: center; padding: 6px 10px; font-size: 13px; border-style: dashed; }
 .combo.empty .hint { font-size: 12px; font-weight: 700; opacity: 0.7; line-height: 1.2; }
@@ -902,3 +924,35 @@ body.pad-nav :focus { outline: 4px solid var(--gold); outline-offset: 3px; }
 
 /* dev autoplayer status (src/bot, ?bot=1) */
 #botpanel { position: absolute; left: 10px; top: 10px; max-width: 360px; margin: 0; padding: 6px 10px; z-index: 80; border-radius: 8px; background: rgba(48, 32, 63, 0.82); color: var(--cream); font: 700 12px/1.35 var(--ui); white-space: pre-wrap; pointer-events: none; }
+#shop .services .btn.on { background: var(--gold); }
+
+/* ───────────── Punch Card sticker (ui/punchcard.ts) ───────────── */
+#punch {
+  position: absolute; left: 50%; top: 76px; transform: translateX(-50%) rotate(-0.8deg); width: 330px; padding: 6px 12px 8px;
+  background: var(--paper); border: 3px solid var(--plum); border-radius: 10px; box-shadow: 0 4px 0 var(--plum); font-family: var(--display);
+  transition: background 200ms;
+}
+#hud.has-punch .recipes { margin-top: 74px; }
+#punch .pc-head { display: flex; align-items: center; gap: 8px; }
+#punch .pc-head img { width: 26px; height: 26px; }
+#punch .pc-title { font-size: 13px; letter-spacing: 0.08em; color: var(--lavender-deep); flex: 1; }
+#punch .pc-count { font-size: 26px; line-height: 1; }
+#punch .pc-goal { font-family: var(--ui); font-weight: 800; font-size: 15px; margin: 1px 0 4px; }
+#punch .pc-bar { position: relative; height: 14px; border: 3px solid var(--plum); border-radius: 8px; background: #e9d9f1; overflow: hidden; }
+#punch .pc-bar > i { position: absolute; inset: 0 auto 0 0; background: var(--teal); transition: width 120ms; }
+#punch .pc-bar > b { position: absolute; inset: 0; display: flex; justify-content: space-around; align-items: center; }
+#punch .pc-bar u { width: 5px; height: 5px; border-radius: 50%; background: rgba(48, 32, 63, 0.35); }
+#punch .pc-bar u.on { background: var(--paper); box-shadow: 0 0 0 1px var(--plum); }
+#punch.punch-done { background: var(--gold); animation: punch-stamp 380ms ease; }
+#punch.punch-done .pc-bar > i { background: var(--gold-deep); }
+#punch.punch-failed { background: #cfc6d6; color: rgba(48, 32, 63, 0.6); }
+#punch.punch-failed .pc-bar > i { background: #9d93a8; }
+#punch.punch-failed .pc-head img { filter: grayscale(1); }
+@keyframes punch-stamp { 0% { transform: translateX(-50%) scale(1.25) rotate(-4deg); } 60% { transform: translateX(-50%) scale(0.96) rotate(-0.8deg); } 100% { transform: translateX(-50%) scale(1) rotate(-0.8deg); } }
+
+.door.shortcut .modicon img { width: 76px; height: 76px; }
+.loadout-pick .detail .sig { font: 700 14px/1.35 var(--ui); margin-bottom: 8px; padding: 4px 8px; background: var(--gold); border: 2px solid var(--plum); border-radius: 8px; }
+.loadout-pick .detail .sig b { font-family: var(--display); font-weight: 400; margin-right: 4px; }
+/* Loyalty 3 plus the Staff Only door: four cards must fit the 1280-wide root. */
+.route .doors:has(> .door:nth-child(4)) { gap: 14px; }
+.route .doors:has(> .door:nth-child(4)) .door { width: 280px; }

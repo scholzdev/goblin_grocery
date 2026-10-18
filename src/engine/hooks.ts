@@ -2,7 +2,7 @@ import { tierBoostOf } from './build';
 import { contentComboTune, contentCombos, contentItems, contentSets, contentSetTune, contentTune } from './registry';
 import { neighbors } from '../systems/inventory';
 import { ITEMS } from '../data/items';
-import type { ActiveRecipe, Inventory, ItemDef, ItemTypeId, RecipeId, SetId, SlowEffect, WeaponStats } from '../types';
+import type { ActiveRecipe, Inventory, ItemDef, ItemInstance, ItemTypeId, RecipeId, SetId, SlowEffect, WeaponStats } from '../types';
 import { HOOK_NAMES, resolveTune, type AffinityTag, type ReactionId, type ComboContent, type ItemContent, type Resolved, type RuntimeHooks, type SetContent, type Tune } from './define';
 import type { CombatEnemy, CombatShot, FxApi, RuntimeCtx } from './ctx';
 
@@ -201,6 +201,10 @@ export interface HookCtx<T extends Tune = Tune> {
   tune(): Resolved<T>;
   /** Does an instance of the owner touch the weapon with this uid? A combo: is that its weapon? (true for sets and cart combos). */
   touches(weaponUid: string): boolean;
+  /** Items: the owner's placed instances (the live objects: Basil writes `kills`, Scoby `age`). Empty for combos and sets. */
+  readonly instances: readonly ItemInstance[];
+  /** Items: the owner's instances touching the weapon with this uid. */
+  touching(weaponUid: string): readonly ItemInstance[];
   /** Highest effective tier of `id` in the cart (0 = not placed). */
   owned(id: ItemTypeId): number;
   /** The item's plain definition (family, element, base weapon pattern). Sets use it to tell which weapons they apply to. */
@@ -249,6 +253,9 @@ export interface HookSource {
   hooks: RuntimeHooks;
   /** Weapon uids the owner touches (items) / belongs to (weapon combos). null = every weapon. */
   weapons: ReadonlySet<string> | null;
+  /** Items: the placed instances of the owner, and per weapon uid the ones touching it (own uid included, like `weapons`). */
+  instances?: readonly ItemInstance[];
+  touching?: ReadonlyMap<string, readonly ItemInstance[]>;
 }
 
 /** `HookCtx.tuneOf`: items by tier, combos (scalars) and sets by level, whichever owns the id. */
@@ -269,7 +276,7 @@ export function compileHooks(sources: readonly HookSource[], ctx: RuntimeCtx, ow
   const stateOf = (id: OwnerId) => states.get(id);
   for (const s of sources) {
     const tune = Object.freeze(resolveTune(s.tune, s.tier));
-    const c: HookCtx = { id: s.id, kind: s.kind, tier: s.tier, tune: () => tune, touches: (uid) => !s.weapons || s.weapons.has(uid), owned, def: (id) => ITEMS[id], tuneOf: otherTune, stateOf, state: states.get(s.id)! };
+    const c: HookCtx = { id: s.id, kind: s.kind, tier: s.tier, tune: () => tune, touches: (uid) => !s.weapons || s.weapons.has(uid), instances: s.instances ?? [], touching: (uid) => s.touching?.get(uid) ?? [], owned, def: (id) => ITEMS[id], tuneOf: otherTune, stateOf, state: states.get(s.id)! };
     const order = s.hooks.order ?? 0;
     for (const name of HOOK_NAMES) {
       const fn = s.hooks[name];
@@ -310,9 +317,10 @@ export function hookSourcesFor(cart: Inventory, recipes: readonly ActiveRecipe[]
   for (const c of lookup.items()) {
     const tier = owned(c.id);
     if (!c.hooks || !tier) continue;
-    const weapons = new Set<string>();
-    for (const p of placed) if (p.type === c.id) { weapons.add(p.uid); for (const n of neighbors(placed, p.uid)) weapons.add(n.uid); } // own uid: a weapon item's hooks touch itself
-    sources.push({ id: c.id, kind: 'item', tier, tune: c.tune, hooks: c.hooks, weapons });
+    const weapons = new Set<string>(), touching = new Map<string, ItemInstance[]>(), instances: ItemInstance[] = [];
+    const touch = (uid: string, p: ItemInstance) => { weapons.add(uid); (touching.get(uid) ?? touching.set(uid, []).get(uid)!).push(p); };
+    for (const p of placed) if (p.type === c.id) { instances.push(p); touch(p.uid, p); for (const n of neighbors(placed, p.uid)) touch(n.uid, p); } // own uid: a weapon item's hooks touch itself
+    sources.push({ id: c.id, kind: 'item', tier, tune: c.tune, hooks: c.hooks, weapons, instances, touching });
   }
   for (const c of lookup.combos()) {
     if (!c.hooks) continue;

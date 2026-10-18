@@ -1,4 +1,4 @@
-import type { Cell, ItemDef, ItemTypeId, Perk, StarterId, StarterWeapon } from '../types';
+import type { Cell, ItemDef, ItemTypeId, Perk, SignatureId, StarterId, StarterWeapon } from '../types';
 import { ITEM_ORDER, resolveShape, tierMult, weaponCooldownMult, weaponDamageMult, type ItemContent } from '../engine/define';
 import { contentItem } from '../engine/registry';
 
@@ -11,6 +11,7 @@ const itemDefOf = (c: ItemContent): ItemDef => {
   if (c.tags) def.tags = [...c.tags];
   if (c.weapon) def.weapon = c.weapon;
   if (c.legendary) def.legendary = true;
+  if (c.noShop) def.noShop = true;
   if (c.buff) def.buff = c.buff;
   if (c.flavored) def.flavored = true;
   if (c.elements) def.elements = [...c.elements];
@@ -51,12 +52,27 @@ export const PLAYER = {
   startMoney: 0,
   /** Characters (perks + looks only). The starting weapon is picked separately: see STARTER_WEAPONS. */
   starters: {
-    toaster: { name: 'Toast Goblin', blurb: 'The all-rounder. No perks, no downsides.' },
-    pan: { name: 'Line Cook', blurb: 'Tough from the kitchen line, a bit slow on the floor.', perk: { maxHp: 5, moveSpeedMult: 0.95 } },
-    coupon: { name: 'Coupon Clipper', blurb: 'Haggles everything, but bruises easily.', perk: { priceMult: 0.85, startMoney: 12, maxHp: -8 } },
-    night: { name: 'Night Shift', blurb: 'Fast on their feet, tired arms.', perk: { shoveCooldown: -1, moveSpeedMult: 1.08, damageMult: 0.9 } },
-  } as Record<StarterId, { name: string; blurb: string; perk?: Perk }>,
+    toaster: { name: 'Toast Goblin', blurb: 'The all-rounder. No stat changes, no downsides.', signature: 'firstCrit' },
+    pan: { name: 'Line Cook', blurb: 'Tough from the kitchen line, a bit slow on the floor.', perk: { maxHp: 5, moveSpeedMult: 0.95 }, signature: 'mergeHeal' },
+    coupon: { name: 'Coupon Clipper', blurb: 'Haggles everything, but bruises easily.', perk: { priceMult: 0.85, startMoney: 12, maxHp: -8 }, signature: 'freeReroll' },
+    night: { name: 'Night Shift', blurb: 'Fast on their feet, tired arms.', perk: { shoveCooldown: -1, moveSpeedMult: 1.08, damageMult: 0.9 }, signature: 'dashCooldown' },
+  } as Record<StarterId, { name: string; blurb: string; perk?: Perk; signature: SignatureId }>,
 };
+
+/** The one passive each goblin brings besides its stats (docs/new-items-plan.md "Goblin abilities"). Applied where the event happens: the arena (crit, dash kill), state/run (merge, reroll). */
+export const SIGNATURE = {
+  /** Toast Goblin: the first direct hit of each weapon in every aisle crits. */
+  firstCrit: {},
+  /** Line Cook: HP restored by a merge. */
+  mergeHeal: { hp: 5 },
+  /** Coupon Clipper: free rerolls added to every shop (a counter of its own, so it stacks with the Loyalty Card's). */
+  freeReroll: { rerolls: 1 },
+  /** Night Shift: seconds a dash kill takes off the dash cooldown. */
+  dashCooldown: { cut: 0.5 },
+};
+
+/** The signature of the run's goblin. */
+export const signatureOf = (starter: StarterId | undefined): SignatureId => PLAYER.starters[starter ?? 'toaster'].signature;
 
 /** Starting weapons the player can pick for any character. Shop 1 guarantees two items that suit it. */
 export const STARTER_WEAPONS: Record<StarterWeapon, { x: number; y: number; rot: 0; guarantee: ItemTypeId[] }> = {

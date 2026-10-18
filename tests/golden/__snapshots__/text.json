@@ -1879,6 +1879,166 @@
       "weapon": "pan"
     }
   ],
+  "buffs.item.airhorn.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.airhorn.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.airhorn.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.airhorn.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.avocado.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.avocado.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.avocado.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.avocado.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.balloon.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.balloon.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.balloon.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.balloon.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.barter.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.barter.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.barter.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.barter.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.basil.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.basil.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.basil.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.basil.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
   "buffs.item.battery.t1.on.blender.de": [
     {
       "lines": [
@@ -2061,6 +2221,24 @@
       "weapon": "popcorn"
     }
   ],
+  "buffs.item.battery.t1.on.snowcone.de": [
+    {
+      "lines": [
+        "+12 % Angriffstempo (Batterie)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.item.battery.t1.on.snowcone.en": [
+    {
+      "lines": [
+        "+12% attack rate (Battery)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
   "buffs.item.battery.t1.on.spray.de": [
     {
       "lines": [
@@ -2187,6 +2365,38 @@
       "weapon": "toaster"
     }
   ],
+  "buffs.item.binder.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.binder.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.binder.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.binder.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
   "buffs.item.boot.t1.on.toaster.de": [
     {
       "lines": [
@@ -2212,6 +2422,38 @@
     }
   ],
   "buffs.item.boot.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.bowlingball.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.bowlingball.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.bowlingball.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.bowlingball.t3.on.toaster.en": [
     {
       "lines": [
         "Bundle Deal: 1 item → +6% damage"
@@ -2553,6 +2795,22 @@
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "popcorn"
+    }
+  ],
+  "buffs.item.doublebag.t1.on.snowcone.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.item.doublebag.t1.on.snowcone.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "snowcone"
     }
   ],
   "buffs.item.doublebag.t1.on.spray.de": [
@@ -2921,6 +3179,24 @@
       "weapon": "popcorn"
     }
   ],
+  "buffs.item.fan.t1.on.snowcone.de": [
+    {
+      "lines": [
+        "+30 % Reichweite (Tischventilator)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.item.fan.t1.on.snowcone.en": [
+    {
+      "lines": [
+        "+30% reach (Desk Fan)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
   "buffs.item.fan.t1.on.spray.de": [
     {
       "lines": [
@@ -3006,6 +3282,70 @@
     {
       "lines": [
         "+60% speed & range (Desk Fan ★3)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.fireextinguisher.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.fireextinguisher.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.fireextinguisher.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.fireextinguisher.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.fish.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.fish.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.fish.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.fish.t3.on.toaster.en": [
+    {
+      "lines": [
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "toaster"
@@ -3263,6 +3603,24 @@
       "weapon": "popcorn"
     }
   ],
+  "buffs.item.fuel.t1.on.snowcone.de": [
+    {
+      "lines": [
+        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.item.fuel.t1.on.snowcone.en": [
+    {
+      "lines": [
+        "Burn 2.5/s for 2s (Fuel Can)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
   "buffs.item.fuel.t1.on.spray.de": [
     {
       "lines": [
@@ -3350,6 +3708,38 @@
     {
       "lines": [
         "Burn 5/s for 2s (Fuel Can ★3)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.ghostpepper.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.ghostpepper.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.ghostpepper.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.ghostpepper.t3.on.toaster.en": [
+    {
+      "lines": [
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "toaster"
@@ -3565,6 +3955,24 @@
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "popcorn"
+    }
+  ],
+  "buffs.item.hotsauce.t1.on.snowcone.de": [
+    {
+      "lines": [
+        "+25 % Schaden (Scharfe Soße)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.item.hotsauce.t1.on.snowcone.en": [
+    {
+      "lines": [
+        "+25% damage (Hot Sauce)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "snowcone"
     }
   ],
   "buffs.item.hotsauce.t1.on.spray.de": [
@@ -3845,6 +4253,24 @@
       "weapon": "popcorn"
     }
   ],
+  "buffs.item.ice.t1.on.snowcone.de": [
+    {
+      "lines": [
+        "Verlangsamung 25 % für 1 s (Kühlakku)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.item.ice.t1.on.snowcone.en": [
+    {
+      "lines": [
+        "Slow 25% for 1s (Ice Pack)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
   "buffs.item.ice.t1.on.spray.de": [
     {
       "lines": [
@@ -4033,6 +4459,38 @@
       "weapon": "toaster"
     }
   ],
+  "buffs.item.moldybread.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.moldybread.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.moldybread.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.moldybread.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
   "buffs.item.multipack.t1.on.blender.de": [
     {
       "lines": [
@@ -4211,6 +4669,24 @@
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "popcorn"
+    }
+  ],
+  "buffs.item.multipack.t1.on.snowcone.de": [
+    {
+      "lines": [
+        "+20 % Schaden (Multipack)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.item.multipack.t1.on.snowcone.en": [
+    {
+      "lines": [
+        "+20% damage (Multipack)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "snowcone"
     }
   ],
   "buffs.item.multipack.t1.on.spray.de": [
@@ -4519,6 +4995,24 @@
       "weapon": "popcorn"
     }
   ],
+  "buffs.item.popper.t1.on.snowcone.de": [
+    {
+      "lines": [
+        "Kills explodieren: 6 Schaden, Radius 70 (Partyknaller)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.item.popper.t1.on.snowcone.en": [
+    {
+      "lines": [
+        "Kills explode: 6 dmg, 70 radius (Party Popper)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
   "buffs.item.popper.t1.on.spray.de": [
     {
       "lines": [
@@ -4823,6 +5317,24 @@
       "weapon": "popcorn"
     }
   ],
+  "buffs.item.pricegun.t1.on.snowcone.de": [
+    {
+      "lines": [
+        "15 % Kritchance (Preisauszeichner)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.item.pricegun.t1.on.snowcone.en": [
+    {
+      "lines": [
+        "15% crit chance (Price Gun)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
   "buffs.item.pricegun.t1.on.spray.de": [
     {
       "lines": [
@@ -4913,6 +5425,38 @@
       "weapon": "toaster"
     }
   ],
+  "buffs.item.punchcard.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.punchcard.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.punchcard.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.punchcard.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
   "buffs.item.sample.t1.on.toaster.de": [
     {
       "lines": [
@@ -4938,6 +5482,102 @@
     }
   ],
   "buffs.item.sample.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.scoby.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.scoby.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.scoby.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.scoby.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.scratchticket.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.scratchticket.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.scratchticket.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.scratchticket.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.shortcut.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.shortcut.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.shortcut.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.shortcut.t3.on.toaster.en": [
     {
       "lines": [
         "Bundle Deal: 1 item → +6% damage"
@@ -5070,6 +5710,38 @@
     }
   ],
   "buffs.item.sparklers.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.spentkey.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.spentkey.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.spentkey.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.spentkey.t3.on.toaster.en": [
     {
       "lines": [
         "Bundle Deal: 1 item → +6% damage"
@@ -5257,6 +5929,24 @@
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "popcorn"
+    }
+  ],
+  "buffs.item.tape.t1.on.snowcone.de": [
+    {
+      "lines": [
+        "Mehr Reichweite / extra Durchschlag (Panzertape)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.item.tape.t1.on.snowcone.en": [
+    {
+      "lines": [
+        "Bigger reach / extra pierce (Duct Tape)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "snowcone"
     }
   ],
   "buffs.item.tape.t1.on.spray.de": [
@@ -6493,6 +7183,42 @@
       "weapon": "popcorn"
     }
   ],
+  "buffs.weapon.snowcone.t1.de": [
+    {
+      "lines": [],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.weapon.snowcone.t1.en": [
+    {
+      "lines": [],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.weapon.snowcone.t2.de": [
+    {
+      "lines": [],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.weapon.snowcone.t2.en": [
+    {
+      "lines": [],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.weapon.snowcone.t3.de": [
+    {
+      "lines": [],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.weapon.snowcone.t3.en": [
+    {
+      "lines": [],
+      "weapon": "snowcone"
+    }
+  ],
   "buffs.weapon.spray.t1.de": [
     {
       "lines": [],
@@ -7057,6 +7783,222 @@
     "short": "Zaps chain to +1 enemy",
     "summary": "Microwave touching a Lunchbox AND a Battery: chain-zapping meals."
   },
+  "items.airhorn.de": {
+    "blurb": "Dezent. Wie ein Güterzug.",
+    "name": "Signalhorn",
+    "rules": "Aktiv (E, {0} pro Gang): betäubt jeden Gegner im Bild für {1}. Bosse nur für 0,3 s.",
+    "rulesByTier": {
+      "1": "Aktiv (E, 1 pro Gang): betäubt jeden Gegner im Bild für 1 s. Bosse nur für 0,3 s.",
+      "2": "Aktiv (E, 1 pro Gang): betäubt jeden Gegner im Bild für 1,3 s. Bosse nur für 0,3 s.",
+      "3": "Aktiv (E, 2 pro Gang): betäubt jeden Gegner im Bild für 1,5 s. Bosse nur für 0,3 s."
+    },
+    "tierScaling": [
+      {
+        "label": "Ladungen",
+        "values": [
+          "1",
+          "1",
+          "2"
+        ]
+      },
+      {
+        "label": "Betäubung",
+        "values": [
+          "1 s",
+          "1,3 s",
+          "1,5 s"
+        ]
+      }
+    ]
+  },
+  "items.airhorn.en": {
+    "blurb": "Subtle. Like a freight train.",
+    "name": "Air Horn",
+    "rules": "Active (E, {0} per aisle): stuns every enemy on screen for {1}. Bosses are stunned for only 0.3 s.",
+    "rulesByTier": {
+      "1": "Active (E, 1 per aisle): stuns every enemy on screen for 1 s. Bosses are stunned for only 0.3 s.",
+      "2": "Active (E, 1 per aisle): stuns every enemy on screen for 1.3 s. Bosses are stunned for only 0.3 s.",
+      "3": "Active (E, 2 per aisle): stuns every enemy on screen for 1.5 s. Bosses are stunned for only 0.3 s."
+    },
+    "tierScaling": [
+      {
+        "label": "Charges",
+        "values": [
+          "1",
+          "1",
+          "2"
+        ]
+      },
+      {
+        "label": "Stun",
+        "values": [
+          "1 s",
+          "1.3 s",
+          "1.5 s"
+        ]
+      }
+    ]
+  },
+  "items.avocado.de": {
+    "blurb": "Etwa fünf Minuten lang perfekt reif.",
+    "name": "Avocado",
+    "rules": "Angrenzende Waffen erhalten {0} Schaden pro Gang im Wagen (bis zu 3 Gänge), und der Verkaufswert steigt jeden Gang um 4 Münzen. Danach ist sie für immer braun: Angrenzende Waffen richten 20% weniger Schaden an, und sie bringt 1.",
+    "rulesByTier": {
+      "1": "Angrenzende Waffen erhalten +10% Schaden pro Gang im Wagen (bis zu 3 Gänge), und der Verkaufswert steigt jeden Gang um 4 Münzen. Danach ist sie für immer braun: Angrenzende Waffen richten 20% weniger Schaden an, und sie bringt 1.",
+      "2": "Angrenzende Waffen erhalten +12% Schaden pro Gang im Wagen (bis zu 3 Gänge), und der Verkaufswert steigt jeden Gang um 4 Münzen. Danach ist sie für immer braun: Angrenzende Waffen richten 20% weniger Schaden an, und sie bringt 1.",
+      "3": "Angrenzende Waffen erhalten +15% Schaden pro Gang im Wagen (bis zu 3 Gänge), und der Verkaufswert steigt jeden Gang um 4 Münzen. Danach ist sie für immer braun: Angrenzende Waffen richten 20% weniger Schaden an, und sie bringt 1."
+    },
+    "tierScaling": [
+      {
+        "label": "Schaden / Gang",
+        "values": [
+          "+10%",
+          "+12%",
+          "+15%"
+        ]
+      }
+    ]
+  },
+  "items.avocado.en": {
+    "blurb": "Perfectly ripe for about five minutes.",
+    "name": "Avocado",
+    "rules": "Weapons touching it gain {0} damage per aisle in the cart (up to 3 aisles) and it sells for 4 more coins each aisle. After that it is brown for good: touching weapons deal 20% less damage and it sells for 1.",
+    "rulesByTier": {
+      "1": "Weapons touching it gain +10% damage per aisle in the cart (up to 3 aisles) and it sells for 4 more coins each aisle. After that it is brown for good: touching weapons deal 20% less damage and it sells for 1.",
+      "2": "Weapons touching it gain +12% damage per aisle in the cart (up to 3 aisles) and it sells for 4 more coins each aisle. After that it is brown for good: touching weapons deal 20% less damage and it sells for 1.",
+      "3": "Weapons touching it gain +15% damage per aisle in the cart (up to 3 aisles) and it sells for 4 more coins each aisle. After that it is brown for good: touching weapons deal 20% less damage and it sells for 1."
+    },
+    "tierScaling": [
+      {
+        "label": "Damage / aisle",
+        "values": [
+          "+10%",
+          "+12%",
+          "+15%"
+        ]
+      }
+    ]
+  },
+  "items.balloon.de": {
+    "blurb": "Leichter, als er aussieht.",
+    "name": "Heliumballon",
+    "rules": "{0} Bewegungstempo (stapelt sich nicht). Gegenstände, die ihn berühren, bremsen dich nicht durch die Bowlingkugel.",
+    "rulesByTier": {
+      "1": "+10% Bewegungstempo (stapelt sich nicht). Gegenstände, die ihn berühren, bremsen dich nicht durch die Bowlingkugel.",
+      "2": "+15% Bewegungstempo (stapelt sich nicht). Gegenstände, die ihn berühren, bremsen dich nicht durch die Bowlingkugel.",
+      "3": "+20% Bewegungstempo (stapelt sich nicht). Gegenstände, die ihn berühren, bremsen dich nicht durch die Bowlingkugel."
+    },
+    "tierScaling": [
+      {
+        "label": "Lauftempo",
+        "values": [
+          "+10%",
+          "+15%",
+          "+20%"
+        ]
+      }
+    ]
+  },
+  "items.balloon.en": {
+    "blurb": "Lighter than it looks.",
+    "name": "Helium Balloon",
+    "rules": "{0} movement speed (does not stack). Items touching it do not slow you down through the Bowling Ball.",
+    "rulesByTier": {
+      "1": "+10% movement speed (does not stack). Items touching it do not slow you down through the Bowling Ball.",
+      "2": "+15% movement speed (does not stack). Items touching it do not slow you down through the Bowling Ball.",
+      "3": "+20% movement speed (does not stack). Items touching it do not slow you down through the Bowling Ball."
+    },
+    "tierScaling": [
+      {
+        "label": "Move speed",
+        "values": [
+          "+10%",
+          "+15%",
+          "+20%"
+        ]
+      }
+    ]
+  },
+  "items.barter.de": {
+    "blurb": "Abgestempelt, gefeilscht, verkauft.",
+    "name": "Tauschstempel",
+    "rules": "Verkäufe zahlen {0} des Werts statt 50% (stapelt sich nicht).",
+    "rulesByTier": {
+      "1": "Verkäufe zahlen 65% des Werts statt 50% (stapelt sich nicht).",
+      "2": "Verkäufe zahlen 75% des Werts statt 50% (stapelt sich nicht).",
+      "3": "Verkäufe zahlen 85% des Werts statt 50% (stapelt sich nicht)."
+    },
+    "tierScaling": [
+      {
+        "label": "Verkaufswert",
+        "values": [
+          "65%",
+          "75%",
+          "85%"
+        ]
+      }
+    ]
+  },
+  "items.barter.en": {
+    "blurb": "Stamped, haggled, sold.",
+    "name": "Barter Stamp",
+    "rules": "Selling items pays {0} of their value instead of 50% (does not stack).",
+    "rulesByTier": {
+      "1": "Selling items pays 65% of their value instead of 50% (does not stack).",
+      "2": "Selling items pays 75% of their value instead of 50% (does not stack).",
+      "3": "Selling items pays 85% of their value instead of 50% (does not stack)."
+    },
+    "tierScaling": [
+      {
+        "label": "Sell value",
+        "values": [
+          "65%",
+          "75%",
+          "85%"
+        ]
+      }
+    ]
+  },
+  "items.basil.de": {
+    "blurb": "Red mit ihm. Er hört zu. Meistens.",
+    "name": "Basilikumtopf",
+    "rules": "Angrenzende Waffen erhalten {0} Schaden pro 25 Kills, die sie erzielen, ohne Obergrenze. Der Zähler bleibt an der Pflanze und geht beim Verkauf verloren.",
+    "rulesByTier": {
+      "1": "Angrenzende Waffen erhalten +2% Schaden pro 25 Kills, die sie erzielen, ohne Obergrenze. Der Zähler bleibt an der Pflanze und geht beim Verkauf verloren.",
+      "2": "Angrenzende Waffen erhalten +3% Schaden pro 25 Kills, die sie erzielen, ohne Obergrenze. Der Zähler bleibt an der Pflanze und geht beim Verkauf verloren.",
+      "3": "Angrenzende Waffen erhalten +4% Schaden pro 25 Kills, die sie erzielen, ohne Obergrenze. Der Zähler bleibt an der Pflanze und geht beim Verkauf verloren."
+    },
+    "tierScaling": [
+      {
+        "label": "Schaden / 25 Kills",
+        "values": [
+          "+2%",
+          "+3%",
+          "+4%"
+        ]
+      }
+    ]
+  },
+  "items.basil.en": {
+    "blurb": "Talk to it. It listens. Mostly.",
+    "name": "Potted Basil",
+    "rules": "Weapons touching it gain {0} damage per 25 kills they make, with no cap. The count stays on the plant and is lost if you sell it.",
+    "rulesByTier": {
+      "1": "Weapons touching it gain +2% damage per 25 kills they make, with no cap. The count stays on the plant and is lost if you sell it.",
+      "2": "Weapons touching it gain +3% damage per 25 kills they make, with no cap. The count stays on the plant and is lost if you sell it.",
+      "3": "Weapons touching it gain +4% damage per 25 kills they make, with no cap. The count stays on the plant and is lost if you sell it."
+    },
+    "tierScaling": [
+      {
+        "label": "Damage / 25 kills",
+        "values": [
+          "+2%",
+          "+3%",
+          "+4%"
+        ]
+      }
+    ]
+  },
   "items.battery.de": {
     "blurb": "Zack! Schnellere Angriffe, bei Elektrogeräten besonders.",
     "name": "Batterie",
@@ -7149,6 +8091,46 @@
           "−0.5 s",
           "−0.75 s",
           "−1 s"
+        ]
+      }
+    ]
+  },
+  "items.binder.de": {
+    "blurb": "Muss man alle verkaufen.",
+    "name": "Sammelmappe",
+    "rules": "Bindet sich beim Kauf an die Familie, von der du die meisten Gegenstände besitzt. Gegenstände dieser Familie verkaufen sich zum vollen Wert, und jeder verkaufte erhöht den Schaden der Waffen dieser Familie um {0} (bis 20%).",
+    "rulesByTier": {
+      "1": "Bindet sich beim Kauf an die Familie, von der du die meisten Gegenstände besitzt. Gegenstände dieser Familie verkaufen sich zum vollen Wert, und jeder verkaufte erhöht den Schaden der Waffen dieser Familie um 2% (bis 20%).",
+      "2": "Bindet sich beim Kauf an die Familie, von der du die meisten Gegenstände besitzt. Gegenstände dieser Familie verkaufen sich zum vollen Wert, und jeder verkaufte erhöht den Schaden der Waffen dieser Familie um 2% (bis 20%).",
+      "3": "Bindet sich beim Kauf an die Familie, von der du die meisten Gegenstände besitzt. Gegenstände dieser Familie verkaufen sich zum vollen Wert, und jeder verkaufte erhöht den Schaden der Waffen dieser Familie um 2% (bis 20%)."
+    },
+    "tierScaling": [
+      {
+        "label": "Schaden pro Verkauf",
+        "values": [
+          "2%",
+          "2%",
+          "2%"
+        ]
+      }
+    ]
+  },
+  "items.binder.en": {
+    "blurb": "Gotta sell 'em all.",
+    "name": "Collector's Binder",
+    "rules": "Bound to the family you own the most items of when you buy it. Items of that family sell at full value, and each one you sell adds {0} damage to that family's weapons (up to 20%).",
+    "rulesByTier": {
+      "1": "Bound to the family you own the most items of when you buy it. Items of that family sell at full value, and each one you sell adds 2% damage to that family's weapons (up to 20%).",
+      "2": "Bound to the family you own the most items of when you buy it. Items of that family sell at full value, and each one you sell adds 2% damage to that family's weapons (up to 20%).",
+      "3": "Bound to the family you own the most items of when you buy it. Items of that family sell at full value, and each one you sell adds 2% damage to that family's weapons (up to 20%)."
+    },
+    "tierScaling": [
+      {
+        "label": "Damage per sale",
+        "values": [
+          "2%",
+          "2%",
+          "2%"
         ]
       }
     ]
@@ -7265,14 +8247,54 @@
       }
     ]
   },
+  "items.bowlingball.de": {
+    "blurb": "Schwer. Strikes sind der Plan.",
+    "name": "Bowlingkugel",
+    "rules": "Der Leertasten-Dash richtet {0} Schaden pro belegter Wagenzelle an und hat +50% Rückstoß. Du bist 0,5% langsamer pro belegter Zelle (stapelt sich nicht).",
+    "rulesByTier": {
+      "1": "Der Leertasten-Dash richtet +1 Schaden pro belegter Wagenzelle an und hat +50% Rückstoß. Du bist 0,5% langsamer pro belegter Zelle (stapelt sich nicht).",
+      "2": "Der Leertasten-Dash richtet +1,5 Schaden pro belegter Wagenzelle an und hat +50% Rückstoß. Du bist 0,5% langsamer pro belegter Zelle (stapelt sich nicht).",
+      "3": "Der Leertasten-Dash richtet +2 Schaden pro belegter Wagenzelle an und hat +50% Rückstoß. Du bist 0,5% langsamer pro belegter Zelle (stapelt sich nicht)."
+    },
+    "tierScaling": [
+      {
+        "label": "Dash-Schaden pro Zelle",
+        "values": [
+          "+1",
+          "+1,5",
+          "+2"
+        ]
+      }
+    ]
+  },
+  "items.bowlingball.en": {
+    "blurb": "Heavy. Strikes are the plan.",
+    "name": "Bowling Ball",
+    "rules": "The Space dash deals {0} damage per occupied cart cell and +50% knockback. You move 0.5% slower per occupied cell (does not stack).",
+    "rulesByTier": {
+      "1": "The Space dash deals +1 damage per occupied cart cell and +50% knockback. You move 0.5% slower per occupied cell (does not stack).",
+      "2": "The Space dash deals +1.5 damage per occupied cart cell and +50% knockback. You move 0.5% slower per occupied cell (does not stack).",
+      "3": "The Space dash deals +2 damage per occupied cart cell and +50% knockback. You move 0.5% slower per occupied cell (does not stack)."
+    },
+    "tierScaling": [
+      {
+        "label": "Dash damage per cell",
+        "values": [
+          "+1",
+          "+1.5",
+          "+2"
+        ]
+      }
+    ]
+  },
   "items.bubblewrap.de": {
     "blurb": "Platzsichere Polsterung für deinen Wagen.",
     "name": "Luftpolsterfolie",
-    "rules": "Nimm {0} Schaden weniger pro Treffer (mindestens 1) und +0,25 s Unverwundbarkeit nach einem Treffer (stapelt sich nicht).",
+    "rules": "Nimm {0} Schaden weniger pro Treffer (mindestens 1) und +0,25 s Unverwundbarkeit nach einem Treffer (stapelt sich nicht). Aktiv (E, 1 pro Gang): Platzen, 1,5 s unverwundbar und eine Druckwelle mit {1} Schaden um dich.",
     "rulesByTier": {
-      "1": "Nimm 1 Schaden weniger pro Treffer (mindestens 1) und +0,25 s Unverwundbarkeit nach einem Treffer (stapelt sich nicht).",
-      "2": "Nimm 2 Schaden weniger pro Treffer (mindestens 1) und +0,25 s Unverwundbarkeit nach einem Treffer (stapelt sich nicht).",
-      "3": "Nimm 3 Schaden weniger pro Treffer (mindestens 1) und +0,25 s Unverwundbarkeit nach einem Treffer (stapelt sich nicht)."
+      "1": "Nimm 1 Schaden weniger pro Treffer (mindestens 1) und +0,25 s Unverwundbarkeit nach einem Treffer (stapelt sich nicht). Aktiv (E, 1 pro Gang): Platzen, 1,5 s unverwundbar und eine Druckwelle mit 10 Schaden um dich.",
+      "2": "Nimm 2 Schaden weniger pro Treffer (mindestens 1) und +0,25 s Unverwundbarkeit nach einem Treffer (stapelt sich nicht). Aktiv (E, 1 pro Gang): Platzen, 1,5 s unverwundbar und eine Druckwelle mit 15 Schaden um dich.",
+      "3": "Nimm 3 Schaden weniger pro Treffer (mindestens 1) und +0,25 s Unverwundbarkeit nach einem Treffer (stapelt sich nicht). Aktiv (E, 1 pro Gang): Platzen, 1,5 s unverwundbar und eine Druckwelle mit 20 Schaden um dich."
     },
     "tierScaling": [
       {
@@ -7282,17 +8304,25 @@
           "2",
           "3"
         ]
+      },
+      {
+        "label": "Platz-Schaden",
+        "values": [
+          "10",
+          "15",
+          "20"
+        ]
       }
     ]
   },
   "items.bubblewrap.en": {
     "blurb": "Pop-proof padding for your cart.",
     "name": "Bubble Wrap",
-    "rules": "Take {0} less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack).",
+    "rules": "Take {0} less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack). Active (E, 1 per aisle): Pop, 1.5 s invulnerable and a {1} damage blast around you.",
     "rulesByTier": {
-      "1": "Take 1 less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack).",
-      "2": "Take 2 less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack).",
-      "3": "Take 3 less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack)."
+      "1": "Take 1 less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack). Active (E, 1 per aisle): Pop, 1.5 s invulnerable and a 10 damage blast around you.",
+      "2": "Take 2 less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack). Active (E, 1 per aisle): Pop, 1.5 s invulnerable and a 15 damage blast around you.",
+      "3": "Take 3 less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack). Active (E, 1 per aisle): Pop, 1.5 s invulnerable and a 20 damage blast around you."
     },
     "tierScaling": [
       {
@@ -7301,6 +8331,14 @@
           "1",
           "2",
           "3"
+        ]
+      },
+      {
+        "label": "Pop damage",
+        "values": [
+          "10",
+          "15",
+          "20"
         ]
       }
     ]
@@ -7719,6 +8757,86 @@
       }
     ]
   },
+  "items.fireextinguisher.de": {
+    "blurb": "Auf Lebensmittel gerichtet. Streng genommen Missbrauch.",
+    "name": "Feuerlöscher",
+    "rules": "Aktiv (E, {0} pro Gang): ein 70°-Kegel, 180 Reichweite, 6 Schaden, verlangsamt, betäubt 0,6 s und stößt zurück.",
+    "rulesByTier": {
+      "1": "Aktiv (E, 3 pro Gang): ein 70°-Kegel, 180 Reichweite, 6 Schaden, verlangsamt, betäubt 0,6 s und stößt zurück.",
+      "2": "Aktiv (E, 4 pro Gang): ein 70°-Kegel, 180 Reichweite, 6 Schaden, verlangsamt, betäubt 0,6 s und stößt zurück.",
+      "3": "Aktiv (E, 5 pro Gang): ein 70°-Kegel, 180 Reichweite, 6 Schaden, verlangsamt, betäubt 0,6 s und stößt zurück."
+    },
+    "tierScaling": [
+      {
+        "label": "Ladungen",
+        "values": [
+          "3",
+          "4",
+          "5"
+        ]
+      }
+    ]
+  },
+  "items.fireextinguisher.en": {
+    "blurb": "Aimed at groceries. Technically a misuse.",
+    "name": "Fire Extinguisher",
+    "rules": "Active (E, {0} per aisle): a 70° cone blast, 180 range, 6 damage, slows, stuns for 0.6 s and knocks back.",
+    "rulesByTier": {
+      "1": "Active (E, 3 per aisle): a 70° cone blast, 180 range, 6 damage, slows, stuns for 0.6 s and knocks back.",
+      "2": "Active (E, 4 per aisle): a 70° cone blast, 180 range, 6 damage, slows, stuns for 0.6 s and knocks back.",
+      "3": "Active (E, 5 per aisle): a 70° cone blast, 180 range, 6 damage, slows, stuns for 0.6 s and knocks back."
+    },
+    "tierScaling": [
+      {
+        "label": "Charges",
+        "values": [
+          "3",
+          "4",
+          "5"
+        ]
+      }
+    ]
+  },
+  "items.fish.de": {
+    "blurb": "Heute früh gefangen. Am Donnerstag lieber nicht mehr hinsehen.",
+    "name": "Frischer Fisch",
+    "rules": "Für 2 Gänge im Wagen: Alle Waffen erhalten {0} Kritchance. Danach stinkt er für immer: Er vergiftet Gegner im Umkreis von 110 um den Wagen (3/s Giftschaden), und die Shop-Preise steigen um 20%, solange er im Wagen liegt.",
+    "rulesByTier": {
+      "1": "Für 2 Gänge im Wagen: Alle Waffen erhalten +15% Kritchance. Danach stinkt er für immer: Er vergiftet Gegner im Umkreis von 110 um den Wagen (3/s Giftschaden), und die Shop-Preise steigen um 20%, solange er im Wagen liegt.",
+      "2": "Für 2 Gänge im Wagen: Alle Waffen erhalten +20% Kritchance. Danach stinkt er für immer: Er vergiftet Gegner im Umkreis von 110 um den Wagen (3/s Giftschaden), und die Shop-Preise steigen um 20%, solange er im Wagen liegt.",
+      "3": "Für 2 Gänge im Wagen: Alle Waffen erhalten +25% Kritchance. Danach stinkt er für immer: Er vergiftet Gegner im Umkreis von 110 um den Wagen (3/s Giftschaden), und die Shop-Preise steigen um 20%, solange er im Wagen liegt."
+    },
+    "tierScaling": [
+      {
+        "label": "Kritchance",
+        "values": [
+          "+15%",
+          "+20%",
+          "+25%"
+        ]
+      }
+    ]
+  },
+  "items.fish.en": {
+    "blurb": "Caught this morning. Do not look at it on Thursday.",
+    "name": "Fresh Fish",
+    "rules": "For 2 aisles in the cart: all weapons gain {0} crit chance. After that it stinks for good: it poisons enemies within 110 of the cart (3/s poison damage) and shop prices rise by 20% while it is in the cart.",
+    "rulesByTier": {
+      "1": "For 2 aisles in the cart: all weapons gain +15% crit chance. After that it stinks for good: it poisons enemies within 110 of the cart (3/s poison damage) and shop prices rise by 20% while it is in the cart.",
+      "2": "For 2 aisles in the cart: all weapons gain +20% crit chance. After that it stinks for good: it poisons enemies within 110 of the cart (3/s poison damage) and shop prices rise by 20% while it is in the cart.",
+      "3": "For 2 aisles in the cart: all weapons gain +25% crit chance. After that it stinks for good: it poisons enemies within 110 of the cart (3/s poison damage) and shop prices rise by 20% while it is in the cart."
+    },
+    "tierScaling": [
+      {
+        "label": "Crit chance",
+        "values": [
+          "+15%",
+          "+20%",
+          "+25%"
+        ]
+      }
+    ]
+  },
   "items.fizz.de": {
     "blurb": "Geschüttelte Limo schießt abprallende Kronkorken.",
     "name": "Sprudelkanone",
@@ -7891,6 +9009,46 @@
           "2.5/s",
           "3.75/s",
           "5/s"
+        ]
+      }
+    ]
+  },
+  "items.ghostpepper.de": {
+    "blurb": "Scharf. Leider für alle.",
+    "name": "Geisterpaprika",
+    "rules": "Hitzetreffer und Brand richten {0} Schaden an. Wenn du getroffen wirst, brennst du mit 1,5/s für 2 s (erneuert sich, stapelt sich nie). Der Brand lässt dich nie unter 1 LP fallen.",
+    "rulesByTier": {
+      "1": "Hitzetreffer und Brand richten +50% Schaden an. Wenn du getroffen wirst, brennst du mit 1,5/s für 2 s (erneuert sich, stapelt sich nie). Der Brand lässt dich nie unter 1 LP fallen.",
+      "2": "Hitzetreffer und Brand richten +65% Schaden an. Wenn du getroffen wirst, brennst du mit 1,5/s für 2 s (erneuert sich, stapelt sich nie). Der Brand lässt dich nie unter 1 LP fallen.",
+      "3": "Hitzetreffer und Brand richten +80% Schaden an. Wenn du getroffen wirst, brennst du mit 1,5/s für 2 s (erneuert sich, stapelt sich nie). Der Brand lässt dich nie unter 1 LP fallen."
+    },
+    "tierScaling": [
+      {
+        "label": "Hitzeschaden",
+        "values": [
+          "+50%",
+          "+65%",
+          "+80%"
+        ]
+      }
+    ]
+  },
+  "items.ghostpepper.en": {
+    "blurb": "Hot. Regrettably, for everyone.",
+    "name": "Ghost Pepper",
+    "rules": "Heat hits and burn deal {0} damage. When you get hit you burn for 1.5/s over 2 s (refreshes, never stacks). The burn cannot take you below 1 HP.",
+    "rulesByTier": {
+      "1": "Heat hits and burn deal +50% damage. When you get hit you burn for 1.5/s over 2 s (refreshes, never stacks). The burn cannot take you below 1 HP.",
+      "2": "Heat hits and burn deal +65% damage. When you get hit you burn for 1.5/s over 2 s (refreshes, never stacks). The burn cannot take you below 1 HP.",
+      "3": "Heat hits and burn deal +80% damage. When you get hit you burn for 1.5/s over 2 s (refreshes, never stacks). The burn cannot take you below 1 HP."
+    },
+    "tierScaling": [
+      {
+        "label": "Heat damage",
+        "values": [
+          "+50%",
+          "+65%",
+          "+80%"
         ]
       }
     ]
@@ -8247,6 +9405,46 @@
           "2.4 s",
           "2.16 s",
           "1.92 s"
+        ]
+      }
+    ]
+  },
+  "items.moldybread.de": {
+    "blurb": "Technisch gesehen noch Brot.",
+    "name": "Schimmelbrot",
+    "rules": "Explosionen der angrenzenden Waffe hinterlassen eine Sporenwolke (Radius 70, 3 s), die Gegner darin vergiftet: {0} für 2 s. Der nächste Explosionstreffer auf einen vergifteten Gegner lässt ihn detonieren: Detonation.",
+    "rulesByTier": {
+      "1": "Explosionen der angrenzenden Waffe hinterlassen eine Sporenwolke (Radius 70, 3 s), die Gegner darin vergiftet: 2/s für 2 s. Der nächste Explosionstreffer auf einen vergifteten Gegner lässt ihn detonieren: Detonation.",
+      "2": "Explosionen der angrenzenden Waffe hinterlassen eine Sporenwolke (Radius 70, 3 s), die Gegner darin vergiftet: 3/s für 2 s. Der nächste Explosionstreffer auf einen vergifteten Gegner lässt ihn detonieren: Detonation.",
+      "3": "Explosionen der angrenzenden Waffe hinterlassen eine Sporenwolke (Radius 70, 3 s), die Gegner darin vergiftet: 4/s für 2 s. Der nächste Explosionstreffer auf einen vergifteten Gegner lässt ihn detonieren: Detonation."
+    },
+    "tierScaling": [
+      {
+        "label": "Sporengift",
+        "values": [
+          "2/s",
+          "3/s",
+          "4/s"
+        ]
+      }
+    ]
+  },
+  "items.moldybread.en": {
+    "blurb": "Still technically bread.",
+    "name": "Moldy Bread",
+    "rules": "Explosions of adjacent weapons leave a spore cloud (radius 70, 3 s) that poisons enemies inside: {0} for 2 s. The next blast hit on a poisoned enemy detonates it: Detonate.",
+    "rulesByTier": {
+      "1": "Explosions of adjacent weapons leave a spore cloud (radius 70, 3 s) that poisons enemies inside: 2/s for 2 s. The next blast hit on a poisoned enemy detonates it: Detonate.",
+      "2": "Explosions of adjacent weapons leave a spore cloud (radius 70, 3 s) that poisons enemies inside: 3/s for 2 s. The next blast hit on a poisoned enemy detonates it: Detonate.",
+      "3": "Explosions of adjacent weapons leave a spore cloud (radius 70, 3 s) that poisons enemies inside: 4/s for 2 s. The next blast hit on a poisoned enemy detonates it: Detonate."
+    },
+    "tierScaling": [
+      {
+        "label": "Spore poison",
+        "values": [
+          "2/s",
+          "3/s",
+          "4/s"
         ]
       }
     ]
@@ -8673,6 +9871,46 @@
       }
     ]
   },
+  "items.punchcard.de": {
+    "blurb": "Zehn Stempel und das Brötchen ist gratis.",
+    "name": "Stempelkarte",
+    "rules": "Jeder Gang stellt dir ein Ziel, das zu deinem Wagen passt. Schaffst du es, gibt es {0} Münzen und einen Gratis-Reroll im nächsten Shop (stapelt sich nicht).",
+    "rulesByTier": {
+      "1": "Jeder Gang stellt dir ein Ziel, das zu deinem Wagen passt. Schaffst du es, gibt es 5 Münzen und einen Gratis-Reroll im nächsten Shop (stapelt sich nicht).",
+      "2": "Jeder Gang stellt dir ein Ziel, das zu deinem Wagen passt. Schaffst du es, gibt es 8 Münzen und einen Gratis-Reroll im nächsten Shop (stapelt sich nicht).",
+      "3": "Jeder Gang stellt dir ein Ziel, das zu deinem Wagen passt. Schaffst du es, gibt es 12 Münzen und einen Gratis-Reroll im nächsten Shop (stapelt sich nicht)."
+    },
+    "tierScaling": [
+      {
+        "label": "Münzen-Belohnung",
+        "values": [
+          "5",
+          "8",
+          "12"
+        ]
+      }
+    ]
+  },
+  "items.punchcard.en": {
+    "blurb": "Ten punches and the sandwich is free.",
+    "name": "Punch Card",
+    "rules": "Each aisle gives you one goal that suits your cart. Complete it for {0} coins and a free reroll in the next shop (does not stack).",
+    "rulesByTier": {
+      "1": "Each aisle gives you one goal that suits your cart. Complete it for 5 coins and a free reroll in the next shop (does not stack).",
+      "2": "Each aisle gives you one goal that suits your cart. Complete it for 8 coins and a free reroll in the next shop (does not stack).",
+      "3": "Each aisle gives you one goal that suits your cart. Complete it for 12 coins and a free reroll in the next shop (does not stack)."
+    },
+    "tierScaling": [
+      {
+        "label": "Reward coins",
+        "values": [
+          "5",
+          "8",
+          "12"
+        ]
+      }
+    ]
+  },
   "items.sample.de": {
     "blurb": "Nur zum Probieren. Jeder Krit ist ein Häppchen.",
     "name": "Kostprobe",
@@ -8713,6 +9951,108 @@
       }
     ]
   },
+  "items.scoby.de": {
+    "blurb": "Sie lebt. Alles gut. Nicht schütteln.",
+    "name": "Kombucha-Mutter",
+    "rules": "Direkte Treffer der angrenzenden Waffe vergiften: {0} für 3 s. Das Gift wird für jeden Gang, den die Kombucha-Mutter im Wagen bleibt, um 10% stärker. Ein Kill an einem brennenden, vergifteten Gegner (Giftwolke) zählt als zusätzlicher Gang, einmal pro Gang.",
+    "rulesByTier": {
+      "1": "Direkte Treffer der angrenzenden Waffe vergiften: 2/s für 3 s. Das Gift wird für jeden Gang, den die Kombucha-Mutter im Wagen bleibt, um 10% stärker. Ein Kill an einem brennenden, vergifteten Gegner (Giftwolke) zählt als zusätzlicher Gang, einmal pro Gang.",
+      "2": "Direkte Treffer der angrenzenden Waffe vergiften: 3/s für 3 s. Das Gift wird für jeden Gang, den die Kombucha-Mutter im Wagen bleibt, um 10% stärker. Ein Kill an einem brennenden, vergifteten Gegner (Giftwolke) zählt als zusätzlicher Gang, einmal pro Gang.",
+      "3": "Direkte Treffer der angrenzenden Waffe vergiften: 4/s für 3 s. Das Gift wird für jeden Gang, den die Kombucha-Mutter im Wagen bleibt, um 10% stärker. Ein Kill an einem brennenden, vergifteten Gegner (Giftwolke) zählt als zusätzlicher Gang, einmal pro Gang."
+    },
+    "tierScaling": [
+      {
+        "label": "Gift",
+        "values": [
+          "2/s",
+          "3/s",
+          "4/s"
+        ]
+      }
+    ]
+  },
+  "items.scoby.en": {
+    "blurb": "It is alive. It is fine. Do not shake it.",
+    "name": "Kombucha Scoby",
+    "rules": "Direct hits of an adjacent weapon poison: {0} for 3 s. The poison gets 10% stronger for every aisle the Scoby stays in the cart. A kill on a burning, poisoned enemy (Toxic Fumes) counts as an extra aisle, once per aisle.",
+    "rulesByTier": {
+      "1": "Direct hits of an adjacent weapon poison: 2/s for 3 s. The poison gets 10% stronger for every aisle the Scoby stays in the cart. A kill on a burning, poisoned enemy (Toxic Fumes) counts as an extra aisle, once per aisle.",
+      "2": "Direct hits of an adjacent weapon poison: 3/s for 3 s. The poison gets 10% stronger for every aisle the Scoby stays in the cart. A kill on a burning, poisoned enemy (Toxic Fumes) counts as an extra aisle, once per aisle.",
+      "3": "Direct hits of an adjacent weapon poison: 4/s for 3 s. The poison gets 10% stronger for every aisle the Scoby stays in the cart. A kill on a burning, poisoned enemy (Toxic Fumes) counts as an extra aisle, once per aisle."
+    },
+    "tierScaling": [
+      {
+        "label": "Poison",
+        "values": [
+          "2/s",
+          "3/s",
+          "4/s"
+        ]
+      }
+    ]
+  },
+  "items.scratchticket.de": {
+    "blurb": "Glück gehabt? Der Gang verrät es.",
+    "name": "Rubbellos",
+    "rules": "Jeder Gang beginnt mit 20 % Chance auf {0} Münzen. Sonst verlierst du 10 % deiner Max.-LP (nie unter 1 LP).",
+    "rulesByTier": {
+      "1": "Jeder Gang beginnt mit 20 % Chance auf 30 Münzen. Sonst verlierst du 10 % deiner Max.-LP (nie unter 1 LP).",
+      "2": "Jeder Gang beginnt mit 20 % Chance auf 45 Münzen. Sonst verlierst du 10 % deiner Max.-LP (nie unter 1 LP).",
+      "3": "Jeder Gang beginnt mit 20 % Chance auf 60 Münzen. Sonst verlierst du 10 % deiner Max.-LP (nie unter 1 LP)."
+    },
+    "tierScaling": [
+      {
+        "label": "Gewinn",
+        "values": [
+          "30",
+          "45",
+          "60"
+        ]
+      }
+    ]
+  },
+  "items.scratchticket.en": {
+    "blurb": "Feeling lucky? The aisle will tell.",
+    "name": "Scratch Ticket",
+    "rules": "Each aisle starts with a 20% chance of {0} coins. Otherwise you lose 10% of your max HP (never below 1 HP).",
+    "rulesByTier": {
+      "1": "Each aisle starts with a 20% chance of 30 coins. Otherwise you lose 10% of your max HP (never below 1 HP).",
+      "2": "Each aisle starts with a 20% chance of 45 coins. Otherwise you lose 10% of your max HP (never below 1 HP).",
+      "3": "Each aisle starts with a 20% chance of 60 coins. Otherwise you lose 10% of your max HP (never below 1 HP)."
+    },
+    "tierScaling": [
+      {
+        "label": "Win",
+        "values": [
+          "30",
+          "45",
+          "60"
+        ]
+      }
+    ]
+  },
+  "items.shortcut.de": {
+    "blurb": "Nur für Personal. Wir haben uns nie gesehen.",
+    "name": "Abkürzungsschlüssel",
+    "rules": "Einmal pro Run: Nach einem Shop erscheint eine Personaltür. Sie überspringt den nächsten Gang (kein Kampf, keine Münzen, kein Shop) und heilt dich voll. Überspringt nie Gang 4 oder Gang 8.",
+    "rulesByTier": {
+      "1": "Einmal pro Run: Nach einem Shop erscheint eine Personaltür. Sie überspringt den nächsten Gang (kein Kampf, keine Münzen, kein Shop) und heilt dich voll. Überspringt nie Gang 4 oder Gang 8.",
+      "2": "Einmal pro Run: Nach einem Shop erscheint eine Personaltür. Sie überspringt den nächsten Gang (kein Kampf, keine Münzen, kein Shop) und heilt dich voll. Überspringt nie Gang 4 oder Gang 8.",
+      "3": "Einmal pro Run: Nach einem Shop erscheint eine Personaltür. Sie überspringt den nächsten Gang (kein Kampf, keine Münzen, kein Shop) und heilt dich voll. Überspringt nie Gang 4 oder Gang 8."
+    },
+    "tierScaling": []
+  },
+  "items.shortcut.en": {
+    "blurb": "Staff only. You did not see us.",
+    "name": "Shortcut Key",
+    "rules": "Once per run: a Staff Only door appears after a shop. It skips the next aisle (no fight, no coins, no shop) and heals you fully. Never skips aisle 4 or aisle 8.",
+    "rulesByTier": {
+      "1": "Once per run: a Staff Only door appears after a shop. It skips the next aisle (no fight, no coins, no shop) and heals you fully. Never skips aisle 4 or aisle 8.",
+      "2": "Once per run: a Staff Only door appears after a shop. It skips the next aisle (no fight, no coins, no shop) and heals you fully. Never skips aisle 4 or aisle 8.",
+      "3": "Once per run: a Staff Only door appears after a shop. It skips the next aisle (no fight, no coins, no shop) and heals you fully. Never skips aisle 4 or aisle 8."
+    },
+    "tierScaling": []
+  },
   "items.snackbag.de": {
     "blurb": "Bodenlos. Vermutlich.",
     "name": "Familienpackung Snacks",
@@ -8734,6 +10074,62 @@
       "3": "+20 max HP and regenerate 1 HP every 4 s during combat (does not stack)."
     },
     "tierScaling": []
+  },
+  "items.snowcone.de": {
+    "blurb": "Geschmack: rutschig.",
+    "name": "Slush-Maschine",
+    "rules": "Hinterlässt alle {1} eine Matschpfütze (Radius 65, hält 4 s). Gegner darin werden nass (3 s): 35% langsamer und {0} Frostschaden alle 0,5 s. Der nächste Frosttreffer einer anderen Quelle auf einen nassen Gegner lässt ihn wegrutschen: Eisfläche.",
+    "rulesByTier": {
+      "1": "Hinterlässt alle 2 s eine Matschpfütze (Radius 65, hält 4 s). Gegner darin werden nass (3 s): 35% langsamer und 3 Frostschaden alle 0,5 s. Der nächste Frosttreffer einer anderen Quelle auf einen nassen Gegner lässt ihn wegrutschen: Eisfläche.",
+      "2": "Hinterlässt alle 1,8 s eine Matschpfütze (Radius 65, hält 4 s). Gegner darin werden nass (3 s): 35% langsamer und 4,5 Frostschaden alle 0,5 s. Der nächste Frosttreffer einer anderen Quelle auf einen nassen Gegner lässt ihn wegrutschen: Eisfläche.",
+      "3": "Hinterlässt alle 1,6 s eine Matschpfütze (Radius 65, hält 4 s). Gegner darin werden nass (3 s): 35% langsamer und 6 Frostschaden alle 0,5 s. Der nächste Frosttreffer einer anderen Quelle auf einen nassen Gegner lässt ihn wegrutschen: Eisfläche."
+    },
+    "tierScaling": [
+      {
+        "label": "Schaden",
+        "values": [
+          "3",
+          "4,5",
+          "6"
+        ]
+      },
+      {
+        "label": "Intervall",
+        "values": [
+          "2 s",
+          "1,8 s",
+          "1,6 s"
+        ]
+      }
+    ]
+  },
+  "items.snowcone.en": {
+    "blurb": "Flavor: slippery.",
+    "name": "Snow Cone Machine",
+    "rules": "Every {1} drops a slush puddle (radius 65, lasts 4 s). Enemies inside get Wet (3 s): 35% slow and {0} frost damage every 0.5 s. The next frost hit from another source on a Wet enemy sends it sliding: Ice Sheet.",
+    "rulesByTier": {
+      "1": "Every 2 s drops a slush puddle (radius 65, lasts 4 s). Enemies inside get Wet (3 s): 35% slow and 3 frost damage every 0.5 s. The next frost hit from another source on a Wet enemy sends it sliding: Ice Sheet.",
+      "2": "Every 1.8 s drops a slush puddle (radius 65, lasts 4 s). Enemies inside get Wet (3 s): 35% slow and 4.5 frost damage every 0.5 s. The next frost hit from another source on a Wet enemy sends it sliding: Ice Sheet.",
+      "3": "Every 1.6 s drops a slush puddle (radius 65, lasts 4 s). Enemies inside get Wet (3 s): 35% slow and 6 frost damage every 0.5 s. The next frost hit from another source on a Wet enemy sends it sliding: Ice Sheet."
+    },
+    "tierScaling": [
+      {
+        "label": "Damage",
+        "values": [
+          "3",
+          "4.5",
+          "6"
+        ]
+      },
+      {
+        "label": "Interval",
+        "values": [
+          "2 s",
+          "1.8 s",
+          "1.6 s"
+        ]
+      }
+    ]
   },
   "items.sourdough.de": {
     "blurb": "Füttern, und er wächst. Blubbert vor Potenzial.",
@@ -8854,6 +10250,28 @@
         ]
       }
     ]
+  },
+  "items.spentkey.de": {
+    "blurb": "Abgegriffen. Öffnet nichts mehr.",
+    "name": "Verbrauchter Schlüssel",
+    "rules": "Keine Wirkung. Verkaufe ihn für 1 Münze.",
+    "rulesByTier": {
+      "1": "Keine Wirkung. Verkaufe ihn für 1 Münze.",
+      "2": "Keine Wirkung. Verkaufe ihn für 1 Münze.",
+      "3": "Keine Wirkung. Verkaufe ihn für 1 Münze."
+    },
+    "tierScaling": []
+  },
+  "items.spentkey.en": {
+    "blurb": "Worn smooth. Opens nothing now.",
+    "name": "Spent Key",
+    "rules": "No effect. Sell it for 1 coin.",
+    "rulesByTier": {
+      "1": "No effect. Sell it for 1 coin.",
+      "2": "No effect. Sell it for 1 coin.",
+      "3": "No effect. Sell it for 1 coin."
+    },
+    "tierScaling": []
   },
   "items.spray.de": {
     "blurb": "Pssht pssht pssht. Trifft alles davor.",
@@ -9122,11 +10540,11 @@
   "items.vacuum.de": {
     "blurb": "Saugt Gegner heran. Münzen übrigens auch.",
     "name": "Staubsauger",
-    "rules": "Zieht Gegner in der Nähe ständig zum Wagen. Alle {1} erleiden Gegner im Radius {0} Schaden. +60 Münz-Sammelradius.",
+    "rules": "Zieht Gegner in der Nähe ständig zum Wagen. Alle {1} erleiden Gegner im Radius {0} Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir.",
     "rulesByTier": {
-      "1": "Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,65 s erleiden Gegner im Radius 2 Schaden. +60 Münz-Sammelradius.",
-      "2": "Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,59 s erleiden Gegner im Radius 3 Schaden. +60 Münz-Sammelradius.",
-      "3": "Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,52 s erleiden Gegner im Radius 4 Schaden. +60 Münz-Sammelradius."
+      "1": "Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,65 s erleiden Gegner im Radius 2 Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir.",
+      "2": "Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,59 s erleiden Gegner im Radius 3 Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir.",
+      "3": "Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,52 s erleiden Gegner im Radius 4 Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir."
     },
     "tierScaling": [
       {
@@ -9150,11 +10568,11 @@
   "items.vacuum.en": {
     "blurb": "Sucks groceries closer. Sucks coins closer too.",
     "name": "Vacuum",
-    "rules": "Constantly pulls nearby enemies toward the cart. Every {1}, enemies in range take {0} damage. +60 coin pickup radius.",
+    "rules": "Constantly pulls nearby enemies toward the cart. Every {1}, enemies in range take {0} damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you.",
     "rulesByTier": {
-      "1": "Constantly pulls nearby enemies toward the cart. Every 0.65 s, enemies in range take 2 damage. +60 coin pickup radius.",
-      "2": "Constantly pulls nearby enemies toward the cart. Every 0.59 s, enemies in range take 3 damage. +60 coin pickup radius.",
-      "3": "Constantly pulls nearby enemies toward the cart. Every 0.52 s, enemies in range take 4 damage. +60 coin pickup radius."
+      "1": "Constantly pulls nearby enemies toward the cart. Every 0.65 s, enemies in range take 2 damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you.",
+      "2": "Constantly pulls nearby enemies toward the cart. Every 0.59 s, enemies in range take 3 damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you.",
+      "3": "Constantly pulls nearby enemies toward the cart. Every 0.52 s, enemies in range take 4 damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you."
     },
     "tierScaling": [
       {

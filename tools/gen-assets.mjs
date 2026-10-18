@@ -1459,6 +1459,31 @@ add('icon_expiredcoupon', () => {
   return icon(s, 166);
 });
 
+add('icon_barter', () => {
+  // rubber stamp (wooden knob, handle, base) over a haggled coin trail
+  let s = S5(rect(46, 138, 104, 14), C.chrome, C.chromeD, { dx: 4, dy: 3 });
+  s += S5(rect(60, 112, 76, 26), C.coral, C.coralD, { dx: 5, dy: 4 });
+  s += S5(rect(84, 56, 28, 56), C.cream, C.creamD, { dx: 4, dy: 3 });
+  s += ell(98, 44, 26, 18, C.coral, C.coralD, { sw: SWi, dx: 4, dy: 4 });
+  s += flat([[78, 36], [92, 30], [84, 44]], C.white, 'opacity=".7"');
+  s += ell(52, 160, 14, 6, C.gold, C.goldD, { sw: 3, dx: 1, dy: 1 }) + ell(148, 160, 14, 6, C.gold, C.goldD, { sw: 3, dx: 1, dy: 1 });
+  s += spk(156, 62, 10) + spk(36, 96, 6);
+  return icon(s, 170);
+});
+
+add('icon_binder', () => {
+  // ring binder with a gold corner, a card peeking out
+  let s = S5(rect(52, 22, 92, 128), C.cream, C.creamD, { dx: 5, dy: 4 });
+  s += S5(rect(40, 32, 100, 132), C.coral, C.coralD, { dx: 8, dy: 6 });
+  s += flat(rect(40, 32, 14, 132), C.coralD);
+  s += [54, 86, 118].map((y) => ell(46, y, 9, 7, C.chrome, C.chromeD, { sw: 3.5, dx: 1, dy: 1 })).join('');
+  s += S5(rect(70, 60, 54, 44), C.cream, C.creamD, { dx: 3, dy: 3, sw: 3.5 });
+  s += spk(97, 82, 13);
+  s += flat([[64, 40], [96, 38], [66, 52]], C.white, 'opacity=".5"');
+  s += S5([[118, 152], [140, 152], [140, 130]], C.gold, C.goldD, { dx: 1, dy: 1, sw: 3.5 });
+  return icon(s, 172);
+});
+
 add('icon_bubblewrap', () => {
   const A = [30, 62], B = [150, 48], Cc = [166, 128], Dd = [42, 146];
   const bil = (u, v) => [A[0] * (1 - u) * (1 - v) + B[0] * u * (1 - v) + Cc[0] * u * v + Dd[0] * (1 - u) * v, A[1] * (1 - u) * (1 - v) + B[1] * u * (1 - v) + Cc[1] * u * v + Dd[1] * (1 - u) * v];
@@ -2192,6 +2217,64 @@ add('icon_sourdough', () => {
   return icon(s, 164);
 });
 
+// Perishables: `icon_<id>` is fresh, `icon_<id>_rotten` the spoiled look (ItemContent.look). Same silhouette, different material colours.
+const avocadoIcon = (rotten) => {
+  const skin = rotten ? '#5A4030' : C.greenD, skinS = rotten ? '#3E2A20' : '#3F7A2A', flesh = rotten ? '#A58558' : '#E4EE9C', fleshS = rotten ? '#7C6240' : '#C4D86E', pit = rotten ? '#2E2018' : C.breadD;
+  const body = (cx, cy, rx, ry) => ell(cx, cy, rx, ry, skin, skinS, { sw: SWi, dx: 6, dy: 5 });
+  let s = body(96, 112, 56, 50) + body(96, 64, 32, 40);
+  s += ell(96, 112, 44, 38, flesh, fleshS, { sw: 3, dx: 0, dy: 0 }) + ell(96, 66, 22, 30, flesh, fleshS, { sw: 0, dx: 0, dy: 0 });
+  s += ell(96, 116, 21, 22, pit, null, { sw: 4 }) + flat(ellPath(88, 108, 6, 8), rotten ? '#5A4030' : C.breadL, 'opacity=".8"');
+  if (rotten) for (const [x, y, r] of [[66, 100, 6], [124, 128, 7], [104, 74, 5], [74, 134, 4]]) s += `<circle cx="${x}" cy="${y}" r="${r}" fill="#3E2A20" opacity=".85"/>`;
+  else s += flat([[58, 98], [66, 90], [70, 104]], C.white, 'opacity=".6"');
+  return icon(s, 166);
+};
+add('icon_avocado', () => avocadoIcon(false));
+add('icon_avocado_rotten', () => avocadoIcon(true));
+
+const fishIcon = (rotten) => {
+  const body = rotten ? '#8FA68A' : C.sky, bodyS = rotten ? '#6C846A' : '#4F9FC9', belly = rotten ? '#C9CDA0' : C.chromeL, fin = rotten ? '#6C846A' : C.blue;
+  let s = S5([[150, 104], [186, 74], [180, 104], [186, 134]], fin, rotten ? '#4F6350' : C.blueD, { dx: 4, dy: 4 });
+  s += ell(98, 104, 62, 36, body, bodyS, { sw: SWi, dx: 6, dy: 5 });
+  s += flat(ellPath(96, 118, 48, 16), belly, 'opacity=".9"');
+  s += S5([[88, 70], [112, 52], [128, 74]], fin, rotten ? '#4F6350' : C.blueD, { dx: 3, dy: 3 });
+  s += line([[64, 88], [60, 118]], C.plum, 4);
+  if (rotten) {
+    s += line([[40, 88], [58, 100]], C.plum, 5) + line([[58, 88], [40, 100]], C.plum, 5);
+    for (const [x, y] of [[100, 92], [118, 100], [86, 106], [126, 114]]) s += `<circle cx="${x}" cy="${y}" r="3.5" fill="#6C846A"/>`;
+    for (const x of [74, 98, 122]) s += curve(`M${x} 56 C${x - 10} 44 ${x + 10} 34 ${x} 20`, 3.5, '#9BBF6A', 2);
+  } else {
+    s += `<circle cx="48" cy="96" r="9" fill="${C.white}" stroke="${C.plum}" stroke-width="3.5"/><circle cx="46" cy="97" r="4" fill="${C.plum}"/>`;
+    for (const [x, y] of [[100, 92], [118, 100], [86, 106], [126, 114]]) s += `<circle cx="${x}" cy="${y}" r="3.5" fill="${C.chromeL}"/>`;
+    s += flat([[72, 82], [110, 72], [96, 84]], C.white, 'opacity=".6"');
+  }
+  return icon(s, 160);
+};
+add('icon_fish', () => fishIcon(false));
+add('icon_fish_rotten', () => fishIcon(true));
+
+add('icon_basil', () => {
+  let s = '';
+  const leaf = (x, y, a, big = 1) => rot(ell(x, y, 22 * big, 12 * big, C.green, C.greenD, { sw: 3.5, dx: 2, dy: 3 }) + line([[x - 16 * big, y], [x + 16 * big, y]], C.greenD, 2), a, x, y);
+  s += line([[96, 96], [96, 56]], C.greenD, 6);
+  s += leaf(66, 62, -35) + leaf(126, 62, 35) + leaf(72, 92, -20, 0.9) + leaf(120, 92, 20, 0.9) + leaf(96, 36, -90, 0.95);
+  s += S5([[52, 106], [140, 106], [128, 166], [64, 166]], C.coral, C.coralD, { dx: 7, dy: 5 });
+  s += S5([[46, 98], [146, 98], [146, 114], [46, 114]], C.coralL, C.coral, { dx: 4, dy: 3 });
+  s += flat([[60, 120], [70, 120], [76, 158], [70, 158]], C.white, 'opacity=".45"');
+  return icon(s, 170);
+});
+
+add('icon_scoby', () => {
+  let s = '';
+  s += S5([[54, 52], [138, 52], [152, 74], [152, 158], [40, 158], [40, 74]], '#E4F4F8', '#B7DCE6', { dx: 7, dy: 0 });
+  s += S5([[44, 84], [148, 84], [148, 154], [44, 154]], '#E8A93C', '#C27F1E', { sw: 3, dx: 0, dy: 0 });
+  s += ell(96, 90, 44, 12, '#F6E3B8', '#DDBE86', { sw: 3.5, dx: 0, dy: 2 });
+  s += ell(96, 118, 36, 11, '#F6E3B8', '#DDBE86', { sw: 3, dx: 0, dy: 2 });
+  for (const [x, y, r] of [[62, 134, 5], [124, 142, 6], [86, 146, 3.5], [134, 110, 4]]) s += `<circle cx="${x}" cy="${y}" r="${r}" fill="#F9D27A" stroke="#C27F1E" stroke-width="2"/>`;
+  s += flat([[46, 60], [54, 60], [52, 150], [46, 142]], C.white, 'opacity=".55"');
+  s += S5([[40, 40], [152, 40], [156, 56], [36, 56]], C.teal, C.tealD, { dx: 0, dy: 4, sw: 4 });
+  return icon(s, 164);
+});
+
 add('icon_popper', () => {
   const tip = [34, 168], A = [66, 90], B = [128, 128], cone = [tip, A, B];
   const at = (t) => [[tip[0] + (A[0] - tip[0]) * t, tip[1] + (A[1] - tip[1]) * t], [tip[0] + (B[0] - tip[0]) * t, tip[1] + (B[1] - tip[1]) * t]];
@@ -2226,6 +2309,111 @@ add('icon_sparklers', () => {
   s += [[100, 62, 26], [58, 70, 14], [146, 66, 15], [80, 30, 11], [124, 34, 11]].map(([x, y, r]) => `<g stroke="${C.plum}" stroke-width="3.5" stroke-linecap="round">${[0, 45, 90, 135].map((d) => { const a = d * Math.PI / 180; return `<path d="M${x - Math.cos(a) * r} ${y - Math.sin(a) * r} L${x + Math.cos(a) * r} ${y + Math.sin(a) * r}"/>`; }).join('')}</g>`).join('');
   s += [[100, 62, 26], [58, 70, 14], [146, 66, 15], [80, 30, 11], [124, 34, 11]].map(([x, y, r], i) => `<g stroke="${i % 2 ? C.gold : '#FFF2B8'}" stroke-width="1.8" stroke-linecap="round">${[0, 45, 90, 135].map((d) => { const a = d * Math.PI / 180; return `<path d="M${x - Math.cos(a) * r} ${y - Math.sin(a) * r} L${x + Math.cos(a) * r} ${y + Math.sin(a) * r}"/>`; }).join('')}</g>`).join('');
   s += spk(100, 62, 9) + spk(30, 110, 6) + spk(172, 100, 7);
+  return icon(s, 176);
+});
+
+add('icon_fireextinguisher', () => {
+  let s = line([[112, 46], [150, 40], [158, 74], [140, 98]], C.plum, 9) + line([[112, 46], [150, 40], [158, 74], [140, 98]], '#5A4A6E', 4);
+  s += S5([[62, 62], [120, 62], [124, 168], [58, 168]], C.coral, C.coralD, { dx: 7, dy: 5 });
+  s += S5([[70, 44], [112, 44], [116, 62], [66, 62]], C.chrome, C.creamD, { dx: 4, dy: 3, sw: 4.5 });
+  s += S5([[80, 28], [102, 28], [102, 44], [80, 44]], C.plum, null, { sw: 4 });
+  s += S5([[66, 98], [118, 98], [118, 128], [66, 128]], C.cream, C.creamD, { dx: 4, dy: 3, sw: 4 });
+  s += flat([[72, 70], [80, 70], [76, 160], [68, 160]], C.white, 'opacity=".4"');
+  s += spk(150, 130, 7);
+  return icon(s, 176);
+});
+
+add('icon_airhorn', () => {
+  let s = S5([[34, 80], [78, 80], [78, 128], [34, 128]], C.coral, C.coralD, { dx: 5, dy: 4 });
+  s += S5([[78, 70], [150, 30], [166, 56], [166, 150], [150, 178], [78, 138]], C.gold, C.goldD, { dx: 8, dy: 6 });
+  s += flat([[88, 80], [140, 56], [140, 70], [92, 98]], C.white, 'opacity=".5"');
+  s += shape([[24, 96], [34, 96], [34, 112], [24, 112]], C.plum, null, { sw: 4 });
+  s += `<g stroke="${C.plum}" stroke-width="5" stroke-linecap="round" fill="none"><path d="M176 74 Q188 104 176 134"/><path d="M168 56 Q192 104 168 152" opacity=".6"/></g>`;
+  s += spk(50, 56, 8);
+  return icon(s, 176);
+});
+
+add('icon_snowcone', () => {
+  let s = S5([[62, 82], [134, 82], [98, 168]], C.cream, C.creamD, { dx: 6, dy: 5 });
+  for (let i = 0; i < 3; i++) s += flat([[70 + i * 12, 88], [78 + i * 12, 88], [98, 150]].map(([x, y]) => [x, y]), C.coral, 'opacity=".55"');
+  s += [[78, 70, 22, C.sky], [118, 70, 22, C.teal], [98, 52, 24, '#EAF7FF']].map(([x, y, r, c]) => `<circle cx="${x}" cy="${y}" r="${r + 3}" fill="${C.plum}"/><circle cx="${x}" cy="${y}" r="${r}" fill="${c}"/><circle cx="${x - r * 0.35}" cy="${y - r * 0.35}" r="${r * 0.3}" fill="${C.white}" opacity=".8"/>`).join('');
+  s += spk(140, 40, 8) + spk(52, 52, 6);
+  return icon(s, 172);
+});
+
+add('icon_moldybread', () => {
+  let s = S5([[48, 150], [148, 150], [152, 96], [140, 70], [104, 58], [64, 70], [46, 96]], C.bread, C.breadD, { dx: 6, dy: 5 });
+  s += flat([[60, 88], [76, 74], [96, 70], [90, 82], [68, 98]], C.cream, 'opacity=".55"');
+  s += [[70, 108, 13], [112, 94, 16], [128, 126, 11], [88, 130, 9], [96, 82, 8]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r + 2.5}" fill="${C.plum}"/><circle cx="${x}" cy="${y}" r="${r}" fill="${C.green}"/><circle cx="${x - r * 0.3}" cy="${y - r * 0.3}" r="${r * 0.35}" fill="#CFEFA6"/>`).join('');
+  s += [[150, 60, 5], [44, 70, 4], [160, 100, 4]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${C.green}" stroke="${C.plum}" stroke-width="1.6"/>`).join('');
+  return icon(s, 164);
+});
+
+add('icon_bowlingball', () => {
+  let s = ell(98, 100, 62, 62, C.plumSoft, C.plum, { sw: SWi, dx: 6, dy: 5 });
+  s += flat(ellPath(78, 74, 20, 12), C.lavL, 'opacity=".55"');
+  s += [[84, 84], [108, 78], [98, 106]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="7.5" fill="${C.plum}"/><circle cx="${x - 1.5}" cy="${y - 1.5}" r="3" fill="${C.lav}" opacity=".6"/>`).join('');
+  s += spk(150, 52, 8);
+  return icon(s, 168);
+});
+
+add('icon_balloon', () => {
+  let s = line([[98, 124], [92, 140], [104, 152], [98, 168]], C.plum, 4.5);
+  s += S5([[90, 122], [106, 122], [98, 132]], C.coralD, null, { sw: 3.5 });
+  s += ell(98, 78, 46, 54, C.coral, C.coralD, { sw: SWi, dx: 6, dy: 5 });
+  s += flat(ellPath(80, 56, 11, 20), C.white, 'opacity=".5"');
+  s += spk(150, 34, 7);
+  return icon(s, 170);
+});
+
+add('icon_ghostpepper', () => {
+  let s = S5([[104, 34], [116, 22], [126, 34], [118, 52]], C.green, C.greenD, { sw: 4.5 });
+  s += S5([[40, 70], [74, 46], [128, 50], [150, 84], [134, 128], [96, 168], [78, 124], [44, 104]], C.coral, C.coralD, { dx: 7, dy: 5 });
+  s += flat([[58, 76], [78, 60], [92, 62], [74, 92]], C.coralL, 'opacity=".6"');
+  s += `<g transform="translate(106 110)">` + flat([[0, -16], [8, -4], [14, -14], [12, 10], [0, 16], [-12, 10], [-14, -12], [-6, -4]], C.gold) + `</g>`;
+  s += flat([[104, 100], [110, 110], [102, 116]], C.white, 'opacity=".8"');
+  s += spk(36, 40, 7);
+  return icon(s, 172);
+});
+
+add('icon_scratchticket', () => {
+  let s = rot(S5(rect(46, 56, 112, 78), C.cream, C.creamD, { dx: 7, dy: 5 }), -8, 102, 95);
+  s += rot(flat(rect(58, 68, 88, 20), C.coral) + flat(rect(58, 96, 88, 26), '#B8B8C4') + [[72, 109], [102, 109], [132, 109]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="7" fill="${C.chromeL}"/>`).join('') + `<circle cx="132" cy="109" r="7" fill="${C.gold}"/>`, -8, 102, 95);
+  s += line([[70, 148], [120, 160]], C.plum, 4.5) + spk(150, 50, 8) + spk(46, 140, 6);
+  return icon(s, 172);
+});
+
+const keyArt = (body, bodyD, tag) => {
+  let s = `<circle cx="60" cy="62" r="34" fill="${C.plum}"/><circle cx="60" cy="62" r="28" fill="${body}"/><circle cx="60" cy="62" r="11" fill="${C.plum}"/>`;
+  s += flat([[34, 50], [50, 36], [58, 38]], GL, 'opacity=".7"');
+  s += shape(rect(84, 56, 84, 14), body, bodyD, { sw: SWi, dx: 3, dy: 4 });
+  s += shape(rect(140, 70, 12, 24), body, bodyD, { sw: SWi, dx: 2, dy: 3 }) + shape(rect(118, 70, 12, 16), body, bodyD, { sw: SWi, dx: 2, dy: 3 });
+  s += tag;
+  return s;
+};
+
+add('icon_shortcut', () => {
+  let s = keyArt(C.gold, C.goldD, '');
+  s += rot(shape(rect(34, 108, 60, 38), C.cream, C.creamD, { sw: SWi, dx: 3, dy: 4 }) + flat(rect(42, 120, 40, 5), C.chromeD) + flat(rect(42, 130, 26, 5), C.chromeD), -8, 64, 127);
+  s += spk(166, 40, 9) + spk(30, 28, 6);
+  return icon(s, 176);
+});
+
+add('icon_spentkey', () => {
+  let s = keyArt('#B7AFC0', '#8D8499', '');
+  s += line([[40, 40], [92, 100]], C.coral, 5);
+  return icon(s, 176);
+});
+
+add('icon_punchcard', () => {
+  let s = shape(rect(30, 40, 124, 104), C.cream, C.creamD, { sw: SWi, dx: 6, dy: 6 });
+  s += shape(rect(30, 40, 124, 26), C.coral, C.coralD, { sw: SWi, dx: 0, dy: 3 });
+  s += flat(rect(44, 50, 56, 6), C.cream);
+  for (let r = 0; r < 2; r++) for (let c = 0; c < 4; c++) {
+    const x = 52 + c * 28, y = 90 + r * 28, punched = r * 4 + c < 5;
+    s += punched ? `<circle cx="${x}" cy="${y}" r="9" fill="${C.plum}"/><circle cx="${x - 1.5}" cy="${y - 1.5}" r="5" fill="#2A1D38"/>` : `<circle cx="${x}" cy="${y}" r="9" fill="none" stroke="${C.plum}" stroke-width="3" stroke-dasharray="4 3"/>`;
+  }
+  s += spk(160, 36, 9) + spk(24, 150, 6);
   return icon(s, 176);
 });
 

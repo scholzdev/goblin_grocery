@@ -87,6 +87,8 @@ export interface WeaponRt {
   tune: Readonly<Record<string, number>>;
   /** Electrical weapons cycle faster in the Electronics department. */
   electrical: boolean;
+  /** Vacuum's Full Suck: pull and range multipliers until the arsenal clock reaches `until`. */
+  boost?: { pull: number; range: number; until: number };
 }
 
 export interface Puddle { img: Sprite; x: number; y: number; r: number; until: number; nextTick: number; stats: WeaponStats; burnOnly?: boolean; burn?: BurnEffect; /** The soap slip (drops of a Mop; burning pools have none). */ slow?: SlowEffect; /** Seconds of Wet each tick gives the enemies inside (the Mop's soap; docs "Wet"). */ wet?: number; /** Enemies that already had a tick here (only tracked while a puddleEnter hook is registered: Black Ice freezes on `first`). */ seen?: Set<number> }

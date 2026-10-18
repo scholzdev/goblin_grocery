@@ -1,8 +1,8 @@
 // Rebindable keyboard controls: pure helpers (no DOM, no settings import) so the rules are unit-testable.
 // Bindings are KeyboardEvent.code values ('KeyW', 'Space'), two slots per action; '' means unbound.
 
-export type KeyAction = 'up' | 'down' | 'left' | 'right' | 'shove' | 'loadout' | 'rotate' | 'pause';
-export const KEY_ACTIONS: KeyAction[] = ['up', 'down', 'left', 'right', 'shove', 'loadout', 'rotate', 'pause'];
+export type KeyAction = 'up' | 'down' | 'left' | 'right' | 'shove' | 'loadout' | 'rotate' | 'pause' | 'useActive';
+export const KEY_ACTIONS: KeyAction[] = ['up', 'down', 'left', 'right', 'shove', 'loadout', 'rotate', 'pause', 'useActive'];
 export const KEY_SLOTS = 2;
 export type KeyMap = Record<KeyAction, string[]>;
 
@@ -15,6 +15,7 @@ export const DEFAULT_KEYS: KeyMap = {
   loadout: ['Tab', ''],
   rotate: ['KeyR', ''],
   pause: ['Escape', ''],
+  useActive: ['KeyE', ''],
 };
 
 export const cloneKeys = (k: KeyMap): KeyMap => Object.fromEntries(KEY_ACTIONS.map((a) => [a, [...k[a]]])) as KeyMap;

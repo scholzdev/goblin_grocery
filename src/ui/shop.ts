@@ -3,10 +3,11 @@ import { profile, unlockedItems } from '../state/profile';
 import { ITEMS, ITEM_IDS, TIER, cellsFor, cellsOf } from '../data/items';
 import { RECIPES, recipeIcon, recipeParts } from '../data/recipes';
 import { BOSS_WAVE, ECONOMY, SHOP_LEVELS } from '../data/waves';
-import { labAddItem, labClear, cartUpgradeCost, nextCartSize, shelfUpgradeCost, upgradeCart, upgradeShelf, buyOffer, mergeItems, mergeTargetFor, upgradeShop, shopUpgradeCost, moveItem, previewMerge, previewMove, repair, reroll, sellItem, type MoveTarget } from '../state/run';
-import { findItem, rotateCells, footprint } from '../systems/inventory';
+import { labAddItem, labClear, cartUpgradeCost, nextCartSize, shelfUpgradeCost, upgradeCart, upgradeShelf, buyOffer, mergeItems, mergeTargetFor, upgradeShop, shopUpgradeCost, moveItem, previewMerge, previewMove, repair, reroll, sellItem, toggleShopLock, type MoveTarget } from '../state/run';
+import { findItem, rotateCells, rotatedSize, footprint } from '../systems/inventory';
 import { describeBuffs, tierScaling } from '../systems/synergies';
 import { currentRerollCost, inflation, repairCost, sellPrice } from '../systems/shop';
+import { iconOf, sellValue } from '../engine/registry';
 import { flow } from '../flow';
 import { play } from '../audio/sfx';
 import { svg } from './hud';
@@ -40,6 +41,8 @@ interface Drag {
   ghost: HTMLElement | null;
   startX: number; startY: number;
   lastX: number; lastY: number;
+  /** Screen position of the clamped grid target: while over the grid the ghost sits on its cells instead of following the pointer. */
+  snap: { x: number; y: number } | null;
   target: MoveTarget | { where: 'sell' } | { where: 'merge'; uid: string } | null;
   /** The current target would accept the drop (a gamepad drop on an invalid target keeps holding). */
   valid: boolean;
@@ -115,11 +118,11 @@ export const starsHtml = (tier = 1): string =>
  * shape (tiles bridge the 4px gutters toward same-item neighbours) and keep icon/label/stars inside the
  * shape's best-connected "anchor" cell, so nothing spills over items sitting in the empty corners.
  */
-function itemInner(type: ItemTypeId, rot: Rotation, tier = 1, cellPx = CELL): { html: string; w: number; h: number; shaped: boolean } {
+function itemInner(type: ItemTypeId, rot: Rotation, tier = 1, cellPx = CELL, icon = `icon_${type}`): { html: string; w: number; h: number; shaped: boolean } {
   const cells = rotateCells(cellsFor(type, tier), rot);
   const w = Math.max(...cells.map((c) => c.x)) + 1, h = Math.max(...cells.map((c) => c.y)) + 1;
   const shaped = cells.length !== w * h;
-  const content = `<img src="${svg(`icon_${type}`)}" alt="${itemT(type).name}"><span class="tag">${itemT(type).name}</span>${starsHtml(tier)}`;
+  const content = `<img src="${svg(icon)}" alt="${itemT(type).name}"><span class="tag">${itemT(type).name}</span>${starsHtml(tier)}`;
   if (!shaped) return { w, h, shaped, html: content };
   const has = (x: number, y: number) => cells.some((c) => c.x === x && c.y === y);
   const n = (c: { x: number; y: number }) => [has(c.x + 1, c.y), has(c.x, c.y + 1), has(c.x - 1, c.y), has(c.x, c.y - 1)];
@@ -137,7 +140,7 @@ function itemInner(type: ItemTypeId, rot: Rotation, tier = 1, cellPx = CELL): { 
 
 function itemEl(it: ItemInstance, build: Build, extra = '', compact = false): string {
   const def = ITEMS[it.type];
-  const full = itemInner(it.type, it.rot, it.tier);
+  const full = itemInner(it.type, it.rot, it.tier, CELL, iconOf(it));
   // Shelf slots hold whole items regardless of footprint: draw them as one tile.
   const inner = compact ? { ...full, shaped: false, html: full.html.replace(/<i class="icell"[^>]*><\/i>/g, '') } : full;
   const on = build.recipes.some((r) => r.weaponUid === it.uid || r.supportUids.includes(it.uid));
@@ -367,12 +370,13 @@ export function inspectorHtml(type: ItemTypeId, uid: string | null, offerTier?: 
   const gains = offerTier !== undefined && !loc && s ? setGains(s.inventory.placed, type, offerDouble) : [];
   const dblNote = offerDouble || (loc?.inst.double ?? false) ? `<span class="chip dbl">${esc(t('setDouble', { set: tagT(def.family) }))}</span>` : '';
   const flavor = type === 'jellybeans' ? (loc ? flavorOf(loc.inst) : null) : null;
+  const binder = type === 'binder' && loc?.inst.binderFamily ? `<span class="chip">${esc(t('binderChip', { f: tagT(loc.inst.binderFamily), n: Math.min(20, (loc.inst.binderSold ?? 0) * 2) }))}</span>` : '';
   const setChips = setsOf(type, flavor ?? undefined).map((id) => { const g = gains.find((x) => x.id === id); return `<span class="chip set-${id}${s?.build?.sets?.[id] ? ' act' : ''}">${setIcon(id, 14)}${tagT(id)}${g ? ` <small>(${gainText(g)})</small>` : ''}</span>`; }).join('');
-  const head = `<header><span class="ico-tile ${rc}"><img src="${svg(`icon_${type}`)}" alt=""></span>
+  const head = `<header><span class="ico-tile ${rc}"><img src="${svg(loc ? iconOf(loc.inst) : `icon_${type}`)}" alt=""></span>
     <div class="hd"><div class="nm"><span style="font-size:${fitName(itemT(type).name)}px">${itemT(type).name}</span><b class="lv ${def.legendary ? 'leg' : `t${tier}`}">★${def.legendary ? '' : tier}</b></div>
     <span class="sub ${rc}">${rarity} · ${kind}</span></div></header>
-    <div class="chips">${dblNote}${flavor ? `<span class="chip flavor-chip flavor-${flavor}">${esc(t('flavorLabel', { f: tagT(flavor) }))}</span>` : ''}${setChips}${otherTags.map((tg) => `<span class="chip">${tagT(tg)}</span>`).join('')}<span class="chip">${icons.grid(15)}${w}×${h}</span>
-    <span class="chip coin"><img class="coin-ico" src="${svg('coin')}" alt="">${loc ? t('sells', { n: sellPrice(type, tier) }) : def.price}</span></div>${strongVsHtml(type)}`;
+    <div class="chips">${dblNote}${binder}${flavor ? `<span class="chip flavor-chip flavor-${flavor}">${esc(t('flavorLabel', { f: tagT(flavor) }))}</span>` : ''}${setChips}${otherTags.map((tg) => `<span class="chip">${tagT(tg)}</span>`).join('')}<span class="chip">${icons.grid(15)}${w}×${h}</span>
+    <span class="chip coin"><img class="coin-ico" src="${svg('coin')}" alt="">${loc ? t('sells', { n: sellValue(loc.inst, sellPrice(type, tier, s?.build)) }) : def.price}</span></div>${strongVsHtml(type)}`;
 
   let body = '';
   // Weapon stats: live values when in the cart, the base values at this level otherwise (shelf / offer).
@@ -547,7 +551,7 @@ function onClick(e: MouseEvent): void {
   if (add && s.lab) { const r = labAddItem(s, add.dataset.labAdd as ItemTypeId, labTier); if (r.ok) play('buy'); else toast(r.reason); store.changed(); return; }
   if (s.lab && act === 'lab-clear') { labClear(s); play('click'); store.changed(); return; }
   if (s.lab && act === 'lab-money') { s.money += 999; play('buy'); store.changed(); return; }
-  if (s.lab && act === 'lab-reroll') { s.money += currentRerollCost(s); reroll(s, flow.rng); play('click'); store.changed(); return; }
+  if (s.lab && act === 'lab-reroll') { if (!s.shop?.locked) { s.money += currentRerollCost(s); reroll(s, flow.rng); } play('click'); store.changed(); return; }
   if (act === 'next') { play('click'); selectedUid = null; if (s.labSandbox) flow.labToArena(); else flow.leaveShop(); return; }
   if (act === 'loyalty') {
     const cost = shopUpgradeCost(s);
@@ -556,6 +560,7 @@ function onClick(e: MouseEvent): void {
     store.changed();
     return;
   }
+  if (act === 'lock') { toggleShopLock(s); play('click'); store.changed(); return; }
   if (act === 'reroll') {
     const cost = currentRerollCost(s);
     const r = reroll(s, flow.rng);
@@ -666,7 +671,7 @@ function onPointerDown(e: PointerEvent): void {
 
 /** Picks an item up (pointer press or gamepad A): `grab` is the footprint cell held, (x, y) where the ghost is anchored on screen. */
 function beginDrag(inst: ItemInstance, rot: Rotation, grab: { x: number; y: number }, x: number, y: number): void {
-  drag = { uid: inst.uid, type: inst.type, rot, tier: inst.tier ?? 1, grab, ghost: null, startX: x, startY: y, lastX: x, lastY: y, target: null, valid: false, pad: false };
+  drag = { uid: inst.uid, type: inst.type, rot, tier: inst.tier ?? 1, grab, ghost: null, startX: x, startY: y, lastX: x, lastY: y, snap: null, target: null, valid: false, pad: false };
 }
 
 function startGhost(): void {
@@ -688,7 +693,7 @@ function startGhost(): void {
 
 function sizeGhost(): void {
   if (!drag?.ghost) return;
-  const inner = itemInner(drag.type, drag.rot, drag.tier);
+  const inner = itemInner(drag.type, drag.rot, drag.tier, CELL, dragIcon(drag));
   const { w, h } = inner;
   drag.ghost.innerHTML = inner.html;
   drag.ghost.classList.toggle('shaped', inner.shaped);
@@ -702,8 +707,8 @@ function sizeGhost(): void {
 function positionGhost(): void {
   if (!drag?.ghost) return;
   const cellPx = CELL * scale();
-  drag.ghost.style.left = `${drag.lastX - (drag.grab.x + 0.5) * cellPx}px`;
-  drag.ghost.style.top = `${drag.lastY - (drag.grab.y + 0.5) * cellPx}px`;
+  drag.ghost.style.left = `${drag.snap?.x ?? drag.lastX - (drag.grab.x + 0.5) * cellPx}px`;
+  drag.ghost.style.top = `${drag.snap?.y ?? drag.lastY - (drag.grab.y + 0.5) * cellPx}px`;
   if (hint) { // bubble to the right of the ghost, flipped left near the screen edge
     const r = drag.ghost.getBoundingClientRect(), w = hint.offsetWidth;
     hint.style.left = `${r.right + 12 + w > innerWidth ? Math.max(8, r.left - 12 - w) : r.right + 12}px`;
@@ -750,6 +755,7 @@ function updateTarget(): void {
   let preview: Build | null = null;
   let sellHint = '';
   drag.target = null;
+  drag.snap = null;
   drag.valid = false;
   const over = under?.closest<HTMLElement>('.item[data-uid]');
   const overInst = over && over.dataset.uid !== drag.uid ? findItem(s.inventory, over.dataset.uid!)?.inst : null;
@@ -771,7 +777,14 @@ function updateTarget(): void {
     const r = grid.getBoundingClientRect();
     const cellPx = r.width / (s.inventory.cols * CELL - 0) * CELL;
     const px = Math.floor((drag.lastX - r.left) / cellPx), py = Math.floor((drag.lastY - r.top) / cellPx);
-    const target: MoveTarget = { where: 'grid', x: px - drag.grab.x, y: py - drag.grab.y, rot: drag.rot };
+    // Holding a tall item by any cell above its last one and pointing at the bottom row must not push it out of the frame: clamp the footprint into the grid.
+    const size = rotatedSize(drag.type, drag.rot, drag.tier);
+    const target: MoveTarget = {
+      where: 'grid', rot: drag.rot,
+      x: Math.min(Math.max(px - drag.grab.x, 0), s.inventory.cols - size.w),
+      y: Math.min(Math.max(py - drag.grab.y, 0), s.inventory.rows - size.h),
+    };
+    drag.snap = { x: r.left + target.x * cellPx, y: r.top + target.y * cellPx };
     const res = previewMove(s, drag.uid, target);
     drag.target = target;
     drag.valid = res.result.ok;
@@ -791,8 +804,9 @@ function updateTarget(): void {
     if (res.result.ok) { slot.classList.add('ok'); drag.target = target; drag.valid = true; preview = res.build; }
   } else if (sell) {
     sell.classList.add('ok');
-    sell.textContent = t('sellFor', { name: itemT(drag.type).name, n: sellPrice(drag.type, drag.tier) });
-    sellHint = `<div class="nm">${t('sellFor', { name: itemT(drag.type).name, n: sellPrice(drag.type, drag.tier) })}</div>`;
+    const worth = dragWorth(drag);
+    sell.textContent = t('sellFor', { name: itemT(drag.type).name, n: worth });
+    sellHint = `<div class="nm">${t('sellFor', { name: itemT(drag.type).name, n: worth })}</div>`;
     drag.target = { where: 'sell' };
     drag.valid = true;
   }
@@ -826,13 +840,17 @@ function onPointerUp(): void {
   commitDrop(d);
 }
 
+const dragInst = (d: Drag) => findItem(store.state.inventory, d.uid)?.inst;
+const dragIcon = (d: Drag): string => { const i = dragInst(d); return i ? iconOf(i) : `icon_${d.type}`; };
+const dragWorth = (d: Drag): number => { const i = dragInst(d); const base = sellPrice(d.type, d.tier, store.state.build); return i ? sellValue(i, base) : base; };
+
 /** Applies a finished drag to the run (pointer release or gamepad drop). */
 function commitDrop(d: Drag): void {
   const s = store.state;
   const tg = d.target;
   let ok = false;
   if (tg && tg.where === 'sell') {
-    const price = sellPrice(d.type, d.tier);
+    const price = dragWorth(d);
     const r = sellItem(s, d.uid);
     ok = r.ok;
     if (r.ok) { ledger.push({ label: t('ledgerSold', { name: itemT(d.type).name }), amount: price }); play('sell'); } else toastLater(r.reason);
@@ -868,7 +886,9 @@ function serviceHtml(s: RunState): string {
     ? `<button class="btn small svc" disabled>${t('shelfMax')}</button>`
     : `<button class="btn small svc" data-act="shelf" ${s.money < sc ? 'disabled' : ''} title="${t('shelfTip')}"><span class="lbl">${t('shelfBtn')}</span>${costPill(sc, s.money >= sc)}</button>`;
   const rr = currentRerollCost(s);
-  return cart + shelf + `<button class="btn small svc" data-act="reroll" ${s.money < rr ? 'disabled' : ''}><span class="lbl">${t('reroll')}</span>${costPill(rr, s.money >= rr)}</button>`;
+  const locked = !!s.shop?.locked;
+  return cart + shelf + `<button class="btn small svc" data-act="reroll" ${locked || s.money < rr ? 'disabled' : ''} ${locked ? `title="${t('rShopLocked')}"` : ''}><span class="lbl">${t('reroll')}</span>${costPill(rr, s.money >= rr)}</button>`
+    + `<button class="btn small svc${locked ? ' on' : ''}" data-act="lock" aria-pressed="${locked}" title="${t('lockTip')}"><span class="lbl">${locked ? '🔒 ' + t('locked') : '🔓 ' + t('lock')}</span></button>`;
 }
 
 function loyaltyHtml(s: RunState): string {

@@ -98,15 +98,15 @@ describe('Bubble Wrap: content', () => {
   });
 
   it('renders its text for every level, EN and DE', () => {
-    expect(itemRules('bubblewrap', 3)).toBe('Take 3 less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack).');
+    expect(itemRules('bubblewrap', 3)).toBe('Take 3 less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack). Active (E, 1 per aisle): Pop, 1.5 s invulnerable and a 20 damage blast around you.');
     setLang('de');
-    expect(itemRules('bubblewrap', 2)).toBe('Nimm 2 Schaden weniger pro Treffer (mindestens 1) und +0,25 s Unverwundbarkeit nach einem Treffer (stapelt sich nicht).');
+    expect(itemRules('bubblewrap', 2)).toBe('Nimm 2 Schaden weniger pro Treffer (mindestens 1) und +0,25 s Unverwundbarkeit nach einem Treffer (stapelt sich nicht). Aktiv (E, 1 pro Gang): Platzen, 1,5 s unverwundbar und eine Druckwelle mit 15 Schaden um dich.');
     expect(itemT('bubblewrap')).toMatchObject({ name: 'Luftpolsterfolie', blurb: 'Platzsichere Polsterung für deinen Wagen.' });
   });
 
   it('generates the shop scaling row', () => {
-    expect(tierScaling('bubblewrap')).toEqual([{ label: 'Armor', values: ['1', '2', '3'] }]);
+    expect(tierScaling('bubblewrap')).toEqual([{ label: 'Armor', values: ['1', '2', '3'] }, { label: 'Pop damage', values: ['10', '15', '20'] }]);
     setLang('de');
-    expect(tierScaling('bubblewrap')).toEqual([{ label: 'Rüstung', values: ['1', '2', '3'] }]);
+    expect(tierScaling('bubblewrap')).toEqual([{ label: 'Rüstung', values: ['1', '2', '3'] }, { label: 'Platz-Schaden', values: ['10', '15', '20'] }]);
   });
 });

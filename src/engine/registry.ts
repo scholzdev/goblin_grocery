@@ -1,4 +1,4 @@
-import type { DepartmentId, EnemyId, ItemTypeId, RecipeId, SetId } from '../types';
+import type { DepartmentId, EnemyId, ItemInstance, ItemTypeId, RecipeId, SetId } from '../types';
 import { AFFINITY_TAGS, BOSS_MOVES, BOSS_SPECIAL_KEYS, BUILD_PHASES, ELEMENTS, ENEMY_BEHAVIORS, ENEMY_ORDER, ENEMY_STAT_KEYS, FAMILIES, HOOK_NAMES, ITEM_ORDER, RECIPE_ORDER, SET_ORDER, THEME_ORDER, enemyTextTune, resolveShape, resolveTune, type AffinityMap, type BuildPhase, type BuildSpec, type ComboContent, type EnemyContent, type ItemContent, type RuntimeHooks, type SetContent, type Tune } from './define';
 import { isFormatter, placeholders, renderText } from './text';
 
@@ -114,6 +114,7 @@ export function validateContent(files: Partial<ContentFiles>, opts: ValidateOpti
     }
     checkBuild(path, c.build, 'item');
     checkHooks(path, c.hooks);
+    if (c.active && !(c.tune && 'charges' in c.tune)) err(path, 'an active item needs a `charges` tune entry');
     if (c.elements !== undefined) {
       if (c.kind === 'passive') err(path, '`elements` is for weapons and modules only (a passive has no effect to tag)');
       if (!Array.isArray(c.elements) || c.elements.length === 0) err(path, '`elements` must be a non-empty list');
@@ -314,3 +315,14 @@ export const contentTune = (id: ItemTypeId, tier: number): Record<string, number
 
 /** An enemy's own behavior numbers (its content `tune`; enemies have no tiers). The one reader outside data/enemies: the AI (scenes/enemies.ts) and the systems that run a behavior (combat, gum puddles, the shield pattern). */
 export const contentEnemyTune = (id: EnemyId): Record<string, number> => resolveTune(registry.enemy(id)?.tune, 1);
+
+/** Art variant of this instance (`ItemContent.look`): 'rotten' for a brown Avocado / stinking Fish, else null. The icon key is `icon_<type>_<look>`. */
+export const iconOf = (i: Pick<ItemInstance, 'type'> & Partial<ItemInstance>): string => {
+  const c = contentItem(i.type), look = c?.look?.(i as ItemInstance, resolveTune(c.tune, i.tier ?? 1));
+  return look ? `icon_${i.type}_${look}` : `icon_${i.type}`;
+};
+/** What this instance sells for: `base` (= `sellPrice(type, tier)`), or the item's own `sellValue` (Avocado ripens, then browns). Used by `sellItem` and every sell label. */
+export const sellValue = (i: ItemInstance, base: number): number => {
+  const c = contentItem(i.type);
+  return c?.sellValue ? c.sellValue(base, i, resolveTune(c.tune, i.tier ?? 1)) : base;
+};

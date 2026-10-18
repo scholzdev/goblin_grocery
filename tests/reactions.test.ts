@@ -34,8 +34,10 @@ describe('REACTIONS and the frosted rule', () => {
       fumes: { radius: 60, duration: 2, tick: 0.5, poisonDuration: 2 },
       conduct: { hops: 3, share: 0.6 },
       crack: { targets: 3, radius: 90, share: 0.5, shred: 1 },
+      iceSheet: { slide: 1.5, slam: 12, speed: 260 },
+      detonate: { radius: 70 },
     });
-    expect([...REACTION_IDS]).toEqual(['shatter', 'fumes', 'conduct', 'crack']);
+    expect([...REACTION_IDS]).toEqual(['shatter', 'fumes', 'conduct', 'crack', 'iceSheet', 'detonate']);
   });
 
   it('a stats-driven slow (ctx.slow: Ice Pack, Jelly frost, Cold Storage, Brain Freeze) frosts the enemy for the slow\'s duration', () => {
@@ -118,7 +120,7 @@ describe('Shatter: burn + frosted', () => {
     expect(bursts(f)[0]).toMatchObject({ enemy: e.id, dmg: 8, source: null, opts: { reaction: 'shatter', tags: ['heat', 'frost'], label: 'Shatter' } });
     expect(e.hp).toBe(92);
     expect(labels(f)).toEqual(['SHATTER!']);
-    expect(counts(f)).toEqual({ shatter: 1, fumes: 0, conduct: 0, crack: 0 });
+    expect(counts(f)).toEqual({ shatter: 1, fumes: 0, conduct: 0, crack: 0, iceSheet: 0, detonate: 0 });
     expect(f.dmgLog.damage.byType.reaction).toBe(8);
   });
 
@@ -473,7 +475,7 @@ describe('cooldown and order', () => {
     expect(counts(f).fumes).toBe(0);
     f.advance(0.01); // t = 1
     f.ignite(e, BURN);
-    expect(counts(f)).toEqual({ shatter: 1, fumes: 1, conduct: 0, crack: 0 });
+    expect(counts(f)).toEqual({ shatter: 1, fumes: 1, conduct: 0, crack: 0, iceSheet: 0, detonate: 0 });
     // Conduct and Crack: 1 s apart on the same enemy
     f.wet(b, 9); f.shred(b, 3);
     f.hit(b, 10, null, { tags: ['electric'] });
@@ -493,7 +495,7 @@ describe('cooldown and order', () => {
     f.advance(1.5);
     f.slow(e, SLOW); f.poison(e, 2, 9);
     f.ignite(e, BURN); // burn + frosted (Shatter: waiting) and burn + poison
-    expect(counts(f)).toEqual({ shatter: 1, fumes: 1, conduct: 0, crack: 0 });
+    expect(counts(f)).toEqual({ shatter: 1, fumes: 1, conduct: 0, crack: 0, iceSheet: 0, detonate: 0 });
     expect(n.status.poisonDps).toBe(2);
   });
 
@@ -502,7 +504,7 @@ describe('cooldown and order', () => {
     const [a, b] = row(f, [0, 800]);
     f.slow(a, SLOW); f.ignite(a, BURN); // Shatter
     f.poison(a, 2, 5); f.ignite(a, BURN); // Fumes possible, blocked
-    expect(counts(f)).toEqual({ shatter: 1, fumes: 0, conduct: 0, crack: 0 });
+    expect(counts(f)).toEqual({ shatter: 1, fumes: 0, conduct: 0, crack: 0, iceSheet: 0, detonate: 0 });
     f.poison(b, 2, 5); f.ignite(b, BURN); // another enemy reacts at once
     expect(counts(f).fumes).toBe(1);
     f.advance(1);
@@ -515,7 +517,7 @@ describe('cooldown and order', () => {
     const [src] = row(fake, [0, 50], { hp: 1000 });
     fake.poison(src, 2, 5); fake.wet(src); fake.shred(src, 3);
     fake.hit(src, 10, { ...stats, critChance: 0 }); // burn + frost + poison + wet + 3 stacks and an electric beam: all four are possible
-    expect(counts(fake)).toEqual({ shatter: 1, fumes: 0, conduct: 0, crack: 0 });
+    expect(counts(fake)).toEqual({ shatter: 1, fumes: 0, conduct: 0, crack: 0, iceSheet: 0, detonate: 0 });
   });
 
   it('the Sanitizer\'s cleanse prevents a reaction: no burn, nothing to react with', () => {
@@ -620,16 +622,16 @@ describe('breakdown and texts', () => {
 
   it('recordReaction counts per reaction; newDamageStats starts at zero', () => {
     const s = sink();
-    expect(s.damage.reactions).toEqual({ shatter: 0, fumes: 0, conduct: 0, crack: 0 });
+    expect(s.damage.reactions).toEqual({ shatter: 0, fumes: 0, conduct: 0, crack: 0, iceSheet: 0, detonate: 0 });
     recordReaction(s, 'fumes'); recordReaction(s, 'fumes'); recordReaction(s, 'crack');
-    expect(s.damage.reactions).toEqual({ shatter: 0, fumes: 2, conduct: 0, crack: 1 });
+    expect(s.damage.reactions).toEqual({ shatter: 0, fumes: 2, conduct: 0, crack: 1, iceSheet: 0, detonate: 0 });
   });
 
   it('the run-end breakdown has a Reactions line with counts and damage, en and de, hidden at zero', () => {
     const s = sink();
     s.damageByWeapon.toaster = 100; s.damage.byType.physical = 100;
     expect(damageBreakdownHtml(s, names, true)).not.toContain(t('dmgReactions'));
-    s.damage.byType.reaction = 40; s.damage.reactions = { shatter: 3, fumes: 1, conduct: 0, crack: 0 };
+    s.damage.byType.reaction = 40; s.damage.reactions = { shatter: 3, fumes: 1, conduct: 0, crack: 0, iceSheet: 0, detonate: 0 };
     const en = damageBreakdownHtml(s, names, true);
     expect(en).toContain('Reactions');
     expect(en).toContain('Shatter ×3, Toxic Fumes ×1 · 40');
@@ -647,10 +649,10 @@ describe('breakdown and texts', () => {
 
   it('every reaction has its label and name in EN and DE, the burst hits are keyed by the English name, the color is the reaction teal', () => {
     const en = REACTION_IDS.map((id) => [t(REACTION_TEXT[id].label), t(REACTION_TEXT[id].name)]);
-    expect(en).toEqual([['SHATTER!', 'Shatter'], ['FUMES!', 'Toxic Fumes'], ['CONDUCT!', 'Conduct'], ['CRACK!', 'Crack']]);
+    expect(en).toEqual([['SHATTER!', 'Shatter'], ['FUMES!', 'Toxic Fumes'], ['CONDUCT!', 'Conduct'], ['CRACK!', 'Crack'], ['ICE SHEET!', 'Ice Sheet'], ['DETONATE!', 'Detonate']]);
     setLang('de');
-    expect(REACTION_IDS.map((id) => [t(REACTION_TEXT[id].label), t(REACTION_TEXT[id].name)])).toEqual([['SPLITTER!', 'Splitter'], ['GIFTWOLKE!', 'Giftwolke'], ['KURZSCHLUSS!', 'Kurzschluss'], ['PANZERBRUCH!', 'Panzerbruch']]);
-    expect(REACTION_LABEL).toEqual({ shatter: 'Shatter', fumes: 'Toxic Fumes', conduct: 'Conduct', crack: 'Crack' });
+    expect(REACTION_IDS.map((id) => [t(REACTION_TEXT[id].label), t(REACTION_TEXT[id].name)])).toEqual([['SPLITTER!', 'Splitter'], ['GIFTWOLKE!', 'Giftwolke'], ['KURZSCHLUSS!', 'Kurzschluss'], ['PANZERBRUCH!', 'Panzerbruch'], ['EISFLÄCHE!', 'Eisfläche'], ['DETONATION!', 'Detonation']]);
+    expect(REACTION_LABEL).toEqual({ shatter: 'Shatter', fumes: 'Toxic Fumes', conduct: 'Conduct', crack: 'Crack', iceSheet: 'Ice Sheet', detonate: 'Detonate' });
     expect(ELEMENT_COLORS.reaction).toBe('#3FE0C5');
   });
 

@@ -57,11 +57,12 @@ export class PhaserCtx implements RuntimeCtx {
     for (const e of hit) this.sc.damageEnemy(e as Enemy, dmg, source, opts);
     return hit.length;
   }
-  stun(e: CombatEnemy, seconds: number, tag?: AffinityTag): number {
-    const applied = this.sc.stunEnemy(e as Enemy, seconds, tag);
+  stun(e: CombatEnemy, seconds: number, tag?: AffinityTag, bossSeconds = 0): number {
+    const applied = this.sc.stunEnemy(e as Enemy, seconds, tag, bossSeconds);
     if (applied > 0 && tag === 'frost') { markFrostStun(e.status, applied, this.now()); this.reactor.applied(e, 'frost'); } // a frost stun is a freeze: the enemy is frosted
     return applied;
   }
+  slide(e: CombatEnemy, seconds: number, slam: number, speed: number): number { return this.sc.slideEnemy(e as Enemy, seconds, slam, speed); }
   // Status durations scale with the enemy's element affinity (engine/affinity); the dps and the slow percentage never do.
   // Wet (systems/combat): a burn on a wet enemy is halved and dries it, a frost slow on a wet enemy gains points.
   // Reactions: every burn / frost / poison application is reported to the reactor (checked once, at the end of the hit it belongs to, or at once outside a hit).
@@ -74,12 +75,24 @@ export class PhaserCtx implements RuntimeCtx {
   weaken(e: CombatEnemy, pct: number, seconds: number): void { applyWeaken(e.status, pct, seconds, this.now()); }
   wet(e: CombatEnemy, seconds: number = WET_STATUS.duration): void { applyWet(e.status, seconds, this.now()); }
 
+  pullCoins(): void { this.sc.pullCoins(); }
+  boostWeapon(weaponUid: string, boost: { pull: number; range: number }, seconds: number): void {
+    const w = this.sc.arsenal.weaponOf(weaponUid);
+    if (w) w.boost = { ...boost, until: this.sc.arsenal.time + seconds };
+  }
+
   get player(): PlayerView { return this.sc.player; }
   playerNear(x: number, y: number): { x: number; y: number; d: number } { return this.sc.playerNear(x, y); }
   hurt(dmg: number): void { this.sc.hurtPlayer(dmg); }
   heal(hp: number): void {
     const s = store.state;
     s.hp = Math.min(s.build.maxHp, s.hp + hp);
+    store.changed();
+  }
+  drain(hp: number): void {
+    const s = store.state;
+    if (s.labGod) return;
+    s.hp = Math.min(s.hp, Math.max(1, s.hp - hp));
     store.changed();
   }
   healFx(x: number, y: number): void { this.sc.healHeartFx(x, y); }

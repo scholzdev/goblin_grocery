@@ -6,7 +6,10 @@ import { waveDef, eliteChance, bossTuning, ECONOMY, SHIFTS, WAVE_RAMP } from '..
 import { SHOW_HP_BAR, ENEMIES, ELITE, THEME_SUMMONS, ELITE_EXCLUDED, AFFIX, MINI_BOSS, bossFor, isBossId, type BossMove } from '../data/enemies';
 import { GumPuddles } from './gum';
 import { CRIT, PLAYER, STARTER_LOOKS } from '../data/items';
-import { addCoins, damagePlayer, takeStockroomItem } from '../state/run';
+import { dashCooldownAfterKill, firstHitCrit } from '../systems/signatures';
+import { punchHit, punchKill, punchTick, punchView, rollPunchCard } from '../systems/contracts';
+import { isDashHit } from '../engine/hitTags';
+import { addCoins, damagePlayer, payPunchCard, takeStockroomItem } from '../state/run';
 import { hitArmor, newHitTracker, shredGain, shredStacks, tryHit, weakenedDamage, weakenMult, type HitTracker } from '../systems/combat';
 import { isWet, wetElectricMult } from '../engine/wet';
 import type { EnemyId, ShopOffer, WaveDef, WeaponStats } from '../types';
@@ -54,7 +57,8 @@ import { ZONES, type ZoneDef } from '../data/zones';
 import { type Rect, inLane, pushOutCapsule, pushOutCircle, rectsOverlap, segmentHitsRect, steerAround } from '../systems/obstacles';
 
 import { isDown, resetKeyboard, takePressed } from '../input/keyboard';
-import { padMove, takePadShove } from '../input/gamepad';
+import { padMove, takePadActive, takePadShove } from '../input/gamepad';
+import { activeSlots, fireActives } from '../engine/actives';
 import { ARENA, ENTRIES, SIDE_UNITS, DECO_SPOTS, edgeSolids } from '../data/arena';
 import { labDummies, type LabDummy } from '../lab';
 export { ARENA };
@@ -125,6 +129,8 @@ export class ArenaScene extends Phaser.Scene {
   gum!: GumPuddles;
   private hudT = 0;
   private shoveMult = 1;
+  /** Toast Goblin: uids of the weapons that already landed their first direct hit this aisle. */
+  private firstHitDone = new Set<string>();
   /** Props the dash interacts with in this aisle (see DASH_PROPS); `hit` = already toppled / broken. */
   private dashProps: { o: Obstacle; img: Phaser.GameObjects.Image; hit: boolean }[] = [];
 
@@ -151,6 +157,7 @@ export class ArenaScene extends Phaser.Scene {
     this.dept = DEPARTMENTS[s.phase === 'title' ? 'main' : s.department];
     this.plan = waveSpawnPlan(s);
     this.breadDropped = 0;
+    this.firstHitDone.clear();
     this.cameras.main.setBackgroundColor('#B8DED2');
 
     this.buildEnvironment();
@@ -183,8 +190,11 @@ export class ArenaScene extends Phaser.Scene {
       if (s.labSandbox) this.labSpawnAll(labDummies); else this.planWave();
       playMusic(musicFor(this.dept.id, this.wave.boss, s.modifier));
       const room = s.modifier === 'stockroom' || s.modifier === 'coldRoom' || s.modifier === 'vipAisle' ? s.modifier : null;
-      if (room) showBanner(t(`modName_${room}`), t(`roomSub_${room}`));
-      else showBanner(this.wave.boss ? t('finalAisle') : deptT(this.dept.id).name, this.wave.boss ? t('bossAwaits', { name: enemyT(bossFor(s.theme)).name }) : this.dept.hazard === 'none' ? t('surviveCheckout') : deptT(this.dept.id).blurb);
+      s.punch = s.labSandbox ? undefined : rollPunchCard(s.seed, s.inventory, { aisle: s.wave, boss: this.wave.boss, total: this.plan.total, fight: s.modifier !== 'stockroom' }) ?? undefined; // Punch Card: this aisle's goal
+      const goal = s.punch ? t('pcBanner', { goal: t(`pcText_${s.punch.goal}` as UIKey, { n: s.punch.target }) }) : '';
+      if (room) showBanner(t(`modName_${room}`), goal || t(`roomSub_${room}`));
+      else showBanner(this.wave.boss ? t('finalAisle') : deptT(this.dept.id).name, goal || (this.wave.boss ? t('bossAwaits', { name: enemyT(bossFor(s.theme)).name }) : this.dept.hazard === 'none' ? t('surviveCheckout') : deptT(this.dept.id).blurb));
+      if (s.skipped) { hud.bark(t('doorStaffOn', { n: s.skipped })); s.skipped = undefined; } // came through the Staff Only door
       if (s.modifier === 'stockroom' && !this.wave.boss) this.openStockroom();
     }
     if (s.phase === 'combat' && this.hooks.onAisleStart.length) this.hooks.emit('onAisleStart', { aisle: s.wave, boss: this.wave.boss, department: this.dept.id, modifier: s.modifier });
@@ -501,7 +511,7 @@ export class ArenaScene extends Phaser.Scene {
     this.arsenal.clearAll(true);
     this.groups.forEach((g) => (g.done = true));
     this.enemies.filter((e) => e.alive).forEach((e) => this.killEnemy(e, false));
-    this.time.delayedCall(600, () => this.coins.forEach((c) => (c.pull = c.active)));
+    this.time.delayedCall(600, () => this.pullCoins());
     this.time.delayedCall(1300, () => this.offerCrates(rollMiniCrates(store.state, flow.rng), { title: t('miniCratesTitle'), hint: t('miniCratesHint') }, () => {
       this.miniDue = false;
       this.ending = '';
@@ -535,19 +545,37 @@ export class ArenaScene extends Phaser.Scene {
   /** Leaf Blower slam: a blown grocery stopped by the arena edge or a prop takes impact damage once. */
   slamEnemy(e: Enemy): void {
     const dmg = e.blownDmg ?? 0;
-    e.blownUntil = 0;
+    e.blownUntil = 0; // the slam lands once; a slide goes on (no steering) until `slideUntil`
     this.fx.puff(e.x, e.y - 10, 2);
     this.fx.spark(e.x, e.y - 30, 4, 0xcfefff);
     this.fx.shake(0.003, 80);
     this.damageEnemy(e, dmg, null, { label: 'Slam', tags: ['cleaning'] }); // the Leaf Blower's slam
   }
 
+  /** Ice Sheet: shoves a grocery away from the goblin and marks it as blown, so the Leaf Blower's slam (`slamEnemy`) lands when it stops at a wall, a prop or another enemy. Bosses are immune. */
+  slideEnemy(e: Enemy, seconds: number, slam: number, speed: number): number {
+    if (!e.alive || e.def.behavior === 'boss') return 0;
+    const now = this.time.now / 1000, dx = e.x - this.player.x, dy = e.y - this.player.y, d = Math.hypot(dx, dy) || 1;
+    const k = 1 - e.def.knockbackResist;
+    e.kx = (dx / d) * speed * k; e.ky = (dy / d) * speed * k;
+    e.slideUntil = now + seconds; e.blownUntil = now + seconds; e.blownDmg = slam;
+    e.slideTouch = new Set(this.enemies.filter((o) => o !== e && o.alive && Math.hypot(o.x - e.x, o.y - e.y) < o.def.radius + e.def.radius).map((o) => o.id)); // already in contact: not a collision
+    return seconds;
+  }
+
   /**
    * Stun from hazards and hooks. The boss shrugs it off to keep its patterns readable (see `staggerEnemy`). `tag` is the element of a frost or
    * electric stun: the time scales with the enemy's affinity (engine/affinity). Returns the seconds applied, 0 if refused.
    */
-  stunEnemy(e: Enemy, t: number, tag?: AffinityTag): number {
-    if (!e.alive || e.def.behavior === 'boss') return 0;
+  stunEnemy(e: Enemy, t: number, tag?: AffinityTag, bossSeconds = 0): number {
+    if (!e.alive) return 0;
+    if (e.def.behavior === 'boss') { // only a walking boss can be stunned, and only for the cap: it must not cut a tell or attack short
+      if (bossSeconds <= 0 || e.state !== 'walk') return 0;
+      e.state = 'stun';
+      e.stateT = Math.max(e.stateT, bossSeconds);
+      e.staggered = true;
+      return bossSeconds;
+    }
     const dur = t * statusDurationMult(e.def, tag);
     e.state = 'stun';
     e.stateT = Math.max(e.stateT, dur);
@@ -571,6 +599,9 @@ export class ArenaScene extends Phaser.Scene {
 
   /** A status the pattern code applied directly (a burning pool's tick) reports it here, so the element reactions see it like a `ctx.ignite` (engine/reactions). */
   reactionApplied(e: Enemy, kind: AppliedStatus): void { this.ctx.reactor.applied(e, kind); }
+
+  /** Every coin on the floor flies to the goblin (the end-of-aisle sweep, also Vacuum's Full Suck). */
+  pullCoins(): void { this.coins.forEach((c) => (c.pull = c.active)); }
 
   /** Floor slow multiplier for enemies (ice). */
   groundSlow(e: Enemy): number {
@@ -662,7 +693,10 @@ export class ArenaScene extends Phaser.Scene {
     dmg = markedDamage(dmg, e.markedUntil, now, markMult(e.def)); // Price Check / Sale Flag mark
     const markBonus = dmg - unmarked;
     // Crits resolve here and only here (never on burn ticks).
-    const crit = !o.isDot && !rx && !!stats && stats.critChance > 0 && this.rng() < stats.critChance;
+    const rolled = !o.isDot && !rx && !!stats && stats.critChance > 0 && this.rng() < stats.critChance;
+    // Toast Goblin: a weapon's first direct hit of the aisle always crits (after the roll, so the combat rng stream is the same for every goblin).
+    const first = !!stats && !o.isDot && !rx && !o.echo && !o.fromPopper && !o.chained && firstHitCrit(store.state.starter, this.firstHitDone, stats.uid);
+    const crit = rolled || first;
     if (crit) {
       dmg *= CRIT.mult;
       this.fx.popImage('fx_crit', e.x + Phaser.Math.Between(-10, 10), e.y - e.sprite.displayHeight - 6, 0.8);
@@ -796,6 +830,9 @@ export class ArenaScene extends Phaser.Scene {
     const s = store.state;
     s.stats.kills++;
     noteEnemy(s, e.def.id, { elite: e.elite });
+    const dashKill = !!hit && isDashHit(hit.opts);
+    if (s.punch && punchKill(s.punch, { tags: hit?.tags ?? [], dash: dashKill, elite: e.elite })) this.punchDone();
+    this.player.shoveCd = dashCooldownAfterKill(s.starter, this.player.shoveCd, dashKill); // Night Shift
     const thief = e.def.id === EnemyIds.giftcard;
     const mults = { dept: this.dept.coinMult, modifier: MODIFIERS[s.modifier].coinMult, shift: SHIFTS[store.state.shift].coinMult, event: this.aisleEvent.coinMult(), kill: s.build.killCoinMult };
     const coins = thief ? giftcardCoins(e.def.coins, ENEMIES.giftcard.tune.coinMult, mults) : e === this.boss
@@ -928,6 +965,7 @@ export class ArenaScene extends Phaser.Scene {
     let invuln = PLAYER.invuln;
     if (this.hooks.onPlayerHit.length) { const ev = { dmg, invuln }; this.hooks.emit('onPlayerHit', ev); dmg = ev.dmg; invuln = ev.invuln; }
     const dead = damagePlayer(store.state, dmg);
+    if (store.state.punch) punchHit(store.state.punch);
     p.invulnT = invuln;
     p.hurtT = 0.45;
     play('hurt');
@@ -981,6 +1019,7 @@ export class ArenaScene extends Phaser.Scene {
         if (Math.floor(this.waveTime * 2) !== Math.floor((this.waveTime - dt) * 2)) store.changed();
       }
       if (this.hooks.onTick.length) this.hooks.emit('onTick', dt);
+      if (s.punch && punchTick(s.punch, dt, this.timeLeft()) === 'done') this.punchDone();
       if (!s.labSandbox) this.updateDirector();
       if (this.wave.boss && !s.labSandbox && !this.enraged && this.waveTime > bossTuning(store.state.shift).enrageAfter + 1.6) {
         this.enraged = true;
@@ -1019,13 +1058,32 @@ export class ArenaScene extends Phaser.Scene {
     if (this.hudT <= 0 && (s.phase === 'combat')) {
       this.hudT = 0.05;
       hud.tick({
-        timeLeft: this.wave.boss || this.miniDue || s.labSandbox || s.modifier === 'stockroom' ? -1 : Math.max(0, this.wave.duration - this.waveTime),
+        timeLeft: this.timeLeft(),
         elapsed: this.waveTime,
+        actives: activeSlots(s.inventory).map((a) => ({ type: a.inst.type, left: a.left, max: a.max })),
         shoveCd: this.player.chainT > 0 ? 0 : Math.max(0, this.player.shoveCd), shoveMax: s.build.shoveCooldown,
         boss: this.boss ? { hp: Math.max(0, this.boss.hp), max: this.boss.maxHp, enraged: this.enraged, name: enemyT(this.boss.def.id).name.toUpperCase() }
           : this.mini ? { hp: Math.max(0, this.mini.hp), max: this.mini.maxHp, enraged: this.enraged, name: t('miniBossBar', { name: enemyT(this.mini.def.id).name.toUpperCase() }) } : null,
       });
+      hud.contract(s.punch ? punchView(s.punch) : null);
     }
+  }
+
+  /** Seconds left on the aisle clock, or -1 when this aisle has none (boss, mini-boss, stockroom, sandbox). */
+  private timeLeft(): number {
+    const s = store.state;
+    return this.wave.boss || this.miniDue || s.labSandbox || s.modifier === 'stockroom' ? -1 : Math.max(0, this.wave.duration - this.waveTime);
+  }
+
+  /** Punch Card goal met: coins now (the receipt lists them), the free reroll comes with the shop. */
+  private punchDone(): void {
+    payPunchCard(store.state);
+    if (store.state.punch) hud.contract(punchView(store.state.punch)); // gold now, not on the next HUD tick
+    hud.bark(t('pcDone'));
+    play('ding');
+    play('buy', { rate: 1.2 });
+    this.fx.spark(this.player.x, this.player.y - 60, 10, 0xf5bd45);
+    store.changed();
   }
 
   /** DEV: bot/automation input override. */
@@ -1053,6 +1111,9 @@ export class ArenaScene extends Phaser.Scene {
     p.invulnT -= dt; p.protectT -= dt; p.hurtT -= dt; p.shoveCd -= dt; p.chainT -= dt;
     const inp = this.input01();
     if (inp.x !== 0) p.facing = inp.x > 0 ? 1 : -1;
+
+    const keyActive = takePressed('useActive'), padActive = takePadActive();
+    if ((keyActive || padActive) && fireActives(s.inventory, this.ctx)) this.fx.shake(0.002, 90);
 
     const devShove = import.meta.env.DEV && this.devInput?.shove;
     if (devShove) this.devInput!.shove = false;
@@ -1093,7 +1154,7 @@ export class ArenaScene extends Phaser.Scene {
         if ((e.x - p.x) ** 2 + (e.y - p.y) ** 2 > (e.def.radius + p.radius + 24) ** 2) continue;
         if (!tryHit(p.shoveTracker, e.id)) continue;
         p.shoveHit = true;
-        this.damageEnemy(e, s.build.shoveDamage, null, { kb: PLAYER.shove.knockback, kbX: p.shoveDX, kbY: p.shoveDY, label: 'shove' });
+        this.damageEnemy(e, s.build.shoveDamage, null, { kb: PLAYER.shove.knockback * s.build.shoveKnockMult, kbX: p.shoveDX, kbY: p.shoveDY, label: 'shove' });
         if (this.hooks.onDashHit.length) this.hooks.emit('onDashHit', { enemy: e, dx: p.shoveDX, dy: p.shoveDY, dmg: s.build.shoveDamage });
         // (Sale Flag's mark, Tip Jar's coin roll and the Tools set's stun are onDashHit hooks.)
       }

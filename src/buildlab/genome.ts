@@ -1,4 +1,5 @@
 import { MODIFIERS, type DoorId } from '../data/modifiers';
+import { botDoors } from '../systems/shortcut';
 import { ITEM_ORDER, RECIPE_ORDER, SET_ORDER } from '../engine/define';
 import { cartUpgradeCost, shelfUpgradeCost, shopUpgradeCost } from '../state/run';
 import { currentRerollCost, repairCost, sellPrice } from '../systems/shop';
@@ -136,7 +137,7 @@ export function createGenomePolicy(genome: Genome, name = 'genome'): Policy {
         if (w('rule.sellOn') < 1) continue;
         sale = sellable.find((s) => s.type !== x.type && value(s.type, s.tier ?? 1) + w('rule.sellMargin') < v);
         if (!sale) continue;
-        spend -= sellPrice(sale.type, sale.tier ?? 1);
+        spend -= sellPrice(sale.type, sale.tier ?? 1, state.build);
       }
       if (spend > money - w('rule.buyReserve')) continue;
       if (sale) { out.push({ kind: 'sell', uid: sale.uid }); sellable.splice(sellable.indexOf(sale), 1); free++; }
@@ -197,7 +198,8 @@ export function createGenomePolicy(genome: Genome, name = 'genome'): Policy {
         }
       }
     },
-    chooseDoor(doors, state, view: PolicyView) {
+    chooseDoor(allDoors, state, view: PolicyView) {
+      const doors = botDoors(allDoors, state);
       const rushOk = !(state.hp < state.build.maxHp * w('rule.rushAvoidHpFrac') || state.wave <= Math.round(w('rule.rushAvoidUntilWave')));
       let pick = doors;
       if (doors.length > 1 && !rushOk) { const safe = doors.filter((d) => d !== 'rush'); if (safe.length) pick = safe; }

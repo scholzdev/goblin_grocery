@@ -1,5 +1,6 @@
 import type { Unlock } from '../data/unlocks';
 import type { HookName, RuntimeHookMap } from './hooks';
+import type { RuntimeCtx } from './ctx';
 import type { ActiveRecipe, BuffId, Build, Cell, DepartmentId, ElementTag, EnemyBehavior, EnemyId, FamilyTag, Inventory, ItemDef, ItemInstance, ItemTypeId, Perk, RecipeId, SetId, StarterWeapon, WeaponBase, WeaponStats } from '../types';
 
 // Content definitions for the item-hooks refactor (docs/item-hooks-refactor.md). Types only plus identity `define*` helpers:
@@ -31,7 +32,12 @@ export const ITEM_ORDER = [
   'toaster', 'pan', 'nailgun', 'vacuum', 'fan', 'fuel', 'battery', 'magnet', 'ice', 'hotsauce', 'lunchbox', 'bell', 'boot', 'bumper', 'sparewheel', 'tipjar', 'flag',
   'microwave', 'blender', 'fizz', 'mop', 'pricegun', 'tape', 'coupon', 'bubblewrap', 'energy', 'fortune', 'sample', 'piggy', 'expiredmilk', 'tinfoilhat', 'jellybeans',
   'leafblower', 'sourdough', 'powerstrip', 'goldstar', 'laser', 'snackbag', 'cooker', 'spray', 'popper', 'doublebag', 'multipack', 'canopener', 'decaf',
-  'expiredcoupon', 'popcorn', 'sparklers',
+  'expiredcoupon', 'popcorn', 'sparklers', 'barter', 'binder',
+  'fireextinguisher', 'airhorn',
+  'avocado', 'fish', 'basil', 'scoby',
+  'snowcone', 'moldybread',
+  'bowlingball', 'balloon', 'ghostpepper', 'scratchticket',
+  'punchcard', 'shortcut', 'spentkey',
 ] as const;
 
 /** Every combo, in the order `computeBuild` applies the matching ones (it decides which combo hook runs first on a weapon) and the codex lists them. */
@@ -172,6 +178,8 @@ export interface BuildCtx<T extends Tune = Tune> {
   /** Arc (degrees) the weapon gained from utilities (Duct Tape) before the combos ran: a combo that sets the arc keeps it on top (Pressure Washer). 0 in player hooks. */
   readonly tapeArc: number;
   readonly cart: Inventory;
+  /** Cart weight (systems/weight.ts): the occupied cells, and the ones that still slow the goblin (items touching a Helium Balloon are weightless). Only the Bowling Ball reads it. */
+  readonly weight: { readonly cells: number; readonly slow: number };
   readonly perk: Perk;
 }
 
@@ -229,6 +237,14 @@ export type EnhancedBy = 'always' | 'anyWeapon' | readonly ItemTypeId[]; // an a
 
 // ---- content ----------------------------------------------------------------------------------------------------------
 
+/**
+ * An active item ("spell"): the E key spends one charge of every instance in the cart that has one left (engine/actives.ts). The item's
+ * `tune.charges` is the charges per aisle at ★1..★3 and the only thing the engine reads; every other number of the effect is also in `tune`.
+ */
+export interface ActiveSpec<T extends Tune = Tune> {
+  use(ctx: RuntimeCtx, c: { readonly tier: number; tune(): Resolved<T>; /** The instance's uid (= its weapon uid when the item is a weapon). */ readonly uid: string }): void;
+}
+
 export interface ItemContent<T extends Tune = Tune> {
   id: ItemTypeId;
   kind: ItemDef['kind'];
@@ -248,6 +264,8 @@ export interface ItemContent<T extends Tune = Tune> {
   /** Modules: the item's hits shred armor, so the shop card's "Strong vs" adds the armored chip (`ui/affinity.ts`). */
   shreds?: boolean;
   legendary?: boolean;
+  /** Never offered by a shop or crate (the Spent Key). */
+  noShop?: boolean;
   /** Weapons only. */
   tags?: ItemDef['tags'];
   weapon?: ItemDef['weapon'];
@@ -259,6 +277,15 @@ export interface ItemContent<T extends Tune = Tune> {
    * that element's set. Only for items without a static element (`sets` has just the family). Read by `setsOf` (data/sets).
    */
   flavored?: boolean;
+  /**
+   * Counts aisles on `ItemInstance.age` (`ageItems`, state/run.ts): 'cart' = only while placed (Avocado, Fresh Fish, Scoby, Basil),
+   * 'owned' = also on the shelf (Sourdough Starter).
+   */
+  age?: 'cart' | 'owned';
+  /** Replaces the base sell price for this instance (Avocado: grows while fresh, 1 coin once brown). Read by `sellValue` (systems/shop.ts). */
+  sellValue?: (base: number, i: ItemInstance, tune: Resolved<T>) => number;
+  /** Instances for which the art switches to the `icon_<id>_<look>` variant (spoiled Avocado / Fish); `assetFor` (data/assets.ts). */
+  look?: (i: ItemInstance, tune: Resolved<T>) => string | null;
   /** Scalars, or per-tier arrays of 3. Legendaries are ★1 only: scalars. */
   tune?: T;
   text: Localized<ItemText>;
@@ -267,6 +294,8 @@ export interface ItemContent<T extends Tune = Tune> {
   build?: BuildSpec<T>;
   /** Combat hooks (onHit, onKill, pattern:sweep ...): see RuntimeHooks. */
   hooks?: RuntimeHooks<T>;
+  /** E-key active, see `ActiveSpec`. Needs a `charges` tune entry. */
+  active?: ActiveSpec<T>;
   /** More hooks for other phases when one item needs two (Multipack: `module` damage + `post-combo` count). Never `module`. */
   extraBuild?: readonly BuildSpec<T>[];
   shopBias?: readonly DepartmentId[];
@@ -379,7 +408,7 @@ export const WEAKEN = { cap: 0.5 } as const;
 export const WET_STATUS = { duration: 3, electricMult: 1.2, chainBonus: 1, frostSlowBonus: 0.1, freezeChanceMult: 2, burnDurationMult: 0.5, slowCap: 0.7 } as const;
 
 /** The element reactions (`engine/reactions.ts`, `ReactionId` is derived from this list). */
-export const REACTION_IDS = ['shatter', 'fumes', 'conduct', 'crack'] as const;
+export const REACTION_IDS = ['shatter', 'fumes', 'conduct', 'crack', 'iceSheet', 'detonate'] as const;
 export type ReactionId = (typeof REACTION_IDS)[number];
 
 /**
@@ -387,6 +416,8 @@ export type ReactionId = (typeof REACTION_IDS)[number];
  * of them, per enemy. `shatter` (burn + frosted): `flat` + `share` of the triggering hit's damage on that enemy; it also has its own longer per-enemy `cooldown` (s). `fumes` (burn + poison): a poison cloud of
  * `radius` that lives `duration` s, ticks every `tick` s and poisons the OTHER enemies in it for `poisonDuration` s. `conduct` (wet + an electric hit): `hops` hits of
  * `share` of the hit along the nearest enemies. `crack` (shred at the cap + a blast hit): `targets` enemies within `radius` take `share` of the hit and `shred` stacks.
+ * `iceSheet` (wet + a frost hit that did not freeze): the enemy slides helplessly for `slide` s at `speed` px/s and takes `slam` damage when it hits a wall, a prop or another enemy.
+ * `detonate` (poisoned + a blast hit): eats the poison; everything within `radius` takes its poison dps x the seconds it had left.
  */
 export const REACTIONS = {
   cooldown: 1,
@@ -394,6 +425,8 @@ export const REACTIONS = {
   fumes: { radius: 60, duration: 2, tick: 0.5, poisonDuration: 2 },
   conduct: { hops: 3, share: 0.6 },
   crack: { targets: 3, radius: 90, share: 0.5, shred: 1 },
+  iceSheet: { slide: 1.5, slam: 12, speed: 260 },
+  detonate: { radius: 70 },
 } as const;
 
 /** The enemy behaviors (`EnemyBehavior` of types.ts is derived from this list). */

@@ -5,10 +5,13 @@ import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS, waveDef } from '../data/waves'
 import { PLAYER, ITEMS, ITEM_IDS, STARTER_WEAPONS, TIER } from '../data/items';
 import { RECIPES } from '../data/recipes';
 import { ZONES, ZONE_TUNING, zonesOf, type ZoneId } from '../data/zones';
-import type { EnemyId, ItemTypeId, RunState, ShopOffer } from '../types';
+import type { Build, EnemyId, ItemTypeId, RunState, ShopOffer } from '../types';
 import type { Rng } from './rng';
+import { canShortcut } from './shortcut';
 
-export const sellPrice = (type: ItemTypeId, tier = 1): number => Math.floor(TIER.value(ITEMS[type].price, tier) / 2);
+/** What selling pays: the value x `build.sellRate` (Barter Stamp), full value for a family a Collector's Binder holds. */
+export const sellPrice = (type: ItemTypeId, tier = 1, build?: Pick<Build, 'sellRate' | 'sellFullFamilies'>): number =>
+  Math.floor(TIER.value(ITEMS[type].price, tier) * (build?.sellFullFamilies.includes(ITEMS[type].family) ? 1 : build?.sellRate ?? 0.5));
 export const rerollCost = (rerollsDone: number, shopIndex: number): number => (ECONOMY.rerollBase + Math.ceil(shopIndex / 2)) * (rerollsDone + 1);
 const shopIdx = (state: RunState) => state.shop?.shopIndex ?? state.wave;
 /** Item price multiplier for the current shop (1 in shop 1). */
@@ -43,20 +46,22 @@ export function currentRerollCost(state: RunState): number {
 }
 
 /** `guarantee`: shop 1's initial roll includes the starting weapon's two suggested items at ★1 (default: only when shopIndex is 1). */
-export interface RollOpts { bias?: ItemTypeId[]; legendaryBonus?: number; forceLegendary?: boolean }
+/** `keep`: the offers of a locked shop. Unsold ones stay as they are (price included); each sold slot gets a fresh offer in place. */
+export interface RollOpts { bias?: ItemTypeId[]; legendaryBonus?: number; forceLegendary?: boolean; keep?: ShopOffer[] }
 
 export function rollOffers(state: RunState, rng: Rng, shopIndex: number, guarantee = shopIndex === 1, opts: RollOpts = {}): ShopOffer[] {
   const bias = opts.bias ?? [], bonus = opts.legendaryBonus ?? 0;
   const { placed, shelf } = state.inventory;
   const own = new Set<ItemTypeId>([...placed.map((p) => p.type), ...shelf.filter((s) => !!s).map((s) => s!.type)]);
   const lv = SHOP_LEVELS[Math.max(0, Math.min(SHOP_LEVELS.length, state.shopLevel) - 1)];
-  const offers: ShopOffer[] = [];
+  const kept = (opts.keep ?? []).filter((o) => !o.sold);
+  const offers: ShopOffer[] = kept.map((o) => ({ ...o }));
   // Checkout set discount is baked in at roll time: offers already on the table keep their price until the next reroll.
   const add = (type: ItemTypeId, tier: number) => offers.push({ slot: offers.length, type, tier, price: Math.max(1, Math.round(TIER.value(ITEMS[type].price, tier) * (PLAYER.starters[state.starter ?? 'toaster'].perk?.priceMult ?? 1) * (state.build?.priceMult ?? 1) * inflation(state, shopIndex))), sold: false });
   if (guarantee) for (const t of STARTER_WEAPONS[state.weapon ?? 'toaster'].guarantee) add(t, 1);
   // Locked items (meta-progression) never show up.
   const allowed = (t: ItemTypeId) => !state.unlocked || state.unlocked.includes(t);
-  const pool = ITEM_IDS.filter((t) => allowed(t) && !ITEMS[t].legendary && !offers.some((o) => o.type === t));
+  const pool = ITEM_IDS.filter((t) => allowed(t) && !ITEMS[t].legendary && !ITEMS[t].noShop && !offers.some((o) => o.type === t));
   const legends = ITEM_IDS.filter((t) => allowed(t) && ITEMS[t].legendary);
   while (offers.length < ECONOMY.offerCount) {
     const needLegend = !!opts.forceLegendary && offers.length === ECONOMY.offerCount - 1 && !offers.some((o) => ITEMS[o.type].legendary);
@@ -68,7 +73,9 @@ export function rollOffers(state: RunState, rng: Rng, shopIndex: number, guarant
     // Double pack: counts as 2 types in its family set, costs x1.5 (never legendary, never the guaranteed starters).
     if (shopIndex >= 2 && rng() < ECONOMY.doublePackChance) { const o = offers[offers.length - 1]; o.double = true; o.price = Math.round(o.price * ECONOMY.doublePackPriceMult); }
   }
-  return offers;
+  if (!opts.keep) return offers;
+  const fresh = offers.slice(kept.length);
+  return opts.keep.map((o, slot) => ({ ...(o.sold ? fresh.shift()! : { ...o }), slot }));
 }
 
 export function rollDoors(state: RunState, rng: Rng): DoorId[] {
@@ -76,7 +83,7 @@ export function rollDoors(state: RunState, rng: Rng): DoorId[] {
   if (idx + 1 >= BOSS_WAVE && !state.overtime) return ['boss'];
   const pool = [...DOOR_POOL];
   for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
-  const doors = pool.slice(0, state.shopLevel >= DEPT_TUNING.threeDoorsAtLoyalty ? 3 : 2);
+  const doors: DoorId[] = pool.slice(0, state.shopLevel >= DEPT_TUNING.threeDoorsAtLoyalty ? 3 : 2);
   if (idx >= DEPT_TUNING.clearanceFromShop && state.modifier !== 'clearance' && rng() < DEPT_TUNING.clearanceChance) doors[doors.length - 1] = 'clearance';
   // Special rooms: each regular slot may turn into one (never next to a clearance door, never the boss door).
   if (idx + 1 >= ROOMS.fromAisle && !doors.includes('clearance')) {
@@ -84,6 +91,7 @@ export function rollDoors(state: RunState, rng: Rng): DoorId[] {
       if (rng() < ROOMS.chance) { doors[i] = ROOM_DOORS[Math.floor(rng() * ROOM_DOORS.length)]; break; }
     }
   }
+  if (canShortcut(state, idx)) doors.push('shortcut'); // last: callers that take doors[0] never pick it
   return doors;
 }
 
@@ -108,7 +116,7 @@ export function rollMiniCrates(state: RunState, rng: Rng): ShopOffer[] {
 export function rollZones(state: RunState, rng: Rng, doors: DoorId[]): (ZoneId | null)[] {
   const pool = zonesOf(state.theme);
   return doors.map((d) => {
-    if (d === 'boss' || d === 'clearance' || ROOM_DOORS.includes(d) || !pool.length) return null;
+    if (d === 'boss' || d === 'shortcut' || d === 'clearance' || ROOM_DOORS.includes(d) || !pool.length) return null;
     const ws = pool.map((z) => 1 / (1 + state.zones.filter((u) => u === z.id).length) ** ZONE_TUNING.repeatPenalty);
     let r = rng() * ws.reduce((a, b) => a + b, 0), i = 0;
     while (i < pool.length - 1 && (r -= ws[i]) >= 0) i++;

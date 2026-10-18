@@ -9,6 +9,7 @@ const SHAPES = [cells('#'), cells('##'), cells('##', '#.')] as const;
 
 export default defineItem({
   id: Item.sourdough, kind: 'passive', sets: [Set.kitchen], shape: (tier) => SHAPES[Math.min(Math.max(tier, 1), 3) - 1], price: 6,
+  age: 'owned',
   // `every` = aisles between rises (read by state/run.ts). cellsMid/cellsMax = footprint sizes at ★2/★3, for the text.
   tune: { perStar: PER_STAR, damage: [PER_STAR * 1, PER_STAR * 2, PER_STAR * 3], every: 2, cellsMid: SHAPES[1].length, cellsMax: SHAPES[2].length },
   text: {

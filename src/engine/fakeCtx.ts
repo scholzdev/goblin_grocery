@@ -33,6 +33,9 @@ import { applyKillEffects } from './onKillEffects';
 export type Call = { at: number } & (
   | { kind: 'damage'; enemy: number; dmg: number; source: string | null; opts: HitOpts }
   | { kind: 'stun'; enemy: number; seconds: number; tag?: AffinityTag }
+  | { kind: 'pullCoins' }
+  | { kind: 'boostWeapon'; weapon: string; pull: number; range: number; seconds: number }
+  | { kind: 'slide'; enemy: number; seconds: number; slam: number; speed: number }
   | { kind: 'stagger'; enemy: number }
   | { kind: 'ignite'; enemy: number; burn: BurnEffect }
   | { kind: 'slow'; enemy: number; slow: SlowEffect }
@@ -43,6 +46,7 @@ export type Call = { at: number } & (
   | { kind: 'wet'; enemy: number; seconds: number }
   | { kind: 'hurt'; dmg: number }
   | { kind: 'heal'; hp: number }
+  | { kind: 'drain'; hp: number }
   | { kind: 'healFx'; x: number; y: number }
   | { kind: 'spawnShot'; spec: ShotSpec }
   | { kind: 'spawnPool'; spec: PoolSpec }
@@ -233,14 +237,29 @@ export class FakeCtx implements RuntimeCtx {
     return hit.length;
   }
   /** Mirrors `ArenaScene.stunEnemy`: bosses are immune, the time scales with the enemy's affinity for `tag`. The log keeps the requested seconds. */
-  stun(e: CombatEnemy, seconds: number, tag?: AffinityTag): number {
+  stun(e: CombatEnemy, seconds: number, tag?: AffinityTag, bossSeconds = 0): number {
     this.log({ kind: 'stun', enemy: e.id, seconds, ...(tag ? { tag } : {}) });
-    if (!e.alive || e.def.behavior === 'boss') return 0;
+    if (!e.alive) return 0;
+    if (e.def.behavior === 'boss') { // mirrors the scene: only a walking boss, only for the cap
+      if (bossSeconds <= 0 || e.state !== 'walk') return 0;
+      e.state = 'stun';
+      e.stateT = Math.max(e.stateT ?? 0, bossSeconds);
+      return bossSeconds;
+    }
     const applied = seconds * statusDurationMult(e.def, tag);
     e.state = 'stun';
     e.stateT = Math.max(e.stateT ?? 0, applied);
     if (tag === 'frost') { markFrostStun(e.status, applied, this.time); this.reactor.applied(e, 'frost'); } // a frost stun is a freeze: the enemy is frosted
     return applied;
+  }
+  /** Mirrors `ArenaScene.slideEnemy`: bosses are immune, the shove goes away from the goblin (the slam itself is the scene's, so only `slideUntil` and the velocity are set). */
+  slide(e: CombatEnemy, seconds: number, slam: number, speed: number): number {
+    this.log({ kind: 'slide', enemy: e.id, seconds, slam, speed });
+    if (!e.alive || e.def.behavior === 'boss') return 0;
+    const dx = e.x - this.player.x, dy = e.y - this.player.y, d = Math.hypot(dx, dy) || 1, k = 1 - e.def.knockbackResist;
+    e.kx = (dx / d) * speed * k; e.ky = (dy / d) * speed * k;
+    e.slideUntil = this.time + seconds;
+    return seconds;
   }
   // The log keeps what the hook asked for; the status on the enemy has the duration scaled by its affinity (burnFor / slowFor / poisonTimeFor).
   ignite(e: CombatEnemy, burn: BurnEffect): void {
@@ -293,6 +312,10 @@ export class FakeCtx implements RuntimeCtx {
     this.log({ kind: 'heal', hp });
     this.run.hp = Math.min(this.run.maxHp, this.run.hp + hp);
   }
+  drain(hp: number): void {
+    this.log({ kind: 'drain', hp });
+    this.run.hp = Math.min(this.run.hp, Math.max(1, this.run.hp - hp));
+  }
   healFx(x: number, y: number): void { this.log({ kind: 'healFx', x, y }); }
 
   spawnShot(spec: ShotSpec): CombatShot | null {
@@ -303,6 +326,8 @@ export class FakeCtx implements RuntimeCtx {
   }
   spawnPool(spec: PoolSpec): void { this.log({ kind: 'spawnPool', spec }); }
   /** Damages every enemy in the radius with `fromPopper` (so poppers never re-trigger), as the scene does. */
+  pullCoins(): void { this.log({ kind: 'pullCoins' }); }
+  boostWeapon(weaponUid: string, boost: { pull: number; range: number }, seconds: number): void { this.log({ kind: 'boostWeapon', weapon: weaponUid, ...boost, seconds }); }
   popperBlast(pos: { x: number; y: number }, pop: { damage: number; radius: number }, setPop = false): void {
     this.log({ kind: 'popperBlast', x: pos.x, y: pos.y, damage: pop.damage, radius: pop.radius, setPop });
     for (const e of this.inRadius(pos, pop.radius)) this.damage(e, pop.damage, null, { fromPopper: true, label: 'Party Popper' });
