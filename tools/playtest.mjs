@@ -2,9 +2,10 @@
 // Usage: node tools/playtest.mjs [url] [width] [height]
 // Uses the system Chrome via Playwright (no browser download). Saves screenshots to screenshots/.
 import { chromium } from 'playwright';
+import { devUrl } from './lib/dev.mjs';
 import { mkdirSync } from 'node:fs';
 
-const url = process.argv[2] ?? 'http://localhost:5173/';
+const url = await devUrl(process.argv[2]);
 const W = Number(process.argv[3] ?? 1440), H = Number(process.argv[4] ?? 900);
 const out = `screenshots/${W}x${H}`;
 mkdirSync(out, { recursive: true });

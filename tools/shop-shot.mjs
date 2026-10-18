@@ -1,6 +1,7 @@
 // DEV: build a rich shop state (tiers, legendaries, L-shapes) and capture the shop at two sizes.
 import { chromium } from 'playwright';
-const url = process.argv[2] ?? 'http://localhost:5173/';
+import { devUrl } from './lib/dev.mjs';
+const url = await devUrl(process.argv[2]);
 const b = await chromium.launch({ channel: 'chrome' });
 for (const [W, H] of [[1440, 900], [1280, 720]]) {
   const page = await b.newPage({ viewport: { width: W, height: H } });

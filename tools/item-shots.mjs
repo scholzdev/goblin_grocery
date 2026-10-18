@@ -1,8 +1,9 @@
 // DEV: capture the in-game item card of every item (Catalog > Items, hover) and lay them out as contact sheets of 12.
 // Usage: node tools/item-shots.mjs [url]  ->  screenshots/items/<id>.png + screenshots/items-sheet-<n>.png
 import { chromium } from 'playwright';
+import { devUrl } from './lib/dev.mjs';
 import { mkdirSync } from 'node:fs';
-const url = process.argv[2] ?? 'http://localhost:5173/';
+const url = await devUrl(process.argv[2]);
 const PER_SHEET = 12;
 mkdirSync('screenshots/items', { recursive: true });
 const b = await chromium.launch({ channel: 'chrome' });

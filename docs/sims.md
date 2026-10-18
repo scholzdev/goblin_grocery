@@ -4,7 +4,7 @@ A sim is a Test Lab scenario in one file. It drops you straight into the arena (
 
 ## Run one
 
-- `npm run sim` opens the dev server at `/?sim=example`.
+- `npm run sims` opens the dev server at `/?sim=example`.
 - Any sim: `http://localhost:5173/?sim=<id>` (for example `?sim=electric-l3`). `?sim` turns the lab features on (dummy panel, F8, god mode), no need for `?lab`.
 - From the game: title screen, Test Lab (needs `?lab` or `?sim`), the "Sim" select at the top, "Start sim".
 - An unknown id shows a card listing the valid ids. A sim that does not validate shows its problems.
@@ -83,7 +83,7 @@ Enemy entry: `{ id, count?, affix?, still?, immortal?, mini?, at?, spread? }`.
    ```
 
 2. That is the whole registration: `import.meta.glob` collects every `src/sims/*.ts` that does not start with `_`. Reload and run `?sim=my-sim`. It also shows up in the Test Lab select.
-3. `npx vitest run tests/sims` validates every sim (ids exist, tier 1..3, positions fit and do not overlap, affix allowed for that enemy, no enemies with `waves: true`).
+3. `npm run sims:test` validates every sim (ids exist, tier 1..3, positions fit and do not overlap, affix allowed for that enemy, no enemies with `waves: true`).
 
 ## Combo sims
 

@@ -1,9 +1,10 @@
 // DEV: set up a single combo cart (default: TV Dinner) and capture a burst of combat frames + Tab view.
 import { chromium } from 'playwright';
+import { devUrl } from './lib/dev.mjs';
 const b = await chromium.launch({ channel: 'chrome' });
 const page = await b.newPage({ viewport: { width: 1600, height: 1000 } });
 const errs = []; page.on('pageerror', (e) => errs.push(e.message));
-await page.goto(process.argv[2] ?? 'http://localhost:5173/');
+await page.goto(await devUrl(process.argv[2]));
 await page.waitForSelector('#title:not(.hidden)');
 await page.evaluate(() => { localStorage.setItem('goblin-grocery.settings.v1', JSON.stringify({ hintSeen: true })); });
 await page.reload(); await page.waitForSelector('#title:not(.hidden)');

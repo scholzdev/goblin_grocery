@@ -19,7 +19,9 @@ function createWindow() {
   // The game never navigates or opens windows; block both.
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   win.webContents.on('will-navigate', (e) => e.preventDefault());
-  win.loadURL(process.argv.includes('--lab') ? 'app://game/index.html?lab=1' : 'app://game/index.html'); // --lab: in-game Test Lab
+  // --lab: in-game Test Lab. GG_DEV_URL (set by `npm run app:dev`) loads the Vite dev server instead of dist/.
+  const base = process.env.GG_DEV_URL || 'app://game/index.html';
+  win.loadURL(process.argv.includes('--lab') ? `${base}${base.includes('?') ? '&' : '?'}lab=1` : base);
 }
 
 app.whenReady().then(() => {
