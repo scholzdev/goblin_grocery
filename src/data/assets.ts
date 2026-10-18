@@ -20,6 +20,7 @@ export const ICON_IDS = [
   'fireextinguisher', 'airhorn',
   'avocado', 'fish', 'basil', 'scoby', 'snowcone', 'moldybread',
   'avocado_rotten', 'fish_rotten',
+  'bowlingball', 'balloon', 'ghostpepper', 'scratchticket',
 ] as const;
 
 export interface SvgAsset { key: string; w: number; h: number; ax?: number; ay?: number }

@@ -97,6 +97,7 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
     pickupRadius: PLAYER.pickupRadius + (perk.pickupRadius ?? 0), // the Vacuum and Magnet add in their player hooks
     shoveCooldown: PLAYER.shove.cooldown + (perk.shoveCooldown ?? 0),
     shoveDistMult: 1,
+    shoveKnockMult: 1,
     shoveDamage: PLAYER.shove.damage + (perk.shoveDamage ?? 0), // Boot adds in its player hook, then the Tools set (L2, order 200) multiplies the total
     moveSpeedMult: perk.moveSpeedMult ?? 1,
     sets, priceMult: 1, // the Checkout set sets it in its player hook

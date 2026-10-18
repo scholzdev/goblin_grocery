@@ -1119,7 +1119,7 @@ export class ArenaScene extends Phaser.Scene {
         if ((e.x - p.x) ** 2 + (e.y - p.y) ** 2 > (e.def.radius + p.radius + 24) ** 2) continue;
         if (!tryHit(p.shoveTracker, e.id)) continue;
         p.shoveHit = true;
-        this.damageEnemy(e, s.build.shoveDamage, null, { kb: PLAYER.shove.knockback, kbX: p.shoveDX, kbY: p.shoveDY, label: 'shove' });
+        this.damageEnemy(e, s.build.shoveDamage, null, { kb: PLAYER.shove.knockback * s.build.shoveKnockMult, kbX: p.shoveDX, kbY: p.shoveDY, label: 'shove' });
         if (this.hooks.onDashHit.length) this.hooks.emit('onDashHit', { enemy: e, dx: p.shoveDX, dy: p.shoveDY, dmg: s.build.shoveDamage });
         // (Sale Flag's mark, Tip Jar's coin roll and the Tools set's stun are onDashHit hooks.)
       }

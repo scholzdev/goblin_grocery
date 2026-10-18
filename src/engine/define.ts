@@ -36,6 +36,7 @@ export const ITEM_ORDER = [
   'fireextinguisher', 'airhorn',
   'avocado', 'fish', 'basil', 'scoby',
   'snowcone', 'moldybread',
+  'bowlingball', 'balloon', 'ghostpepper', 'scratchticket',
 ] as const;
 
 /** Every combo, in the order `computeBuild` applies the matching ones (it decides which combo hook runs first on a weapon) and the codex lists them. */
@@ -176,6 +177,8 @@ export interface BuildCtx<T extends Tune = Tune> {
   /** Arc (degrees) the weapon gained from utilities (Duct Tape) before the combos ran: a combo that sets the arc keeps it on top (Pressure Washer). 0 in player hooks. */
   readonly tapeArc: number;
   readonly cart: Inventory;
+  /** Cart weight (systems/weight.ts): the occupied cells, and the ones that still slow the goblin (items touching a Helium Balloon are weightless). Only the Bowling Ball reads it. */
+  readonly weight: { readonly cells: number; readonly slow: number };
   readonly perk: Perk;
 }
 

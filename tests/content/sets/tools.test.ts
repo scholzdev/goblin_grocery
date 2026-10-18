@@ -70,8 +70,10 @@ describe('Tools set: dash damage ordering', () => {
   it('its player hook runs after every item\'s (their order is below 200, Expired Milk\'s curse is 100)', () => {
     const [dash] = tools.extraBuild!;
     expect(dash).toMatchObject({ phase: 'final', order: 200 });
-    const itemOrders = contentItems().flatMap((c) => [c.build, ...(c.extraBuild ?? [])]).filter((b) => b?.player).map((b) => b!.order ?? 0);
+    // The Bowling Ball is the one deliberate exception: its weight damage is added after the multiplier (order 300, see its file).
+    const itemOrders = contentItems().filter((c) => c.id !== 'bowlingball').flatMap((c) => [c.build, ...(c.extraBuild ?? [])]).filter((b) => b?.player).map((b) => b!.order ?? 0);
     expect(Math.max(...itemOrders)).toBeLessThan(200);
+    expect(contentItems().find((c) => c.id === 'bowlingball')!.build).toMatchObject({ order: 300 });
   });
 });
 

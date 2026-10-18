@@ -1,6 +1,7 @@
 import { ITEMS } from '../data/items';
 import { setCount } from '../data/sets';
 import { neighbors } from '../systems/inventory';
+import { cartWeight, slowWeight } from '../systems/weight';
 import type { ActiveRecipe, BuffId, Build, Inventory, ItemInstance, ItemTypeId, Perk, RecipeId, SetId, WeaponStats } from '../types';
 import { resolveTune, type BuildCtx, type BuildPhase, type BuildSpec, type ComboContent, type ItemContent, type SetContent, type Tune } from './define';
 import { contentCombos, contentItems, contentSets, contentTune } from './registry';
@@ -47,6 +48,7 @@ function makeCtx(env: BuildEnv, owner: Owner, tier: number, w?: WeaponEnv, activ
     active,
     tapeArc: w?.tapeArc ?? 0,
     cart: env.inv,
+    get weight() { return { cells: cartWeight(env.inv), slow: slowWeight(env.inv) }; },
     perk: env.perk,
   };
 }
