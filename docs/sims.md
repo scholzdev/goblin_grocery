@@ -208,3 +208,14 @@ Element reactions (docs/item-hooks-refactor.md "Reactions"). A teal name pops ov
 - `src/flow.ts`: `flow.startSim(sim)`, `flow.restartSim()`, `flow.sim`.
 - `src/systems/spread.ts`: pure cluster / ring positions. The arena side is `ArenaScene.labSpawnAll`.
 - `src/ui/simTag.ts`: HUD tag, notes, error card, `launchSim(id)`.
+
+## Item sims
+
+Sandboxes for items with a mechanic you have to see, `src/sims/item-<id>.ts`:
+
+| Sim | Cart | Look for |
+|---|---|---|
+| `item-bowling-ball` | Toaster, Bowling Ball, Helium Balloon, Running Boot | Dash damage 6 + 6 + 1 per occupied cell, +50% knockback; the Balloon touching the Ball makes the Ball's cells weightless for the slow |
+| `item-ghost-pepper` | Toaster, Fuel Can, Ghost Pepper (god mode off, 3 milk) | BURNING over the goblin after a hit: 1.5 dps over 2 s, no flinch, no i-frames, never below 1 HP |
+| `item-scratch-ticket` | Toaster, Scratch Ticket (god mode off, a real aisle) | The aisle-start roll: 1 in 5 for +30 coins, else -4 HP. A sim boots the arena twice, so the roll can fire twice |
+

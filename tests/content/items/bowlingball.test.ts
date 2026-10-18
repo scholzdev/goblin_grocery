@@ -51,11 +51,11 @@ describe('Bowling Ball: dash damage', () => {
     expect(ball.shoveCooldown).toBe(plain.shoveCooldown);
   });
 
-  it('adds to Boot and the Tools set multiplies the total (ball included)', () => {
+  it('adds to Boot; the Tools set multiplies the dash damage before the ball\'s weight damage, so the weight is not doubled', () => {
     const tools = full([at('nailgun'), far('tape'), far('boot'), far('bowlingball')]);
     const mult = [1, 1, 2, 3][tools.sets.tools]; // Tools L2 doubles the dash damage, L3 triples it
     expect(mult).toBeGreaterThan(1);
-    expect(tools.shoveDamage).toBe((BASE + 6 + cartWeight(build([at('nailgun'), far('tape'), far('boot'), far('bowlingball')], 8, 6))) * mult);
+    expect(tools.shoveDamage).toBe((BASE + 6) * mult + cartWeight(build([at('nailgun'), far('tape'), far('boot'), far('bowlingball')], 8, 6)));
   });
 
   it('does not stack: a second ball changes nothing but the weight it adds itself', () => {

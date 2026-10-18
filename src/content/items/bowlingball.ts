@@ -11,8 +11,9 @@ export default defineItem({
   },
   rows: [{ label: { en: 'Dash damage per cell', de: 'Dash-Schaden pro Zelle' }, key: 'perCell', fmt: '+n' }],
   build: {
-    // Before the Tools set's x2 (order 200) like Boot, so the weight damage doubles with it. Best copy counts once.
-    phase: 'final',
+    // AFTER the Tools set's dash multiplier (order 200, x2 / x3), unlike Boot: the Ball is itself a Tools item, so it often completes L2, and
+    // letting the multiplier double the weight damage too put a Ball + Boot + Bumper cart above a Pan (docs: sim numbers in the PR). Best copy counts once.
+    phase: 'final', order: 300,
     player(b, c) {
       const t = c.tune();
       const w = c.weight;
