@@ -173,6 +173,24 @@
       "weapon": "pan"
     }
   ],
+  "buffs.combo.fireworksShow.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Feuerwerk"
+      ],
+      "weapon": "cooker"
+    }
+  ],
+  "buffs.combo.fireworksShow.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Fireworks Show"
+      ],
+      "weapon": "cooker"
+    }
+  ],
   "buffs.combo.fiveAlarm.de": [
     {
       "lines": [
@@ -191,6 +209,24 @@
         "+25% damage (Hot Sauce)",
         "Bundle Deal: 2 items → +12% damage",
         "Combo: Five-Alarm Toast"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.combo.freshBread.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Frisches Brot"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.combo.freshBread.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Fresh Bread"
       ],
       "weapon": "toaster"
     }
@@ -231,6 +267,46 @@
         "Burn 2.5/s for 2s (Fuel Can)",
         "Bundle Deal: 1 item → +6% damage",
         "Combo: Grease Fire"
+      ],
+      "weapon": "mop"
+    }
+  ],
+  "buffs.combo.kettleCorn.de": [
+    {
+      "lines": [
+        "Kills explodieren: 6 Schaden, Radius 70 (Partyknaller)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Karamell-Popcorn"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.combo.kettleCorn.en": [
+    {
+      "lines": [
+        "Kills explode: 6 dmg, 70 radius (Party Popper)",
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Kettle Corn"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.combo.liveWire.de": [
+    {
+      "lines": [
+        "+12 % Angriffstempo (Batterie)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Stromschlag"
+      ],
+      "weapon": "mop"
+    }
+  ],
+  "buffs.combo.liveWire.en": [
+    {
+      "lines": [
+        "+12% attack rate (Battery)",
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Live Wire"
       ],
       "weapon": "mop"
     }
@@ -449,6 +525,26 @@
       "weapon": "pan"
     }
   ],
+  "buffs.combo.slushie.de": [
+    {
+      "lines": [
+        "Verlangsamung 25 % für 1 s (Kühlakku)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Slush"
+      ],
+      "weapon": "fizz"
+    }
+  ],
+  "buffs.combo.slushie.en": [
+    {
+      "lines": [
+        "Slow 25% for 1s (Ice Pack)",
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Slushie"
+      ],
+      "weapon": "fizz"
+    }
+  ],
   "buffs.combo.smashBank.de": [
     {
       "lines": [
@@ -563,6 +659,30 @@
         "+30% reach (Desk Fan)",
         "Bundle Deal: 2 items → +12% damage",
         "Combo: Tailwind"
+      ],
+      "weapon": "leafblower"
+    }
+  ],
+  "buffs.combo.thunderstorm.de": [
+    {
+      "lines": [
+        "+30 % Reichweite (Tischventilator)",
+        "+12 % Angriffstempo (Batterie)",
+        "Verlangsamung 25 % für 1 s (Kühlakku)",
+        "Mengenrabatt: 3 Gegenstände → +18 % Schaden",
+        "Combo: Gewitter"
+      ],
+      "weapon": "leafblower"
+    }
+  ],
+  "buffs.combo.thunderstorm.en": [
+    {
+      "lines": [
+        "+30% reach (Desk Fan)",
+        "+12% attack rate (Battery)",
+        "Slow 25% for 1s (Ice Pack)",
+        "Bundle Deal: 3 items → +18% damage",
+        "Combo: Thunderstorm"
       ],
       "weapon": "leafblower"
     }
@@ -787,7 +907,8 @@
     {
       "lines": [
         "Verlangsamung 50 % für 1 s (Kühlakku ★3)",
-        "Mengenrabatt: 3 Gegenstände → +18 % Schaden"
+        "Mengenrabatt: 3 Gegenstände → +18 % Schaden",
+        "Combo: Slush"
       ],
       "weapon": "fizz"
     },
@@ -810,7 +931,8 @@
     {
       "lines": [
         "Slow 50% for 1s (Ice Pack ★3)",
-        "Bundle Deal: 3 items → +18% damage"
+        "Bundle Deal: 3 items → +18% damage",
+        "Combo: Slushie"
       ],
       "weapon": "fizz"
     },
@@ -1869,7 +1991,8 @@
     {
       "lines": [
         "+12 % Angriffstempo (Batterie)",
-        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Stromschlag"
       ],
       "weapon": "mop"
     }
@@ -1878,7 +2001,8 @@
     {
       "lines": [
         "+12% attack rate (Battery)",
-        "Bundle Deal: 1 item → +6% damage"
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Live Wire"
       ],
       "weapon": "mop"
     }
@@ -1917,6 +2041,24 @@
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "pan"
+    }
+  ],
+  "buffs.item.battery.t1.on.popcorn.de": [
+    {
+      "lines": [
+        "+12 % Angriffstempo (Batterie)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.item.battery.t1.on.popcorn.en": [
+    {
+      "lines": [
+        "+12% attack rate (Battery)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "popcorn"
     }
   ],
   "buffs.item.battery.t1.on.spray.de": [
@@ -2395,6 +2537,24 @@
       "weapon": "pan"
     }
   ],
+  "buffs.item.doublebag.t1.on.popcorn.de": [
+    {
+      "lines": [
+        "Treffer wiederholen sich mit 50 % Schaden (Doppeltüte)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.item.doublebag.t1.on.popcorn.en": [
+    {
+      "lines": [
+        "Hits repeat for 50% damage (Double Bag)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
   "buffs.item.doublebag.t1.on.spray.de": [
     {
       "lines": [
@@ -2743,6 +2903,24 @@
       "weapon": "pan"
     }
   ],
+  "buffs.item.fan.t1.on.popcorn.de": [
+    {
+      "lines": [
+        "+30 % Reichweite (Tischventilator)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.item.fan.t1.on.popcorn.en": [
+    {
+      "lines": [
+        "+30% reach (Desk Fan)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
   "buffs.item.fan.t1.on.spray.de": [
     {
       "lines": [
@@ -3067,6 +3245,24 @@
       "weapon": "pan"
     }
   ],
+  "buffs.item.fuel.t1.on.popcorn.de": [
+    {
+      "lines": [
+        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.item.fuel.t1.on.popcorn.en": [
+    {
+      "lines": [
+        "Burn 2.5/s for 2s (Fuel Can)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
   "buffs.item.fuel.t1.on.spray.de": [
     {
       "lines": [
@@ -3353,6 +3549,24 @@
       "weapon": "pan"
     }
   ],
+  "buffs.item.hotsauce.t1.on.popcorn.de": [
+    {
+      "lines": [
+        "+25 % Schaden (Scharfe Soße)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.item.hotsauce.t1.on.popcorn.en": [
+    {
+      "lines": [
+        "+25% damage (Hot Sauce)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
   "buffs.item.hotsauce.t1.on.spray.de": [
     {
       "lines": [
@@ -3485,7 +3699,8 @@
     {
       "lines": [
         "Verlangsamung 25 % für 1 s (Kühlakku)",
-        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Slush"
       ],
       "weapon": "fizz"
     }
@@ -3494,7 +3709,8 @@
     {
       "lines": [
         "Slow 25% for 1s (Ice Pack)",
-        "Bundle Deal: 1 item → +6% damage"
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Slushie"
       ],
       "weapon": "fizz"
     }
@@ -3609,6 +3825,24 @@
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "pan"
+    }
+  ],
+  "buffs.item.ice.t1.on.popcorn.de": [
+    {
+      "lines": [
+        "Verlangsamung 25 % für 1 s (Kühlakku)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.item.ice.t1.on.popcorn.en": [
+    {
+      "lines": [
+        "Slow 25% for 1s (Ice Pack)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "popcorn"
     }
   ],
   "buffs.item.ice.t1.on.spray.de": [
@@ -3961,6 +4195,24 @@
       "weapon": "pan"
     }
   ],
+  "buffs.item.multipack.t1.on.popcorn.de": [
+    {
+      "lines": [
+        "+20 % Schaden (Multipack)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.item.multipack.t1.on.popcorn.en": [
+    {
+      "lines": [
+        "+20% damage (Multipack)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
   "buffs.item.multipack.t1.on.spray.de": [
     {
       "lines": [
@@ -4245,6 +4497,26 @@
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "pan"
+    }
+  ],
+  "buffs.item.popper.t1.on.popcorn.de": [
+    {
+      "lines": [
+        "Kills explodieren: 6 Schaden, Radius 70 (Partyknaller)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Karamell-Popcorn"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.item.popper.t1.on.popcorn.en": [
+    {
+      "lines": [
+        "Kills explode: 6 dmg, 70 radius (Party Popper)",
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Kettle Corn"
+      ],
+      "weapon": "popcorn"
     }
   ],
   "buffs.item.popper.t1.on.spray.de": [
@@ -4533,6 +4805,24 @@
       "weapon": "pan"
     }
   ],
+  "buffs.item.pricegun.t1.on.popcorn.de": [
+    {
+      "lines": [
+        "15 % Kritchance (Preisauszeichner)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.item.pricegun.t1.on.popcorn.en": [
+    {
+      "lines": [
+        "15% crit chance (Price Gun)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
   "buffs.item.pricegun.t1.on.spray.de": [
     {
       "lines": [
@@ -4690,7 +4980,8 @@
   "buffs.item.sourdough.t1.on.toaster.de": [
     {
       "lines": [
-        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Frisches Brot"
       ],
       "weapon": "toaster"
     }
@@ -4698,7 +4989,8 @@
   "buffs.item.sourdough.t1.on.toaster.en": [
     {
       "lines": [
-        "Bundle Deal: 1 item → +6% damage"
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Fresh Bread"
       ],
       "weapon": "toaster"
     }
@@ -4706,7 +4998,8 @@
   "buffs.item.sourdough.t3.on.toaster.de": [
     {
       "lines": [
-        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Frisches Brot"
       ],
       "weapon": "toaster"
     }
@@ -4714,7 +5007,8 @@
   "buffs.item.sourdough.t3.on.toaster.en": [
     {
       "lines": [
-        "Bundle Deal: 1 item → +6% damage"
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Fresh Bread"
       ],
       "weapon": "toaster"
     }
@@ -4744,6 +5038,38 @@
     }
   ],
   "buffs.item.sparewheel.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.sparklers.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.sparklers.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.sparklers.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.sparklers.t3.on.toaster.en": [
     {
       "lines": [
         "Bundle Deal: 1 item → +6% damage"
@@ -4913,6 +5239,24 @@
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "pan"
+    }
+  ],
+  "buffs.item.tape.t1.on.popcorn.de": [
+    {
+      "lines": [
+        "Mehr Reichweite / extra Durchschlag (Panzertape)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.item.tape.t1.on.popcorn.en": [
+    {
+      "lines": [
+        "Bigger reach / extra pierce (Duct Tape)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "popcorn"
     }
   ],
   "buffs.item.tape.t1.on.spray.de": [
@@ -5495,7 +5839,8 @@
     {
       "lines": [
         "Verlangsamung 25 % für 1 s (Kühlakku)",
-        "Mengenrabatt: 2 Gegenstände → +12 % Schaden"
+        "Mengenrabatt: 2 Gegenstände → +12 % Schaden",
+        "Combo: Slush"
       ],
       "weapon": "fizz"
     }
@@ -5512,7 +5857,8 @@
     {
       "lines": [
         "Slow 25% for 1s (Ice Pack)",
-        "Bundle Deal: 2 items → +12% damage"
+        "Bundle Deal: 2 items → +12% damage",
+        "Combo: Slushie"
       ],
       "weapon": "fizz"
     }
@@ -5529,7 +5875,8 @@
     {
       "lines": [
         "Verlangsamung 25 % für 1 s (Kühlakku)",
-        "Mengenrabatt: 3 Gegenstände → +18 % Schaden"
+        "Mengenrabatt: 3 Gegenstände → +18 % Schaden",
+        "Combo: Slush"
       ],
       "weapon": "fizz"
     },
@@ -5552,7 +5899,8 @@
     {
       "lines": [
         "Slow 25% for 1s (Ice Pack)",
-        "Bundle Deal: 3 items → +18% damage"
+        "Bundle Deal: 3 items → +18% damage",
+        "Combo: Slushie"
       ],
       "weapon": "fizz"
     },
@@ -6109,6 +6457,42 @@
       "weapon": "pan"
     }
   ],
+  "buffs.weapon.popcorn.t1.de": [
+    {
+      "lines": [],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.weapon.popcorn.t1.en": [
+    {
+      "lines": [],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.weapon.popcorn.t2.de": [
+    {
+      "lines": [],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.weapon.popcorn.t2.en": [
+    {
+      "lines": [],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.weapon.popcorn.t3.de": [
+    {
+      "lines": [],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.weapon.popcorn.t3.en": [
+    {
+      "lines": [],
+      "weapon": "popcorn"
+    }
+  ],
   "buffs.weapon.spray.t1.de": [
     {
       "lines": [],
@@ -6325,6 +6709,18 @@
     "short": "Dash → bonus pan sweep",
     "summary": "Frying Pan touching a Shopping Bell: dash triggers a bonus sweep."
   },
+  "combos.fireworksShow.de": {
+    "detail": "Jede Explosion löst 6 weitere Explosionen in einem Ring von 110 um sie herum aus: 40% Schaden im Umkreis von 45 (Explosionen lösen keine Kettenreaktion aus).",
+    "name": "Feuerwerk",
+    "short": "Topfexplosionen platzen zu Feuerwerk",
+    "summary": "Schnellkochtopf berührt Wunderkerzen: der Deckel fliegt ab. Festlich."
+  },
+  "combos.fireworksShow.en": {
+    "detail": "Each explosion sets off 6 more blasts in a ring of 110 around it: 40% damage within 45 (blasts never chain).",
+    "name": "Fireworks Show",
+    "short": "Pot blasts burst into fireworks",
+    "summary": "Pressure Cooker touching Sparklers: the lid comes off. Festively."
+  },
   "combos.fiveAlarm.de": {
     "detail": "Toast macht +80% Schaden an Gegnern, die bereits brennen.",
     "name": "Fünf-Alarm-Toast",
@@ -6336,6 +6732,18 @@
     "name": "Five-Alarm Toast",
     "short": "+80% vs burning",
     "summary": "Toaster touching Hot Sauce AND a Fuel Can: toast scorches burning groceries."
+  },
+  "combos.freshBread.de": {
+    "detail": "Toast durchschlägt 1 weiteren Gegner, 2, sobald der Sauerteig ganz aufgegangen ist.",
+    "name": "Frisches Brot",
+    "short": "Sauerteig lässt Toast durchschlagen",
+    "summary": "Toaster berührt Sauerteig-Ansatz: ein aufgegangener Laib ist kaum zu stoppen."
+  },
+  "combos.freshBread.en": {
+    "detail": "Toast pierces 1 extra enemy, 2 once the Sourdough has fully risen.",
+    "name": "Fresh Bread",
+    "short": "Sourdough lets toast pierce",
+    "summary": "Toaster touching a Sourdough Starter: a risen loaf is hard to stop."
   },
   "combos.frostbiteNails.de": {
     "detail": "Nägel durchschlagen 1 weiteren Gegner, und jeder 3. Nagel, der denselben Gegner trifft, friert ihn 0,7 s lang fest.",
@@ -6360,6 +6768,30 @@
     "name": "Grease Fire",
     "short": "Huge burning slicks",
     "summary": "Mop touching a Fuel Can: huge burning grease slicks."
+  },
+  "combos.kettleCorn.de": {
+    "detail": "Von einem Korn besiegte Gegner streuen 3 weitere Körner (2,5 Schaden, 160 Reichweite). Diese Körner streuen nie erneut und lösen kein Konfetti aus.",
+    "name": "Karamell-Popcorn",
+    "short": "Korn-Kills streuen weitere Körner",
+    "summary": "Popcornmaschine berührt Partyknaller: süß, salzig, explosiv."
+  },
+  "combos.kettleCorn.en": {
+    "detail": "Enemies killed by a kernel scatter 3 more kernels (2.5 damage, 160 range). Those kernels never scatter again and set off no confetti.",
+    "name": "Kettle Corn",
+    "short": "Kernel kills scatter more kernels",
+    "summary": "Popcorn Maker touching a Party Popper: sweet, salty, explosive."
+  },
+  "combos.liveWire.de": {
+    "detail": "Alle 1 s zappen die Pfützen bis zu 3 nasse Gegner, die gerade darin standen, für 100% Pfützenschaden. Der Blitz verbraucht die Nässe nicht.",
+    "name": "Stromschlag",
+    "short": "Pfützen zappen nasse Gegner",
+    "summary": "Wischmopp berührt Batterie: der Seifenboden steht unter Strom."
+  },
+  "combos.liveWire.en": {
+    "detail": "Every 1 s the puddles zap up to 3 Wet enemies that just stood in them for 100% puddle damage. The zap does not use up Wet.",
+    "name": "Live Wire",
+    "short": "Puddles zap Wet enemies",
+    "summary": "Mop touching a Battery: the soapy floor is live."
   },
   "combos.mistMachine.de": {
     "detail": "Der Sprühkegel wird 120° breit und reicht 40% weiter. (Der Ventilator-Bonus auf Tempo/Reichweite gilt nicht für Sprühstöße, dies ersetzt ihn.)",
@@ -6493,6 +6925,18 @@
     "short": "Sweeps leave fire",
     "summary": "Frying Pan touching a Fuel Can: every sweep scorches the floor."
   },
+  "combos.slushie.de": {
+    "detail": "Jeder Treffer eines Kronkorkens nach dem ersten bremst 10% stärker. Der letzte Treffer eines Kronkorkens friert den Gegner 0,5 s lang ein (2,5 s Abklingzeit pro Gegner).",
+    "name": "Slush",
+    "short": "Abpraller bremsen mehr, letzter Treffer friert",
+    "summary": "Sprudelkanone berührt Kühlakku: die Limo wird zu Slush."
+  },
+  "combos.slushie.en": {
+    "detail": "Each hit of a cap after the first slows 10% more. A cap's last hit freezes the enemy for 0.5 s (2.5 s cooldown per enemy).",
+    "name": "Slushie",
+    "short": "Bounces slow more, last hit freezes",
+    "summary": "Fizz Cannon touching an Ice Pack: the soda turns to slush."
+  },
   "combos.smashBank.de": {
     "detail": "Jeder von einem Pfannenschwung getroffene Gegner lässt mit 15% Chance eine Münze fallen.",
     "name": "Sparschwein-Schlag",
@@ -6576,6 +7020,18 @@
     "name": "Tailwind",
     "short": "Blasts push the cart forward",
     "summary": "Leaf Blower touching a Desk Fan AND Running Boots: ride your own breeze."
+  },
+  "combos.thunderstorm.de": {
+    "detail": "Jede Böe macht Gegner für 2 s nass. Jede 3. Böe trifft zuerst bis zu 4 bereits nasse Gegner für 50% Böenschaden.",
+    "name": "Gewitter",
+    "short": "Böen durchnässen, jede 3. blitzt",
+    "summary": "Laubbläser berührt Tischventilator, Batterie UND Kühlakku: zieh ein Unwetter auf."
+  },
+  "combos.thunderstorm.en": {
+    "detail": "Every blast leaves enemies Wet for 2 s. Every 3rd blast first strikes up to 4 enemies that were already Wet for 50% blast damage.",
+    "name": "Thunderstorm",
+    "short": "Blasts soak, every 3rd strikes",
+    "summary": "Leaf Blower touching a Desk Fan, a Battery AND an Ice Pack: whip up a storm."
   },
   "combos.toastMode.de": {
     "detail": "Feuert 3 Toasts im Fächer. Jeder macht 75% Schaden und setzt Gegner in Brand (Brand stapelt sich nicht). Ventilator-Tempo und -Reichweite gelten weiterhin.",
@@ -8059,6 +8515,62 @@
       }
     ]
   },
+  "items.popcorn.de": {
+    "blurb": "Popp. Popp. Popp-popp-popp.",
+    "name": "Popcornmaschine",
+    "rules": "Schießt alle {1} 6 Körner, jedes auf einen zufälligen Gegner in Reichweite. {0} Schaden pro Korn. 240 Reichweite.",
+    "rulesByTier": {
+      "1": "Schießt alle 1,3 s 6 Körner, jedes auf einen zufälligen Gegner in Reichweite. 3 Schaden pro Korn. 240 Reichweite.",
+      "2": "Schießt alle 1,17 s 6 Körner, jedes auf einen zufälligen Gegner in Reichweite. 4,5 Schaden pro Korn. 240 Reichweite.",
+      "3": "Schießt alle 1,04 s 6 Körner, jedes auf einen zufälligen Gegner in Reichweite. 6 Schaden pro Korn. 240 Reichweite."
+    },
+    "tierScaling": [
+      {
+        "label": "Schaden",
+        "values": [
+          "3",
+          "4,5",
+          "6"
+        ]
+      },
+      {
+        "label": "Intervall",
+        "values": [
+          "1,3 s",
+          "1,17 s",
+          "1,04 s"
+        ]
+      }
+    ]
+  },
+  "items.popcorn.en": {
+    "blurb": "Pop. Pop. Pop-pop-pop.",
+    "name": "Popcorn Maker",
+    "rules": "Pops 6 kernels every {1}, each at a random enemy in range. {0} damage per kernel. 240 range.",
+    "rulesByTier": {
+      "1": "Pops 6 kernels every 1.3 s, each at a random enemy in range. 3 damage per kernel. 240 range.",
+      "2": "Pops 6 kernels every 1.17 s, each at a random enemy in range. 4.5 damage per kernel. 240 range.",
+      "3": "Pops 6 kernels every 1.04 s, each at a random enemy in range. 6 damage per kernel. 240 range."
+    },
+    "tierScaling": [
+      {
+        "label": "Damage",
+        "values": [
+          "3",
+          "4.5",
+          "6"
+        ]
+      },
+      {
+        "label": "Interval",
+        "values": [
+          "1.3 s",
+          "1.17 s",
+          "1.04 s"
+        ]
+      }
+    ]
+  },
   "items.popper.de": {
     "blurb": "Jeder Abschuss ist ein Fest.",
     "name": "Partyknaller",
@@ -8226,11 +8738,11 @@
   "items.sourdough.de": {
     "blurb": "Füttern, und er wächst. Blubbert vor Potenzial.",
     "name": "Sauerteig-Ansatz",
-    "rules": "Angrenzende Waffen erhalten {0} Schaden. Wächst alle 2 Gänge um eine Stufe (braucht Platz zum Aufgehen): 2 Felder bei ★2, 3 Felder bei ★3.",
+    "rules": "Angrenzende Waffen erhalten {0} Schaden. Wächst alle 2 Gänge um eine Stufe (braucht Platz zum Aufgehen): 2 Felder bei ★2, 3 Felder bei ★3. Combo: Frisches Brot mit Toaster.",
     "rulesByTier": {
-      "1": "Angrenzende Waffen erhalten +6% Schaden. Wächst alle 2 Gänge um eine Stufe (braucht Platz zum Aufgehen): 2 Felder bei ★2, 3 Felder bei ★3.",
-      "2": "Angrenzende Waffen erhalten +12% Schaden. Wächst alle 2 Gänge um eine Stufe (braucht Platz zum Aufgehen): 2 Felder bei ★2, 3 Felder bei ★3.",
-      "3": "Angrenzende Waffen erhalten +18% Schaden. Wächst alle 2 Gänge um eine Stufe (braucht Platz zum Aufgehen): 2 Felder bei ★2, 3 Felder bei ★3."
+      "1": "Angrenzende Waffen erhalten +6% Schaden. Wächst alle 2 Gänge um eine Stufe (braucht Platz zum Aufgehen): 2 Felder bei ★2, 3 Felder bei ★3. Combo: Frisches Brot mit Toaster.",
+      "2": "Angrenzende Waffen erhalten +12% Schaden. Wächst alle 2 Gänge um eine Stufe (braucht Platz zum Aufgehen): 2 Felder bei ★2, 3 Felder bei ★3. Combo: Frisches Brot mit Toaster.",
+      "3": "Angrenzende Waffen erhalten +18% Schaden. Wächst alle 2 Gänge um eine Stufe (braucht Platz zum Aufgehen): 2 Felder bei ★2, 3 Felder bei ★3. Combo: Frisches Brot mit Toaster."
     },
     "tierScaling": [
       {
@@ -8246,11 +8758,11 @@
   "items.sourdough.en": {
     "blurb": "Feed it and it grows. Bubbles with potential.",
     "name": "Sourdough Starter",
-    "rules": "Weapons touching it gain {0} damage. Grows one level every 2 aisles (needs room to rise): 2 cells at ★2, 3 cells at ★3.",
+    "rules": "Weapons touching it gain {0} damage. Grows one level every 2 aisles (needs room to rise): 2 cells at ★2, 3 cells at ★3. Combo: Fresh Bread with Toaster.",
     "rulesByTier": {
-      "1": "Weapons touching it gain +6% damage. Grows one level every 2 aisles (needs room to rise): 2 cells at ★2, 3 cells at ★3.",
-      "2": "Weapons touching it gain +12% damage. Grows one level every 2 aisles (needs room to rise): 2 cells at ★2, 3 cells at ★3.",
-      "3": "Weapons touching it gain +18% damage. Grows one level every 2 aisles (needs room to rise): 2 cells at ★2, 3 cells at ★3."
+      "1": "Weapons touching it gain +6% damage. Grows one level every 2 aisles (needs room to rise): 2 cells at ★2, 3 cells at ★3. Combo: Fresh Bread with Toaster.",
+      "2": "Weapons touching it gain +12% damage. Grows one level every 2 aisles (needs room to rise): 2 cells at ★2, 3 cells at ★3. Combo: Fresh Bread with Toaster.",
+      "3": "Weapons touching it gain +18% damage. Grows one level every 2 aisles (needs room to rise): 2 cells at ★2, 3 cells at ★3. Combo: Fresh Bread with Toaster."
     },
     "tierScaling": [
       {
@@ -8299,6 +8811,46 @@
           "1 s",
           "1.5 s",
           "2 s"
+        ]
+      }
+    ]
+  },
+  "items.sparklers.de": {
+    "blurb": "Mit ausgestrecktem Arm halten. Oder auch nicht.",
+    "name": "Wunderkerzen",
+    "rules": "Jeder {0}. direkte Treffer der angrenzenden Waffe löst eine Explosion aus: 6 Schaden im Umkreis von 50. Pro Waffe höchstens eine Explosion alle 0,5 s.",
+    "rulesByTier": {
+      "1": "Jeder 6. direkte Treffer der angrenzenden Waffe löst eine Explosion aus: 6 Schaden im Umkreis von 50. Pro Waffe höchstens eine Explosion alle 0,5 s.",
+      "2": "Jeder 4. direkte Treffer der angrenzenden Waffe löst eine Explosion aus: 6 Schaden im Umkreis von 50. Pro Waffe höchstens eine Explosion alle 0,5 s.",
+      "3": "Jeder 3. direkte Treffer der angrenzenden Waffe löst eine Explosion aus: 6 Schaden im Umkreis von 50. Pro Waffe höchstens eine Explosion alle 0,5 s."
+    },
+    "tierScaling": [
+      {
+        "label": "Jeder n-te Treffer",
+        "values": [
+          "6",
+          "4",
+          "3"
+        ]
+      }
+    ]
+  },
+  "items.sparklers.en": {
+    "blurb": "Hold at arm's length. Or don't.",
+    "name": "Sparklers",
+    "rules": "Every {0}th direct hit of an adjacent weapon sets off a blast: 6 damage within 50. At most one blast every 0.5 s per weapon.",
+    "rulesByTier": {
+      "1": "Every 6th direct hit of an adjacent weapon sets off a blast: 6 damage within 50. At most one blast every 0.5 s per weapon.",
+      "2": "Every 4th direct hit of an adjacent weapon sets off a blast: 6 damage within 50. At most one blast every 0.5 s per weapon.",
+      "3": "Every 3th direct hit of an adjacent weapon sets off a blast: 6 damage within 50. At most one blast every 0.5 s per weapon."
+    },
+    "tierScaling": [
+      {
+        "label": "Every nth hit",
+        "values": [
+          "6",
+          "4",
+          "3"
         ]
       }
     ]

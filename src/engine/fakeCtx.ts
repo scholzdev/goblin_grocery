@@ -155,7 +155,7 @@ export class FakeCtx implements RuntimeCtx {
 
   /** Add an enemy projectile in flight. */
   spawnHostileShot(p: Partial<CombatShot> = {}): CombatShot {
-    const s: CombatShot = { active: true, x: 0, y: 0, vx: 0, vy: 0, life: 2, damage: 8, stats: null, splash: null, ...p };
+    const s: CombatShot = { active: true, x: 0, y: 0, vx: 0, vy: 0, life: 2, damage: 8, stats: null, splash: null, tracker: { hits: new Set() }, ...p };
     this.hostileShots.push(s);
     return s;
   }
@@ -297,7 +297,7 @@ export class FakeCtx implements RuntimeCtx {
 
   spawnShot(spec: ShotSpec): CombatShot | null {
     this.log({ kind: 'spawnShot', spec });
-    const s: CombatShot = { active: true, x: spec.x, y: spec.y, vx: Math.cos(spec.angle) * spec.speed, vy: Math.sin(spec.angle) * spec.speed, life: spec.life, damage: spec.damage, stats: spec.stats, splash: null };
+    const s: CombatShot = { active: true, x: spec.x, y: spec.y, vx: Math.cos(spec.angle) * spec.speed, vy: Math.sin(spec.angle) * spec.speed, life: spec.life, damage: spec.damage, stats: spec.stats, splash: null, tracker: { hits: new Set() } };
     this.playerShots.push(s);
     return s;
   }

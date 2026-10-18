@@ -8,7 +8,7 @@ import type { AffinityMap, AffinityTag, BUFF_ORDER, ELEMENTS, ENEMY_BEHAVIORS, E
 /** The id unions are derived from the order lists of engine/define.ts (which the registry checks against the content files). */
 export type ItemTypeId = (typeof ITEM_ORDER)[number];
 
-export type WeaponPattern = 'toast' | 'sweep' | 'burst' | 'pulse' | 'zap' | 'aura' | 'ricochet' | 'puddle' | 'laser' | 'mortar' | 'cone';
+export type WeaponPattern = 'toast' | 'sweep' | 'burst' | 'pulse' | 'zap' | 'aura' | 'ricochet' | 'puddle' | 'laser' | 'mortar' | 'cone' | 'popcorn';
 export type ItemKind = 'weapon' | 'module' | 'passive';
 export type Rotation = 0 | 1 | 2 | 3;
 export type RecipeId = (typeof RECIPE_ORDER)[number];

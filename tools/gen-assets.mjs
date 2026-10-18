@@ -1277,6 +1277,7 @@ add('proj_toast', () => {
 add('proj_nail', () => `<g transform="translate(1.5 .5) scale(.91 .9)">` +
   shape([[1, 1.5], [6, 1.5], [6, 8.5], [1, 8.5]], C.chrome, C.chromeD, { sw: 1.6, dx: 1, dy: 1.5 }) +
   shape([[6, 3.8], [22, 4.2], [27, 5], [22, 5.8], [6, 6.2]], C.chrome, C.chromeD, { sw: 1.5, dx: 0, dy: 1 }) + flat([[8, 4.3], [20, 4.5], [20, 5]], C.white) + '</g>');
+add('proj_kernel', () => shape(star(9, 9, 8, 5, 6), '#FFF2B8', C.gold, { sw: 1.8, dx: 0.5, dy: 0.5 }) + flat([[5, 5], [9, 4], [6, 9]], C.white, 'opacity=".8"'));
 const rayBolt = (core, mid, glow) => `<ellipse cx="17" cy="7" rx="16" ry="6" fill="${glow}" opacity=".35"/>` +
   `<path d="M2 7 L9 3 L26 4.2 L32 7 L26 9.8 L9 11 Z" fill="${mid}" stroke="${C.plum}" stroke-width="1.4" stroke-linejoin="round"/>` +
   `<path d="M7 7 L12 5.2 L25 5.6 L28 7 L25 8.4 L12 8.8 Z" fill="${core}"/>` +
@@ -2204,6 +2205,27 @@ add('icon_popper', () => {
   const cf = [[110, 56, C.coral, 20], [138, 74, C.teal, -30], [150, 36, C.gold, 50], [122, 28, C.sky, 10], [168, 90, C.coral, -20], [96, 22, C.lavL, 35], [160, 62, C.green, 70], [176, 28, C.gold, -10]];
   s += cf.map(([x, y, c, d]) => rot(shape(rect(x - 6, y - 3.5, 12, 7), c, null, { sw: 2.5 }), d, x, y)).join('');
   s += spk(70, 40, 7) + spk(184, 76, 6);
+  return icon(s, 176);
+});
+
+add('icon_popcorn', () => {
+  const kern = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${r + 2.5}" fill="${C.plum}"/><circle cx="${x}" cy="${y}" r="${r}" fill="#FFF2B8"/><circle cx="${x - 2}" cy="${y - 2}" r="${r * 0.45}" fill="${C.gold}"/>`;
+  let s = [[70, 62, 13], [96, 50, 15], [124, 62, 13], [84, 38, 11], [112, 36, 11], [100, 26, 9]].map(([x, y, r]) => kern(x, y, r)).join('');
+  s += S5([[46, 76], [150, 76], [138, 164], [58, 164]], C.cream, C.creamD, { dx: 8, dy: 5 });
+  for (let i = 0; i < 4; i++) s += flat([[58 + i * 26, 76], [71 + i * 26, 76], [67 + i * 24, 164], [58 + i * 24, 164]].map(([x, y]) => [x, y]), C.coral);
+  s += shape([[42, 74], [154, 74], [154, 86], [42, 86]], C.coral, C.coralD, { sw: SWi, dx: 0, dy: 3 });
+  s += flat([[52, 92], [60, 92], [64, 150], [58, 150]], C.white, 'opacity=".7"');
+  s += spk(150, 40, 8);
+  return icon(s, 170);
+});
+
+add('icon_sparklers', () => {
+  const stick = (x0, y0, x1, y1) => line([[x0, y0], [x1, y1]], C.plum, 9) + line([[x0, y0], [x1, y1]], C.chrome, 4.5);
+  let s = stick(60, 170, 100, 74) + stick(122, 170, 96, 74);
+  s += line([[60, 170], [70, 146]], C.coral, 9) + line([[122, 170], [116, 148]], C.teal, 9);
+  s += [[100, 62, 26], [58, 70, 14], [146, 66, 15], [80, 30, 11], [124, 34, 11]].map(([x, y, r]) => `<g stroke="${C.plum}" stroke-width="3.5" stroke-linecap="round">${[0, 45, 90, 135].map((d) => { const a = d * Math.PI / 180; return `<path d="M${x - Math.cos(a) * r} ${y - Math.sin(a) * r} L${x + Math.cos(a) * r} ${y + Math.sin(a) * r}"/>`; }).join('')}</g>`).join('');
+  s += [[100, 62, 26], [58, 70, 14], [146, 66, 15], [80, 30, 11], [124, 34, 11]].map(([x, y, r], i) => `<g stroke="${i % 2 ? C.gold : '#FFF2B8'}" stroke-width="1.8" stroke-linecap="round">${[0, 45, 90, 135].map((d) => { const a = d * Math.PI / 180; return `<path d="M${x - Math.cos(a) * r} ${y - Math.sin(a) * r} L${x + Math.cos(a) * r} ${y + Math.sin(a) * r}"/>`; }).join('')}</g>`).join('');
+  s += spk(100, 62, 9) + spk(30, 110, 6) + spk(172, 100, 7);
   return icon(s, 176);
 });
 

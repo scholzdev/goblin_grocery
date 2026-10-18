@@ -4,6 +4,7 @@ import { burst } from './burst';
 import { cone } from './cone';
 import { laser } from './laser';
 import { mortar } from './mortar';
+import { popcorn } from './popcorn';
 import { puddle } from './puddle';
 import { pulse } from './pulse';
 import { updateShots } from './projectile';
@@ -16,7 +17,7 @@ import type { Pattern, PatternHost } from './types';
 // The weapon patterns (docs/item-hooks-refactor.md). A weapon's content file names one in `weapon.pattern`; the arsenal asks the
 // table below what to do each frame. Combos change a pattern through its `pattern:*` events (engine/hooks.ts), never by editing it.
 
-export const PATTERNS: Readonly<Record<WeaponPattern, Pattern>> = { toast, burst, sweep, pulse, aura, zap, ricochet, puddle, laser, mortar, cone };
+export const PATTERNS: Readonly<Record<WeaponPattern, Pattern>> = { toast, burst, sweep, pulse, aura, zap, ricochet, puddle, laser, mortar, cone, popcorn };
 
 /** What lives on in the world between attacks, in the order it updates: floor patches before lobbed pots (puddles update before pots). */
 const WORLD: readonly Pattern[] = [puddle, mortar];

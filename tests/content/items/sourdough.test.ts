@@ -165,12 +165,12 @@ describe('Sourdough Starter: content', () => {
 
   it('renders its text for every level, EN and DE', () => {
     expect([1, 2, 3].map((t) => itemRules('sourdough', t))).toEqual([
-      'Weapons touching it gain +6% damage. Grows one level every 2 aisles (needs room to rise): 2 cells at ★2, 3 cells at ★3.',
-      'Weapons touching it gain +12% damage. Grows one level every 2 aisles (needs room to rise): 2 cells at ★2, 3 cells at ★3.',
-      'Weapons touching it gain +18% damage. Grows one level every 2 aisles (needs room to rise): 2 cells at ★2, 3 cells at ★3.',
+      'Weapons touching it gain +6% damage. Grows one level every 2 aisles (needs room to rise): 2 cells at ★2, 3 cells at ★3. Combo: Fresh Bread with Toaster.',
+      'Weapons touching it gain +12% damage. Grows one level every 2 aisles (needs room to rise): 2 cells at ★2, 3 cells at ★3. Combo: Fresh Bread with Toaster.',
+      'Weapons touching it gain +18% damage. Grows one level every 2 aisles (needs room to rise): 2 cells at ★2, 3 cells at ★3. Combo: Fresh Bread with Toaster.',
     ]);
     setLang('de');
-    expect(itemRules('sourdough', 3)).toBe('Angrenzende Waffen erhalten +18% Schaden. Wächst alle 2 Gänge um eine Stufe (braucht Platz zum Aufgehen): 2 Felder bei ★2, 3 Felder bei ★3.');
+    expect(itemRules('sourdough', 3)).toBe('Angrenzende Waffen erhalten +18% Schaden. Wächst alle 2 Gänge um eine Stufe (braucht Platz zum Aufgehen): 2 Felder bei ★2, 3 Felder bei ★3. Combo: Frisches Brot mit Toaster.');
     expect(itemT('sourdough')).toMatchObject({ name: 'Sauerteig-Ansatz', blurb: 'Füttern, und er wächst. Blubbert vor Potenzial.' });
   });
 

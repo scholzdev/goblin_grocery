@@ -6,7 +6,7 @@ import { arena, describeCombo, partsOf, at } from './helpers';
 describeCombo('confettiCannon', confettiCannon, ['Confetti Cannon', 'Konfettikanone']);
 
 describe('Confetti Cannon: runtime', () => {
-  const bounce = (stats: never, damage: number) => ({ stats, x: 10, y: 20, next: null, shot: { active: true, x: 10, y: 20, vx: 0, vy: 0, life: 1, damage, stats, splash: null } });
+  const bounce = (stats: never, damage: number) => ({ stats, x: 10, y: 20, next: null, shot: { active: true, x: 10, y: 20, vx: 0, vy: 0, life: 1, damage, stats, splash: null, tracker: { hits: new Set<number>() } } });
   it('every ricochet cap pops a confetti blast at the bounce: 50% of the shot damage, radius 60', () => {
     const { fake, stats } = arena(partsOf(confettiCannon));
     fake.hooks.emit('pattern:bounce', bounce(stats as never, 8));
