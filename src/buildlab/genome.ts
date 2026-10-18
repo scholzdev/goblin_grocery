@@ -136,7 +136,7 @@ export function createGenomePolicy(genome: Genome, name = 'genome'): Policy {
         if (w('rule.sellOn') < 1) continue;
         sale = sellable.find((s) => s.type !== x.type && value(s.type, s.tier ?? 1) + w('rule.sellMargin') < v);
         if (!sale) continue;
-        spend -= sellPrice(sale.type, sale.tier ?? 1);
+        spend -= sellPrice(sale.type, sale.tier ?? 1, state.build);
       }
       if (spend > money - w('rule.buyReserve')) continue;
       if (sale) { out.push({ kind: 'sell', uid: sale.uid }); sellable.splice(sellable.indexOf(sale), 1); free++; }

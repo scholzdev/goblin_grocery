@@ -3,7 +3,7 @@ import { profile, unlockedItems } from '../state/profile';
 import { ITEMS, ITEM_IDS, TIER, cellsFor, cellsOf } from '../data/items';
 import { RECIPES, recipeIcon, recipeParts } from '../data/recipes';
 import { BOSS_WAVE, ECONOMY, SHOP_LEVELS } from '../data/waves';
-import { labAddItem, labClear, cartUpgradeCost, nextCartSize, shelfUpgradeCost, upgradeCart, upgradeShelf, buyOffer, mergeItems, mergeTargetFor, upgradeShop, shopUpgradeCost, moveItem, previewMerge, previewMove, repair, reroll, sellItem, type MoveTarget } from '../state/run';
+import { labAddItem, labClear, cartUpgradeCost, nextCartSize, shelfUpgradeCost, upgradeCart, upgradeShelf, buyOffer, mergeItems, mergeTargetFor, upgradeShop, shopUpgradeCost, moveItem, previewMerge, previewMove, repair, reroll, sellItem, toggleShopLock, type MoveTarget } from '../state/run';
 import { findItem, rotateCells, rotatedSize, footprint } from '../systems/inventory';
 import { describeBuffs, tierScaling } from '../systems/synergies';
 import { currentRerollCost, inflation, repairCost, sellPrice } from '../systems/shop';
@@ -369,12 +369,13 @@ export function inspectorHtml(type: ItemTypeId, uid: string | null, offerTier?: 
   const gains = offerTier !== undefined && !loc && s ? setGains(s.inventory.placed, type, offerDouble) : [];
   const dblNote = offerDouble || (loc?.inst.double ?? false) ? `<span class="chip dbl">${esc(t('setDouble', { set: tagT(def.family) }))}</span>` : '';
   const flavor = type === 'jellybeans' ? (loc ? flavorOf(loc.inst) : null) : null;
+  const binder = type === 'binder' && loc?.inst.binderFamily ? `<span class="chip">${esc(t('binderChip', { f: tagT(loc.inst.binderFamily), n: Math.min(20, (loc.inst.binderSold ?? 0) * 2) }))}</span>` : '';
   const setChips = setsOf(type, flavor ?? undefined).map((id) => { const g = gains.find((x) => x.id === id); return `<span class="chip set-${id}${s?.build?.sets?.[id] ? ' act' : ''}">${setIcon(id, 14)}${tagT(id)}${g ? ` <small>(${gainText(g)})</small>` : ''}</span>`; }).join('');
   const head = `<header><span class="ico-tile ${rc}"><img src="${svg(`icon_${type}`)}" alt=""></span>
     <div class="hd"><div class="nm"><span style="font-size:${fitName(itemT(type).name)}px">${itemT(type).name}</span><b class="lv ${def.legendary ? 'leg' : `t${tier}`}">★${def.legendary ? '' : tier}</b></div>
     <span class="sub ${rc}">${rarity} · ${kind}</span></div></header>
-    <div class="chips">${dblNote}${flavor ? `<span class="chip flavor-chip flavor-${flavor}">${esc(t('flavorLabel', { f: tagT(flavor) }))}</span>` : ''}${setChips}${otherTags.map((tg) => `<span class="chip">${tagT(tg)}</span>`).join('')}<span class="chip">${icons.grid(15)}${w}×${h}</span>
-    <span class="chip coin"><img class="coin-ico" src="${svg('coin')}" alt="">${loc ? t('sells', { n: sellPrice(type, tier) }) : def.price}</span></div>${strongVsHtml(type)}`;
+    <div class="chips">${dblNote}${binder}${flavor ? `<span class="chip flavor-chip flavor-${flavor}">${esc(t('flavorLabel', { f: tagT(flavor) }))}</span>` : ''}${setChips}${otherTags.map((tg) => `<span class="chip">${tagT(tg)}</span>`).join('')}<span class="chip">${icons.grid(15)}${w}×${h}</span>
+    <span class="chip coin"><img class="coin-ico" src="${svg('coin')}" alt="">${loc ? t('sells', { n: sellPrice(type, tier, s?.build) }) : def.price}</span></div>${strongVsHtml(type)}`;
 
   let body = '';
   // Weapon stats: live values when in the cart, the base values at this level otherwise (shelf / offer).
@@ -549,7 +550,7 @@ function onClick(e: MouseEvent): void {
   if (add && s.lab) { const r = labAddItem(s, add.dataset.labAdd as ItemTypeId, labTier); if (r.ok) play('buy'); else toast(r.reason); store.changed(); return; }
   if (s.lab && act === 'lab-clear') { labClear(s); play('click'); store.changed(); return; }
   if (s.lab && act === 'lab-money') { s.money += 999; play('buy'); store.changed(); return; }
-  if (s.lab && act === 'lab-reroll') { s.money += currentRerollCost(s); reroll(s, flow.rng); play('click'); store.changed(); return; }
+  if (s.lab && act === 'lab-reroll') { if (!s.shop?.locked) { s.money += currentRerollCost(s); reroll(s, flow.rng); } play('click'); store.changed(); return; }
   if (act === 'next') { play('click'); selectedUid = null; if (s.labSandbox) flow.labToArena(); else flow.leaveShop(); return; }
   if (act === 'loyalty') {
     const cost = shopUpgradeCost(s);
@@ -558,6 +559,7 @@ function onClick(e: MouseEvent): void {
     store.changed();
     return;
   }
+  if (act === 'lock') { toggleShopLock(s); play('click'); store.changed(); return; }
   if (act === 'reroll') {
     const cost = currentRerollCost(s);
     const r = reroll(s, flow.rng);
@@ -801,8 +803,8 @@ function updateTarget(): void {
     if (res.result.ok) { slot.classList.add('ok'); drag.target = target; drag.valid = true; preview = res.build; }
   } else if (sell) {
     sell.classList.add('ok');
-    sell.textContent = t('sellFor', { name: itemT(drag.type).name, n: sellPrice(drag.type, drag.tier) });
-    sellHint = `<div class="nm">${t('sellFor', { name: itemT(drag.type).name, n: sellPrice(drag.type, drag.tier) })}</div>`;
+    sell.textContent = t('sellFor', { name: itemT(drag.type).name, n: sellPrice(drag.type, drag.tier, store.state.build) });
+    sellHint = `<div class="nm">${t('sellFor', { name: itemT(drag.type).name, n: sellPrice(drag.type, drag.tier, store.state.build) })}</div>`;
     drag.target = { where: 'sell' };
     drag.valid = true;
   }
@@ -842,7 +844,7 @@ function commitDrop(d: Drag): void {
   const tg = d.target;
   let ok = false;
   if (tg && tg.where === 'sell') {
-    const price = sellPrice(d.type, d.tier);
+    const price = sellPrice(d.type, d.tier, s.build);
     const r = sellItem(s, d.uid);
     ok = r.ok;
     if (r.ok) { ledger.push({ label: t('ledgerSold', { name: itemT(d.type).name }), amount: price }); play('sell'); } else toastLater(r.reason);
@@ -878,7 +880,9 @@ function serviceHtml(s: RunState): string {
     ? `<button class="btn small svc" disabled>${t('shelfMax')}</button>`
     : `<button class="btn small svc" data-act="shelf" ${s.money < sc ? 'disabled' : ''} title="${t('shelfTip')}"><span class="lbl">${t('shelfBtn')}</span>${costPill(sc, s.money >= sc)}</button>`;
   const rr = currentRerollCost(s);
-  return cart + shelf + `<button class="btn small svc" data-act="reroll" ${s.money < rr ? 'disabled' : ''}><span class="lbl">${t('reroll')}</span>${costPill(rr, s.money >= rr)}</button>`;
+  const locked = !!s.shop?.locked;
+  return cart + shelf + `<button class="btn small svc" data-act="reroll" ${locked || s.money < rr ? 'disabled' : ''} ${locked ? `title="${t('rShopLocked')}"` : ''}><span class="lbl">${t('reroll')}</span>${costPill(rr, s.money >= rr)}</button>`
+    + `<button class="btn small svc${locked ? ' on' : ''}" data-act="lock" aria-pressed="${locked}" title="${t('lockTip')}"><span class="lbl">${locked ? '🔒 ' + t('locked') : '🔓 ' + t('lock')}</span></button>`;
 }
 
 function loyaltyHtml(s: RunState): string {

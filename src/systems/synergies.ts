@@ -92,6 +92,8 @@ export function computeBuild(inv: Inventory, perk: Perk = {}): Build {
     stinkDps: 0,
     regen: 0, // the Snacks set (L2) and Snack Bag add in their player hooks
     killCoinMult: 1,
+    sellRate: 0.5,
+    sellFullFamilies: [],
     pickupRadius: PLAYER.pickupRadius + (perk.pickupRadius ?? 0), // the Vacuum and Magnet add in their player hooks
     shoveCooldown: PLAYER.shove.cooldown + (perk.shoveCooldown ?? 0),
     shoveDistMult: 1,

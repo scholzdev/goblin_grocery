@@ -5,10 +5,12 @@ import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS, waveDef } from '../data/waves'
 import { PLAYER, ITEMS, ITEM_IDS, STARTER_WEAPONS, TIER } from '../data/items';
 import { RECIPES } from '../data/recipes';
 import { ZONES, ZONE_TUNING, zonesOf, type ZoneId } from '../data/zones';
-import type { EnemyId, ItemTypeId, RunState, ShopOffer } from '../types';
+import type { Build, EnemyId, ItemTypeId, RunState, ShopOffer } from '../types';
 import type { Rng } from './rng';
 
-export const sellPrice = (type: ItemTypeId, tier = 1): number => Math.floor(TIER.value(ITEMS[type].price, tier) / 2);
+/** What selling pays: the value x `build.sellRate` (Barter Stamp), full value for a family a Collector's Binder holds. */
+export const sellPrice = (type: ItemTypeId, tier = 1, build?: Pick<Build, 'sellRate' | 'sellFullFamilies'>): number =>
+  Math.floor(TIER.value(ITEMS[type].price, tier) * (build?.sellFullFamilies.includes(ITEMS[type].family) ? 1 : build?.sellRate ?? 0.5));
 export const rerollCost = (rerollsDone: number, shopIndex: number): number => (ECONOMY.rerollBase + Math.ceil(shopIndex / 2)) * (rerollsDone + 1);
 const shopIdx = (state: RunState) => state.shop?.shopIndex ?? state.wave;
 /** Item price multiplier for the current shop (1 in shop 1). */
@@ -43,14 +45,16 @@ export function currentRerollCost(state: RunState): number {
 }
 
 /** `guarantee`: shop 1's initial roll includes the starting weapon's two suggested items at ★1 (default: only when shopIndex is 1). */
-export interface RollOpts { bias?: ItemTypeId[]; legendaryBonus?: number; forceLegendary?: boolean }
+/** `keep`: the offers of a locked shop. Unsold ones stay as they are (price included); each sold slot gets a fresh offer in place. */
+export interface RollOpts { bias?: ItemTypeId[]; legendaryBonus?: number; forceLegendary?: boolean; keep?: ShopOffer[] }
 
 export function rollOffers(state: RunState, rng: Rng, shopIndex: number, guarantee = shopIndex === 1, opts: RollOpts = {}): ShopOffer[] {
   const bias = opts.bias ?? [], bonus = opts.legendaryBonus ?? 0;
   const { placed, shelf } = state.inventory;
   const own = new Set<ItemTypeId>([...placed.map((p) => p.type), ...shelf.filter((s) => !!s).map((s) => s!.type)]);
   const lv = SHOP_LEVELS[Math.max(0, Math.min(SHOP_LEVELS.length, state.shopLevel) - 1)];
-  const offers: ShopOffer[] = [];
+  const kept = (opts.keep ?? []).filter((o) => !o.sold);
+  const offers: ShopOffer[] = kept.map((o) => ({ ...o }));
   // Checkout set discount is baked in at roll time: offers already on the table keep their price until the next reroll.
   const add = (type: ItemTypeId, tier: number) => offers.push({ slot: offers.length, type, tier, price: Math.max(1, Math.round(TIER.value(ITEMS[type].price, tier) * (PLAYER.starters[state.starter ?? 'toaster'].perk?.priceMult ?? 1) * (state.build?.priceMult ?? 1) * inflation(state, shopIndex))), sold: false });
   if (guarantee) for (const t of STARTER_WEAPONS[state.weapon ?? 'toaster'].guarantee) add(t, 1);
@@ -68,7 +72,9 @@ export function rollOffers(state: RunState, rng: Rng, shopIndex: number, guarant
     // Double pack: counts as 2 types in its family set, costs x1.5 (never legendary, never the guaranteed starters).
     if (shopIndex >= 2 && rng() < ECONOMY.doublePackChance) { const o = offers[offers.length - 1]; o.double = true; o.price = Math.round(o.price * ECONOMY.doublePackPriceMult); }
   }
-  return offers;
+  if (!opts.keep) return offers;
+  const fresh = offers.slice(kept.length);
+  return opts.keep.map((o, slot) => ({ ...(o.sold ? fresh.shift()! : { ...o }), slot }));
 }
 
 export function rollDoors(state: RunState, rng: Rng): DoorId[] {

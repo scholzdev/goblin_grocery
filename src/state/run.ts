@@ -3,7 +3,7 @@ import { ITEMS, ITEM_IDS, PLAYER, STARTER_WEAPONS, TIER } from '../data/items';
 import { DEPARTMENTS } from '../data/departments';
 import { MODIFIERS, type DoorId } from '../data/modifiers';
 import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS } from '../data/waves';
-import type { DepartmentId, ElementTag, Build, Inventory, ItemInstance, ItemTypeId, LabOpts, OpResult, Rotation, RunState, StarterId, StarterWeapon } from '../types';
+import type { DepartmentId, ElementTag, FamilyTag, Build, Inventory, ItemInstance, ItemTypeId, LabOpts, OpResult, Rotation, RunState, StarterId, StarterWeapon } from '../types';
 import { canPlace, findItem, normalizeRotation } from '../systems/inventory';
 import { mulberry32, type Rng } from '../systems/rng';
 import { zonesOf } from '../data/zones';
@@ -11,7 +11,7 @@ import { currentRerollCost, repairCost, rollDoors, rollOffers, rollZones, sellPr
 import { computeBuild } from '../systems/synergies';
 import { newDamageStats } from '../systems/damageStats';
 import { contentSetTune, contentTune } from '../engine/registry';
-import { FLAVORS } from '../engine/define';
+import { FAMILIES, FLAVORS } from '../engine/define';
 
 const fail = (reason: string): OpResult => ({ ok: false, reason });
 const OK: OpResult = { ok: true };
@@ -23,6 +23,19 @@ export function newUid(state: RunState): string {
 /** Jelly Beans start with a flavor drawn from the run seed (no rng at the creation sites); reshuffled by rollFlavors on every shop open. */
 const newFlavor = (state: RunState, type: ItemTypeId): { flavor?: ElementTag } =>
   type === 'jellybeans' ? { flavor: FLAVORS[Math.floor(mulberry32(state.seed ^ Math.imul(state.nextUid, 0x9e3779b1) ^ state.wave)() * FLAVORS.length)] } : {};
+
+/** Collector's Binder is bound to the family the cart and shelf hold the most items of (ties: family order) when it is bought. */
+const newBinder = (state: RunState, type: ItemTypeId): Pick<ItemInstance, 'binderFamily' | 'binderSold'> => {
+  if (type !== 'binder') return {};
+  const owned = [...state.inventory.placed, ...state.inventory.shelf].filter((i): i is ItemInstance => !!i);
+  const n = (f: FamilyTag) => owned.filter((i) => ITEMS[i.type].family === f).length;
+  return { binderFamily: FAMILIES.reduce((best, f) => (n(f) > n(best) ? f : best), FAMILIES[0]), binderSold: 0 };
+};
+
+/** Selling an item of a Binder's family counts toward that Binder's damage bonus. */
+function creditBinders(state: RunState, type: ItemTypeId): void {
+  for (const i of [...state.inventory.placed, ...state.inventory.shelf]) if (i?.type === 'binder' && i.binderFamily === ITEMS[type].family) i.binderSold = (i.binderSold ?? 0) + 1;
+}
 
 /** Every shop visit re-rolls the flavor of all owned Jelly Beans (cart and shelf). */
 export function rollFlavors(state: RunState, rng: Rng): void {
@@ -75,7 +88,7 @@ export function labAddItem(state: RunState, type: ItemTypeId, tier: number): OpR
   if (state.phase !== 'shop') return fail(t('rShopClosed'));
   const free = state.inventory.shelf.indexOf(null);
   if (free < 0) return fail(t('rShelfFull'));
-  state.inventory.shelf[free] = { uid: newUid(state), type, x: 0, y: 0, rot: 0, tier: ITEMS[type].legendary ? 1 : Math.max(1, Math.min(TIER.max, tier)), ...newFlavor(state, type) };
+  state.inventory.shelf[free] = { uid: newUid(state), type, x: 0, y: 0, rot: 0, tier: ITEMS[type].legendary ? 1 : Math.max(1, Math.min(TIER.max, tier)), ...newFlavor(state, type), ...newBinder(state, type) };
   return OK;
 }
 
@@ -213,7 +226,7 @@ export function buyOffer(state: RunState, slot: number): OpResult {
   const free = state.inventory.shelf.indexOf(null);
   if (free < 0) return fail(t('rShelfFullSell'));
   state.money -= o.price;
-  state.inventory.shelf[free] = { uid: newUid(state), type: o.type, x: 0, y: 0, rot: 0, tier: o.tier, ...(o.double ? { double: true } : {}), ...newFlavor(state, o.type) };
+  state.inventory.shelf[free] = { uid: newUid(state), type: o.type, x: 0, y: 0, rot: 0, tier: o.tier, ...(o.double ? { double: true } : {}), ...newFlavor(state, o.type), ...newBinder(state, o.type) };
   o.sold = true;
   return OK;
 }
@@ -221,8 +234,8 @@ export function buyOffer(state: RunState, slot: number): OpResult {
 /** Stockroom: take the free item (shelf full: its sell price in coins instead). Returns true if it went on the shelf. */
 export function takeStockroomItem(state: RunState, o: { type: ItemTypeId; tier: number; double?: boolean }): boolean {
   const free = state.inventory.shelf.indexOf(null);
-  if (free < 0) { addCoins(state, sellPrice(o.type, o.tier), t('coinStockroom')); return false; }
-  state.inventory.shelf[free] = { uid: newUid(state), type: o.type, x: 0, y: 0, rot: 0, tier: o.tier, ...(o.double ? { double: true } : {}), ...newFlavor(state, o.type) };
+  if (free < 0) { addCoins(state, sellPrice(o.type, o.tier, state.build), t('coinStockroom')); return false; }
+  state.inventory.shelf[free] = { uid: newUid(state), type: o.type, x: 0, y: 0, rot: 0, tier: o.tier, ...(o.double ? { double: true } : {}), ...newFlavor(state, o.type), ...newBinder(state, o.type) };
   return true;
 }
 
@@ -232,13 +245,15 @@ export function sellItem(state: RunState, uid: string): OpResult {
   if (!f) return fail(t('rNoItem'));
   if (f.where === 'grid') state.inventory.placed.splice(state.inventory.placed.indexOf(f.inst), 1);
   else state.inventory.shelf[f.slot] = null;
-  state.money += sellPrice(f.inst.type, f.inst.tier ?? 1);
+  state.money += sellPrice(f.inst.type, f.inst.tier ?? 1, state.build);
+  creditBinders(state, f.inst.type);
   recomputeBuild(state);
   return OK;
 }
 
 export function reroll(state: RunState, rng: Rng): OpResult {
   if (state.phase !== 'shop' || !state.shop) return fail(t('rShopClosed'));
+  if (state.shop.locked) return fail(t('rShopLocked'));
   const cost = currentRerollCost(state);
   const bonus = state.shop.bonusFreeRerolls > 0;
   if (state.money < cost) return fail(t('needCoins', { n: cost - state.money }));
@@ -282,9 +297,18 @@ export function openShop(state: RunState, rng: Rng): void {
   const d = DEPARTMENTS[state.department];
   const m = MODIFIERS[state.modifier];
   const opts = { bias: [...d.shopBias], legendaryBonus: d.legendaryBonus, forceLegendary: d.forceLegendary || m.forceLegendary };
-  state.shop = { offers: rollOffers(state, rng, state.wave, state.wave === 1, opts), rerolls: 0, repairUsed: false, freeRerollUsed: false, bonusFreeRerolls: m.freeRerolls, shopIndex: state.wave, ...opts };
+  const carried = state.shopLock;
+  state.shopLock = undefined;
+  state.shop = { offers: rollOffers(state, rng, state.wave, state.wave === 1 && !carried, carried ? { ...opts, keep: carried } : opts), locked: !!carried, rerolls: 0, repairUsed: false, freeRerollUsed: false, bonusFreeRerolls: m.freeRerolls, shopIndex: state.wave, ...opts };
   state.shop.riseWait = riseSourdough(state);
   rollFlavors(state, rng); // recomputes the build (after sourdough tiers changed)
+}
+
+/** Shop lock: free to toggle. While on, the next shops keep the unsold offers (see `startNextWave`, `openShop`). */
+export function toggleShopLock(state: RunState): OpResult {
+  if (state.phase !== 'shop' || !state.shop) return fail(t('rShopClosed'));
+  state.shop.locked = !state.shop.locked;
+  return OK;
 }
 
 export function addCoins(state: RunState, amount: number, label: string): void {
@@ -307,6 +331,7 @@ export function finishWave(state: RunState): void {
 export function startNextWave(state: RunState): void {
   state.wave++;
   state.phase = 'combat';
+  state.shopLock = state.shop?.locked ? state.shop.offers : undefined;
   state.shop = null;
   state.coinLog = [];
 }
