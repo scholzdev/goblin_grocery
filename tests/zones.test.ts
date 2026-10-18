@@ -103,7 +103,7 @@ describe('zones', () => {
   });
 
   it('lab runs get a zone on each door', () => {
-    const s = createLabRun(4, { aisle: 3, dept: 'checkout', shift: 0, starter: 'toaster', weapon: 'toaster', money: 50, cart: [4, 4], shelf: 4, shopLevel: 1, god: false, keep: false });
+    const s = createLabRun(4, { aisle: 3, dept: 'checkout', shift: 0, starter: 'toaster', weapon: 'toaster', money: 50, cart: [4, 4], shelf: 4, shopLevel: 1, god: false });
     openShop(s, mulberry32(4));
     leaveShop(s, mulberry32(4));
     expect(ZONES[s.doorZones![0]!].theme).toBe('checkout');

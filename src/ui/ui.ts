@@ -4,12 +4,13 @@ import { flow } from '../flow';
 import { settings, saveSettings, getBest } from '../state/settings';
 import { ITEMS, PLAYER, STARTER_LOOKS, STARTER_WEAPONS } from '../data/items';
 import { RECIPES, recipeIcon, recipeParts } from '../data/recipes';
-import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS, enemyAppears } from '../data/waves';
+import { BOSS_WAVE, SHIFTS, enemyAppears } from '../data/waves';
 import { CODEX_ENEMIES, ELITE, ENEMIES, MINI_BOSS, bossFor, enemyFrame, isBossId } from '../data/enemies';
 import { DEV_BUILD, LAB, SIM_PARAM, loadLab, saveLab } from '../lab';
 import { play, refreshVolumes, startMusic } from '../audio/sfx';
 import { initHud, hud, svg, relabelHud } from './hud';
-import { initSandbox, sandboxKey } from './sandbox';
+import { initLabBench, labBenchKey } from './labBench';
+import { labFormHtml, readLabForm } from './labFields';
 import { initSimTag, launchSim } from './simTag';
 import { simRegistry } from '../sims/_registry';
 import { initTutorial, resetTutorial } from './tutorial';
@@ -20,7 +21,6 @@ import { kbdHtml, keyText, moveHtml } from './keys';
 import { initShop, shopKey, shopPad, gridHtml, combosHtml, starsHtml, rarityClass, inspectorHtml, showItemCard, hideItemCard } from './shop';
 import { DEPARTMENTS, THEMES } from '../data/departments';
 import { MODIFIERS, type DoorId, type ModifierId } from '../data/modifiers';
-import { SET_EVENTS, type SetEventKind } from '../data/events';
 import { CART_SKINS, GOBLIN_SKINS, UNLOCKS, type CartSkin, type GoblinSkin } from '../data/unlocks';
 import { COUPON_COINS, STAMPS_PER_CARD, cartUnlocked, dailyBestToday, discoverRecipe, goblinUnlocked, isNew, markSeen, newCount, profile, saveProfile, shiftUnlocked, starterUnlocked, unlockedItems } from '../state/profile';
 import { ITEM_IDS } from '../data/items';
@@ -28,9 +28,7 @@ import type { DepartmentId, EnemyId, ItemTypeId, LabOpts, Perk, RecipeId, SetId,
 import type { Fresh } from '../state/profile';
 import { modIcon, setIcon } from './icons';
 import { affinityRowsHtml } from './affinity';
-import { damageBreakdownHtml } from './damageBreakdown';
-import { REACTION_LABEL, REACTION_TEXT } from '../engine/reactions';
-import { weaponTags } from '../engine/hitTags';
+import { damageBreakdownHtml, sourceNames } from './damageBreakdown';
 import { t, fmtNum, lang, setLang, LANGS, type Lang, type UIKey } from '../i18n';
 import { newSetLevels } from '../data/sets';
 import { ZONES } from '../data/zones';
@@ -101,7 +99,7 @@ export function initUi(_game: Phaser.Game): void {
   }
   applyMotion();
   initHud(ui);
-  if (LAB) initSandbox(ui);
+  if (LAB) initLabBench(ui);
   initShop(ui);
   initTutorial(ui);
   ui.append(...Object.values(screens));
@@ -184,6 +182,7 @@ function closeSetCard(): void {
 }
 
 function setBonusCard(ups: { id: SetId; lv: number }[]): void {
+  if (document.querySelector('#labbench.in-shop:not(.hidden)')) { play('upgrade'); return; } // the lab bench lists the sets itself, and sits where this card would
   if (!setCard) {
     const el = document.createElement('div');
     el.className = 'setcard';
@@ -538,19 +537,13 @@ function freshHtml(res: NonNullable<typeof flow.lastResult>): string {
   return `${grid}${rows ? `<div class="almost"><h5 class="sec">${t('almostThere')}</h5>${rows}</div>` : ''}`;
 }
 
-const DMG_LABELS: Record<string, UIKey> = { burn: 'dmgBurn', poison: 'dmgPoison', 'Bag It': 'dmgBag', 'Tin Foil Hat': 'dmgFoil', Slam: 'dmgSlam', shove: 'dmgShove', 'Slam Bumper': 'dmgBumper', 'Can Pyramid': 'dmgBowl', 'Oven vent': 'dmgVent', 'Live cable': 'dmgCable', 'Party Popper': 'dmgPopper', 'Egg Carton': 'dmgEgg', [REACTION_LABEL.shatter]: REACTION_TEXT.shatter.name, [REACTION_LABEL.conduct]: REACTION_TEXT.conduct.name, [REACTION_LABEL.crack]: REACTION_TEXT.crack.name };
-const REACTION_KEYS: readonly string[] = Object.values(REACTION_LABEL);
 
 function endHtml(): string {
   const s = store.state;
   const won = s.phase === 'victory';
   const res = flow.lastResult;
   const icons = [...s.inventory.placed].map((i) => `<span class="endicon ${rarityClass(i.type, i.tier)}" title="${itemT(i.type).name}"><img src="${svg(`icon_${i.type}`)}" alt="${itemT(i.type).name}">${starsHtml(i.tier)}</span>`).join('');
-  const itemOf = (k: string) => s.inventory.placed.find((i) => i.uid === k) ?? s.inventory.shelf.find((i) => i?.uid === k);
-  const dmg = damageBreakdownHtml(s.stats, {
-    name: (k) => { const it = itemOf(k); return it ? itemT(it.type).name : t(DMG_LABELS[k] ?? 'dmgSold'); },
-    type: (k) => { const it = itemOf(k), tag = it && weaponTags(it.type)[0]; return tag && tag !== 'mark' ? tag : k === 'burn' ? 'heat' : k === 'poison' ? 'poison' : REACTION_KEYS.includes(k) ? 'reaction' : 'physical'; },
-  }, settings.damageColors);
+  const dmg = damageBreakdownHtml(s.stats, sourceNames(s.inventory), settings.damageColors);
   const mins = Math.floor(s.stats.timeSeconds / 60), secs = Math.floor(s.stats.timeSeconds % 60);
   const fresh = res ? freshHtml(res) : '';
   return `<div class="endcard receipt ${fresh ? 'cols' : ''}">
@@ -622,7 +615,7 @@ function onClick(e: MouseEvent): void {
       screens.title.innerHTML = titleHtml();
       break;
     case 'lab-open': {
-      const o = readLab();
+      const o = readLabForm(screens.title, loadLab());
       saveLab(o);
       startMusic();
       flow.startLab(o);
@@ -771,40 +764,11 @@ function closeTitleSettings(): boolean {
 
 
 function labHtml(o: LabOpts): string {
-  const opts = (vals: (string | number)[], cur: string | number, label: (v: any) => string = String) => vals.map((v) => `<option value="${v}" ${String(v) === String(cur) ? 'selected' : ''}>${label(v)}</option>`).join('');
-  const row = (name: string, label: string, html: string) => `<label>${label}<select data-lab="${name}">${html}</select></label>`;
-  const aisles = Array.from({ length: 15 }, (_, i) => i + 1);
-  const carts = [[4, 4], ...ECONOMY.cartSizes].map(([c, r]) => `${c}x${r}`);
-  const shelves = [ECONOMY.shelfSlots, ...ECONOMY.shelfSizes];
   const sims = simRegistry.ids.map((id) => `<option value="${id}">${id}</option>`).join('');
   return `<h2>${t('lab')}</h2><div class="settings lab-form">
-    <label>${t('simSelect')}<select data-lab="sim">${sims}</select></label>
-    <div class="row"><button class="btn" data-act="sim-start">${t('simStart')}</button></div>
-    ${row('aisle', t('labAisle'), opts(aisles, o.aisle, (a) => (a === BOSS_WAVE ? `${a} (${t('labBoss')})` : a > BOSS_WAVE ? `${a} (${t('labOvertime')})` : a)))}
-    ${row('dept', t('labDept'), opts(THEMES, THEMES.includes(o.dept) ? o.dept : 'main', (d: DepartmentId) => deptT(d).name))}
-    ${row('mod', t('labMod'), opts(Object.keys(MODIFIERS), o.mod ?? 'none', (m: ModifierId) => modT(m).name))}
-    ${row('shift', t('labShift'), opts(SHIFTS.map((_, i) => i), o.shift, (i) => `${i + 1}: ${shiftT(i).name}`))}
-    ${row('starter', t('labStarter'), opts(STARTERS, o.starter, (s: StarterId) => starterT(s).name))}
-    ${row('weapon', t('labWeapon'), opts(WEAPONS, o.weapon, (w: StarterWeapon) => itemT(w).name))}
-    <label>${t('labMoney')}<input type="number" data-lab="money" value="${o.money}" min="0" step="100"></label>
-    ${row('cart', t('labCart'), opts(carts, o.cart.join('x')))}
-    ${row('shelf', t('labShelf'), opts(shelves, o.shelf))}
-    ${row('shopLevel', t('labLoyalty'), opts(SHOP_LEVELS.map((_, i) => i + 1), o.shopLevel))}
-    ${row('event', t('labEvent'), opts(['random', 'none', 'wetFloor', 'outage', 'happyHour', 'heatwave', 'powerSurge', 'flashSale', 'freezerFail'], o.event ?? 'random', (v) => v in SET_EVENTS ? t(`evName_${v as SetEventKind}`) : t(({ random: 'evRandom', none: 'evNone', wetFloor: 'evWet', outage: 'evOutage' } as const)[v as 'random'])))}
-    <label class="check"><input type="checkbox" data-lab="god" ${o.god ? 'checked' : ''}>${t('labGod')}</label>
-    <label class="check"><input type="checkbox" data-lab="keep" ${o.keep ? 'checked' : ''}>${t('labKeep')}</label>
-    <label class="check"><input type="checkbox" data-lab="sandbox" ${o.sandbox ? 'checked' : ''}>${t('labSandbox')}</label>
+    <div class="lab-sim"><label>${t('simSelect')}<select data-lab="sim">${sims}</select></label><button class="btn small" data-act="sim-start">${t('simStart')}</button></div>
+    <div class="lab-groups">${labFormHtml(o, 'title')}</div>
     <div class="row"><button class="btn coral" data-act="lab-open">${t('labOpen')}</button></div></div>`;
-}
-
-function readLab(): LabOpts {
-  const f = (k: string) => screens.title.querySelector<HTMLInputElement>(`[data-lab="${k}"]`)!;
-  const aisle = Number(f('aisle').value);
-  return {
-    aisle, dept: f('dept').value as DepartmentId, shift: Number(f('shift').value), starter: f('starter').value as StarterId, weapon: f('weapon').value as StarterWeapon,
-    money: Math.max(0, Math.floor(Number(f('money').value)) || 0), cart: f('cart').value.split('x').map(Number) as [number, number],
-    shelf: Number(f('shelf').value), shopLevel: Number(f('shopLevel').value), event: f('event').value as LabOpts['event'], mod: f('mod').value as ModifierId, god: f('god').checked, keep: f('keep').checked, sandbox: f('sandbox').checked,
-  };
 }
 
 /** Applies a new UI language and redraws whatever is on screen (title keeps its settings modal open). */
@@ -849,7 +813,7 @@ function onInput(e: Event): void {
 function onKey(e: KeyboardEvent): void {
   if (listening) { listenKey(e); return; }
   if (shopKey(e)) { e.preventDefault(); return; }
-  if (LAB && sandboxKey(e)) { e.preventDefault(); return; }
+  if (LAB && labBenchKey(e)) { e.preventDefault(); return; }
   if (e.key === 'F9' && flow.sim) { e.preventDefault(); play('click'); flow.restartSim(); return; } // restart the sim from scratch, same seed
   const s = store.state;
   if (e.key === 'F11' && desktop) {

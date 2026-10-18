@@ -1159,7 +1159,7 @@ describe('per-level scaling table', () => {
 });
 
 describe('Test Lab', () => {
-  const opts = { aisle: 6, dept: 'frozen' as const, shift: 2, starter: 'pan' as const, weapon: 'pan' as const, money: 321, cart: ECONOMY.cartSizes[2], shelf: ECONOMY.shelfSizes[1], shopLevel: SHOP_LEVELS.length, god: true, keep: true, mod: 'rush' as const };
+  const opts = { aisle: 6, dept: 'frozen' as const, shift: 2, starter: 'pan' as const, weapon: 'pan' as const, money: 321, cart: ECONOMY.cartSizes[2], shelf: ECONOMY.shelfSizes[1], shopLevel: SHOP_LEVELS.length, god: true, mod: 'rush' as const };
   it('createLabRun parks an empty run before the chosen aisle', () => {
     const s = createLabRun(1, opts);
     expect(s.wave).toBe(opts.aisle - 1);
@@ -1189,14 +1189,14 @@ describe('Test Lab', () => {
   it('labAddItem fills the first free shelf slot with the tier, fails when full, legendaries stay ★1', () => {
     const s = createLabRun(1, { ...opts, shelf: ECONOMY.shelfSlots });
     openShop(s, mulberry32(1));
-    expect(labAddItem(s, 'fan', TIER.max).ok).toBe(true);
+    expect(labAddItem(s, 'fan', TIER.max, 'shelf').ok).toBe(true);
     expect(s.inventory.shelf[0]).toMatchObject({ type: 'fan', tier: TIER.max });
     const legend = Object.keys(ITEMS).find((k) => ITEMS[k as ItemTypeId].legendary) as ItemTypeId;
-    labAddItem(s, legend, TIER.max);
+    labAddItem(s, legend, TIER.max, 'shelf');
     expect(s.inventory.shelf[1]!.tier).toBe(1);
-    while (labAddItem(s, 'fan', 1).ok);
+    while (labAddItem(s, 'fan', 1, 'shelf').ok);
     expect(s.inventory.shelf.every(Boolean)).toBe(true);
-    expect(labAddItem(s, 'fan', 1)).toEqual({ ok: false, reason: 'Staging shelf is full' });
+    expect(labAddItem(s, 'fan', 1, 'shelf')).toEqual({ ok: false, reason: 'Staging shelf is full' });
   });
 });
 

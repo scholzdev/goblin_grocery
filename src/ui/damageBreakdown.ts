@@ -1,10 +1,13 @@
 import { DAMAGE_TYPES, ELEMENT_COLORS, type DamageType } from '../engine/damageType';
 import { totalDamage } from '../systems/damageStats';
 import { REACTION_IDS } from '../engine/define';
-import { REACTION_TEXT } from '../engine/reactions';
-import { t, fmtNum } from '../i18n';
-import type { RunStats } from '../types';
+
+import { t, fmtNum, type UIKey } from '../i18n';
+import type { Inventory, RunStats } from '../types';
 import { damageTypeName } from './affinity';
+import { itemT } from '../i18n/data';
+import { weaponTags } from '../engine/hitTags';
+import { REACTION_LABEL, REACTION_TEXT } from '../engine/reactions';
 
 // The run-end "damage breakdown" (docs/item-hooks-refactor.md "Damage breakdown"): per-source bars, the damage by type as one stacked bar with a legend,
 // the DoT / weak / resisted shares, the Shred and mark bonuses and the reaction counts. The colors come from `ELEMENT_COLORS` unless the "Damage colors" setting is off.
@@ -49,4 +52,16 @@ export function damageBreakdownHtml(stats: Pick<RunStats, 'damageByWeapon' | 'da
     <div class="dh">${t('damageByType')}</div>${stack}<div class="dlegend">${legend}</div>
     ${lines ? `<div class="dlines">${lines}</div>` : ''}
   </div>`;
+}
+
+const DMG_LABELS: Record<string, UIKey> = { burn: 'dmgBurn', poison: 'dmgPoison', 'Bag It': 'dmgBag', 'Tin Foil Hat': 'dmgFoil', Slam: 'dmgSlam', shove: 'dmgShove', 'Slam Bumper': 'dmgBumper', 'Can Pyramid': 'dmgBowl', 'Oven vent': 'dmgVent', 'Live cable': 'dmgCable', 'Party Popper': 'dmgPopper', 'Egg Carton': 'dmgEgg', [REACTION_LABEL.shatter]: REACTION_TEXT.shatter.name, [REACTION_LABEL.conduct]: REACTION_TEXT.conduct.name, [REACTION_LABEL.crack]: REACTION_TEXT.crack.name };
+const REACTION_KEYS: readonly string[] = Object.values(REACTION_LABEL);
+
+/** Names and bar colors for the sources of a run (items of `inv`, burn, poison, reactions, the labels): shared by the run-end receipt and the lab meter. */
+export function sourceNames(inv: Inventory): BreakdownNames {
+  const itemOf = (k: string) => inv.placed.find((i) => i.uid === k) ?? inv.shelf.find((i) => i?.uid === k);
+  return {
+    name: (k) => { const it = itemOf(k); return it ? itemT(it.type).name : t(DMG_LABELS[k] ?? 'dmgSold'); },
+    type: (k) => { const it = itemOf(k), tag = it && weaponTags(it.type)[0]; return tag && tag !== 'mark' ? tag : k === 'burn' ? 'heat' : k === 'poison' ? 'poison' : REACTION_KEYS.includes(k) ? 'reaction' : 'physical'; },
+  };
 }

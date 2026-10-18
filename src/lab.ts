@@ -1,6 +1,7 @@
 import { ECONOMY } from './data/waves';
 import type { EliteAffix } from './data/enemies';
 import type { SpreadKind } from './systems/spread';
+import { parseSlots, type LabSlot } from './state/lab';
 import type { EnemyId, LabOpts } from './types';
 
 const QUERY = new URLSearchParams(location.search);
@@ -14,7 +15,7 @@ export const LAB = DEV_BUILD && (QUERY.has('lab') || QUERY.has('sim'));
 export const BOT = import.meta.env.DEV && QUERY.has('bot');
 
 const KEY = 'goblin-grocery.lab.v1';
-export const LAB_DEFAULTS: LabOpts = { aisle: 1, dept: 'main', shift: 0, starter: 'toaster', weapon: 'toaster', money: 999, cart: [4, 4], shelf: ECONOMY.shelfSlots, shopLevel: 1, god: false, keep: true, event: 'random', mod: 'none', sandbox: false };
+export const LAB_DEFAULTS: LabOpts = { aisle: 1, dept: 'main', shift: 0, starter: 'toaster', weapon: 'toaster', money: 999, cart: [4, 4], shelf: ECONOMY.shelfSlots, shopLevel: 1, god: false, event: 'random', mod: 'none', sandbox: true };
 
 /**
  * Sandbox dummy spec; `mini` = MINI_BOSS variant index. Kept across shop ↔ arena swaps so the dummies come back.
@@ -34,4 +35,14 @@ export function loadLab(): LabOpts {
 
 export function saveLab(o: LabOpts): void {
   try { localStorage.setItem(KEY, JSON.stringify(o)); } catch { /* storage unavailable */ }
+}
+
+const SLOT_KEY = 'goblin-grocery.lab.slots.v1';
+
+export function loadSlots(): (LabSlot | null)[] {
+  try { return parseSlots(localStorage.getItem(SLOT_KEY)); } catch { return parseSlots(null); }
+}
+
+export function saveSlots(slots: (LabSlot | null)[]): void {
+  try { localStorage.setItem(SLOT_KEY, JSON.stringify(slots)); } catch { /* storage unavailable */ }
 }

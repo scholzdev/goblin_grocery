@@ -4,8 +4,9 @@ import { ITEMS, ITEM_IDS, PLAYER, SIGNATURE, STARTER_WEAPONS, TIER, signatureOf 
 import { DEPARTMENTS } from '../data/departments';
 import { MODIFIERS, type DoorId } from '../data/modifiers';
 import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS } from '../data/waves';
+import type { ZoneId } from '../data/zones';
 import type { DepartmentId, ElementTag, FamilyTag, Build, Inventory, ItemInstance, ItemTypeId, LabOpts, OpResult, Rotation, RunState, StarterId, StarterWeapon } from '../types';
-import { canPlace, findItem, normalizeRotation } from '../systems/inventory';
+import { canPlace, findItem, firstFit, normalizeRotation } from '../systems/inventory';
 import { mulberry32, type Rng } from '../systems/rng';
 import { zonesOf } from '../data/zones';
 import { currentRerollCost, repairCost, rollDoors, rollOffers, rollZones, sellPrice } from '../systems/shop';
@@ -46,9 +47,15 @@ export function rollFlavors(state: RunState, rng: Rng): void {
   recomputeBuild(state);
 }
 
+/** Aisle 1's zone in `theme`, from the seed (null for a department without zones). */
+const startZone = (seed: number, theme: DepartmentId): ZoneId | null => {
+  const zs = zonesOf(theme);
+  return zs.length ? zs[Math.floor(mulberry32(seed ^ 0x2f6b9d)() * zs.length)].id : null;
+};
+
 export function createRun(seed: number, starter: StarterId = 'toaster', shift = 0, weapon: StarterWeapon = 'toaster', theme: DepartmentId = 'main'): RunState {
   const inventory: Inventory = { cols: 4, rows: 4, placed: [], shelf: Array(ECONOMY.shelfSlots).fill(null) };
-  const zs = zonesOf(theme), zone = zs.length ? zs[Math.floor(mulberry32(seed ^ 0x2f6b9d)() * zs.length)].id : null; // aisle 1's zone, from the seed
+  const zone = startZone(seed, theme);
   const state: RunState = {
     phase: 'title', wave: 1, hp: PLAYER.maxHp, money: PLAYER.startMoney + (PLAYER.starters[starter].perk?.startMoney ?? 0), inventory,
     build: undefined as unknown as Build, shop: null, shopLevel: 1, starter, weapon, shift, theme, department: theme, modifier: 'none', route: [theme], mods: ['none'], doors: null, zone, zones: [zone], doorZones: null, coinLog: [], nextUid: 1, seed,
@@ -65,34 +72,69 @@ export function createRun(seed: number, starter: StarterId = 'toaster', shift = 
 export function createLabRun(seed: number, o: LabOpts): RunState {
   const s = createRun(seed, o.starter, o.shift, o.weapon, o.dept === 'boss' ? 'main' : o.dept);
   s.inventory = { cols: o.cart[0], rows: o.cart[1], placed: [], shelf: Array(o.shelf).fill(null) };
-  s.wave = o.sandbox ? o.aisle : o.aisle - 1; // the sandbox never advances, so it sits on the chosen aisle
-  s.money = o.money;
-  s.shopLevel = o.shopLevel;
   s.unlocked = [...ITEM_IDS];
   s.lab = true;
-  s.labGod = o.god;
-  s.labEvent = o.event ?? 'random';
-  s.labDept = o.aisle === BOSS_WAVE ? 'boss' : s.theme;
-  s.labMod = o.mod ?? 'none';
-  s.labSandbox = !!o.sandbox;
+  labApply(s, o);
+  return s;
+}
+
+/** The aisle a lab run is set up for: the sandbox sits on it, a real run walks into it from the shop. */
+export const labAisle = (s: RunState): number => (s.labSandbox ? s.wave : s.wave + 1);
+
+/**
+ * Lab setup -> run state: applies the fields of `o` that are present (the whole setup at creation, one edit from the bench afterwards).
+ * Aisle, department, modifier and mode are projected together because they feed each other (the boss aisle forces the boss department).
+ * A shrunk cart or shelf keeps what fits and parks the rest on the shelf (what does not fit even there is dropped).
+ */
+export function labApply(s: RunState, o: Partial<LabOpts>): void {
+  if (o.starter !== undefined) s.starter = o.starter;
+  if (o.shift !== undefined) s.shift = o.shift;
+  if (o.shopLevel !== undefined) s.shopLevel = o.shopLevel;
+  if (o.money !== undefined) s.money = o.money;
+  if (o.god !== undefined) s.labGod = o.god;
+  if (o.event !== undefined) s.labEvent = o.event;
+  if (o.cart || o.shelf !== undefined) labResize(s.inventory, o.cart ?? [s.inventory.cols, s.inventory.rows], o.shelf ?? s.inventory.shelf.length);
+  const aisle = o.aisle ?? labAisle(s), sandbox = o.sandbox ?? !!s.labSandbox;
+  const theme = o.dept ? (o.dept === 'boss' ? 'main' : o.dept) : s.theme;
+  if (theme !== s.theme) { s.theme = theme; s.zone = startZone(s.seed, theme); s.zones = [s.zone]; s.route = [theme]; }
+  s.labSandbox = sandbox;
+  s.wave = sandbox ? aisle : aisle - 1; // the sandbox never advances, so it sits on the chosen aisle
+  if (aisle > BOSS_WAVE) s.overtime = true; else delete s.overtime;
+  s.labMod = o.mod ?? s.labMod ?? 'none';
+  s.labDept = aisle === BOSS_WAVE ? 'boss' : s.theme;
   s.department = s.labDept;
-  if (o.aisle > BOSS_WAVE) s.overtime = true;
+  if (sandbox) s.modifier = aisle === BOSS_WAVE ? 'none' : s.labMod; // a sandbox never walks through a door
   recomputeBuild(s);
   s.hp = s.build.maxHp;
-  return s;
+}
+
+function labResize(inv: Inventory, cart: [number, number], shelfSize: number): void {
+  const spill: ItemInstance[] = [];
+  inv.cols = cart[0]; inv.rows = cart[1];
+  inv.placed = inv.placed.filter((i) => canPlace({ ...inv, placed: [] }, i.type, i.x, i.y, i.rot, undefined, i.tier).ok || !spill.push(i));
+  const old = inv.shelf;
+  inv.shelf = Array(shelfSize).fill(null);
+  old.forEach((it, k) => { if (!it) return; if (k < shelfSize) inv.shelf[k] = it; else spill.push(it); });
+  for (const it of spill) {
+    const free = inv.shelf.indexOf(null);
+    if (free >= 0) inv.shelf[free] = { ...it, x: 0, y: 0, rot: 0 };
+  }
 }
 
 /** Door of the next lab aisle: the chosen modifier (the boss aisle is always the boss). */
 export const labDoor = (s: RunState): DoorId =>
   s.wave + 1 === BOSS_WAVE && !s.overtime ? 'boss' : s.labMod ?? 'none';
 
-/** Free copy of `type` at `tier` (legendaries ★1) on the first empty shelf slot. */
-export function labAddItem(state: RunState, type: ItemTypeId, tier: number): OpResult {
-  if (state.phase !== 'shop') return fail(t('rShopClosed'));
-  const free = state.inventory.shelf.indexOf(null);
-  if (free < 0) return fail(t('rShelfFull'));
-  state.inventory.shelf[free] = { uid: newUid(state), type, x: 0, y: 0, rot: 0, tier: ITEMS[type].legendary ? 1 : Math.max(1, Math.min(TIER.max, tier)), ...newFlavor(state, type), ...newBinder(state, type) };
-  return OK;
+/** Free copy of `type` at `tier` (legendaries ★1): in the cart's first free spot for `to: 'cart'` (the shelf when nothing fits), else the first empty shelf slot. */
+export function labAddItem(state: RunState, type: ItemTypeId, tier: number, to: 'cart' | 'shelf' = 'shelf'): { ok: true; where: 'cart' | 'shelf' } | { ok: false; reason: string } {
+  if (state.phase !== 'shop') return { ok: false, reason: t('rShopClosed') };
+  const inv = state.inventory, tr = ITEMS[type].legendary ? 1 : Math.max(1, Math.min(TIER.max, tier));
+  const spot = to === 'cart' ? firstFit(inv, type, tr) : null, free = inv.shelf.indexOf(null);
+  if (!spot && free < 0) return { ok: false, reason: t('rShelfFull') };
+  const inst: ItemInstance = { uid: newUid(state), type, x: spot?.x ?? 0, y: spot?.y ?? 0, rot: spot?.rot ?? 0, tier: tr, ...newFlavor(state, type), ...newBinder(state, type) };
+  if (spot) inv.placed.push(inst); else inv.shelf[free] = inst;
+  recomputeBuild(state);
+  return { ok: true, where: spot ? 'cart' : 'shelf' };
 }
 
 export function labClear(state: RunState): void {
