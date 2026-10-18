@@ -816,7 +816,9 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .card .price-tag .cost { font-size: 18px; padding: 3px 9px 2px 5px; gap: 3px; }
 .card .price-tag .cost .coin-ico { width: 20px; height: 20px; }
 .card .price-tag { align-items: flex-end; }
-.card .price-tag s.base { display: block; font-family: var(--body, inherit); font-size: 11px; font-weight: 800; color: var(--plum); opacity: 0.55; text-decoration: line-through; margin-right: 4px; }
+.card .price-tag s.base { position: relative; display: block; font-family: var(--body, inherit); font-size: 15px; line-height: 1.1; color: var(--coral-deep); opacity: 0.85; text-decoration: none; margin: 3px 14px 0 0; }
+/* Luckiest Guy has no usable strikeout metrics, so draw the strike by hand. */
+.card .price-tag s.base::after { content: ""; position: absolute; left: -3px; right: -3px; top: 45%; height: 2px; background: currentColor; border-radius: 1px; transform: rotate(-14deg); }
 .btn .cost { margin-left: 6px; }
 #shop .services .btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; flex: 1 1 0; min-width: 0; font-size: 11px; padding: 6px 4px 5px; }
 #shop .services .btn .cost { margin-left: 0; font-size: 11px; padding: 2px 5px 1px 3px; }
