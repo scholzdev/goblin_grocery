@@ -7,3 +7,4 @@ id	hypothesis	change	day_win_s1	day_win_s2	deaths_a4	deaths_a5	deaths_a6	deaths_
 4b	Mini-boss 450 HP lasts too long at 20 contact dmg	MINI_BOSS.hp 450 -> 340	11.9%	14.0%	29%	27%	37%	43%	2.5%	0.6%	accept (a4 deaths 37% -> 29%)
 5	Elite chance curve to 25% adds 3.5x HP bodies late	ELITE.chanceByAisle .08/.12/.16/.2/.25 -> .05/.08/.11/.14/.17 (a3-7)	16.1%	17.6%	25%	20%	33%	41%	4.3%	1.1%	accept
 6	Late hpScale still outgrows DPS	hpScale a5-7 1.8/2.2/2.6 -> 1.7/2.0/2.3	19.6%	21.1%	25%	18%	30%	35%	4.4%	0.9%	accept
+7	Mini-boss contact hit (10 x dmgScale) too punishing	dmgScale a4 1.6 -> 1.4 (mini-boss contact 16 -> 14)	20.0%	20.9%	23%	18%	30%	34%	5.0%	0.8%	accept (a4 deaths now under 25%)
