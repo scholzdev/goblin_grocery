@@ -673,6 +673,10 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 #labbench .lb-dps b { display: block; font-family: var(--display); font-weight: 400; font-size: 52px; color: var(--coral); }
 #labbench .lb-dps small, #labbench .lb-grid small { display: block; font-size: 12px; opacity: 0.7; }
 #labbench .lb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; }
+#labbench .lb-pinline { margin-top: 8px; font-size: 13px; opacity: 0.9; }
+#labbench .lb-pinline b { font-family: var(--display); font-weight: 400; font-size: 18px; }
+#labbench .lb-pinline .up { color: #3fb86b; }
+#labbench .lb-pinline .down { color: var(--coral); }
 #labbench .lb-grid b { font-family: var(--display); font-weight: 400; font-size: 20px; }
 #labbench .dmg { font-size: 13px; }
 #labbench .dmg .dh { font-weight: 800; font-size: 14px; margin: 4px 0 3px; }

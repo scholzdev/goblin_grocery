@@ -6,10 +6,9 @@ import { ELEMENT_COLORS } from '../engine/damageType';
 import { store } from '../state/store';
 import { settings } from '../state/settings';
 import { labAddItem, labAisle, labClear, reroll } from '../state/run';
-import { LAB_SLOT_COUNT, captureSlot, restoreSlot, slotItems } from '../state/lab';
+import { LAB_SLOT_COUNT, captureSlot, slotItems } from '../state/lab';
 import { currentRerollCost } from '../systems/shop';
 import { DpsMeter } from '../systems/dpsMeter';
-import { totalDamage } from '../systems/damageStats';
 import { LAB, labDummies, loadSlots, saveSlots, type LabDummy } from '../lab';
 import { flow } from '../flow';
 import { play } from '../audio/sfx';
@@ -47,6 +46,7 @@ let prevPhase = '';
 const IDS = Object.keys(ENEMIES) as EnemyId[];
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 
+const sum = (by: Record<string, number>): number => Object.values(by).reduce((a, v) => a + v, 0);
 const inFight = () => store.state.phase === 'combat';
 
 /** The tabs that make sense right now: Items needs the cart editor, Dummies the sandbox, Setup a plain lab run (not a sim). */
@@ -110,7 +110,7 @@ function foesHtml(): string {
 
 function meterHtml(): string {
   return `<div class="lb-meter" data-lb-meter></div>
-    <div class="lb-btns"><button class="btn small" data-lb="meter-reset">${t('lbMeterReset')}</button></div><div class="lb-note">${t('lbMeterAuto')}</div>`;
+    <div class="lb-btns"><button class="btn small" data-lb="meter-reset">${t('lbMeterReset')}</button><button class="btn small" data-lb="pin-live">${t('lbPin')}</button><button class="btn small" data-lb="pin-last" disabled>${t('lbPinLast')}</button><button class="btn small" data-lb="unpin" disabled>${t('lbUnpin')}</button></div><div class="lb-note">${t('lbMeterAuto')}</div>`;
 }
 
 function setupHtml(): string {
@@ -176,20 +176,26 @@ function patchLive(): void {
 // ───────────────────────────── meter ─────────────────────────────
 
 function resetMeter(): void {
-  const st = store.state.stats;
-  meter.reset(st.timeSeconds, totalDamage(st.damage), st.damageByWeapon);
+  const st = store.state.stats, by = st.removedByWeapon ?? {};
+  meter.reset(st.timeSeconds, sum(by), by);
 }
 
 function updateMeter(): void {
   const s = store.state;
   if (!s.lab) return;
-  meter.observe(s.stats.timeSeconds, totalDamage(s.stats.damage), s.stats.damageByWeapon);
+  const by = s.stats.removedByWeapon ?? {};
+  meter.observe(s.stats.timeSeconds, sum(by), by);
   const box = el.querySelector<HTMLElement>('[data-lb-meter]');
   if (!box || el.classList.contains('hidden')) return;
   const r = meter.read();
-  if (r.total <= 0) { box.innerHTML = `<div class="lb-note">${t('lbMeterEmpty')}</div>`; return; }
-  const names = sourceNames(s.inventory);
+  el.querySelector<HTMLButtonElement>('[data-lb="pin-last"]')?.toggleAttribute('disabled', !r.last);
+  el.querySelector<HTMLButtonElement>('[data-lb="unpin"]')?.toggleAttribute('disabled', !r.pinned);
   const num = (n: number) => fmtNum(n >= 100 ? Math.round(n) : Math.round(n * 10) / 10);
+  const pinLine = r.pinned
+    ? `<div class="lb-pinline">${t('lbPinned', { avg: num(r.pinned.average) })}${r.vsPin === null ? '' : ` <span>${t('lbVsPin')}</span> <b data-lb-vspin class="${r.vsPin >= 0 ? 'up' : 'down'}">${r.vsPin > 0 ? '+' : ''}${r.vsPin}%</b>`}</div>`
+    : '';
+  if (r.total <= 0) { box.innerHTML = `<div class="lb-note">${t('lbMeterEmpty')}</div>${pinLine}`; return; }
+  const names = sourceNames(s.inventory);
   const byName = new Map<string, { k: string; v: number }>(); // two copies of one item are one line
   for (const [k, v] of r.sources) { const n = names.name(k), cur = byName.get(n); if (cur) cur.v += v; else byName.set(n, { k, v }); }
   const bars = [...byName].sort((a, b) => b[1].v - a[1].v).slice(0, 6).map(([name, { k, v }]) => {
@@ -199,6 +205,7 @@ function updateMeter(): void {
   const cell = (label: string, v: string) => `<div><small>${label}</small><b>${v}</b></div>`;
   box.innerHTML = `<div class="lb-dps"><b>${num(r.rolling)}</b><small>${t('lbMeterRolling')}</small></div>
     <div class="lb-grid">${cell(t('lbMeterAvg'), num(r.average))}${cell(t('lbMeterPeak'), num(r.peak))}${cell(t('lbMeterTotal'), fmtNum(Math.round(r.total)))}${cell(t('lbMeterTime'), `${fmtNum(r.seconds.toFixed(1))} s`)}</div>
+    ${pinLine}
     <div class="dmg"><div class="dh">${t('lbMeterSources')}</div>${bars}</div>`;
 }
 
@@ -226,14 +233,15 @@ function onClick(e: MouseEvent): void {
     return;
   }
   if (d.lbSave) { slots[Number(d.lbSave)] = captureSlot(s); saveSlots(slots); play('click'); store.changed(); return; }
-  if (d.lbLoad) { const sl = slots[Number(d.lbLoad)]; if (sl && restoreSlot(s, sl).ok) play('buy'); store.changed(); return; }
+  if (d.lbLoad) { const sl = slots[Number(d.lbLoad)]; if (sl && flow.labLoad(sl)) play('buy'); store.changed(); return; }
   if (d.lbFoe) { spawn(d.lbFoe as EnemyId, d.lbMini === undefined ? undefined : Number(d.lbMini)); return; }
   switch (d.lb) {
     case 'clear': labClear(s); play('click'); break;
     case 'money': s.money += 999; play('buy'); break;
     case 'reroll': if (!s.shop?.locked) { s.money += currentRerollCost(s); reroll(s, flow.rng); } play('click'); break;
     case 'despawn': if (s.phase === 'combat') (flow.arena() as ArenaScene).labDespawn(); else labDummies.length = 0; play('pop'); break;
-    case 'meter-reset': resetMeter(); updateMeter(); return;
+    case 'meter-reset': resetMeter(); store.changed(); updateMeter(); return;
+    case 'pin-live': case 'pin-last': case 'unpin': meter.pin(d.lb === 'pin-live' ? 'live' : d.lb === 'pin-last' ? 'last' : null); play('click'); store.changed(); updateMeter(); return;
     case 'collapse': collapsed = !collapsed; break;
     case 'cart': play('click'); flow.labToShop(); return;
     case 'reset':

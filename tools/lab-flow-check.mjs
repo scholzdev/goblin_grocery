@@ -1,14 +1,16 @@
 // Test Lab smoke test in the real page: loadout slots, item search, reset (two clicks), collapse, the roster that spawns with the fight,
 // a Setup change in the middle of a fight (the fight restarts with the same dummies), and a real aisle with the bench collapsed and open.
-// Usage: PORT=5182 node tools/lab-flow-check.mjs   (needs the dev server and system Chrome, like tools/verify-shot.mjs)
+// Pin and compare: pin the first fight, fight again, and the meter shows a "vs pin" change.
+// Usage: [VIEW=1672x941] node tools/lab-flow-check.mjs   (starts its own dev server or uses $GG_URL; needs system Chrome, like tools/verify-shot.mjs)
 import { chromium } from 'playwright';
+import { devUrl } from './lib/dev.mjs';
 
-const PORT = process.env.PORT ?? 5173;
+const [vw, vh] = (process.env.VIEW ?? '1280x800').split('x').map(Number);
 const LAB = { aisle: 2, dept: 'frozen', shift: 0, starter: 'toaster', weapon: 'toaster', money: 999, cart: [5, 4], shelf: 6, shopLevel: 1, god: true, event: 'none', mod: 'none', sandbox: true };
 const AVOID = ['#hud', '#punch', '#bossbar', '#simtag', '#simnote'];
 
 const b = await chromium.launch({ channel: 'chrome' });
-const page = await b.newPage({ viewport: { width: 1280, height: 800 } });
+const page = await b.newPage({ viewport: { width: vw, height: vh } });
 const errs = [];
 page.on('pageerror', (e) => errs.push(e.message));
 let failed = 0;
@@ -34,7 +36,7 @@ async function benchClear(label) {
   ok(hits.length === 0, `${label}${hits.length ? ': overlaps ' + hits.join(', ') : ''}`);
 }
 
-await page.goto(`http://localhost:${PORT}/?lab=1`, { timeout: 120000 });
+await page.goto(new URL('?lab=1', await devUrl()).href, { timeout: 120000 });
 await page.waitForTimeout(1500);
 await page.evaluate(() => localStorage.clear());
 await start(LAB);
@@ -48,6 +50,17 @@ await click('[data-lb="clear"]');
 ok((await count()) === 0, 'clear all empties the cart');
 await click('[data-lb-load="0"]');
 ok((await count()) === 3, 'loading the slot brings the cart back');
+await page.click('[data-lb-tab="setup"]');
+await page.selectOption('[data-lab="cart"]', '5x4');
+await click('[data-lb-tab="items"]');
+await click('[data-lb-save="1"]');
+await click('[data-lb-tab="setup"]');
+await page.selectOption('[data-lab="cart"]', '4x4');
+await click('[data-lb-tab="items"]');
+await click('[data-lb-load="1"]');
+await click('[data-lb-tab="setup"]');
+ok((await page.inputValue('[data-lab="cart"]')) === '5x4' && (await st(() => window.__gg.store.state.inventory.cols)) === 5, 'loading a slot puts its cart size into Setup as well');
+await click('[data-lb-tab="items"]');
 
 const before = await st(() => ({ phase: window.__gg.store.state.phase, money: window.__gg.store.state.money, offers: window.__gg.store.state.shop.offers.map((o) => o.type).join() }));
 const total = await page.$$eval('[data-lb-add]', (e) => e.length);
@@ -87,9 +100,28 @@ await click('[data-lb="collapse"]');
 ok(!(await st(() => document.querySelector('#labbench').classList.contains('collapsed'))), 'and opens again');
 
 await click('[data-lb-tab="meter"]');
+await page.waitForTimeout(2500);
+const dealt = () => st(() => window.__gg.store.state.stats.removedByWeapon);
+ok(Object.keys((await dealt()) ?? {}).length > 0, 'the meter counts the HP the dummies lost');
+await click('[data-lb="pin-live"]');
+ok((await page.textContent('[data-lb-meter]')).includes('Pinned'), 'Pin this shows the pinned average');
+ok((await page.$('[data-lb-vspin]')) !== null, 'and a vs pin change right away');
 await page.keyboard.press('F8');
 await page.waitForTimeout(600);
 ok((await st(() => window.__gg.store.state.phase)) === 'shop', 'F8 goes back to the cart editor');
+await click('[data-lb-tab="items"]');
+await click('[data-lb-add="fan"]');
+await page.keyboard.press('F8');
+await page.waitForTimeout(3500);
+await click('[data-lb-tab="meter"]');
+await page.waitForTimeout(500);
+const vs = await page.textContent('[data-lb-vspin]').catch(() => null);
+ok(vs !== null && /^[+-]?\d+%$/.test(vs.trim()), `after the second fight the meter shows a change against the pin (${vs})`);
+ok(!(await page.isDisabled('[data-lb="pin-last"]')), 'the first fight is kept as last');
+await click('[data-lb="unpin"]');
+ok((await page.$('[data-lb-vspin]')) === null, 'Unpin removes the comparison');
+await page.keyboard.press('F8');
+await page.waitForTimeout(600);
 await click('[data-lb-tab="meter"]');
 await benchClear('cart editor, meter tab');
 

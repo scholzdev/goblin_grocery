@@ -321,6 +321,8 @@ export interface RunStats {
   kills: number;
   coinsEarned: number;
   damageByWeapon: Record<string, number>;
+  /** Lab meter only: the HP each source actually took off enemies (`damageByWeapon` counts overkill). Set where the scene writes enemy HP. */
+  removedByWeapon?: Record<string, number>;
   /** The rest of the run's damage breakdown (`systems/damageStats`). */
   damage: DamageStats;
   wavesCleared: number;

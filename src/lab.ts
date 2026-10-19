@@ -1,7 +1,6 @@
-import { ECONOMY } from './data/waves';
 import type { EliteAffix } from './data/enemies';
 import type { SpreadKind } from './systems/spread';
-import { parseSlots, type LabSlot } from './state/lab';
+import { LAB_DEFAULTS, normalizeSetup, parseSlots, type LabSlot } from './state/lab';
 import type { EnemyId, LabOpts } from './types';
 
 const QUERY = new URLSearchParams(location.search);
@@ -15,7 +14,6 @@ export const LAB = DEV_BUILD && (QUERY.has('lab') || QUERY.has('sim'));
 export const BOT = import.meta.env.DEV && QUERY.has('bot');
 
 const KEY = 'goblin-grocery.lab.v1';
-export const LAB_DEFAULTS: LabOpts = { aisle: 1, dept: 'main', shift: 0, starter: 'toaster', weapon: 'toaster', money: 999, cart: [4, 4], shelf: ECONOMY.shelfSlots, shopLevel: 1, god: false, event: 'random', mod: 'none', sandbox: true };
 
 /**
  * Sandbox dummy spec; `mini` = MINI_BOSS variant index. Kept across shop ↔ arena swaps so the dummies come back.
@@ -30,7 +28,7 @@ export interface LabDummy {
 export const labDummies: LabDummy[] = [];
 
 export function loadLab(): LabOpts {
-  try { return { ...LAB_DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) ?? '{}') }; } catch { return { ...LAB_DEFAULTS }; }
+  try { return normalizeSetup(JSON.parse(localStorage.getItem(KEY) ?? '{}')); } catch { return { ...LAB_DEFAULTS }; }
 }
 
 export function saveLab(o: LabOpts): void {

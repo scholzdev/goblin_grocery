@@ -3,7 +3,8 @@ import { deptT, itemT, shiftT, starterT } from '../i18n/data';
 import { PLAYER, STARTER_WEAPONS } from '../data/items';
 import { THEMES } from '../data/departments';
 import { MODIFIERS, type ModifierId } from '../data/modifiers';
-import { SET_EVENT_KINDS, SET_EVENTS, type SetEventKind } from '../data/events';
+import { SET_EVENTS, type SetEventKind } from '../data/events';
+import { LAB_EVENTS } from '../state/lab';
 import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS } from '../data/waves';
 import type { DepartmentId, LabOpts, StarterId, StarterWeapon } from '../types';
 
@@ -29,7 +30,7 @@ interface LabField {
 
 const STARTERS = Object.keys(PLAYER.starters) as StarterId[];
 const WEAPONS = Object.keys(STARTER_WEAPONS) as StarterWeapon[];
-const EVENTS = ['random', 'none', 'wetFloor', 'outage', ...SET_EVENT_KINDS] as const;
+const EVENTS = LAB_EVENTS;
 const evLabel = (v: (typeof EVENTS)[number]): string => (v in SET_EVENTS ? t(`evName_${v as SetEventKind}`) : t(({ random: 'evRandom', none: 'evNone', wetFloor: 'evWet', outage: 'evOutage' } as const)[v as 'random']));
 const cartSizes = (): [number, number][] => [[4, 4], ...ECONOMY.cartSizes];
 const num = (raw: string | boolean): number => Number(raw);

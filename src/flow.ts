@@ -3,6 +3,7 @@ import type { ArenaScene } from './scenes/ArenaScene';
 import { store } from './state/store';
 import { BOT, labDummies, saveLab } from './lab';
 import { createSimRun } from './state/sim';
+import { restoreSlot, type LabSlot } from './state/lab';
 import { SIM_DEFAULTS, simDummies, type SimDef } from './sims/_sim';
 import { chooseDoor, createLabRun, labApply, createRun, finishWave, leaveShop, openShop, recomputeBuild, startNextWave } from './state/run';
 import type { DoorId } from './data/modifiers';
@@ -105,6 +106,14 @@ export const flow = {
       this.restartArena();
     }
     store.changed();
+  },
+
+  /** Test Lab bench: put a saved cart in place of the current one. The slot's cart and shelf sizes go through `labTune`, so Setup shows what the cart really is. */
+  labLoad(slot: LabSlot): boolean {
+    const s = store.state;
+    if (!restoreSlot(s, slot).ok) return false;
+    this.labTune({ cart: [slot.cols, slot.rows], shelf: slot.shelf.length });
+    return true;
   },
 
   /** Test Lab bench: throw away cart, shelf and dummies and start the current setup again. */

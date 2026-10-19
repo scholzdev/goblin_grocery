@@ -4,8 +4,9 @@ import { ITEMS } from '../src/data/items';
 import { mulberry32 } from '../src/systems/rng';
 import { firstFit } from '../src/systems/inventory';
 import { DpsMeter, METER_WINDOW } from '../src/systems/dpsMeter';
+import { recordDamage } from '../src/systems/damageStats';
 import { createLabRun, labAddItem, labAisle, labApply, labClear, openShop } from '../src/state/run';
-import { captureSlot, parseSlots, restoreSlot, slotItems, LAB_SLOT_COUNT } from '../src/state/lab';
+import { captureSlot, parseSlots, restoreSlot, slotItems, normalizeSetup, LAB_DEFAULTS, LAB_SLOT_COUNT } from '../src/state/lab';
 import { LAB_FIELDS, labFieldOpen, labValue } from '../src/ui/labFields';
 import type { ItemTypeId, LabOpts, RunState } from '../src/types';
 
@@ -245,5 +246,101 @@ describe('lab setup fields', () => {
     const opts = LAB_FIELDS.cart.options!(base).map(([v]) => v);
     expect(opts).toContain('4x4');
     for (const [c, r] of ECONOMY.cartSizes) expect(opts).toContain(`${c}x${r}`);
+  });
+});
+
+describe('DpsMeter pin and compare', () => {
+  /** One fight: `perSec` damage a second for `secs` seconds, starting a second after the reset. */
+  const fight = (m: DpsMeter, perSec: number, secs: number) => {
+    m.reset(0, 0, {});
+    for (let t = 1; t <= secs + 1; t++) m.observe(t, perSec * t, { toaster: perSec * t });
+  };
+
+  it('pins the live fight and shows the change of the next one against it', () => {
+    const m = new DpsMeter();
+    fight(m, 100, 6);
+    expect(m.read().pinned).toBeNull();
+    expect(m.read().vsPin).toBeNull();
+    m.pin('live');
+    const pinned = m.read().average;
+    expect(m.read().pinned?.average).toBe(pinned);
+    expect(m.read().vsPin).toBe(0);
+    fight(m, 150, 6);
+    expect(m.read().pinned?.average).toBe(pinned); // a new fight keeps the pin
+    expect(m.read().vsPin).toBe(50);
+    fight(m, 50, 6);
+    expect(m.read().vsPin).toBe(-50);
+  });
+
+  it('keeps the previous fight as last, and pins it from there', () => {
+    const m = new DpsMeter();
+    fight(m, 100, 6);
+    expect(m.read().last).toBeNull();
+    const first = m.read().average;
+    fight(m, 200, 6);
+    expect(m.read().last?.average).toBe(first);
+    m.pin('last');
+    expect(m.read().pinned?.average).toBe(first);
+    expect(m.read().vsPin).toBe(100);
+  });
+
+  it('an empty fight does not replace last; pin-live without a hit changes nothing; unpin clears', () => {
+    const m = new DpsMeter();
+    fight(m, 100, 6);
+    m.reset(50, 0, {});
+    m.reset(60, 0, {});
+    expect(m.read().last?.total).toBeGreaterThan(0);
+    m.pin('live');
+    expect(m.read().pinned).toBeNull();
+    m.pin('last');
+    expect(m.read().pinned).not.toBeNull();
+    m.pin('live');
+    expect(m.read().pinned).not.toBeNull();
+    m.pin(null);
+    expect(m.read().pinned).toBeNull();
+    expect(m.read().vsPin).toBeNull();
+  });
+});
+
+describe('overkill-honest metering', () => {
+  const hit = (s: RunState, dmg: number, hpBefore: number, source = 'toaster') =>
+    recordDamage(s.stats, { source, dmg, removed: Math.min(dmg, hpBefore), type: 'physical', isDot: false, weak: false, resisted: false, shred: 0, mark: 0 });
+
+  it('counts only the HP a hit took off, per source, while damageByWeapon keeps the full hit', () => {
+    const s = lab();
+    hit(s, 100, 100);
+    hit(s, 80, 30); // a killing blow with 50 overkill
+    hit(s, 40, 400, 'fan');
+    expect(s.stats.removedByWeapon).toEqual({ toaster: 130, fan: 40 });
+    expect(s.stats.damageByWeapon).toEqual({ toaster: 180, fan: 40 });
+  });
+
+  it('the meter fed with the removed HP does not inflate on an immortal dummy that dies on every hit', () => {
+    const s = lab();
+    const m = new DpsMeter();
+    m.reset(0, 0, {});
+    for (let t = 1; t <= 5; t++) {
+      hit(s, 1000, 50); // 50 HP dummy, refilled after each hit
+      const by = s.stats.removedByWeapon!;
+      m.observe(t, Object.values(by).reduce((a, v) => a + v, 0), by);
+    }
+    expect(m.read().total).toBe(250);
+    expect(m.read().sources).toEqual([['toaster', 250]]);
+  });
+});
+
+describe('stored lab setup', () => {
+  it('a good setup passes through unchanged', () => {
+    const o: LabOpts = { ...LAB_DEFAULTS, aisle: 7, dept: 'frozen', shift: 1, god: true, cart: ECONOMY.cartSizes[0], shelf: ECONOMY.shelfSizes[0], money: 12, mod: 'rush', event: 'wetFloor', sandbox: false };
+    expect(normalizeSetup(JSON.parse(JSON.stringify(o)))).toEqual(o);
+  });
+
+  it('unknown ids, out-of-range numbers and odd sizes fall back to the defaults, clamped where a number makes sense', () => {
+    const r = normalizeSetup({ aisle: 99, dept: 'moon', shift: -3, starter: 'nope', weapon: 7, money: 1e12, cart: [9, 9], shelf: 3.5, shopLevel: 0, god: 'yes', event: 'blizzard', mod: 'x', sandbox: null });
+    expect(r).toEqual({ ...LAB_DEFAULTS, aisle: 15, shift: 0, money: 99999, shopLevel: 1 });
+  });
+
+  it('anything that is not an object gives the defaults', () => {
+    for (const bad of [null, undefined, 'x', 5, []]) expect(normalizeSetup(bad)).toEqual(LAB_DEFAULTS);
   });
 });
