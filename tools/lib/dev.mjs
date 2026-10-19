@@ -30,7 +30,7 @@ export async function startDev(port) {
   const url = `http://127.0.0.1:${port}/`;
   for (let i = 0; i < 150; i++) {
     if (dead) throw new Error(`vite exited early:\n${err}`);
-    try { if ((await fetch(url)).ok) { child.unref(); child.stderr.destroy(); return { url, stop }; } } catch { /* not up yet */ }
+    try { if ((await fetch(url)).ok) { child.unref(); child.stderr.unref(); return { url, stop }; } } catch { /* not up yet */ }
     await new Promise((r) => setTimeout(r, 200));
   }
   stop();
