@@ -9,3 +9,4 @@ id	hypothesis	change	day_win_s1	day_win_s2	deaths_a4	deaths_a5	deaths_a6	deaths_
 6	Late hpScale still outgrows DPS	hpScale a5-7 1.8/2.2/2.6 -> 1.7/2.0/2.3	19.6%	21.1%	25%	18%	30%	35%	4.4%	0.9%	accept
 7	Mini-boss contact hit (10 x dmgScale) too punishing	dmgScale a4 1.6 -> 1.4 (mini-boss contact 16 -> 14)	20.0%	20.9%	23%	18%	30%	34%	5.0%	0.8%	accept (a4 deaths now under 25%)
 8	Late-aisle contact damage still kills	dmgScale a6-7 1.8/1.9 -> 1.75/1.7	22.4%	22.5%	23%	18%	29%	29%	5.8%	0.8%	accept
+9	Boss aisle escorts hit too hard (boss deaths 24-28%)	wave 8 hpScale 2.6->2.0, dmgScale 2.0->1.7	24.6%	25.5%	23%	18%	29%	29%	6.8%	1.1%	accept (Day win at lower edge of target)
