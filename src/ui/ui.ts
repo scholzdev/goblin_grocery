@@ -297,7 +297,7 @@ function settingsHtml(): string {
   </div>`;
 }
 
-const CTL_LABEL: Record<KeyAction, UIKey> = { up: 'ctlUp', down: 'ctlDown', left: 'ctlLeft', right: 'ctlRight', shove: 'ctlShove', loadout: 'ctlLoadout', rotate: 'ctlRotate', pause: 'ctlPause', useActive: 'ctlUseActive' };
+const CTL_LABEL: Record<KeyAction, UIKey> = { up: 'ctlUp', down: 'ctlDown', left: 'ctlLeft', right: 'ctlRight', shove: 'ctlShove', loadout: 'ctlLoadout', rotate: 'ctlRotate', pause: 'ctlPause', useActive1: 'ctlUseActive1', useActive2: 'ctlUseActive2', useActive3: 'ctlUseActive3' };
 /** Key currently being rebound (waiting for the next key press), or null. */
 let listening: { action: KeyAction; slot: number } | null = null;
 
