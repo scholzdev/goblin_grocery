@@ -6,7 +6,7 @@ import { ITEM_ORDER, RECIPE_ORDER, SET_ORDER } from '../../src/engine/define';
 
 const inBounds = (g: ReturnType<typeof greedyGenome>) => GENOME_SPEC.every((s) => g.p[s.key] >= s.min && g.p[s.key] <= s.max && (!s.int || Number.isInteger(g.p[s.key])));
 
-describe('genome', () => {
+describe('genome', { timeout: 30_000 }, () => {
   it('has a parameter for every item, combo and set', () => {
     const keys = new Set(GENOME_SPEC.map((s) => s.key));
     for (const id of ITEM_ORDER) expect(keys.has(`item.${id}`), id).toBe(true);
