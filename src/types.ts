@@ -89,6 +89,8 @@ export interface ItemInstance {
   binderSold?: number;
   /** Active items only: uses left this aisle. Missing = full (`engine/actives.ts`); refilled by `startNextWave`. */
   charges?: number;
+  /** Active items only: the key slot (1..3) the player picked by clicking the slot badge. Missing = automatic, by cart reading order. */
+  slot?: number;
   /** Aisles completed since bought (placed only, or placed + shelf with `ItemContent.age: 'owned'`); Sourdough resets it on each rise. See `ageItems` (state/run.ts). */
   age?: number;
   /** Potted Basil: kills made by adjacent weapons. Persists across aisles, gone when the instance is sold. */

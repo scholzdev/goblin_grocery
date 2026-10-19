@@ -8,11 +8,12 @@ import { findItem, rotateCells, rotatedSize, footprint } from '../systems/invent
 import { describeBuffs, tierScaling } from '../systems/synergies';
 import { currentRerollCost, inflation, repairCost, sellPrice } from '../systems/shop';
 import { iconOf, sellValue } from '../engine/registry';
+import { cycleSlot, slotOfUid } from '../engine/actives';
 import { flow } from '../flow';
 import { play } from '../audio/sfx';
 import { svg } from './hud';
 import { settings } from '../state/settings';
-import { keyLabel, matches } from '../state/keymap';
+import { ACTIVE_KEYS, bindingLabel, keyLabel, matches } from '../state/keymap';
 import type { ShopPad } from '../input/gamepad';
 import { pickNext, type Dir } from '../input/pad-core';
 import { icons, setIcon } from './icons';
@@ -137,6 +138,15 @@ function itemInner(type: ItemTypeId, rot: Rotation, tier = 1, cellPx = CELL, ico
   return { w, h, shaped, html: `${tiles}<div class="anchor" style="left:${anchor.x * cellPx}px;top:${anchor.y * cellPx}px;width:${size}px;height:${size}px">${content}</div>` };
 }
 
+/** Active-slot badge for a cart item: the slot number and its key, or a warning when the cart has more than three actives. */
+function slotBadge(uid: string, compact = false): string {
+  const slot = compact ? undefined : slotOfUid(store.state.inventory, uid);
+  if (slot === undefined) return '';
+  if (slot === null) return `<b class="slot-badge none" data-slot-uid="${uid}" title="${esc(t('activeNoSlotTip'))}">${esc(t('activeNoSlot'))}</b>`;
+  const key = bindingLabel(settings.keys, ACTIVE_KEYS[slot - 1], t('keySpace'));
+  return `<b class="slot-badge" data-slot-uid="${uid}" title="${esc(t('activeSlotTip', { n: slot, k: key }))}">${slot}<kbd>${esc(key)}</kbd></b>`;
+}
+
 function itemEl(it: ItemInstance, build: Build, extra = '', compact = false): string {
   const def = ITEMS[it.type];
   const full = itemInner(it.type, it.rot, it.tier, CELL, iconOf(it));
@@ -146,7 +156,7 @@ function itemEl(it: ItemInstance, build: Build, extra = '', compact = false): st
   const canCombine = store.state.phase === 'shop' && !!mergePartner(it);
   const flavor = it.type === 'jellybeans' ? flavorOf(it) : null;
   return `<div class="item ${def.kind} ${rarityClass(it.type, it.tier)} ${flavor ? `flavor flavor-${flavor}` : ''} ${canCombine ? 'mergeable' : ''} ${inner.shaped ? 'shaped' : ''} ${on ? 'recipe-on' : ''} ${it.uid === selectedUid ? 'selected' : ''} ${extra}" data-uid="${it.uid}"
-    style="left:${it.x * CELL}px;top:${it.y * CELL}px;width:${inner.w * CELL - 4}px;height:${inner.h * CELL - 4}px">${inner.html}${flavor ? `<b class="flavor-tag" title="${esc(t('flavorLabel', { f: tagT(flavor) }))}">${esc(tagT(flavor))}</b>` : ''}${it.double ? `<b class="dbl-mark" title="${esc(t('setDouble', { set: tagT(def.family) }))}">${t('doubleSticker')}</b>` : ''}</div>`;
+    style="left:${it.x * CELL}px;top:${it.y * CELL}px;width:${inner.w * CELL - 4}px;height:${inner.h * CELL - 4}px">${inner.html}${flavor ? `<b class="flavor-tag" title="${esc(t('flavorLabel', { f: tagT(flavor) }))}">${esc(tagT(flavor))}</b>` : ''}${slotBadge(it.uid, compact)}${it.double ? `<b class="dbl-mark" title="${esc(t('setDouble', { set: tagT(def.family) }))}">${t('doubleSticker')}</b>` : ''}</div>`;
 }
 
 export function gridHtml(s: RunState): string {
@@ -349,6 +359,13 @@ const KIND_BY_TAG = { ranged: 'kindRanged', melee: 'kindMelee', area: 'kindArea'
 /** Long single-word names (e.g. "Preisauszeichner") shrink so the level pill stays inside the card. */
 const fitName = (n: string): number => (n.length > 14 ? 19 : n.length > 11 ? 22 : 26);
 
+function slotChip(uid: string | null): string {
+  const slot = uid ? slotOfUid(store.state.inventory, uid) : undefined;
+  if (slot === undefined) return '';
+  if (slot === null) return `<span class="chip slot-none slot-cycle" data-slot-uid="${uid}" title="${esc(t('activeNoSlotTip'))}">${esc(t('activeNoSlot'))}</span>`;
+  return `<span class="chip slot-chip slot-cycle" data-slot-uid="${uid}" title="${esc(t('activeSlotPick'))}">${slot} · ${esc(bindingLabel(settings.keys, ACTIVE_KEYS[slot - 1], t('keySpace')))}</span>`;
+}
+
 export function inspectorHtml(type: ItemTypeId, uid: string | null, offerTier?: number, offerDouble = false): string {
   const s = store.state;
   const def = ITEMS[type];
@@ -370,7 +387,7 @@ export function inspectorHtml(type: ItemTypeId, uid: string | null, offerTier?: 
   const head = `<header><span class="ico-tile ${rc}"><img src="${svg(loc ? iconOf(loc.inst) : `icon_${type}`)}" alt=""></span>
     <div class="hd"><div class="nm"><span style="font-size:${fitName(itemT(type).name)}px">${itemT(type).name}</span><b class="lv ${def.legendary ? 'leg' : `t${tier}`}">★${def.legendary ? '' : tier}</b></div>
     <span class="sub ${rc}">${rarity} · ${kind}</span></div></header>
-    <div class="chips">${dblNote}${binder}${flavor ? `<span class="chip flavor-chip flavor-${flavor}">${esc(t('flavorLabel', { f: tagT(flavor) }))}</span>` : ''}${setChips}${otherTags.map((tg) => `<span class="chip">${tagT(tg)}</span>`).join('')}<span class="chip">${icons.grid(15)}${w}×${h}</span>
+    <div class="chips">${slotChip(uid)}${dblNote}${binder}${flavor ? `<span class="chip flavor-chip flavor-${flavor}">${esc(t('flavorLabel', { f: tagT(flavor) }))}</span>` : ''}${setChips}${otherTags.map((tg) => `<span class="chip">${tagT(tg)}</span>`).join('')}<span class="chip">${icons.grid(15)}${w}×${h}</span>
     <span class="chip coin"><img class="coin-ico" src="${svg('coin')}" alt="">${loc ? t('sells', { n: sellValue(loc.inst, sellPrice(type, tier, s?.build)) }) : def.price}</span></div>${strongVsHtml(type)}`;
 
   let body = '';
@@ -538,6 +555,8 @@ function onClick(e: MouseEvent): void {
   const s = store.state;
   if (s.phase !== 'shop') return;
   const el = e.target as HTMLElement;
+  const slotEl = el.closest<HTMLElement>('[data-slot-uid]');
+  if (slotEl) { cycleSlot(s.inventory, slotEl.dataset.slotUid!); play('click'); store.changed(); return; }
   const act = el.closest<HTMLElement>('[data-act]')?.dataset.act;
   const offer = el.closest<HTMLElement>('[data-offer]');
   if (selectedUid && !el.closest('.item[data-uid], .inspector, button, [data-offer], .slot')) { selectedUid = null; refreshHover(); }
@@ -640,7 +659,7 @@ function hoverFrom(el: HTMLElement): void {
 const scale = (): number => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--s')) || 1;
 
 function onPointerDown(e: PointerEvent): void {
-  if (e.button !== 0 || store.state.phase !== 'shop') return;
+  if (e.button !== 0 || store.state.phase !== 'shop' || (e.target as HTMLElement).closest('[data-slot-uid]')) return;
   const itemEl = (e.target as HTMLElement).closest<HTMLElement>('.item[data-uid]');
   if (!itemEl) return;
   const found = findItem(store.state.inventory, itemEl.dataset.uid!);

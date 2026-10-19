@@ -1,8 +1,10 @@
 // Rebindable keyboard controls: pure helpers (no DOM, no settings import) so the rules are unit-testable.
 // Bindings are KeyboardEvent.code values ('KeyW', 'Space'), two slots per action; '' means unbound.
 
-export type KeyAction = 'up' | 'down' | 'left' | 'right' | 'shove' | 'loadout' | 'rotate' | 'pause' | 'useActive';
-export const KEY_ACTIONS: KeyAction[] = ['up', 'down', 'left', 'right', 'shove', 'loadout', 'rotate', 'pause', 'useActive'];
+export type KeyAction = 'up' | 'down' | 'left' | 'right' | 'shove' | 'loadout' | 'rotate' | 'pause' | 'useActive1' | 'useActive2' | 'useActive3';
+export const KEY_ACTIONS: KeyAction[] = ['up', 'down', 'left', 'right', 'shove', 'loadout', 'rotate', 'pause', 'useActive1', 'useActive2', 'useActive3'];
+/** Active-item key actions in slot order. */
+export const ACTIVE_KEYS: KeyAction[] = ['useActive1', 'useActive2', 'useActive3'];
 export const KEY_SLOTS = 2;
 export type KeyMap = Record<KeyAction, string[]>;
 
@@ -15,8 +17,13 @@ export const DEFAULT_KEYS: KeyMap = {
   loadout: ['Tab', ''],
   rotate: ['KeyR', ''],
   pause: ['Escape', ''],
-  useActive: ['KeyE', ''],
+  useActive1: ['KeyQ', ''],
+  useActive2: ['KeyE', ''],
+  useActive3: ['KeyF', ''],
 };
+
+/** Last resort when a custom binding took every default key of an action. */
+const SPARE_KEYS = ['KeyQ', 'KeyE', 'KeyF', 'KeyG', 'KeyZ', 'KeyX', 'KeyC', 'KeyV'];
 
 export const cloneKeys = (k: KeyMap): KeyMap => Object.fromEntries(KEY_ACTIONS.map((a) => [a, [...k[a]]])) as KeyMap;
 export const defaultKeys = (): KeyMap => cloneKeys(DEFAULT_KEYS);
@@ -28,7 +35,10 @@ export function isReserved(code: string): boolean {
 
 /** Repairs whatever was stored: missing actions fall back to defaults, junk is dropped, a code is only kept for its first action/slot. */
 export function sanitizeKeys(raw: unknown): KeyMap {
-  const src = (raw && typeof raw === 'object' ? raw : {}) as Partial<Record<KeyAction, unknown>>;
+  const src = { ...(raw && typeof raw === 'object' ? raw : {}) } as Partial<Record<KeyAction, unknown>> & { useActive?: unknown };
+  // Old saves had one `useActive` key for every active; a custom binding becomes slot 1 (the default E was slot-less, E now belongs to slot 2).
+  const legacy = src.useActive;
+  if (Array.isArray(legacy) && !src.useActive1 && legacy.some((c) => c && c !== 'KeyE')) src.useActive1 = legacy;
   const out = defaultKeys();
   const seen = new Set<string>();
   for (const a of KEY_ACTIONS) {
@@ -40,7 +50,10 @@ export function sanitizeKeys(raw: unknown): KeyMap {
       seen.add(c);
       return c;
     });
-    if (!out[a].some(Boolean)) out[a] = [...DEFAULT_KEYS[a]].map((c) => (seen.has(c) ? '' : c));
+    if (!out[a].some(Boolean)) {
+      out[a] = [...DEFAULT_KEYS[a]].map((c) => (seen.has(c) ? '' : c));
+      if (!out[a].some(Boolean)) out[a] = [SPARE_KEYS.find((c) => !seen.has(c)) ?? '', ''];
+    }
     for (const c of out[a]) if (c) seen.add(c);
   }
   return out;

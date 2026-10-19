@@ -5,7 +5,7 @@ import { deptT, itemT, recipeT, zoneT } from '../i18n/data';
 import type { ItemTypeId } from '../types';
 import { fmtNum, t, type UIKey } from '../i18n';
 import { settings } from '../state/settings';
-import { bindingLabel } from '../state/keymap';
+import { ACTIVE_KEYS, bindingLabel } from '../state/keymap';
 import { initPunchCard, renderPunchCard } from './punchcard';
 
 // Compact receipt-strip combat HUD. Built once; per-frame values only touch changed text.
@@ -95,7 +95,7 @@ function render(): void {
 }
 
 export const hud = {
-  tick(o: { timeLeft: number; elapsed: number; actives?: { type: string; left: number; max: number }[]; shoveCd: number; shoveMax: number; boss: { hp: number; max: number; enraged: boolean; name: string } | null }): void {
+  tick(o: { timeLeft: number; elapsed: number; actives?: { slot: number; type: string; left: number; max: number }[]; shoveCd: number; shoveMax: number; boss: { hp: number; max: number; enraged: boolean; name: string } | null }): void {
     if (!els.t) return;
     const t = o.timeLeft >= 0 ? `${Math.ceil(o.timeLeft)}s` : `${Math.floor(o.elapsed)}s`;
     set('t', t);
@@ -108,10 +108,10 @@ export const hud = {
       els.shove.classList.toggle('ready', o.shoveCd <= 0);
       els.ring.textContent = o.shoveCd > 0 ? fmtNum(o.shoveCd.toFixed(1)) : '';
     }
-    const act = (o.actives ?? []).map((a) => `${a.type}:${a.left}/${a.max}`).join();
-    if (last.actives !== act) { // E-key items: icon, the key, and one pip per charge (spent pips are hollow)
+    const act = (o.actives ?? []).map((a) => `${a.slot}${a.type}:${a.left}/${a.max}`).join();
+    if (last.actives !== act) { // one chip per active slot, in slot order: icon, its key, and one pip per charge (spent pips are hollow)
       last.actives = act;
-      els.actives.innerHTML = (o.actives ?? []).map((a) => `<span class="active-item${a.left <= 0 ? ' spent' : ''}" title="${itemT(a.type as ItemTypeId).name}"><img src="${svg(`icon_${a.type}`)}" alt=""><kbd>${bindingLabel(settings.keys, 'useActive')}</kbd><span class="pips">${Array.from({ length: a.max }, (_, i) => `<i class="${i < a.left ? 'on' : ''}"></i>`).join('')}</span></span>`).join('');
+      els.actives.innerHTML = (o.actives ?? []).map((a) => `<span class="active-item${a.left <= 0 ? ' spent' : ''}" title="${itemT(a.type as ItemTypeId).name}"><img src="${svg(`icon_${a.type}`)}" alt=""><kbd>${bindingLabel(settings.keys, ACTIVE_KEYS[a.slot - 1])}</kbd><span class="pips">${Array.from({ length: a.max }, (_, i) => `<i class="${i < a.left ? 'on' : ''}"></i>`).join('')}</span></span>`).join('');
     }
     els.boss.classList.toggle('hidden', !o.boss);
     if (o.boss) {

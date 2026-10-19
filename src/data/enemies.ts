@@ -82,7 +82,7 @@ export const BOSS: BossTuning = {
 export const MINI_BOSS = {
   aisle: 4,
   at: 8,
-  hp: 450,
+  hp: 340,
   scale: 2.1,
   coins: 12,
   /** Seconds after it arrives before it enrages (faster moves, like the Manager). */
@@ -123,7 +123,7 @@ export const miniBossDef = (base: EnemyDef, mini: MiniVariant, dm = 1): EnemyDef
  * chanceByAisle[i] is the chance in aisle i+1 (regular aisles only); overtime uses overtimeChance;
  * each shift adds shiftBonus.
  */
-export const ELITE = { hpMult: 3.5, scale: 1.35, contactMult: 1.5, coinMult: 3, chanceByAisle: [0, 0, 0.08, 0.12, 0.16, 0.2, 0.25], overtimeChance: 0.3, shiftBonus: 0.03 };
+export const ELITE = { hpMult: 3.5, scale: 1.35, contactMult: 1.5, coinMult: 3, chanceByAisle: [0, 0, 0.05, 0.08, 0.11, 0.14, 0.17], overtimeChance: 0.3, shiftBonus: 0.03 };
 export const ELITE_EXCLUDED: EnemyId[] = [...BOSS_IDS, 'slice', 'egg', 'giftcard'];
 
 /** Every Elite rolls one affix. Splitter skips types that already split or are tiny. */

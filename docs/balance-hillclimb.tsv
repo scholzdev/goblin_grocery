@@ -1,0 +1,15 @@
+id	hypothesis	change	day_win_s1	day_win_s2	deaths_a4	deaths_a5	deaths_a6	deaths_a7	eve_win	late_win	decision
+0	baseline	none (master c1c96a3)	1.8%	1.0%	49%	53%	67%	75%	0.4%	0.0%	base
+1	hpScale growth drives deaths	hpScale a4-7 1.8/2.3/2.9/3.6 -> 1.5/1.8/2.2/2.6	2.8%	2.5%	45%	50%	64%	64%	0.3%	0.0%	accept (small gain; deaths barely move, so HP is not the main killer)
+2	dmgScale drives deaths (contact damage per hit)	dmgScale a4-7 2.0/2.25/2.5/2.8 -> 1.6/1.7/1.8/1.9	7.0%	7.0%	38%	37%	51%	52%	1.1%	0.1%	accept (largest single lever so far)
+3	Tier damage mult too weak (★2 1.5x)	weaponDamageMult 1+0.5(t-1) -> 1+0.75(t-1)	7.0%	7.8%	37%	36%	48%	55%	1.8%	0.0%	revert (within noise on Day; bot rarely tiers weapons; retry after count/mini-boss)
+4a	Too many enemies (user complaint); count growth hurts via contact exposure	total a3-7 44/55/65/75/86 -> 42/46/52/58/66	11.9%	12.1%	37%	24%	37%	45%	2.6%	0.4%	accept
+4b	Mini-boss 450 HP lasts too long at 20 contact dmg	MINI_BOSS.hp 450 -> 340	11.9%	14.0%	29%	27%	37%	43%	2.5%	0.6%	accept (a4 deaths 37% -> 29%)
+5	Elite chance curve to 25% adds 3.5x HP bodies late	ELITE.chanceByAisle .08/.12/.16/.2/.25 -> .05/.08/.11/.14/.17 (a3-7)	16.1%	17.6%	25%	20%	33%	41%	4.3%	1.1%	accept
+6	Late hpScale still outgrows DPS	hpScale a5-7 1.8/2.2/2.6 -> 1.7/2.0/2.3	19.6%	21.1%	25%	18%	30%	35%	4.4%	0.9%	accept
+7	Mini-boss contact hit (10 x dmgScale) too punishing	dmgScale a4 1.6 -> 1.4 (mini-boss contact 16 -> 14)	20.0%	20.9%	23%	18%	30%	34%	5.0%	0.8%	accept (a4 deaths now under 25%)
+8	Late-aisle contact damage still kills	dmgScale a6-7 1.8/1.9 -> 1.75/1.7	22.4%	22.5%	23%	18%	29%	29%	5.8%	0.8%	accept
+9	Boss aisle escorts hit too hard (boss deaths 24-28%)	wave 8 hpScale 2.6->2.0, dmgScale 2.0->1.7	24.6%	25.5%	23%	18%	29%	29%	6.8%	1.1%	accept (Day win at lower edge of target)
+10	Retry tier damage buff on the new curve	weaponDamageMult 1+0.5(t-1) -> 1+0.75(t-1)	25.6%	24.9%	23%	18%	29%	31%	7.3%	1.6%	revert (+0.5pt, within noise)
+11	Aisle 6-7 counts still above DPS growth	total a6-7 58/66 -> 55/60	25.6%	27.3%	23%	18%	28%	27%	8.3%	1.5%	accept; stop (Day win in target, deaths all <=28%)
+12	Test requires dmgScale to rise every aisle (rules.test.ts:1368); a4 1.4 < a3 1.8 broke it	dmgScale a1-7 -> 1.2/1.3/1.4/1.5/1.6/1.7/1.8 (monotone, no test change)	26.0%	26.6%	24%	16%	28%	30%	8.5%	2.1%	accept (Day win 26%, all deaths <=30%, Evening/Late lower)

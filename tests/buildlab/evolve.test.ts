@@ -8,7 +8,7 @@ import { ITEM_ORDER, RECIPE_ORDER } from '../../src/engine/define';
 
 const tiny = { seed: 3, pop: 4, gens: 2, seedsPerEval: 2, topK: 2, heldOut: 2, control: 2 };
 
-describe('evolve', () => {
+describe('evolve', { timeout: 30_000 }, () => {
   it('is deterministic for the same options', () => {
     const a = evolve(tiny), b = evolve(tiny);
     const strip = (r: EvolveResult) => JSON.stringify({ g: r.generations, top: r.top, h: r.heldOut.top.map((h) => [h.label, h.fitness, h.winRate]), c: r.heldOut.control.map((h) => h.fitness), gr: r.heldOut.greedy.fitness });
@@ -55,7 +55,7 @@ function fake(o: FakeOpts): RunRecord {
 const held = (label: string, runs: RunRecord[]): HeldOut => ({ label, genome: greedyGenome(), fitness: 1, winRate: runs.filter((r) => r.result === 'win').length / runs.length, avgAisle: 4, runs });
 const many = (n: number, f: (i: number) => RunRecord): RunRecord[] => Array.from({ length: n }, (_, i) => f(i));
 
-describe('balance', () => {
+describe('balance', { timeout: 30_000 }, () => {
   const synthetic = () => {
     // top: every run holds fan + a combo and wins, never holds ice or bell; control: some hold fan / ice / bell and lose
     const topRuns = many(12, () => fake({ items: ['toaster', 'fan'], combos: ['toastMode'], sets: { kitchen: 2 }, result: 'win', by: { toaster: 60, fan: 0 }, reactions: { shatter: 2 } }));

@@ -197,3 +197,29 @@ Skipped in the arena:
 - The fixed 0.05 s step differs from the arena's frame step; burn and poison tick on the fake clock exactly as in the game, weapon cooldowns can land up to one step late.
 - `fake.rng` draws for affixes and spawn cooldowns follow the arena's order, but the arena draws other things (coin scatter) that the lab does not, so a lab run is NOT a replay of the same seed in the game.
 - Items that need enemy attacks as a trigger are only as good as the shots and hits the proxy generates.
+
+## Balance hillclimb (difficulty curve)
+
+Goal: greedy bot, Day Shift, win rate 25-35%, no aisle above 35% deaths among the runs that reached it (aisle 4 at most 25%), later shifts harder. Metric: `npm run buildlab -- --runs 200 --seed S --starter all --shift N` (800 runs per cell), seeds 1 and 2 on Day, seed 1 on Evening and Late. The proxy was not touched. Every step, with its hypothesis and measurements, is in `balance-hillclimb.tsv`.
+
+Choice: counts and hpScale both fell, because both were growing every aisle. Most of the gain came from dmgScale (what lands on the cart; the proxy's exposure model makes contact damage the main killer) and from counts (more bodies means more contact rolls). The mini-boss lost HP, not damage: its contact hit follows dmgScale. Elite chance was flattened. A bigger tier damage multiplier (1 + 0.75 per tier) was tried twice and reverted: it moved the Day win rate by under one point because the greedy bot rarely tiers weapons. Tiering value is still weak; fix it in the shop or the bot, not here.
+
+| Knob | Before | After |
+| --- | --- | --- |
+| total, aisles 3-7 | 44 / 55 / 65 / 75 / 86 | 42 / 46 / 52 / 55 / 60 |
+| hpScale, aisles 4-7 | 1.8 / 2.3 / 2.9 / 3.6 | 1.5 / 1.7 / 2.0 / 2.3 |
+| dmgScale, aisles 1-7 | 1.5 / 1.6 / 1.8 / 2.0 / 2.25 / 2.5 / 2.8 | 1.2 / 1.3 / 1.4 / 1.5 / 1.6 / 1.7 / 1.8 |
+| boss aisle escorts hpScale / dmgScale | 2.6 / 2.0 | 2.0 / 1.7 |
+| `MINI_BOSS.hp` | 450 | 340 |
+| `ELITE.chanceByAisle` (aisles 3-7) | .08 / .12 / .16 / .20 / .25 | .05 / .08 / .11 / .14 / .17 |
+
+Results (greedy bot, all four characters, 200 runs each, seed 1; Day seed 2 in brackets):
+
+| | Before | After |
+| --- | --- | --- |
+| Day win rate | 1.8% (1.0%) | 26.0% (26.6%) |
+| Day deaths a3 / a4 / a5 / a6 / a7 / boss | 6 / 49 / 53 / 67 / 75 / 7 % | 2 / 24 / 16 / 28 / 30 / 17 % |
+| Evening win rate | 0.4% | 8.5% |
+| Late win rate | 0.0% | 2.1% |
+
+Evening and Late stay harder than Day. The Day win rate sits at the low end of the band and Evening/Late are still very hard (aisle 4 deaths 52% / 69%); the shift multipliers were not touched. The proxy is uncalibrated, so treat these as relative moves.

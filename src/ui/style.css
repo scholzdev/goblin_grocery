@@ -90,6 +90,12 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 }
 #hud .shove.ready .ring { box-shadow: 0 0 0 3px var(--gold); }
 #hud .recipes { display: flex; gap: 8px; }
+#hud .actives .active-item kbd { min-width: 14px; text-align: center; }
+.slot-badge { position: absolute; right: 2px; top: 2px; z-index: 3; display: flex; align-items: center; gap: 3px; padding: 1px 5px; font: 700 12px/1.2 var(--display, inherit); color: #fff; background: #30203F; border: 2px solid #fff; border-radius: 8px; pointer-events: auto; }
+.slot-badge kbd { font: 700 10px/1 inherit; padding: 1px 3px; border-radius: 4px; background: #fff; color: #30203F; }
+.slot-badge.none { background: #F45F52; }
+.chip.slot-chip { background: #30203F; color: #fff; }
+.chip.slot-none { background: #F45F52; color: #fff; }
 #hud .actives { display: flex; gap: 8px; margin-top: 6px; }
 .active-item { display: flex; align-items: center; gap: 6px; padding: 3px 8px; background: #FFF2D5; border: 3px solid #30203F; border-radius: 10px; }
 .active-item img { width: 28px; height: 28px; }
@@ -693,6 +699,8 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 #tutorial.tip { border-color: var(--gold-deep); }
 #tutorial::after { content: ''; position: absolute; left: var(--ax, 50%); bottom: -9px; width: 14px; height: 14px; background: var(--paper); border: solid var(--plum); border-width: 0 3px 3px 0; transform: translateX(-50%) rotate(45deg); }
 #tutorial.below::after { bottom: auto; top: -9px; border-width: 3px 0 0 3px; }
+#tutorial.lside::after { left: auto; right: -9px; bottom: auto; top: var(--ay, 50%); transform: translateY(-50%) rotate(-45deg); border-width: 0 3px 3px 0; }
+#tutorial.rside::after { left: -9px; bottom: auto; top: var(--ay, 50%); transform: translateY(-50%) rotate(135deg); border-width: 0 3px 3px 0; }
 #tutorial .skip { display: block; margin: 6px 0 0 auto; padding: 0; border: none; background: none; font: 800 12px var(--ui); color: var(--lavender-deep); text-decoration: underline; cursor: pointer; pointer-events: auto; }
 /* Loadout screen: goblin panel (left) + run setup (right) + start bar */
 #starter h2 { font-size: 44px; margin-bottom: 14px; }
@@ -1007,3 +1015,4 @@ body.pad-nav :focus { outline: 4px solid var(--gold); outline-offset: 3px; }
 /* Loyalty 3 plus the Staff Only door: four cards must fit the 1280-wide root. */
 .route .doors:has(> .door:nth-child(4)) { gap: 14px; }
 .route .doors:has(> .door:nth-child(4)) .door { width: 280px; }
+.slot-badge, .slot-cycle { cursor: pointer; }
