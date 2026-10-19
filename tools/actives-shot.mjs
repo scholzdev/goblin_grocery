@@ -21,6 +21,8 @@ await page.evaluate(() => {
 await page.waitForTimeout(300);
 await (await page.$('.grid .item[data-uid] >> nth=1')).hover(); await page.waitForTimeout(300);
 console.log('badges', await page.$$eval('.slot-badge', (e) => e.map((x) => x.textContent)));
+await page.click('.grid .slot-badge.none'); await page.waitForTimeout(300); // click the "No slot" badge: the extinguisher takes slot 1
+console.log('after click', await page.$$eval('.slot-badge', (e) => e.map((x) => x.textContent)));
 await page.screenshot({ path: 'screenshots/actives-shop.png' });
 console.log(errs.join('\n') || 'no errors');
 await b.close();

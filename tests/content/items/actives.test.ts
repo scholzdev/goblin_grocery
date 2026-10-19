@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { activeSlots, fireActive, refillCharges, slotOfUid } from '../../../src/engine/actives';
+import { activeSlots, cycleSlot, fireActive, refillCharges, slotOfUid } from '../../../src/engine/actives';
 import { createRun, startNextWave } from '../../../src/state/run';
 import { arena, at, far } from '../helpers';
 import { ACTIVE_KEYS, actionFor, defaultKeys, sanitizeKeys } from '../../../src/state/keymap';
@@ -73,6 +73,44 @@ describe('Actives: slots in reading order', () => {
   it('a non-active item has no slot at all', () => {
     const a = arena([at('toaster'), far('bell')]);
     expect(slotOfUid(a.inv, a.inv.placed[1].uid)).toBeUndefined();
+  });
+});
+
+describe('Actives: picking a slot by hand', () => {
+  const trio = () => { const a = arena([at('vacuum'), far('bubblewrap'), far('airhorn')]); a.inv.placed[0].x = 0; a.inv.placed[0].y = 0; place(a, [[2, 0], [4, 0]]); return a; };
+  const types = (a: Placed) => activeSlots(a.inv).map((s) => `${s.slot}:${s.inst.type}`);
+
+  it('clicking cycles 1 → 2 → 3 → automatic, and a taken slot is released by its old holder', () => {
+    const a = trio();
+    expect(types(a)).toEqual(['1:vacuum', '2:bubblewrap', '3:airhorn']);
+    const [vac, bub] = a.inv.placed;
+    cycleSlot(a.inv, bub.uid); cycleSlot(a.inv, bub.uid); cycleSlot(a.inv, bub.uid); // automatic → 1 → 2 → 3
+    expect(types(a)).toEqual(['1:vacuum', '3:bubblewrap', '2:airhorn']);
+    cycleSlot(a.inv, vac.uid); cycleSlot(a.inv, vac.uid); cycleSlot(a.inv, vac.uid); // → 1 → 2 → 3, takes 3 from bubblewrap
+    expect(vac.slot).toBe(3);
+    expect(bub.slot).toBeUndefined();
+    cycleSlot(a.inv, vac.uid); // 3 → automatic
+    expect(vac.slot).toBeUndefined();
+  });
+
+  it('a picked slot survives moving the item, and a slot-less 4th can be clicked into a slot', () => {
+    const a = arena([at('vacuum'), far('bubblewrap'), far('airhorn'), far('fireextinguisher')]);
+    place(a, [[0, 1], [0, 2], [0, 3]]); a.inv.placed[0].x = 0; a.inv.placed[0].y = 0;
+    const ext = a.inv.placed[3];
+    expect(slotOfUid(a.inv, ext.uid)).toBeNull();
+    cycleSlot(a.inv, ext.uid); // null → 1
+    expect(slotOfUid(a.inv, ext.uid)).toBe(1);
+    expect(activeSlots(a.inv).filter((s) => s.slot === null)).toHaveLength(1); // somebody else lost the spot
+    ext.x = 7; ext.y = 5;
+    expect(slotOfUid(a.inv, ext.uid)).toBe(1);
+  });
+
+  it('the key fires the item picked for that slot', () => {
+    const a = trio();
+    cycleSlot(a.inv, a.inv.placed[2].uid); // airhorn → slot 1
+    expect(fireActive(a.inv, a.fake, 1)).toBe(true);
+    expect(a.inv.placed[2].charges).toBe(0);
+    expect(a.inv.placed[0].charges).toBeUndefined();
   });
 });
 

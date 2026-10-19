@@ -8,7 +8,7 @@ import { findItem, rotateCells, rotatedSize, footprint } from '../systems/invent
 import { describeBuffs, tierScaling } from '../systems/synergies';
 import { currentRerollCost, inflation, repairCost, sellPrice } from '../systems/shop';
 import { iconOf, sellValue } from '../engine/registry';
-import { slotOfUid } from '../engine/actives';
+import { cycleSlot, slotOfUid } from '../engine/actives';
 import { flow } from '../flow';
 import { play } from '../audio/sfx';
 import { svg } from './hud';
@@ -143,9 +143,9 @@ function itemInner(type: ItemTypeId, rot: Rotation, tier = 1, cellPx = CELL, ico
 function slotBadge(uid: string, compact = false): string {
   const slot = compact ? undefined : slotOfUid(store.state.inventory, uid);
   if (slot === undefined) return '';
-  if (slot === null) return `<b class="slot-badge none" title="${esc(t('activeNoSlotTip'))}">${esc(t('activeNoSlot'))}</b>`;
+  if (slot === null) return `<b class="slot-badge none" data-slot-uid="${uid}" title="${esc(t('activeNoSlotTip'))}">${esc(t('activeNoSlot'))}</b>`;
   const key = bindingLabel(settings.keys, ACTIVE_KEYS[slot - 1], t('keySpace'));
-  return `<b class="slot-badge" title="${esc(t('activeSlotTip', { n: slot, k: key }))}">${slot}<kbd>${esc(key)}</kbd></b>`;
+  return `<b class="slot-badge" data-slot-uid="${uid}" title="${esc(t('activeSlotTip', { n: slot, k: key }))}">${slot}<kbd>${esc(key)}</kbd></b>`;
 }
 
 function itemEl(it: ItemInstance, build: Build, extra = '', compact = false): string {
@@ -367,8 +367,8 @@ const fitName = (n: string): number => (n.length > 14 ? 19 : n.length > 11 ? 22 
 function slotChip(uid: string | null): string {
   const slot = uid ? slotOfUid(store.state.inventory, uid) : undefined;
   if (slot === undefined) return '';
-  if (slot === null) return `<span class="chip slot-none" title="${esc(t('activeNoSlotTip'))}">${esc(t('activeNoSlot'))}</span>`;
-  return `<span class="chip slot-chip">${slot} · ${esc(bindingLabel(settings.keys, ACTIVE_KEYS[slot - 1], t('keySpace')))}</span>`;
+  if (slot === null) return `<span class="chip slot-none slot-cycle" data-slot-uid="${uid}" title="${esc(t('activeNoSlotTip'))}">${esc(t('activeNoSlot'))}</span>`;
+  return `<span class="chip slot-chip slot-cycle" data-slot-uid="${uid}" title="${esc(t('activeSlotPick'))}">${slot} · ${esc(bindingLabel(settings.keys, ACTIVE_KEYS[slot - 1], t('keySpace')))}</span>`;
 }
 
 export function inspectorHtml(type: ItemTypeId, uid: string | null, offerTier?: number, offerDouble = false): string {
@@ -560,6 +560,8 @@ function onClick(e: MouseEvent): void {
   const s = store.state;
   if (s.phase !== 'shop') return;
   const el = e.target as HTMLElement;
+  const slotEl = el.closest<HTMLElement>('[data-slot-uid]');
+  if (slotEl) { cycleSlot(s.inventory, slotEl.dataset.slotUid!); play('click'); store.changed(); return; }
   const act = el.closest<HTMLElement>('[data-act]')?.dataset.act;
   const offer = el.closest<HTMLElement>('[data-offer]');
   if (selectedUid && !el.closest('.item[data-uid], .inspector, button, [data-offer], .slot')) { selectedUid = null; refreshHover(); }
@@ -668,7 +670,7 @@ function hoverFrom(el: HTMLElement): void {
 const scale = (): number => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--s')) || 1;
 
 function onPointerDown(e: PointerEvent): void {
-  if (e.button !== 0 || store.state.phase !== 'shop') return;
+  if (e.button !== 0 || store.state.phase !== 'shop' || (e.target as HTMLElement).closest('[data-slot-uid]')) return;
   const itemEl = (e.target as HTMLElement).closest<HTMLElement>('.item[data-uid]');
   if (!itemEl) return;
   const found = findItem(store.state.inventory, itemEl.dataset.uid!);

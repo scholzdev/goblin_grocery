@@ -962,3 +962,4 @@ body.pad-nav :focus { outline: 4px solid var(--gold); outline-offset: 3px; }
 /* Loyalty 3 plus the Staff Only door: four cards must fit the 1280-wide root. */
 .route .doors:has(> .door:nth-child(4)) { gap: 14px; }
 .route .doors:has(> .door:nth-child(4)) .door { width: 280px; }
+.slot-badge, .slot-cycle { cursor: pointer; }
