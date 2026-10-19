@@ -5,3 +5,4 @@ id	hypothesis	change	day_win_s1	day_win_s2	deaths_a4	deaths_a5	deaths_a6	deaths_
 3	Tier damage mult too weak (★2 1.5x)	weaponDamageMult 1+0.5(t-1) -> 1+0.75(t-1)	7.0%	7.8%	37%	36%	48%	55%	1.8%	0.0%	revert (within noise on Day; bot rarely tiers weapons; retry after count/mini-boss)
 4a	Too many enemies (user complaint); count growth hurts via contact exposure	total a3-7 44/55/65/75/86 -> 42/46/52/58/66	11.9%	12.1%	37%	24%	37%	45%	2.6%	0.4%	accept
 4b	Mini-boss 450 HP lasts too long at 20 contact dmg	MINI_BOSS.hp 450 -> 340	11.9%	14.0%	29%	27%	37%	43%	2.5%	0.6%	accept (a4 deaths 37% -> 29%)
+5	Elite chance curve to 25% adds 3.5x HP bodies late	ELITE.chanceByAisle .08/.12/.16/.2/.25 -> .05/.08/.11/.14/.17 (a3-7)	16.1%	17.6%	25%	20%	33%	41%	4.3%	1.1%	accept
