@@ -9,11 +9,22 @@ import { matches } from '../state/keymap';
 import { isDown } from '../input/keyboard';
 import { padMove, padShoves } from '../input/gamepad';
 import { keyVars } from './keys';
+import { placeBubble, type Rect, type Side } from './tutorial-place';
 import { advance, freshProgress, pick, skipAll, type Progress, type Snap } from './tutorial-core';
 
 // First-run tutorial: speech-bubble callouts that never block the game. The bubble ignores the pointer (only "Skip" takes clicks),
 // never pauses combat and advances by itself when the player does the thing. All logic lives in tutorial-core.ts.
-const ANCHOR: Record<string, string> = { buy: '#shop .offers', place: '#shop .grid-wrap', merge: '#shop .grid-wrap', combos: '#shop .combos' };
+interface Target { anchor: string; avoid?: string[]; prefer: Side[] }
+const COMBAT: Target = { anchor: '#hud', prefer: ['below'] };
+const SHOP_GRID: Target = { anchor: '#shop .grid-wrap', prefer: ['above', 'below', 'right'] };
+// Where each callout points and what it must leave uncovered. Combat ones hang under the HUD strip, the route one under the doors.
+const TARGET: Record<string, Target> = {
+  buy: { anchor: '#shop .offers', avoid: ['#shop .offers-head', '#shop .grid-wrap'], prefer: ['below', 'above', 'left'] },
+  place: SHOP_GRID,
+  merge: SHOP_GRID,
+  combos: { anchor: '#shop .combos', avoid: ['#shop .grid-wrap'], prefer: ['below', 'above', 'left'] },
+  door: { anchor: '.route .doors', avoid: ['.route .door', '.route h2', '.route .progress'], prefer: ['below', 'above'] },
+};
 const TICK = 150;
 
 let ui: HTMLElement;
@@ -105,24 +116,25 @@ function render(pk: { id: string; tip: boolean } | null): void {
     el.innerHTML = `${t(key, keyVars())}<button class="skip">${t('tutSkip')}</button>`;
     el.classList.toggle('tip', isTip);
   }
-  place(ANCHOR[id], id === 'door' ? 680 : 96);
+  place(TARGET[id] ?? COMBAT);
 }
 
-/** Combat callouts sit under the HUD strip, the route one below the doors; shop callouts hang above (or below) the element they talk about. */
-function place(sel: string | undefined, top: number): void {
+/** Rects in the ui root's design units (the root is scaled, getBoundingClientRect is not). */
+function place(tg: Target): void {
   const sc = ui.getBoundingClientRect().width / ui.offsetWidth || 1;
-  const w = el.offsetWidth, h = el.offsetHeight, uw = ui.offsetWidth;
-  const a = sel ? document.querySelector(sel)?.getBoundingClientRect() : undefined;
   const r = ui.getBoundingClientRect();
-  let x = (uw - w) / 2, y = top, below = true;
-  if (a) {
-    const ax = (a.left - r.left) / sc, ay = (a.top - r.top) / sc, aw = a.width / sc, ah = a.height / sc;
-    x = Math.min(Math.max(ax + aw / 2 - w / 2, 8), uw - w - 8);
-    below = ay - h - 16 < 8;
-    y = below ? ay + ah + 16 : ay - h - 16;
-    el.style.setProperty('--ax', `${Math.min(Math.max(ax + aw / 2 - x, 20), w - 20)}px`);
-  } else el.style.setProperty('--ax', '50%');
-  el.classList.toggle('below', below);
-  el.style.left = `${x}px`;
-  el.style.top = `${y}px`;
+  const rect = (e: Element): Rect => { const b = e.getBoundingClientRect(); return { x: (b.left - r.left) / sc, y: (b.top - r.top) / sc, w: b.width / sc, h: b.height / sc }; };
+  const a = document.querySelector(tg.anchor);
+  const w = el.offsetWidth, h = el.offsetHeight;
+  if (!a) { el.classList.remove('lside', 'rside'); el.classList.add('below'); el.style.setProperty('--ax', '50%'); el.style.left = `${(ui.offsetWidth - w) / 2}px`; el.style.top = '96px'; return; }
+  const avoid = (tg.avoid ?? []).flatMap((q) => [...document.querySelectorAll(q)].map(rect));
+  const ar = rect(a);
+  const p = placeBubble({ w, h }, { w: ui.offsetWidth, h: ui.offsetHeight }, ar, avoid, tg.prefer);
+  el.classList.toggle('below', p.side === 'below');
+  el.classList.toggle('lside', p.side === 'left');
+  el.classList.toggle('rside', p.side === 'right');
+  el.style.setProperty('--ax', `${Math.min(Math.max(ar.x + ar.w / 2 - p.x, 20), w - 20)}px`);
+  el.style.setProperty('--ay', `${Math.min(Math.max(ar.y + ar.h / 2 - p.y, 20), h - 20)}px`);
+  el.style.left = `${p.x}px`;
+  el.style.top = `${p.y}px`;
 }
