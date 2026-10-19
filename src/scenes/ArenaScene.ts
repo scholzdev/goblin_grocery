@@ -56,9 +56,10 @@ import { CRATE, DASH_PROPS, OBSTACLES, OBSTACLE_KINDS, PROP_TUNING, crateSpots, 
 import { ZONES, type ZoneDef } from '../data/zones';
 import { type Rect, inLane, pushOutCapsule, pushOutCircle, rectsOverlap, segmentHitsRect, steerAround } from '../systems/obstacles';
 
+import { ACTIVE_KEYS } from '../state/keymap';
 import { isDown, resetKeyboard, takePressed } from '../input/keyboard';
 import { padMove, takePadActive, takePadShove } from '../input/gamepad';
-import { activeSlots, fireActives } from '../engine/actives';
+import { activeSlots, fireActive } from '../engine/actives';
 import { ARENA, ENTRIES, SIDE_UNITS, DECO_SPOTS, edgeSolids } from '../data/arena';
 import { labDummies, type LabDummy } from '../lab';
 export { ARENA };
@@ -1060,7 +1061,7 @@ export class ArenaScene extends Phaser.Scene {
       hud.tick({
         timeLeft: this.timeLeft(),
         elapsed: this.waveTime,
-        actives: activeSlots(s.inventory).map((a) => ({ type: a.inst.type, left: a.left, max: a.max })),
+        actives: activeSlots(s.inventory).filter((a) => a.slot).map((a) => ({ slot: a.slot!, type: a.inst.type, left: a.left, max: a.max })),
         shoveCd: this.player.chainT > 0 ? 0 : Math.max(0, this.player.shoveCd), shoveMax: s.build.shoveCooldown,
         boss: this.boss ? { hp: Math.max(0, this.boss.hp), max: this.boss.maxHp, enraged: this.enraged, name: enemyT(this.boss.def.id).name.toUpperCase() }
           : this.mini ? { hp: Math.max(0, this.mini.hp), max: this.mini.maxHp, enraged: this.enraged, name: t('miniBossBar', { name: enemyT(this.mini.def.id).name.toUpperCase() }) } : null,
@@ -1112,8 +1113,10 @@ export class ArenaScene extends Phaser.Scene {
     const inp = this.input01();
     if (inp.x !== 0) p.facing = inp.x > 0 ? 1 : -1;
 
-    const keyActive = takePressed('useActive'), padActive = takePadActive();
-    if ((keyActive || padActive) && fireActives(s.inventory, this.ctx)) this.fx.shake(0.002, 90);
+    ACTIVE_KEYS.forEach((k, i) => {
+      const key = takePressed(k), pad = takePadActive(i + 1);
+      if ((key || pad) && fireActive(s.inventory, this.ctx, i + 1)) this.fx.shake(0.002, 90);
+    });
 
     const devShove = import.meta.env.DEV && this.devInput?.shove;
     if (devShove) this.devInput!.shove = false;
