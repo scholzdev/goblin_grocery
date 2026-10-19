@@ -3,7 +3,7 @@ import { profile, unlockedItems } from '../state/profile';
 import { ITEMS, ITEM_IDS, TIER, cellsFor, cellsOf } from '../data/items';
 import { RECIPES, recipeIcon, recipeParts } from '../data/recipes';
 import { BOSS_WAVE, ECONOMY, SHOP_LEVELS } from '../data/waves';
-import { labAddItem, labClear, cartUpgradeCost, nextCartSize, shelfUpgradeCost, upgradeCart, upgradeShelf, buyOffer, mergeItems, mergeTargetFor, upgradeShop, shopUpgradeCost, moveItem, previewMerge, previewMove, repair, reroll, sellItem, toggleShopLock, type MoveTarget } from '../state/run';
+import { cartUpgradeCost, nextCartSize, shelfUpgradeCost, upgradeCart, upgradeShelf, buyOffer, mergeItems, mergeTargetFor, upgradeShop, shopUpgradeCost, moveItem, previewMerge, previewMove, repair, reroll, sellItem, toggleShopLock, type MoveTarget } from '../state/run';
 import { findItem, rotateCells, rotatedSize, footprint } from '../systems/inventory';
 import { describeBuffs, tierScaling } from '../systems/synergies';
 import { currentRerollCost, inflation, repairCost, sellPrice } from '../systems/shop';
@@ -63,7 +63,6 @@ let card: HTMLElement | null = null; // floating item card (body-level, like the
 let cardHtml = '';
 let hint: HTMLElement | null = null; // drop-feedback bubble that follows the drag ghost
 let selectedUid: string | null = null;
-let labTier = 1;
 
 export function initShop(ui: HTMLElement): void {
   root = document.createElement('div');
@@ -216,10 +215,14 @@ const setLv = (n: number): number => lvOf(n);
 const chipHtml = (id: SetId): string => `<span class="chip set-${id}">${setIcon(id, 12)}${tagT(id)}</span>`;
 
 /** Set coupons (inside the receipt): sets with >=1 type in the cart; full coupon at lv>=1, collapsed one-liner at lv0. `preview`: an offer type hovered in the shop, showing what it would add. */
+/** The sets the cart has items of: count and bonus level, highest level first. */
+export const activeSets = (): { id: SetId; n: number; lv: number }[] =>
+  SET_ORDER.map((id) => ({ id, n: setCount(id) })).filter((x) => x.n > 0).map((x) => ({ ...x, lv: setLv(x.n) })).sort((a, b) => b.lv - a.lv || b.n - a.n);
+
 export function setsHtml(preview?: ItemTypeId, previewDouble = false): string {
   const t1 = SET_THRESHOLDS[0];
   const gm = new Map((preview ? setGains(store.state.inventory.placed, preview, previewDouble) : []).map((g) => [g.id, g]));
-  const have = SET_ORDER.map((id) => ({ id, n: setCount(id) })).filter((x) => x.n > 0).map((x) => ({ ...x, lv: setLv(x.n) })).sort((a, b) => b.lv - a.lv || b.n - a.n);
+  const have = activeSets();
   const ghosts = SET_ORDER.filter((id) => gm.get(id)?.from === 0);
   if (!have.length && !ghosts.length) return '';
   return `<div class="cut">${t('setsTitle')}</div>` + have.map(({ id, n, lv }) => {
@@ -295,6 +298,7 @@ function render(): void {
   const shelf = s.inventory.shelf.map((it, i) => `<div class="slot" data-slot="${i}">${it ? itemEl({ ...it, x: 0, y: 0, rot: 0 }, s.build, '', true).replace(/style="[^"]*"/, '') : ''}</div>`).join('');
   const rcost = repairCost(s);
   const isLast = shop.shopIndex + 1 >= BOSS_WAVE && !s.overtime;
+  root.classList.toggle('lab', !!s.lab);
   root.innerHTML = `
     <div class="col-left receipt">
       <h3>Goblin Grocery</h3>
@@ -326,19 +330,10 @@ function render(): void {
     <div class="bottom">
       <button class="btn coral next" data-act="next">${s.labSandbox ? t('labFight') : isLast ? t('faceManager') : t('nextAisle')} ▸</button>
     </div>
-    ${s.lab ? labPanel() : ''}
     <div class="toast" style="opacity:0"></div>`;
   refreshHover();
   padReapply();
   if (shop.riseWait) { shop.riseWait = false; toast(t('toastRise')); }
-}
-
-function labPanel(): string {
-  const icons = ITEM_IDS.map((ty) => `<button class="lab-item ${rarityClass(ty, labTier)}" data-lab-add="${ty}" title="${esc(itemT(ty).name)}" aria-label="${t('labAddAria', { name: esc(itemT(ty).name) })}"><img src="${svg(`icon_${ty}`)}" alt=""></button>`).join('');
-  const tiers = [1, 2, 3].map((n) => `<button class="btn small ${n === labTier ? 'coral' : ''}" data-lab-tier="${n}">★${n}</button>`).join('');
-  return `<div class="lab-panel receipt"><div class="lab-head"><h3>${t('labPanel')}</h3>${tiers}</div>
-    <div class="lab-items">${icons}</div>
-    <div class="lab-btns"><button class="btn small" data-act="lab-clear">${t('labClear')}</button><button class="btn small" data-act="lab-money">${t('labFill')}</button><button class="btn small" data-act="lab-reroll">${t('labRerollFree')}</button></div></div>`;
 }
 
 /** Another owned copy (cart or shelf) that can be combined into `inst`: same type and tier, below max. */
@@ -565,12 +560,6 @@ function onClick(e: MouseEvent): void {
   const act = el.closest<HTMLElement>('[data-act]')?.dataset.act;
   const offer = el.closest<HTMLElement>('[data-offer]');
   if (selectedUid && !el.closest('.item[data-uid], .inspector, button, [data-offer], .slot')) { selectedUid = null; refreshHover(); }
-  const add = el.closest<HTMLElement>('[data-lab-add]'), tier = el.closest<HTMLElement>('[data-lab-tier]');
-  if (tier) { labTier = Number(tier.dataset.labTier); store.changed(); return; }
-  if (add && s.lab) { const r = labAddItem(s, add.dataset.labAdd as ItemTypeId, labTier); if (r.ok) play('buy'); else toast(r.reason); store.changed(); return; }
-  if (s.lab && act === 'lab-clear') { labClear(s); play('click'); store.changed(); return; }
-  if (s.lab && act === 'lab-money') { s.money += 999; play('buy'); store.changed(); return; }
-  if (s.lab && act === 'lab-reroll') { if (!s.shop?.locked) { s.money += currentRerollCost(s); reroll(s, flow.rng); } play('click'); store.changed(); return; }
   if (act === 'next') { play('click'); selectedUid = null; if (s.labSandbox) flow.labToArena(); else flow.leaveShop(); return; }
   if (act === 'loyalty') {
     const cost = shopUpgradeCost(s);

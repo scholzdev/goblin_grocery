@@ -323,6 +323,8 @@ export interface RunStats {
   kills: number;
   coinsEarned: number;
   damageByWeapon: Record<string, number>;
+  /** Lab meter only: the HP each source actually took off enemies (`damageByWeapon` counts overkill). Set where the scene writes enemy HP. */
+  removedByWeapon?: Record<string, number>;
   /** The rest of the run's damage breakdown (`systems/damageStats`). */
   damage: DamageStats;
   wavesCleared: number;
@@ -400,10 +402,10 @@ export interface RunState {
   labSandbox?: boolean;
 }
 
-/** Test Lab setup (title menu); `aisle` 1..BOSS_WAVE, then overtime. */
+/** Test Lab setup: the title form, then the bench's Setup tab edits it live (`labApply`); `aisle` 1..BOSS_WAVE, then overtime. */
 export interface LabOpts {
   aisle: number; dept: DepartmentId; shift: number; starter: StarterId; weapon: StarterWeapon; money: number;
-  cart: [number, number]; shelf: number; shopLevel: number; god: boolean; keep: boolean;
+  cart: [number, number]; shelf: number; shopLevel: number; god: boolean;
   event?: 'random' | 'none' | EventKind;
   mod?: ModifierId;
   sandbox?: boolean;

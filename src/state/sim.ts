@@ -19,7 +19,7 @@ export function createSimRun(sim: SimDef, rng: Rng = mulberry32(sim.seed ?? SIM_
   const opts: LabOpts = {
     aisle: sim.aisle ?? D.aisle, dept: sim.department ?? D.department, shift: sim.shift ?? D.shift, starter: sim.character ?? D.character, weapon: 'toaster', money: sim.money ?? D.money,
     cart: [cartSize[0], cartSize[1]], shelf: Math.max(ECONOMY.shelfSlots, sim.shelf?.length ?? 0), shopLevel: sim.shopLevel ?? D.shopLevel,
-    god: sim.god ?? D.god, keep: true, event: sim.event ?? D.event, mod: doorMod, sandbox: !waves,
+    god: sim.god ?? D.god, event: sim.event ?? D.event, mod: doorMod, sandbox: !waves,
   };
   const s = createLabRun(seed, opts);
   const { slots } = layoutCart(sim);

@@ -24,7 +24,7 @@ export interface DamageStats {
 }
 
 /** Where a hit is recorded: `RunStats` and the FakeCtx's own log both fit. */
-export interface DamageSink { damageByWeapon: Record<string, number>; damage: DamageStats }
+export interface DamageSink { damageByWeapon: Record<string, number>; removedByWeapon?: Record<string, number>; damage: DamageStats }
 
 /** One hit as the breakdown sees it. */
 export interface DamageRecord {
@@ -37,6 +37,8 @@ export interface DamageRecord {
   /** Affinity multiplier above 1 / below 1. */
   weak: boolean;
   resisted: boolean;
+  /** The HP the hit really took off: `min(dmg, hp before)`. Overkill is not in it. Left out where nothing tracks it (the bot sims). */
+  removed?: number;
   /** The Shred and mark bonuses inside `dmg`'s pipeline (0 for none). */
   shred: number;
   mark: number;
@@ -47,6 +49,10 @@ export const newDamageStats = (): DamageStats => ({ byType: Object.fromEntries(D
 export function recordDamage(sink: DamageSink, h: DamageRecord): void {
   const d = sink.damage;
   sink.damageByWeapon[h.source] = (sink.damageByWeapon[h.source] ?? 0) + h.dmg;
+  if (h.removed !== undefined) {
+    const by = (sink.removedByWeapon ??= {});
+    by[h.source] = (by[h.source] ?? 0) + h.removed;
+  }
   d.byType[h.type] += h.dmg;
   if (h.isDot) d.dot += h.dmg;
   if (h.weak) d.weak += h.dmg;

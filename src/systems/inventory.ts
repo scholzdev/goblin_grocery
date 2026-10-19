@@ -34,6 +34,13 @@ export function canPlace(inv: Inventory, type: ItemTypeId, x: number, y: number,
   return { ok: true };
 }
 
+/** First free spot for a new item (rows first, then columns), trying only the rotations that change its footprint. */
+export function firstFit(inv: Inventory, type: ItemTypeId, tier = 1): { x: number; y: number; rot: Rotation } | null {
+  const rots = ([0, 1, 2, 3] as Rotation[]).filter((r) => normalizeRotation(type, r, tier) === r);
+  for (let y = 0; y < inv.rows; y++) for (let x = 0; x < inv.cols; x++) for (const rot of rots) if (canPlace(inv, type, x, y, rot, undefined, tier).ok) return { x, y, rot };
+  return null;
+}
+
 export function adjacentPairs(placed: ItemInstance[]): [string, string][] {
   const at = new Map<string, string>();
   for (const p of placed) for (const c of footprint(p)) at.set(`${c.x},${c.y}`, p.uid);

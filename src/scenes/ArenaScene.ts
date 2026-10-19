@@ -710,12 +710,13 @@ export class ArenaScene extends Phaser.Scene {
     const soaked = hitArmor(e, dmg, o, now), armored = soaked < dmg * 0.5, shredBonus = shredGain(e, dmg, soaked, o);
     dmg = soaked;
     hit.dmg = dmg; hit.armored = armored;
+    const removed = Math.max(0, Math.min(dmg, e.hp));
     e.hp -= dmg;
     if (!o.isDot) e.lastHitT = now;
     // The breakdown (systems/damageStats) and the number's colour read the same facts: the display type, weak (aff > 1) or resisted (aff < 1).
     const wk = aff > 1 ? weakTag(e.def, tags) : null, rs = aff < 1 ? resistTag(e.def, tags) : null;
     const type = damageType(tags, e.def, { isDot: o.isDot, poison: o.poison, reaction: rx });
-    recordDamage(s.stats, { source: key, dmg, type, isDot: !!o.isDot, weak: aff > 1, resisted: aff < 1, shred: shredBonus, mark: markBonus });
+    recordDamage(s.stats, { source: key, dmg, removed, type, isDot: !!o.isDot, weak: aff > 1, resisted: aff < 1, shred: shredBonus, mark: markBonus });
     hit.killed = e.hp <= 0;
     if (!rx) {
       if (H.hit) H.emit('onHit', hit);

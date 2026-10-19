@@ -1,10 +1,11 @@
 import type Phaser from 'phaser';
 import type { ArenaScene } from './scenes/ArenaScene';
 import { store } from './state/store';
-import { BOT, labDummies } from './lab';
+import { BOT, labDummies, saveLab } from './lab';
 import { createSimRun } from './state/sim';
+import { restoreSlot, type LabSlot } from './state/lab';
 import { SIM_DEFAULTS, simDummies, type SimDef } from './sims/_sim';
-import { chooseDoor, createLabRun, createRun, finishWave, leaveShop, openShop, recomputeBuild, startNextWave } from './state/run';
+import { chooseDoor, createLabRun, labApply, createRun, finishWave, leaveShop, openShop, recomputeBuild, startNextWave } from './state/run';
 import type { DoorId } from './data/modifiers';
 import type { DepartmentId, LabOpts } from './types';
 import { COUPON_COINS, dailySeed, emptyFresh, freshSince, nearUnlocks, noteDailyStart, recordFinish, recordOvertime, recordRun, snapProfile, unlockedItems, useCoupon, type DailyResult, type Fresh, type Loyalty, type Near, type ProfileSnap } from './state/profile';
@@ -17,7 +18,7 @@ import type { RunState, StarterId, StarterWeapon } from './types';
 // Game flow: title → wave → checkout → shop → … → boss → victory/defeat → restart.
 let game: Phaser.Game;
 let rng: Rng = Math.random;
-/** Last lab setup and the loadout as combat started, for "Back to Lab". */
+/** The lab setup as the bench last edited it (the title form is its first value), and the loadout as combat started, for "Back to Lab". */
 let labOpts: LabOpts | null = null;
 /** The sim this run came from (src/sims), for "restart sim"; null in normal runs and the plain Test Lab. */
 let activeSim: SimDef | null = null;
@@ -65,7 +66,7 @@ export const flow = {
     store.changed();
   },
 
-  /** Test Lab: park the run in the shop before the chosen aisle; `restore` brings back the loadout of the last attempt. */
+  /** Test Lab: park the run in the shop before the chosen aisle; `restore` brings back the loadout of the last attempt (Reset starts clean). */
   startLab(o: LabOpts, restore = false): void {
     const seed = (Date.now() ^ (Math.random() * 1e9)) >>> 0;
     const s = createLabRun(seed, o);
@@ -75,7 +76,7 @@ export const flow = {
     if (!restore) { labSnap = null; labDummies.length = 0; }
     rng = mulberry32(seed);
     openShop(s, rng);
-    if (restore && o.keep && labSnap) {
+    if (restore && labSnap) {
       Object.assign(s, structuredClone(labSnap));
       recomputeBuild(s);
       s.hp = s.build.maxHp;
@@ -85,6 +86,39 @@ export const flow = {
     store.emit('run-start');
     store.emit('shop-open');
     store.changed();
+  },
+
+  /** The running lab's setup (null in a sim or a normal run), the one the bench edits. */
+  get labSetup(): LabOpts | null {
+    return store.state.lab && !activeSim ? labOpts : null;
+  },
+
+  /** Test Lab bench: change setup fields of the running lab. In the arena the fight restarts with the same dummies. */
+  labTune(patch: Partial<LabOpts>): void {
+    const s = store.state;
+    if (!s.lab || !labOpts || (s.phase !== 'shop' && !s.labSandbox)) return;
+    labOpts = { ...labOpts, ...patch };
+    saveLab(labOpts);
+    labApply(s, patch);
+    if (s.phase === 'shop') labSnap = structuredClone({ inventory: s.inventory, money: s.money, nextUid: s.nextUid }); // "Back to Lab" keeps the resized cart
+    if (s.phase === 'combat') {
+      (this.arena() as ArenaScene).labKeepDummies();
+      this.restartArena();
+    }
+    store.changed();
+  },
+
+  /** Test Lab bench: put a saved cart in place of the current one. The slot's cart and shelf sizes go through `labTune`, so Setup shows what the cart really is. */
+  labLoad(slot: LabSlot): boolean {
+    const s = store.state;
+    if (!restoreSlot(s, slot).ok) return false;
+    this.labTune({ cart: [slot.cols, slot.rows], shelf: slot.shelf.length });
+    return true;
+  },
+
+  /** Test Lab bench: throw away cart, shelf and dummies and start the current setup again. */
+  labReset(): void {
+    if (labOpts) this.startLab(labOpts);
   },
 
   labBack(): void {
