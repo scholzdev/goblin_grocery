@@ -17,7 +17,7 @@ const drop = (inv: Inventory, uid: string, x: number, y: number, sets = true) =>
   const s = shopWith(inv);
   const before = s.build;
   expect(moveItem(s, uid, { where: 'grid', x, y, rot: 0 }).ok, 'the drop is legal').toBe(true);
-  return changeLine(before, s.build, sets);
+  return changeLine(before, s.build, sets).join(' · ');
 };
 
 describe('shop: what a drop changed', () => {
@@ -36,17 +36,17 @@ describe('shop: what a drop changed', () => {
     const s = shopWith(build([{ type: 'toaster' }, { type: 'toaster', at: [1, 3] }]));
     const before = s.build;
     expect(mergeItems(s, 'u1', 'u0').ok).toBe(true);
-    expect(changeLine(before, s.build, true)).toMatch(/^Toaster: damage [\d.]+ → [\d.]+, every [\d.]+ s → [\d.]+ s · Kitchen set level 0 → 1 · Heat set level 0 → 1 · Electric set level 0 → 1$/);
+    expect(changeLine(before, s.build, true).join(' · ')).toMatch(/^Toaster: damage [\d.]+ → [\d.]+, every [\d.]+ s → [\d.]+ s · Kitchen set level 0 → 1 · Heat set level 0 → 1 · Electric set level 0 → 1$/);
   });
 
   it('set level changes are named only while sets are shown, in EN and DE', () => {
     const sold = shopWith(build([{ type: 'toaster' }, { type: 'sample', at: [4, 3] }, { type: 'hotsauce', at: [0, 3] }]));
     const before = sold.build;
     expect(sellItem(sold, 'u1').ok).toBe(true);
-    expect(changeLine(before, sold.build, true)).toBe('Kitchen set level 2 → 1');
-    expect(changeLine(before, sold.build, false), 'sets not met yet').toBe('');
+    expect(changeLine(before, sold.build, true)).toEqual(['Kitchen set level 2 → 1']);
+    expect(changeLine(before, sold.build, false), 'sets not met yet').toEqual([]);
     setLang('de');
-    expect(changeLine(before, sold.build, true)).toBe('Küche-Set Stufe 2 → 1');
+    expect(changeLine(before, sold.build, true)).toEqual(['Küche-Set Stufe 2 → 1']);
     setLang('en');
   });
 });

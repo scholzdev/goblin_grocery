@@ -36,7 +36,7 @@ let root: HTMLElement;
 let ledger: { label: string; amount: number }[] = [];
 let toastTimer = 0;
 const CHANGE_MS = 4000;
-let change = '';
+let change: string[] = [];
 let changeTimer = 0;
 
 interface Drag {
@@ -344,7 +344,7 @@ function render(): void {
       <div class="grid-wrap"><div class="grid" style="width:${s.inventory.cols * cellFor(s.inventory.cols, s.inventory.rows)}px;height:${s.inventory.rows * cellFor(s.inventory.cols, s.inventory.rows)}px;margin:0 auto">${gridHtml(s)}</div></div>
       <div class="combos">${combosHtml(s.build, null, relevantTypes())}</div>
       ${featuredHtml(s)}
-      ${change ? `<div class="change-line">${esc(change)}</div>` : ''}
+      ${change.length ? `<div class="change-line">${change.map((c) => `<span>${esc(c)}</span>`).join(' · ')}</div>` : ''}
     </div>
     <div class="col-right">
       <div class="offers-head"><h3>${t('todaysDeals')}</h3>${infl > 1 ? `<span class="inflation">${t('priceInflation', { n: Math.round((infl - 1) * 100) })}</span>` : ''}</div>
@@ -912,7 +912,7 @@ function commitDrop(d: Drag): void {
 function noteChange(before: Build): void {
   clearTimeout(changeTimer);
   change = changeLine(before, store.state.build, setsShown());
-  if (change) changeTimer = window.setTimeout(() => { change = ''; root.querySelector('.change-line')?.remove(); }, CHANGE_MS);
+  if (change.length) changeTimer = window.setTimeout(() => { change = []; root.querySelector('.change-line')?.remove(); }, CHANGE_MS);
 }
 
 const pct = (x: number) => `${Math.round(x * 100)}%`;
