@@ -131,7 +131,7 @@ export class Hazards {
       const T = DEPT_TUNING.vents;
       if (Math.random() < 0.6) sc.fx.flame(h.x + Phaser.Math.Between(-T.radius, T.radius) * 0.7, h.y - Phaser.Math.Between(0, 30));
       const inside = (x: number, y: number, r: number) => ((x - h.x) / (T.radius + r)) ** 2 + ((y - h.y) / ((T.radius + r) * 0.62)) ** 2 <= 1;
-      if (!h.hitPlayer && inside(p.x, p.y, 10)) { h.hitPlayer = true; sc.hurtPlayer(T.playerDamage); }
+      if (!h.hitPlayer && inside(p.x, p.y, 10)) { h.hitPlayer = true; sc.hurtPlayer(T.playerDamage, { how: 'hazard', by: 'vents' }); }
       for (const e of sc.enemies) {
         if (!e.alive || e.state === 'spawn' || h.hit.has(e.id) || !inside(e.x, e.y, e.def.radius)) continue;
         h.hit.add(e.id);
@@ -141,7 +141,7 @@ export class Hazards {
       const T = DEPT_TUNING.cables;
       if (Math.random() < 0.7) sc.fx.spark(h.x + (Math.random() - 0.5) * h.w, h.y - 6, 1, 0xf5bd45);
       const inside = (x: number, y: number, r: number) => Math.abs(x - h.x) < h.w / 2 && Math.abs(y - h.y) < T.width + r * 0.5;
-      if (!h.hitPlayer && inside(p.x, p.y, 10)) { h.hitPlayer = true; sc.hurtPlayer(T.playerDamage); }
+      if (!h.hitPlayer && inside(p.x, p.y, 10)) { h.hitPlayer = true; sc.hurtPlayer(T.playerDamage, { how: 'hazard', by: 'cables' }); }
       for (const e of sc.enemies) {
         if (!e.alive || e.state === 'spawn' || h.hit.has(e.id) || !inside(e.x, e.y, e.def.radius)) continue;
         h.hit.add(e.id);

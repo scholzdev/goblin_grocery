@@ -6,7 +6,7 @@ import { CRIT, PLAYER } from '../data/items';
 import { ENEMIES } from '../data/enemies';
 import { t, type UIKey } from '../i18n';
 import type { AudioKey } from '../data/assets';
-import type { Build, BurnEffect, SlowEffect, WeaponStats } from '../types';
+import type { Build, BurnEffect, HitSource, ItemTypeId, SlowEffect, WeaponStats } from '../types';
 import { FX_METHODS, type AisleView, type CombatEnemy, type CombatShot, type FxApi, type PlayerView, type PoolSpec, type RuntimeCtx, type ShotSpec } from './ctx';
 import { EMPTY_HOOKS, type HitEvent, type HitOpts, type HookTable } from './hooks';
 import { applyMark, markedDamage } from './marks';
@@ -45,9 +45,9 @@ export type Call = { at: number } & (
   | { kind: 'shred'; enemy: number; stacks: number; seconds: number }
   | { kind: 'weaken'; enemy: number; pct: number; seconds: number }
   | { kind: 'wet'; enemy: number; seconds: number }
-  | { kind: 'hurt'; dmg: number }
+  | { kind: 'hurt'; dmg: number; source?: HitSource }
   | { kind: 'heal'; hp: number }
-  | { kind: 'drain'; hp: number }
+  | { kind: 'drain'; hp: number; by: ItemTypeId }
   | { kind: 'healFx'; x: number; y: number }
   | { kind: 'spawnShot'; spec: ShotSpec }
   | { kind: 'spawnPool'; spec: PoolSpec }
@@ -305,9 +305,9 @@ export class FakeCtx implements RuntimeCtx {
   playerNear(x: number, y: number): { x: number; y: number; d: number } {
     return { x: this.player.x, y: this.player.y, d: Math.hypot(x - this.player.x, y - this.player.y) };
   }
-  /** Mirrors `ArenaScene.hurtPlayer`: i-frames block it, `onPlayerHit` hooks may lower the damage / change the i-frames. True when the hit landed. */
-  hurt(dmg: number): boolean {
-    this.log({ kind: 'hurt', dmg });
+  /** Mirrors `ArenaScene.hurtPlayer`: i-frames block it, `onPlayerHit` hooks may lower the damage / change the i-frames. True when the hit landed. `source` is optional: the lab and the tests keep no damage-taken book. */
+  hurt(dmg: number, source?: HitSource): boolean {
+    this.log({ kind: 'hurt', dmg, source });
     const p = this.player;
     if (p.dead || p.invulnT > 0 || p.protectT > 0) return false;
     let invuln = PLAYER.invuln;
@@ -321,8 +321,8 @@ export class FakeCtx implements RuntimeCtx {
     this.log({ kind: 'heal', hp });
     this.run.hp = Math.min(this.run.maxHp, this.run.hp + hp);
   }
-  drain(hp: number): void {
-    this.log({ kind: 'drain', hp });
+  drain(hp: number, by: ItemTypeId): void {
+    this.log({ kind: 'drain', hp, by });
     this.run.hp = Math.min(this.run.hp, Math.max(1, this.run.hp - hp));
   }
   healFx(x: number, y: number): void { this.log({ kind: 'healFx', x, y }); }

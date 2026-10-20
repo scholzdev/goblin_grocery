@@ -1,7 +1,7 @@
-import type { BurnEffect, SlowEffect, WeaponStats } from '../types';
+import type { BurnEffect, HitSource, ItemTypeId, SlowEffect, WeaponStats } from '../types';
 import { applyBurn, applySlow, applyPoison, applyShred, applyWeaken, pickRicochetTarget } from '../systems/combat';
 import { applyWet, burnVsWet, slowVsWet } from '../engine/wet';
-import { addCoins } from '../state/run';
+import { addCoins, drainPlayer } from '../state/run';
 import { store } from '../state/store';
 import { play } from '../audio/sfx';
 import { t, type UIKey } from '../i18n';
@@ -83,16 +83,16 @@ export class PhaserCtx implements RuntimeCtx {
 
   get player(): PlayerView { return this.sc.player; }
   playerNear(x: number, y: number): { x: number; y: number; d: number } { return this.sc.playerNear(x, y); }
-  hurt(dmg: number): void { this.sc.hurtPlayer(dmg); }
+  hurt(dmg: number, source: HitSource): void { this.sc.hurtPlayer(dmg, source); }
   heal(hp: number): void {
     const s = store.state;
     s.hp = Math.min(s.build.maxHp, s.hp + hp);
     store.changed();
   }
-  drain(hp: number): void {
+  drain(hp: number, by: ItemTypeId): void {
     const s = store.state;
     if (s.labGod) return;
-    s.hp = Math.min(s.hp, Math.max(1, s.hp - hp));
+    drainPlayer(s, hp, by);
     store.changed();
   }
   healFx(x: number, y: number): void { this.sc.healHeartFx(x, y); }

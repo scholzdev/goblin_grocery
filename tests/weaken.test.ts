@@ -129,12 +129,13 @@ describe('wiring (source guards)', () => {
 
   it('every enemy damage source applies the attacker\'s weaken: contact, swipe, egg blast, shots (fired weakened), slush and lanes', () => {
     expect(arena_).toContain('enemyDmg(e: Enemy, dmg: number): number { return weakenedDamage(e, dmg, this.time.now / 1000); }');
-    expect(arena_).toContain('this.hurtPlayer(this.enemyDmg(e, e.def.contactDamage + (charging ? 3 : 0)))');
-    expect(arena_).toContain('this.hurtPlayer(this.enemyDmg(e, e.def.attackDamage))'); // the swiper
-    expect(enemies).toContain("scene.spawnEnemyShot('proj_bubble', e.x + Math.cos(ai) * 24, e.y - 34, ai, d.projectileSpeed, d.projectileLife, scene.enemyDmg(e, d.attackDamage))");
-    expect(enemies).toContain('scene.hurtPlayer(scene.enemyDmg(e, d.attackDamage))');
-    expect(enemies).toContain("v.y, a, d.projectileSpeed, d.projectileLife, scene.enemyDmg(e, d.attackDamage))"); // the boss volley
-    expect(enemies).toContain('S.ring.speed, S.ring.life, scene.enemyDmg(e, d.attackDamage))'); // the ring
+    expect(arena_).toContain("this.hurtPlayer(this.enemyDmg(e, e.def.contactDamage + (charging ? 3 : 0)), attackBy(e, charging ? 'charge' : 'contact'))");
+    expect(arena_).toContain("this.hurtPlayer(this.enemyDmg(e, e.def.attackDamage), attackBy(e, 'swipe'))"); // the swiper
+    expect(enemies).toContain("scene.spawnEnemyShot('proj_bubble', e.x + Math.cos(ai) * 24, e.y - 34, ai, d.projectileSpeed, d.projectileLife, scene.enemyDmg(e, d.attackDamage), attackBy(e, 'shot'))");
+    expect(enemies).toContain("scene.hurtPlayer(scene.enemyDmg(e, d.attackDamage), attackBy(e, 'blast'))"); // the egg
+    expect(enemies).toContain("scene.hurtPlayer(scene.enemyDmg(e, d.attackDamage), attackBy(e, 'boss'))"); // slush and lanes
+    expect(enemies).toContain("v.y, a, d.projectileSpeed, d.projectileLife, scene.enemyDmg(e, d.attackDamage), attackBy(e, 'shot'))"); // the boss volley
+    expect(enemies).toContain("S.ring.speed, S.ring.life, scene.enemyDmg(e, d.attackDamage), attackBy(e, 'shot'))"); // the ring
   });
 
   it('no hurtPlayer or spawnEnemyShot call in the enemy AI takes a raw attack damage', () => {

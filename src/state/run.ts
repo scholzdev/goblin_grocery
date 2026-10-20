@@ -5,13 +5,13 @@ import { DEPARTMENTS } from '../data/departments';
 import { MODIFIERS, type DoorId } from '../data/modifiers';
 import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS } from '../data/waves';
 import type { ZoneId } from '../data/zones';
-import type { DepartmentId, ElementTag, FamilyTag, Build, Inventory, ItemInstance, ItemTypeId, LabOpts, OpResult, Rotation, RunState, StarterId, StarterWeapon } from '../types';
+import type { DepartmentId, ElementTag, FamilyTag, Build, HitSource, Inventory, ItemInstance, ItemTypeId, LabOpts, OpResult, Rotation, RunState, StarterId, StarterWeapon } from '../types';
 import { canPlace, findItem, firstFit, normalizeRotation } from '../systems/inventory';
 import { mulberry32, type Rng } from '../systems/rng';
 import { zonesOf } from '../data/zones';
 import { currentRerollCost, doorAisle, repairCost, rollDoors, rollOffers, rollZones, sellPrice } from '../systems/shop';
 import { computeBuild } from '../systems/synergies';
-import { newDamageStats } from '../systems/damageStats';
+import { newDamageStats, recordHit } from '../systems/damageStats';
 import { contentItem, contentSetTune, contentTune, sellValue } from '../engine/registry';
 import { FAMILIES, FLAVORS } from '../engine/define';
 import { PUNCH_REROLLS } from '../systems/contracts';
@@ -59,7 +59,7 @@ export function createRun(seed: number, starter: StarterId = 'toaster', shift = 
   const state: RunState = {
     phase: 'title', wave: 1, hp: PLAYER.maxHp, money: PLAYER.startMoney + (PLAYER.starters[starter].perk?.startMoney ?? 0), inventory,
     build: undefined as unknown as Build, shop: null, shopLevel: 1, starter, weapon, shift, theme, department: theme, modifier: 'none', route: [theme], mods: ['none'], doors: null, zone, zones: [zone], doorZones: null, coinLog: [], nextUid: 1, seed,
-    stats: { kills: 0, coinsEarned: 0, damageByWeapon: {}, damage: newDamageStats(), wavesCleared: 0, timeSeconds: 0, bossDefeated: false },
+    stats: { kills: 0, coinsEarned: 0, damageByWeapon: {}, damage: newDamageStats(), taken: {}, wavesCleared: 0, timeSeconds: 0, bossDefeated: false },
   };
   const w = STARTER_WEAPONS[weapon];
   inventory.placed.push({ uid: newUid(state), type: weapon, x: w.x, y: w.y, rot: w.rot });
@@ -405,11 +405,20 @@ export function startNextWave(state: RunState): void {
   state.coinLog = [];
 }
 
-export function damagePlayer(state: RunState, amount: number): boolean {
+export function damagePlayer(state: RunState, amount: number, source: HitSource): boolean {
+  const before = state.hp;
   state.hp = Math.max(0, state.hp - amount); // armor (Bubble Wrap) is an onPlayerHit hook: ArenaScene.hurtPlayer lowers `amount` first
+  recordHit(state.stats, source, before - state.hp);
   if (state.hp > 0) return false;
   state.phase = 'defeat';
   return true;
+}
+
+/** Self-damage of an item (`ctx.drain`): never below 1 HP, so it never kills. */
+export function drainPlayer(state: RunState, hp: number, by: ItemTypeId): void {
+  const before = state.hp;
+  state.hp = Math.min(state.hp, Math.max(1, state.hp - hp));
+  recordHit(state.stats, { how: 'self', by }, before - state.hp);
 }
 
 export function leaveShop(state: RunState, rng: Rng): OpResult {

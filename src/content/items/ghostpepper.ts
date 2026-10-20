@@ -25,7 +25,7 @@ export default defineItem({
       c.state.acc += step;
       while (c.state.acc >= t.tick - 1e-9) {
         c.state.acc -= t.tick;
-        ctx.drain(t.dps * t.tick);
+        ctx.drain(t.dps * t.tick, Item.ghostpepper);
         ctx.fx.flame(ctx.player.x, ctx.player.y - 50);
       }
       if (c.state.left <= 1e-9) { c.state.left = 0; c.state.acc = 0; ctx.setLine(Item.ghostpepper, null); }

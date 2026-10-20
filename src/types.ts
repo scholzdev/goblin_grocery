@@ -1,7 +1,8 @@
 // Shared contracts. Pure data shapes only — no Phaser, no DOM.
 import type { DoorId, ModifierId } from './data/modifiers';
 import type { PunchCard } from './systems/contracts';
-import type { EventKind } from './data/events';
+import type { EventKind, SetEventKind } from './data/events';
+import type { EliteAffix } from './data/enemies';
 import type { ZoneId } from './data/zones';
 import type { DamageStats } from './systems/damageStats';
 import type { AffinityMap, AffinityTag, BUFF_ORDER, ELEMENTS, ENEMY_BEHAVIORS, ENEMY_ORDER, FAMILIES, ITEM_ORDER, RECIPE_ORDER, SET_ORDER, STARTER_ORDER, THEME_ORDER } from './engine/define';
@@ -319,6 +320,15 @@ export interface DepartmentDef {
 
 export interface CoinLogEntry { label: string; amount: number }
 
+/** What hurt the goblin: an enemy's attack (with its Elite affix), a floor hazard, an aisle event or one of its own items. */
+export type HitSource =
+  | { how: EnemyHitHow; by: EnemyId; affix?: EliteAffix }
+  | { how: 'hazard'; by: Extract<HazardKind, 'vents' | 'cables'> }
+  | { how: 'event'; by: Extract<SetEventKind, 'powerSurge'> }
+  | { how: 'self'; by: ItemTypeId };
+export type EnemyHitHow = 'contact' | 'charge' | 'swipe' | 'shot' | 'blast' | 'boss';
+export type HitHow = HitSource['how'];
+
 export interface RunStats {
   kills: number;
   coinsEarned: number;
@@ -327,6 +337,10 @@ export interface RunStats {
   removedByWeapon?: Record<string, number>;
   /** The rest of the run's damage breakdown (`systems/damageStats`). */
   damage: DamageStats;
+  /** HP the goblin lost per source, keyed `how:by` (`hitKey`). */
+  taken: Record<string, number>;
+  /** The last hit that took HP: on a defeat, the one that ended the run. */
+  lastHit?: HitSource;
   wavesCleared: number;
   timeSeconds: number;
   bossDefeated: boolean;

@@ -377,8 +377,8 @@ describe('run state ops', () => {
   });
   it('damagePlayer sets defeat', () => {
     const s = createRun(1);
-    expect(damagePlayer(s, 10)).toBe(false);
-    expect(damagePlayer(s, 100)).toBe(true);
+    expect(damagePlayer(s, 10, { how: 'contact', by: 'milk' })).toBe(false);
+    expect(damagePlayer(s, 100, { how: 'contact', by: 'milk' })).toBe(true);
     expect([s.hp, s.phase]).toEqual([0, 'defeat']);
   });
 });
@@ -566,9 +566,9 @@ describe('tiers', () => {
     const s = createRun(1);
     s.inventory.placed.push(it_('bubblewrap', 0, 3));
     s.build = computeBuild(s.inventory);
-    damagePlayer(s, 1);
+    damagePlayer(s, 1, { how: 'contact', by: 'milk' });
     expect(s.hp).toBe(39);
-    damagePlayer(s, 5);
+    damagePlayer(s, 5, { how: 'contact', by: 'milk' });
     expect(s.hp).toBe(34);
   });
   it('combat helpers', () => {
