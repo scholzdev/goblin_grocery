@@ -64,6 +64,18 @@ describe('disclosure: sets', () => {
   });
 });
 
+// Already true before disclosure: slots exist only for active items in the cart, so a profile without one sees no Q/E/F chips.
+describe('disclosure: active slots', () => {
+  it('no slot chips on the HUD or the cart without an active item, and chips once one is in the cart', async () => {
+    const { activeSlots } = await import('../src/engine/actives');
+    const hudChips = (inv: Inventory) => activeSlots(inv).filter((a) => a.slot).length;
+    const without = runWith(build([{ type: 'toaster' }, { type: 'sample' }]));
+    expect([hudChips(without.inventory), shop.gridHtml(without).includes('slot-badge')]).toEqual([0, false]);
+    const withHorn = runWith(build([{ type: 'toaster' }, { type: 'airhorn', near: [] }]));
+    expect([hudChips(withHorn.inventory), shop.gridHtml(withHorn).includes('slot-badge')]).toEqual([1, true]);
+  });
+});
+
 describe('disclosure: reactions', () => {
   it('each reaction is announced the first time it fires for the profile, never again', () => {
     const s = runWith(build([{ type: 'toaster' }]));
