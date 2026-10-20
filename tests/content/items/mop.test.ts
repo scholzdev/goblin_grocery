@@ -11,7 +11,7 @@ import { around, arsenal, at, far, setTuneAt, stats } from '../helpers';
 
 afterEach(() => setLang('en'));
 
-// A lone ★3 mop is 3 Cleaning and 3 Frost set points: Cleaning L2 (area x1.15, puddles +1 s) and Frost L2 (+10 points of slow).
+// A lone ★3 mop is 3 Cleaning and 3 Frost set points: Cleaning L1 (area x1.15) and Frost L1 (+10 points of slow).
 const CLEANING = setTuneAt('cleaning', 3)!, FROST = setTuneAt('frost', 3)!;
 const R = 60 * CLEANING.aoeMult;
 
@@ -119,12 +119,12 @@ describe('Mop: pattern puddle', () => {
       a.step(0.5);
       return +(a.puddles[0].until - 0.5).toFixed(6);
     };
-    expect([2, 3, 4].map((t) => life([at('mop', t)]))).toEqual([3, (3 + 1) * 2, (3 + 2) * 2]); // its own Cleaning points: L1 adds no time, L2 +1 s, L3 +2 s
+    expect([2, 3, 4].map((t) => life([at('mop', t)]))).toEqual([3, 3 * 2, (3 + 1) * 2]); // its own Cleaning points: L1 (2 and 3) adds no time, L2 (4) +1 s
     expect(life([at('mop', 3), far('fan'), far('spray'), far('vacuum')])).toBe((3 + 2) * 2); // Cleaning L3: +2 s
     expect(life([at('snowcone', 3)])).toBe(4);
   });
 
-  it('every 0.5 s each enemy inside the ellipse takes 6 quiet damage and a slow (25%, plus Frost L2); outside the flattened ellipse nothing', () => {
+  it('every 0.5 s each enemy inside the ellipse takes 6 quiet damage and a slow (25%, plus Frost L1); outside the flattened ellipse nothing', () => {
     const { a, fake } = arsenal([at('mop', 3)]);
     const inside = fake.spawnEnemy({ x: -40, y: 34, hp: 100000 });   // 30 below the center: inside r x 0.62 = 37
     const outside = fake.spawnEnemy({ x: -40, y: 50, hp: 100000 });  // 46 below: outside
@@ -137,7 +137,7 @@ describe('Mop: pattern puddle', () => {
   });
 
   it('Frost sets make the slip stronger: base + bonus, up to the cap (from the Frost set tune)', () => {
-    const { a, fake, b } = arsenal([at('mop', 3), far('ice')]); // mop ★3 + ice pack: 4 Frost points, L3
+    const { a, fake, b } = arsenal([at('mop', 3), far('ice', 3)]); // mop ★3 + ★3 ice pack: 6 Frost points, L3
     expect(b.sets.frost).toBe(3);
     const e = fake.spawnEnemy({ x: -40, y: 4, hp: 100000 });
     a.run(15, 0.05);

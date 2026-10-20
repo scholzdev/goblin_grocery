@@ -48,7 +48,7 @@ export const BOSS_CYCLE: BossMove[] = BOSS_KITS.boss.cycle;
 export const BOSS_SPECIAL = Object.fromEntries(BOSS_IDS.flatMap((id) => { const k = content(id).boss!.kit; return k.special ? [[k.special, ENEMIES[id].tune]] : []; })) as Record<BossSpecial, Readonly<Record<string, number>>>;
 
 /** Codex order: by first aisle, slice after melon, boss last. */
-export const CODEX_ENEMIES: EnemyId[] = ['milk', 'banana', 'giftcard', 'soda', 'beans', 'gum', 'sanitizer', 'spitter', 'turkey', 'cereal', 'expired', 'baguette', 'egg', 'honey', 'melon', 'slice', ...BOSS_IDS];
+export const CODEX_ENEMIES: EnemyId[] = ['milk', 'banana', 'giftcard', 'soda', 'beans', 'gum', 'sanitizer', 'spitter', 'expired', 'turkey', 'cereal', 'baguette', 'egg', 'honey', 'melon', 'slice', ...BOSS_IDS];
 
 /** The enemies (codex order: the groceries, then the bosses) weak to any of `tags`: what the shop card's "Strong vs" lists. Derived from the enemy files; the mini-bosses are their base grocery. */
 export const enemiesWeakTo = (tags: readonly AffinityTag[]): EnemyId[] => CODEX_ENEMIES.filter((id) => tags.some((tag) => (ENEMIES[id].weak?.[tag] ?? 0) > 0));
@@ -82,7 +82,7 @@ export const BOSS: BossTuning = {
 export const MINI_BOSS = {
   aisle: 4,
   at: 8,
-  hp: 340,
+  hp: 240,
   scale: 2.1,
   coins: 12,
   /** Seconds after it arrives before it enrages (faster moves, like the Manager). */

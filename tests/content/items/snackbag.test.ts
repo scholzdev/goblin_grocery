@@ -47,24 +47,24 @@ describe('Family-Size Snack Bag: build', () => {
     expect(full([at('toaster'), far('snackbag'), far('lunchbox', 2)]).maxHp).toBe(BASE + 10 + 20 + 23); // + Snacks L1 (2 types)
   });
 
-  it('adds its regen to the snacks set regen (L2 from 3 types, L3 from 4)', () => {
-    const l2 = full([at('toaster'), far('snackbag'), far('lunchbox'), far('energy')]);
+  it('adds its regen to the snacks set regen (L2 from 4 points, L3 from 6)', () => {
+    const l2 = full([at('toaster'), far('snackbag'), far('lunchbox'), far('energy', 2)]);
     expect(l2.sets.snacks).toBe(2);
     expect(l2.regen).toBeCloseTo(0.25 + contentSetTune('snacks', 2).regen, 12);
     expect(l2.regen).toBeCloseTo(0.55, 12);
-    const l3 = full([at('toaster'), far('snackbag'), far('lunchbox'), far('energy'), far('fortune')]);
+    const l3 = full([at('toaster'), far('snackbag'), far('lunchbox'), far('energy', 2), far('fortune', 2)]);
     expect(l3.sets.snacks).toBe(3);
     expect(l3.regen).toBeCloseTo(0.25 + contentSetTune('snacks', 3).regen, 12);
     expect(l3.maxHp).toBe(BASE + 20 + 15 + contentSetTune('snacks', 3).maxHp);
     // the set alone (no bag) is unchanged
-    expect(full([at('toaster'), far('lunchbox'), far('energy'), far('fortune')]).regen).toBeCloseTo(0.3, 12);
+    expect(full([at('toaster'), far('lunchbox'), far('energy', 2), far('fortune')]).regen).toBeCloseTo(0.3, 12);
   });
 
   it('is rounded together with the rest after Expired Milk (x0.9)', () => {
     expect(full([at('toaster'), far('snackbag'), far('expiredmilk')]).maxHp).toBe(Math.round((BASE + 10 + 20) * HP_MULT)); // Snacks L1: 2 types
     expect(Math.round((BASE + 10 + 20) * HP_MULT)).toBe(63);
-    // Snack Bag + Lunchbox ★2 + Expired Milk = 4 snacks points (L3): (40 + 20 + 20 + 23) x 0.9 = 92.7 -> 93
-    expect(full([at('toaster'), far('snackbag'), far('lunchbox', 2), far('expiredmilk')]).maxHp).toBe(93);
+    // Snack Bag + Lunchbox ★2 + Expired Milk + Fortune ★2 = 6 snacks points (L3): (40 + 20 + 20 + 23) x 0.9 = 92.7 -> 93
+    expect(full([at('toaster'), far('snackbag'), far('lunchbox', 2), far('expiredmilk'), far('fortune', 2)]).maxHp).toBe(93);
     expect(full([at('toaster'), far('snackbag'), far('expiredmilk')], { maxHp: -8 }).regen).toBe(0.25); // Expired Milk leaves regen alone
   });
 });

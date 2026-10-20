@@ -46,7 +46,7 @@ describe('burn (WeaponStats.burn)', () => {
     const e = strong.fake.spawnEnemy({ hp: 100 });
     strong.fake.hit(e, 3, strong.stats);
     strong.fake.advance(1); strong.fake.hit(e, 3, weak.stats);
-    expect(e.status.burnDps).toBe(5 * contentSetTune('heat', 2).burnMult); // the ★3 can is 3 Heat points: L2
+    expect(e.status.burnDps).toBe(5); // the ★3 can is 3 Heat points: L1, no dps multiplier
     strong.fake.advance(5); strong.fake.hit(e, 3, weak.stats); // the burn is long over
     expect(e.status.burnDps).toBe(2.5);
   });
@@ -79,8 +79,8 @@ describe('burn (WeaponStats.burn)', () => {
 });
 
 describe('Heat L2 ignite (WeaponStats.ignite)', () => {
-  // Pan with the Hot Sauce touching it, the Fuel Can and the Cooker apart: Heat L3 and an ignite chance, but no burn of its own.
-  const heat = () => arena([S('pan'), S('hotsauce'), S('fuel', { near: [], apart: [0] }), S('cooker', { near: [] })]);
+  // Pan with the Hot Sauce touching it, the Fuel Can and a ★3 Cooker apart: 6 points, Heat L3 and an ignite chance, but no burn of its own.
+  const heat = () => arena([S('pan'), S('hotsauce'), S('fuel', { near: [], apart: [0] }), S('cooker', { near: [], tier: 3 })]);
 
   it('has an ignite chance and no burn in this cart (the setup of the tests below)', () => {
     const { stats, b } = heat();
@@ -91,7 +91,7 @@ describe('Heat L2 ignite (WeaponStats.ignite)', () => {
 
   it('ignites when the roll is under the chance: burn, three flames and a ring; one draw', () => {
     const seed = seedWhere((r) => r < 0.25);
-    const { fake, stats } = arena([S('pan'), S('hotsauce'), S('fuel', { near: [], apart: [0] }), S('cooker', { near: [] })], { seed });
+    const { fake, stats } = arena([S('pan'), S('hotsauce'), S('fuel', { near: [], apart: [0] }), S('cooker', { near: [], tier: 3 })], { seed });
     const e = fake.spawnEnemy({ hp: 100, x: 10, y: 80 });
     fake.hit(e, 3, stats);
     expect(fake.callsOf('ignite')).toEqual([{ at: 0, kind: 'ignite', enemy: e.id, burn: stats.ignite!.burn }]);
@@ -102,7 +102,7 @@ describe('Heat L2 ignite (WeaponStats.ignite)', () => {
 
   it('does nothing when the roll misses, and still consumes exactly one draw', () => {
     const seed = seedWhere((r) => r >= 0.25);
-    const { fake, stats } = arena([S('pan'), S('hotsauce'), S('fuel', { near: [], apart: [0] }), S('cooker', { near: [] })], { seed });
+    const { fake, stats } = arena([S('pan'), S('hotsauce'), S('fuel', { near: [], apart: [0] }), S('cooker', { near: [], tier: 3 })], { seed });
     fake.hit(fake.spawnEnemy({ hp: 100 }), 3, stats);
     expect(fake.callsOf('ignite')).toEqual([]);
     expect(fake.rng()).toBe(draws(seed, 2)[1]);
@@ -110,7 +110,7 @@ describe('Heat L2 ignite (WeaponStats.ignite)', () => {
 
   it('only without a burn of its own: no roll, no draw', () => {
     const seed = seedWhere((r) => r < 0.25);
-    const { fake, stats } = arena([S('pan'), S('hotsauce'), S('fuel', { near: [], apart: [0] }), S('cooker', { near: [] })], { seed });
+    const { fake, stats } = arena([S('pan'), S('hotsauce'), S('fuel', { near: [], apart: [0] }), S('cooker', { near: [], tier: 3 })], { seed });
     const e = fake.spawnEnemy({ hp: 100 });
     fake.hit(e, 3, { ...stats, burn: { dps: 2.5, duration: 2, tick: 0.5 } });
     expect(fake.callsOf('ignite')).toHaveLength(1); // the weapon's own burn, not the ignite
@@ -165,9 +165,9 @@ describe('slow (WeaponStats.slow)', () => {
 });
 
 describe('Frost L2 freeze', () => {
-  // Fizz Cannon + Ice Pack + Mop: Frost L2. The pack's 25% plus the set's 10% reaches the 35% the freeze needs.
+  // Fizz Cannon + Ice Pack + a ★2 Mop: 4 points, Frost L2. The pack's 25% plus the set's 10% reaches the 35% the freeze needs.
   const frost = (seed?: number, boss = false) => {
-    const a = arena([S('fizz'), S('ice'), S('mop', { near: [] })], seed ? { seed } : {});
+    const a = arena([S('fizz'), S('ice'), S('mop', { near: [], tier: 2 })], seed ? { seed } : {});
     return { ...a, enemy: a.fake.spawnEnemy({ hp: 1000, def: { behavior: boss ? 'boss' : 'chase' } }) };
   };
 
@@ -231,7 +231,7 @@ describe('Frost L2 freeze', () => {
 
   it('Frost L3 freezes for longer, on a better chance', () => {
     const seed = seedWhere((r) => r < FROST3.stunChance && r >= FROST.stunChance);
-    const { fake, stats, b } = arena([S('fizz'), S('ice'), S('mop', { near: [] }), S('spray', { near: [] })], { seed });
+    const { fake, stats, b } = arena([S('fizz'), S('ice'), S('mop', { near: [], tier: 2 }), S('spray', { near: [], tier: 2 })], { seed });
     expect(b.sets.frost).toBe(3);
     const e = fake.spawnEnemy({ hp: 1000 });
     fake.hit(e, 3, stats);
@@ -243,7 +243,7 @@ describe('draw order inside one hit: ignite first, then the freeze', () => {
   // A weapon with both an ignite chance (Heat L2) and a slow (Frost L2): the combination does not exist in a build, but the engine
   // rule must hold for any stats.
   const both = (seed: number) => {
-    const a = arena([S('fizz'), S('ice'), S('mop', { near: [] })], { seed });
+    const a = arena([S('fizz'), S('ice'), S('mop', { near: [], tier: 2 })], { seed });
     return { ...a, stats: { ...a.stats, ignite: { chance: 0.25, burn: { dps: 3, duration: 2, tick: 0.5 } } } as WeaponStats };
   };
   it('the first draw is the ignite roll, the second the freeze roll', () => {

@@ -83,7 +83,7 @@ export const weaponCooldownMult = (t: number): number => 1 - 0.1 * (t - 1);
 export const hasStar3 = (tier: number): boolean => tier >= 3;
 
 /** Set points for set level 1/2/3 (the same for every set; each level includes the lower ones). Points: data/sets.ts `setWeight`. */
-export const SET_THRESHOLDS: readonly [number, number, number] = [2, 3, 4];
+export const SET_THRESHOLDS: readonly [number, number, number] = [2, 4, 6];
 
 /** The flavors a Jelly Beans instance can take (rerolled every shop visit). */
 export const FLAVORS: readonly ElementTag[] = ELEMENTS;

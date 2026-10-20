@@ -12,12 +12,12 @@ import { expectSetText } from './helpers';
 afterEach(() => setLang('en'));
 
 const PAN = at('pan'); // not a checkout item: the weapon only
-// Checkout members that touch nothing: Bell, Sale Flag, Tip Jar, Coupon Book (passives).
-const MEMBERS = [far('bell'), far('flag'), far('tipjar'), far('coupon')];
+// Checkout members that touch nothing: Bell, Sale Flag, a ★2 Tip Jar, a ★2 Coupon Book (passives; a ★2 is 2 points).
+const MEMBERS = [far('bell'), far('flag'), far('tipjar', 2), far('coupon', 2)];
 const cart = (n: number): Spec[] => [PAN, ...MEMBERS.slice(0, n)];
 
 describe('Checkout set: thresholds', () => {
-  it('2 / 3 / 4 set points (one per ★1 checkout type) give L1 / L2 / L3 (the pan does not count)', () => {
+  it('2 / 4 / 6 set points give L1 / L2 / L3 (the pan does not count; cart(n) holds 0 / 1 / 2 / 4 / 6 points)', () => {
     expect([0, 1, 2, 3, 4].map((n) => full(cart(n)).sets.checkout)).toEqual([0, 0, 1, 2, 3]);
   });
 

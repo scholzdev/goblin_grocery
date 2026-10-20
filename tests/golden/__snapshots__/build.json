@@ -860,7 +860,7 @@
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
-      "heat": 2,
+      "heat": 1,
       "kitchen": 1,
       "snacks": 0,
       "tools": 0
@@ -881,7 +881,7 @@
         ],
         "bundle": 2,
         "burn": {
-          "dps": 3.5,
+          "dps": 2.5,
           "duration": 3,
           "tick": 0.5
         },
@@ -1443,10 +1443,10 @@
       "heat": 0,
       "kitchen": 0,
       "snacks": 0,
-      "tools": 2
+      "tools": 1
     },
     "shoveCooldown": 3,
-    "shoveDamage": 12,
+    "shoveDamage": 6,
     "shoveDistMult": 1,
     "shoveKnockMult": 1,
     "stinkDps": 0,
@@ -1937,10 +1937,10 @@
       "heat": 0,
       "kitchen": 0,
       "snacks": 0,
-      "tools": 3
+      "tools": 2
     },
     "shoveCooldown": 3,
-    "shoveDamage": 18,
+    "shoveDamage": 12,
     "shoveDistMult": 1,
     "shoveKnockMult": 1,
     "stinkDps": 0,
@@ -1958,7 +1958,7 @@
         "chain": 0,
         "chainChance": 0.1,
         "chainJumps": 1,
-        "cooldown": 0.810612,
+        "cooldown": 0.863151,
         "count": 3,
         "critChance": 0,
         "damage": 3.54,
@@ -3174,7 +3174,7 @@
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
-      "blast": 3,
+      "blast": 2,
       "checkout": 0,
       "cleaning": 0,
       "electric": 0,
@@ -3191,7 +3191,7 @@
     "stinkDps": 0,
     "weapons": [
       {
-        "aoe": 112.5,
+        "aoe": 103.5,
         "arcDeg": 0,
         "bounces": 0,
         "buffs": [
@@ -3216,7 +3216,7 @@
         "pierce": 0,
         "popper": {
           "damage": 6,
-          "radius": 87.5
+          "radius": 80.5
         },
         "projectileSpeed": 380,
         "pull": 0,
@@ -3264,7 +3264,7 @@
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
-      "blast": 3,
+      "blast": 2,
       "checkout": 0,
       "cleaning": 0,
       "electric": 0,
@@ -3281,7 +3281,7 @@
     "stinkDps": 0,
     "weapons": [
       {
-        "aoe": 87.5,
+        "aoe": 80.5,
         "arcDeg": 0,
         "bounces": 0,
         "buffs": [
@@ -3306,7 +3306,7 @@
         "pierce": 0,
         "popper": {
           "damage": 6,
-          "radius": 87.5
+          "radius": 80.5
         },
         "projectileSpeed": 0,
         "pull": 0,
@@ -3350,9 +3350,9 @@
       "checkout": 0,
       "cleaning": 0,
       "electric": 0,
-      "frost": 2,
+      "frost": 1,
       "heat": 0,
-      "kitchen": 3,
+      "kitchen": 2,
       "snacks": 0,
       "tools": 0
     },
@@ -3378,7 +3378,7 @@
         "cooldown": 0.3,
         "count": 1,
         "critChance": 0,
-        "damage": 2.544,
+        "damage": 2.332,
         "duration": 0,
         "echo": 0,
         "frostRing": false,
@@ -3433,7 +3433,7 @@
         "weaponUid": "u0"
       }
     ],
-    "regen": 0.3,
+    "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
@@ -3441,10 +3441,10 @@
       "checkout": 0,
       "cleaning": 0,
       "electric": 0,
-      "frost": 3,
+      "frost": 2,
       "heat": 0,
       "kitchen": 0,
-      "snacks": 2,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -3485,7 +3485,7 @@
         ],
         "slow": {
           "duration": 1.5,
-          "pct": 0.65
+          "pct": 0.6
         },
         "spreadDeg": 0,
         "tick": 0,
@@ -3524,9 +3524,9 @@
       "checkout": 0,
       "cleaning": 0,
       "electric": 0,
-      "frost": 2,
+      "frost": 1,
       "heat": 0,
-      "kitchen": 2,
+      "kitchen": 1,
       "snacks": 0,
       "tools": 0
     },
@@ -3601,7 +3601,7 @@
       "electric": 0,
       "frost": 0,
       "heat": 0,
-      "kitchen": 3,
+      "kitchen": 2,
       "snacks": 0,
       "tools": 0
     },
@@ -3627,7 +3627,7 @@
         "cooldown": 1.15,
         "count": 1,
         "critChance": 0,
-        "damage": 11.448,
+        "damage": 10.494,
         "duration": 0,
         "echo": 0,
         "frostRing": false,
@@ -3811,7 +3811,7 @@
     "pickupRadius": 70,
     "priceMult": 1,
     "recipes": [],
-    "regen": 0.3,
+    "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
@@ -3822,7 +3822,7 @@
       "frost": 0,
       "heat": 0,
       "kitchen": 0,
-      "snacks": 2,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -3916,7 +3916,7 @@
       "electric": 0,
       "frost": 3,
       "heat": 0,
-      "kitchen": 2,
+      "kitchen": 1,
       "snacks": 0,
       "tools": 0
     },
@@ -4059,7 +4059,7 @@
     "sellRate": 0.5,
     "sets": {
       "blast": 0,
-      "checkout": 2,
+      "checkout": 1,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
@@ -4164,7 +4164,7 @@
       "cleaning": 1,
       "electric": 0,
       "frost": 0,
-      "heat": 2,
+      "heat": 1,
       "kitchen": 0,
       "snacks": 0,
       "tools": 1
@@ -4185,7 +4185,7 @@
         ],
         "bundle": 4,
         "burn": {
-          "dps": 5.25,
+          "dps": 3.75,
           "duration": 3,
           "tick": 0.5
         },
@@ -4246,7 +4246,7 @@
     "sets": {
       "blast": 0,
       "checkout": 0,
-      "cleaning": 3,
+      "cleaning": 2,
       "electric": 0,
       "frost": 0,
       "heat": 0,
@@ -4327,7 +4327,7 @@
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
-      "heat": 2,
+      "heat": 1,
       "kitchen": 0,
       "snacks": 0,
       "tools": 1
@@ -4347,7 +4347,7 @@
         ],
         "bundle": 3,
         "burn": {
-          "dps": 5.25,
+          "dps": 3.75,
           "duration": 3,
           "tick": 0.5
         },
@@ -4405,7 +4405,7 @@
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
-      "heat": 2,
+      "heat": 1,
       "kitchen": 0,
       "snacks": 0,
       "tools": 1
@@ -4425,7 +4425,7 @@
         ],
         "bundle": 1,
         "burn": {
-          "dps": 5.25,
+          "dps": 3.75,
           "duration": 3,
           "tick": 0.5
         },
@@ -4483,7 +4483,7 @@
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
-      "heat": 2,
+      "heat": 1,
       "kitchen": 0,
       "snacks": 1,
       "tools": 0
@@ -4501,7 +4501,7 @@
         "buffs": [],
         "bundle": 1,
         "burn": {
-          "dps": 3.675,
+          "dps": 2.625,
           "duration": 3,
           "tick": 0.5
         },
@@ -4691,7 +4691,7 @@
     "sellRate": 0.5,
     "sets": {
       "blast": 0,
-      "checkout": 2,
+      "checkout": 1,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
@@ -4768,7 +4768,7 @@
       "electric": 0,
       "frost": 0,
       "heat": 0,
-      "kitchen": 2,
+      "kitchen": 1,
       "snacks": 0,
       "tools": 0
     },
@@ -5047,18 +5047,18 @@
     "pickupRadius": 70,
     "priceMult": 1,
     "recipes": [],
-    "regen": 0.3,
+    "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
-      "blast": 2,
+      "blast": 1,
       "checkout": 0,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
       "heat": 0,
       "kitchen": 0,
-      "snacks": 2,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -5121,23 +5121,23 @@
       ]
     ],
     "killCoinMult": 1,
-    "maxHp": 60,
+    "maxHp": 50,
     "moveSpeedMult": 1,
     "pickupRadius": 70,
     "priceMult": 1,
     "recipes": [],
-    "regen": 0.6,
+    "regen": 0.3,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
-      "blast": 3,
+      "blast": 2,
       "checkout": 0,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
       "heat": 0,
       "kitchen": 0,
-      "snacks": 3,
+      "snacks": 2,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -5171,7 +5171,7 @@
         "pierce": 0,
         "popper": {
           "damage": 8.4,
-          "radius": 87.5
+          "radius": 80.5
         },
         "projectileSpeed": 540,
         "pull": 0,
@@ -5270,7 +5270,7 @@
     "pickupRadius": 70,
     "priceMult": 1,
     "recipes": [],
-    "regen": 0.3,
+    "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
@@ -5278,10 +5278,10 @@
       "checkout": 0,
       "cleaning": 0,
       "electric": 0,
-      "frost": 2,
+      "frost": 1,
       "heat": 0,
       "kitchen": 0,
-      "snacks": 2,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -5353,7 +5353,7 @@
       "checkout": 0,
       "cleaning": 0,
       "electric": 0,
-      "frost": 2,
+      "frost": 1,
       "heat": 0,
       "kitchen": 0,
       "snacks": 1,
@@ -5460,7 +5460,7 @@
     "pickupRadius": 70,
     "priceMult": 1,
     "recipes": [],
-    "regen": 0.3,
+    "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
@@ -5468,10 +5468,10 @@
       "checkout": 0,
       "cleaning": 0,
       "electric": 0,
-      "frost": 3,
+      "frost": 2,
       "heat": 0,
       "kitchen": 1,
-      "snacks": 2,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -5510,7 +5510,7 @@
         "recipes": [],
         "slow": {
           "duration": 1,
-          "pct": 0.5
+          "pct": 0.45
         },
         "spreadDeg": 0,
         "tick": 0,
@@ -5605,7 +5605,7 @@
     "pickupRadius": 70,
     "priceMult": 1,
     "recipes": [],
-    "regen": 0.3,
+    "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
@@ -5614,9 +5614,9 @@
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
-      "heat": 3,
+      "heat": 2,
       "kitchen": 0,
-      "snacks": 2,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -5632,8 +5632,8 @@
         "buffs": [],
         "bundle": 1,
         "burn": {
-          "dps": 6.3,
-          "duration": 4,
+          "dps": 4.9,
+          "duration": 3,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -5685,7 +5685,7 @@
     "pickupRadius": 70,
     "priceMult": 1,
     "recipes": [],
-    "regen": 0.3,
+    "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
@@ -5694,9 +5694,9 @@
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
-      "heat": 3,
+      "heat": 2,
       "kitchen": 0,
-      "snacks": 2,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -5714,8 +5714,8 @@
         ],
         "bundle": 2,
         "burn": {
-          "dps": 6.3,
-          "duration": 4,
+          "dps": 4.9,
+          "duration": 3,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -5776,13 +5776,13 @@
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
-      "heat": 3,
+      "heat": 2,
       "kitchen": 0,
       "snacks": 0,
-      "tools": 2
+      "tools": 1
     },
     "shoveCooldown": 3,
-    "shoveDamage": 12,
+    "shoveDamage": 6,
     "shoveDistMult": 1,
     "shoveKnockMult": 1,
     "stinkDps": 0,
@@ -5796,8 +5796,8 @@
         ],
         "bundle": 2,
         "burn": {
-          "dps": 9,
-          "duration": 4,
+          "dps": 7,
+          "duration": 3,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -6033,8 +6033,8 @@
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
-      "heat": 2,
-      "kitchen": 3,
+      "heat": 1,
+      "kitchen": 2,
       "snacks": 0,
       "tools": 0
     },
@@ -6055,7 +6055,7 @@
         ],
         "bundle": 4,
         "burn": {
-          "dps": 3.5,
+          "dps": 2.5,
           "duration": 3,
           "tick": 0.5
         },
@@ -6066,7 +6066,7 @@
         "cooldown": 1.15,
         "count": 1,
         "critChance": 0,
-        "damage": 16.74,
+        "damage": 15.345,
         "duration": 0,
         "echo": 0,
         "frostRing": false,
@@ -6105,9 +6105,9 @@
     "sellRate": 0.5,
     "sets": {
       "blast": 0,
-      "checkout": 2,
+      "checkout": 1,
       "cleaning": 0,
-      "electric": 2,
+      "electric": 1,
       "frost": 0,
       "heat": 0,
       "kitchen": 0,
@@ -6129,8 +6129,8 @@
         "burn": null,
         "burstInterval": 0,
         "chain": 0,
-        "chainChance": 0.2,
-        "chainJumps": 2,
+        "chainChance": 0.1,
+        "chainJumps": 1,
         "cooldown": 1.28,
         "count": 1,
         "critChance": 0,
@@ -6558,7 +6558,7 @@
     "pickupRadius": 70,
     "priceMult": 1,
     "recipes": [],
-    "regen": 0.55,
+    "regen": 0.25,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
@@ -6569,7 +6569,7 @@
       "frost": 0,
       "heat": 0,
       "kitchen": 0,
-      "snacks": 2,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -6728,7 +6728,7 @@
     "sets": {
       "blast": 0,
       "checkout": 0,
-      "cleaning": 3,
+      "cleaning": 2,
       "electric": 0,
       "frost": 0,
       "heat": 0,
@@ -6766,7 +6766,7 @@
         "popper": null,
         "projectileSpeed": 0,
         "pull": 0,
-        "range": 297.5,
+        "range": 273.7,
         "recipes": [
           "mistMachine"
         ],
@@ -6792,18 +6792,18 @@
     "pickupRadius": 70,
     "priceMult": 1,
     "recipes": [],
-    "regen": 0.3,
+    "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
-      "blast": 2,
+      "blast": 1,
       "checkout": 0,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
       "heat": 0,
       "kitchen": 0,
-      "snacks": 2,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -6862,18 +6862,18 @@
     "pickupRadius": 70,
     "priceMult": 1,
     "recipes": [],
-    "regen": 0.3,
+    "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
-      "blast": 3,
+      "blast": 2,
       "checkout": 0,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
       "heat": 0,
       "kitchen": 0,
-      "snacks": 2,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -6932,18 +6932,18 @@
     "pickupRadius": 70,
     "priceMult": 1,
     "recipes": [],
-    "regen": 0.3,
+    "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
-      "blast": 2,
+      "blast": 1,
       "checkout": 0,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
       "heat": 0,
       "kitchen": 0,
-      "snacks": 2,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -7122,18 +7122,18 @@
         "weaponUid": "u0"
       }
     ],
-    "regen": 0.3,
+    "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
-      "blast": 2,
+      "blast": 1,
       "checkout": 0,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
       "heat": 1,
       "kitchen": 0,
-      "snacks": 2,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -7233,10 +7233,10 @@
       "heat": 0,
       "kitchen": 0,
       "snacks": 0,
-      "tools": 3
+      "tools": 2
     },
     "shoveCooldown": 3,
-    "shoveDamage": 18,
+    "shoveDamage": 12,
     "shoveDistMult": 1,
     "shoveKnockMult": 1,
     "stinkDps": 0,
@@ -7255,7 +7255,7 @@
         "chain": 0,
         "chainChance": 0.1,
         "chainJumps": 1,
-        "cooldown": 0.810612,
+        "cooldown": 0.863151,
         "count": 3,
         "critChance": 0,
         "damage": 3.54,
@@ -7500,7 +7500,7 @@
       "blast": 0,
       "checkout": 0,
       "cleaning": 0,
-      "electric": 2,
+      "electric": 1,
       "frost": 0,
       "heat": 1,
       "kitchen": 1,
@@ -7522,8 +7522,8 @@
         "burn": null,
         "burstInterval": 0,
         "chain": 0,
-        "chainChance": 0.2,
-        "chainJumps": 2,
+        "chainChance": 0.1,
+        "chainJumps": 1,
         "cooldown": 0.714286,
         "count": 1,
         "critChance": 0,
@@ -7609,7 +7609,7 @@
       "blast": 0,
       "checkout": 0,
       "cleaning": 0,
-      "electric": 2,
+      "electric": 1,
       "frost": 0,
       "heat": 0,
       "kitchen": 0,
@@ -7633,8 +7633,8 @@
         "burn": null,
         "burstInterval": 0,
         "chain": 0,
-        "chainChance": 0.2,
-        "chainJumps": 2,
+        "chainChance": 0.1,
+        "chainJumps": 1,
         "cooldown": 0.560488,
         "count": 1,
         "critChance": 0,
@@ -7710,10 +7710,10 @@
       "heat": 0,
       "kitchen": 0,
       "snacks": 0,
-      "tools": 3
+      "tools": 2
     },
     "shoveCooldown": 3,
-    "shoveDamage": 18,
+    "shoveDamage": 12,
     "shoveDistMult": 1,
     "shoveKnockMult": 1,
     "stinkDps": 0,
@@ -7732,7 +7732,7 @@
         "chain": 0,
         "chainChance": 0.1,
         "chainJumps": 1,
-        "cooldown": 0.810612,
+        "cooldown": 0.863151,
         "count": 3,
         "critChance": 0,
         "damage": 3.72,
@@ -7912,7 +7912,7 @@
       "electric": 0,
       "frost": 0,
       "heat": 0,
-      "kitchen": 2,
+      "kitchen": 1,
       "snacks": 0,
       "tools": 0
     },
@@ -7980,7 +7980,7 @@
       "electric": 0,
       "frost": 0,
       "heat": 0,
-      "kitchen": 3,
+      "kitchen": 2,
       "snacks": 0,
       "tools": 0
     },
@@ -8004,7 +8004,7 @@
         "cooldown": 1.15,
         "count": 1,
         "critChance": 0,
-        "damage": 13.50864,
+        "damage": 12.38292,
         "duration": 0,
         "echo": 0,
         "frostRing": false,
@@ -8052,7 +8052,7 @@
       "electric": 0,
       "frost": 0,
       "heat": 0,
-      "kitchen": 2,
+      "kitchen": 1,
       "snacks": 0,
       "tools": 0
     },
@@ -8135,7 +8135,7 @@
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
-      "heat": 2,
+      "heat": 1,
       "kitchen": 1,
       "snacks": 0,
       "tools": 0
@@ -8155,7 +8155,7 @@
         ],
         "bundle": 2,
         "burn": {
-          "dps": 3.5,
+          "dps": 2.5,
           "duration": 3,
           "tick": 0.5
         },
@@ -8194,7 +8194,7 @@
         ],
         "bundle": 2,
         "burn": {
-          "dps": 3.5,
+          "dps": 2.5,
           "duration": 3,
           "tick": 0.5
         },
@@ -8314,7 +8314,7 @@
     "sellRate": 0.5,
     "sets": {
       "blast": 0,
-      "checkout": 2,
+      "checkout": 1,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
@@ -8445,7 +8445,7 @@
     "pickupRadius": 70,
     "priceMult": 1,
     "recipes": [],
-    "regen": 0.3,
+    "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
@@ -8456,7 +8456,7 @@
       "frost": 0,
       "heat": 0,
       "kitchen": 0,
-      "snacks": 2,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -8581,7 +8581,7 @@
     "pickupRadius": 70,
     "priceMult": 1,
     "recipes": [],
-    "regen": 0.3,
+    "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
@@ -8592,7 +8592,7 @@
       "frost": 0,
       "heat": 0,
       "kitchen": 0,
-      "snacks": 2,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -8722,7 +8722,7 @@
     "sellRate": 0.85,
     "sets": {
       "blast": 0,
-      "checkout": 2,
+      "checkout": 1,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
@@ -8863,7 +8863,7 @@
       "electric": 0,
       "frost": 0,
       "heat": 0,
-      "kitchen": 3,
+      "kitchen": 2,
       "snacks": 0,
       "tools": 0
     },
@@ -8887,7 +8887,7 @@
         "cooldown": 1,
         "count": 1,
         "critChance": 0,
-        "damage": 11.448,
+        "damage": 10.494,
         "duration": 0,
         "echo": 0,
         "frostRing": false,
@@ -9938,15 +9938,15 @@
       "blast": 0,
       "checkout": 0,
       "cleaning": 0,
-      "electric": 2,
+      "electric": 1,
       "frost": 0,
       "heat": 0,
       "kitchen": 0,
       "snacks": 0,
-      "tools": 2
+      "tools": 1
     },
     "shoveCooldown": 3,
-    "shoveDamage": 12,
+    "shoveDamage": 6,
     "shoveDistMult": 1,
     "shoveKnockMult": 1,
     "stinkDps": 0,
@@ -10008,15 +10008,15 @@
       "blast": 0,
       "checkout": 0,
       "cleaning": 0,
-      "electric": 3,
+      "electric": 2,
       "frost": 0,
       "heat": 0,
       "kitchen": 0,
       "snacks": 0,
-      "tools": 2
+      "tools": 1
     },
     "shoveCooldown": 3,
-    "shoveDamage": 12,
+    "shoveDamage": 6,
     "shoveDistMult": 1,
     "shoveKnockMult": 1,
     "stinkDps": 0,
@@ -10032,8 +10032,8 @@
         "burn": null,
         "burstInterval": 0,
         "chain": 0,
-        "chainChance": 0.3,
-        "chainJumps": 3,
+        "chainChance": 0.2,
+        "chainJumps": 2,
         "cooldown": 0.680828,
         "count": 1,
         "critChance": 0,
@@ -10144,7 +10144,7 @@
     "sellRate": 0.5,
     "sets": {
       "blast": 0,
-      "checkout": 2,
+      "checkout": 1,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
@@ -10280,7 +10280,7 @@
     "sellRate": 0.5,
     "sets": {
       "blast": 0,
-      "checkout": 2,
+      "checkout": 1,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
@@ -10423,10 +10423,10 @@
       "heat": 0,
       "kitchen": 0,
       "snacks": 0,
-      "tools": 2
+      "tools": 1
     },
     "shoveCooldown": 3,
-    "shoveDamage": 36,
+    "shoveDamage": 18,
     "shoveDistMult": 1.7,
     "shoveKnockMult": 1,
     "stinkDps": 0,
@@ -10551,7 +10551,7 @@
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
-      "blast": 2,
+      "blast": 1,
       "checkout": 0,
       "cleaning": 0,
       "electric": 0,
@@ -10559,10 +10559,10 @@
       "heat": 0,
       "kitchen": 0,
       "snacks": 0,
-      "tools": 2
+      "tools": 1
     },
     "shoveCooldown": 3,
-    "shoveDamage": 24,
+    "shoveDamage": 18,
     "shoveDistMult": 1,
     "shoveKnockMult": 1.5,
     "stinkDps": 0,
@@ -10688,7 +10688,7 @@
     "sellRate": 0.5,
     "sets": {
       "blast": 0,
-      "checkout": 2,
+      "checkout": 1,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
@@ -10823,7 +10823,7 @@
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
-      "blast": 2,
+      "blast": 1,
       "checkout": 0,
       "cleaning": 0,
       "electric": 0,
@@ -10831,10 +10831,10 @@
       "heat": 0,
       "kitchen": 0,
       "snacks": 0,
-      "tools": 2
+      "tools": 1
     },
     "shoveCooldown": 3,
-    "shoveDamage": 12,
+    "shoveDamage": 6,
     "shoveDistMult": 1,
     "shoveKnockMult": 1,
     "stinkDps": 0,
@@ -10967,10 +10967,10 @@
       "heat": 0,
       "kitchen": 0,
       "snacks": 0,
-      "tools": 2
+      "tools": 1
     },
     "shoveCooldown": 3,
-    "shoveDamage": 12,
+    "shoveDamage": 6,
     "shoveDistMult": 1,
     "shoveKnockMult": 1,
     "stinkDps": 0,
@@ -11096,7 +11096,7 @@
     "sellRate": 0.5,
     "sets": {
       "blast": 0,
-      "checkout": 2,
+      "checkout": 1,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
@@ -11237,7 +11237,7 @@
       "electric": 0,
       "frost": 0,
       "heat": 0,
-      "kitchen": 3,
+      "kitchen": 2,
       "snacks": 0,
       "tools": 0
     },
@@ -11261,7 +11261,7 @@
         "cooldown": 1,
         "count": 1,
         "critChance": 0,
-        "damage": 11.448,
+        "damage": 10.494,
         "duration": 0,
         "echo": 0,
         "frostRing": false,
@@ -12273,8 +12273,8 @@
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
-      "blast": 2,
-      "checkout": 2,
+      "blast": 1,
+      "checkout": 1,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
@@ -12343,8 +12343,8 @@
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
-      "blast": 2,
-      "checkout": 2,
+      "blast": 1,
+      "checkout": 1,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
@@ -12477,7 +12477,7 @@
     "pickupRadius": 70,
     "priceMult": 1,
     "recipes": [],
-    "regen": 0.3,
+    "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
@@ -12488,7 +12488,7 @@
       "frost": 0,
       "heat": 0,
       "kitchen": 0,
-      "snacks": 2,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -12618,7 +12618,7 @@
     "sellRate": 0.5,
     "sets": {
       "blast": 0,
-      "checkout": 2,
+      "checkout": 1,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
@@ -12749,7 +12749,7 @@
     "pickupRadius": 70,
     "priceMult": 1,
     "recipes": [],
-    "regen": 0.3,
+    "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
@@ -12760,7 +12760,7 @@
       "frost": 0,
       "heat": 0,
       "kitchen": 0,
-      "snacks": 2,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -13811,7 +13811,7 @@
     "sets": {
       "blast": 0,
       "checkout": 0,
-      "cleaning": 2,
+      "cleaning": 1,
       "electric": 0,
       "frost": 0,
       "heat": 0,
@@ -13881,7 +13881,7 @@
     "sets": {
       "blast": 0,
       "checkout": 0,
-      "cleaning": 2,
+      "cleaning": 1,
       "electric": 0,
       "frost": 0,
       "heat": 0,
@@ -14019,9 +14019,9 @@
     "sets": {
       "blast": 0,
       "checkout": 0,
-      "cleaning": 2,
+      "cleaning": 1,
       "electric": 0,
-      "frost": 2,
+      "frost": 1,
       "heat": 0,
       "kitchen": 0,
       "snacks": 0,
@@ -14159,7 +14159,7 @@
       "electric": 0,
       "frost": 0,
       "heat": 0,
-      "kitchen": 3,
+      "kitchen": 2,
       "snacks": 0,
       "tools": 0
     },
@@ -14183,7 +14183,7 @@
         "cooldown": 1,
         "count": 1,
         "critChance": 0.25,
-        "damage": 11.448,
+        "damage": 10.494,
         "duration": 0,
         "echo": 0,
         "frostRing": false,
@@ -14290,7 +14290,7 @@
     "sellRate": 0.5,
     "sets": {
       "blast": 0,
-      "checkout": 2,
+      "checkout": 1,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
@@ -14421,7 +14421,7 @@
     "pickupRadius": 70,
     "priceMult": 1,
     "recipes": [],
-    "regen": 0.3,
+    "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
@@ -14432,7 +14432,7 @@
       "frost": 0,
       "heat": 0,
       "kitchen": 0,
-      "snacks": 2,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -15582,13 +15582,13 @@
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
-      "heat": 3,
+      "heat": 2,
       "kitchen": 0,
       "snacks": 0,
-      "tools": 2
+      "tools": 1
     },
     "shoveCooldown": 3,
-    "shoveDamage": 12,
+    "shoveDamage": 6,
     "shoveDistMult": 1,
     "shoveKnockMult": 1,
     "stinkDps": 0,
@@ -15602,8 +15602,8 @@
         ],
         "bundle": 1,
         "burn": {
-          "dps": 9,
-          "duration": 4,
+          "dps": 7,
+          "duration": 3,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -15658,13 +15658,13 @@
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
-      "heat": 3,
+      "heat": 2,
       "kitchen": 0,
       "snacks": 0,
-      "tools": 2
+      "tools": 1
     },
     "shoveCooldown": 3,
-    "shoveDamage": 12,
+    "shoveDamage": 6,
     "shoveDistMult": 1,
     "shoveKnockMult": 1,
     "stinkDps": 0,
@@ -15678,8 +15678,8 @@
         ],
         "bundle": 1,
         "burn": {
-          "dps": 9,
-          "duration": 4,
+          "dps": 7,
+          "duration": 3,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -15800,8 +15800,8 @@
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
-      "heat": 3,
-      "kitchen": 3,
+      "heat": 2,
+      "kitchen": 2,
       "snacks": 0,
       "tools": 0
     },
@@ -15825,17 +15825,17 @@
         "cooldown": 1,
         "count": 1,
         "critChance": 0,
-        "damage": 11.448,
+        "damage": 10.494,
         "duration": 0,
         "echo": 0,
         "frostRing": false,
         "ignite": {
           "burn": {
             "dps": 3.5,
-            "duration": 4,
+            "duration": 3,
             "tick": 0.5
           },
-          "chance": 0.25
+          "chance": 0.15
         },
         "pattern": "toast",
         "pierce": 0,
@@ -15939,7 +15939,7 @@
     "sellRate": 0.5,
     "sets": {
       "blast": 0,
-      "checkout": 2,
+      "checkout": 1,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
@@ -16991,8 +16991,8 @@
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
-      "heat": 3,
-      "kitchen": 3,
+      "heat": 2,
+      "kitchen": 2,
       "snacks": 0,
       "tools": 0
     },
@@ -17018,17 +17018,17 @@
         "cooldown": 1.15,
         "count": 1,
         "critChance": 0,
-        "damage": 17.172,
+        "damage": 15.741,
         "duration": 0,
         "echo": 0,
         "frostRing": false,
         "ignite": {
           "burn": {
             "dps": 3.5,
-            "duration": 4,
+            "duration": 3,
             "tick": 0.5
           },
-          "chance": 0.25
+          "chance": 0.15
         },
         "pattern": "sweep",
         "pierce": 0,
@@ -17068,8 +17068,8 @@
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
-      "heat": 3,
-      "kitchen": 3,
+      "heat": 2,
+      "kitchen": 2,
       "snacks": 0,
       "tools": 0
     },
@@ -17095,17 +17095,17 @@
         "cooldown": 1,
         "count": 1,
         "critChance": 0,
-        "damage": 17.172,
+        "damage": 15.741,
         "duration": 0,
         "echo": 0,
         "frostRing": false,
         "ignite": {
           "burn": {
             "dps": 3.5,
-            "duration": 4,
+            "duration": 3,
             "tick": 0.5
           },
-          "chance": 0.25
+          "chance": 0.15
         },
         "pattern": "toast",
         "pierce": 0,
@@ -18216,9 +18216,9 @@
       "checkout": 0,
       "cleaning": 0,
       "electric": 0,
-      "frost": 2,
+      "frost": 1,
       "heat": 0,
-      "kitchen": 3,
+      "kitchen": 2,
       "snacks": 0,
       "tools": 0
     },
@@ -18244,7 +18244,7 @@
         "cooldown": 1.15,
         "count": 1,
         "critChance": 0,
-        "damage": 11.448,
+        "damage": 10.494,
         "duration": 0,
         "echo": 0,
         "frostRing": false,
@@ -18289,9 +18289,9 @@
       "checkout": 0,
       "cleaning": 0,
       "electric": 0,
-      "frost": 2,
+      "frost": 1,
       "heat": 0,
-      "kitchen": 3,
+      "kitchen": 2,
       "snacks": 0,
       "tools": 0
     },
@@ -18317,7 +18317,7 @@
         "cooldown": 1,
         "count": 1,
         "critChance": 0,
-        "damage": 11.448,
+        "damage": 10.494,
         "duration": 0,
         "echo": 0,
         "frostRing": false,
@@ -18426,7 +18426,7 @@
     "pickupRadius": 70,
     "priceMult": 1,
     "recipes": [],
-    "regen": 0.3,
+    "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
@@ -18435,9 +18435,9 @@
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
-      "heat": 3,
+      "heat": 2,
       "kitchen": 0,
-      "snacks": 2,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -18453,8 +18453,8 @@
         "buffs": [],
         "bundle": 1,
         "burn": {
-          "dps": 6.3,
-          "duration": 4,
+          "dps": 4.9,
+          "duration": 3,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -18566,7 +18566,7 @@
     "pickupRadius": 70,
     "priceMult": 1,
     "recipes": [],
-    "regen": 0.3,
+    "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
@@ -18577,7 +18577,7 @@
       "frost": 0,
       "heat": 0,
       "kitchen": 0,
-      "snacks": 2,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -18714,10 +18714,10 @@
       "heat": 0,
       "kitchen": 0,
       "snacks": 0,
-      "tools": 2
+      "tools": 1
     },
     "shoveCooldown": 3,
-    "shoveDamage": 12,
+    "shoveDamage": 6,
     "shoveDistMult": 1,
     "shoveKnockMult": 1,
     "stinkDps": 0,
@@ -18838,18 +18838,18 @@
     "pickupRadius": 70,
     "priceMult": 1,
     "recipes": [],
-    "regen": 0.3,
+    "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
-      "blast": 2,
+      "blast": 1,
       "checkout": 0,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
       "heat": 0,
       "kitchen": 0,
-      "snacks": 2,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -19886,18 +19886,18 @@
     "pickupRadius": 70,
     "priceMult": 1,
     "recipes": [],
-    "regen": 0.3,
+    "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
-      "blast": 2,
+      "blast": 1,
       "checkout": 0,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
       "heat": 0,
       "kitchen": 0,
-      "snacks": 2,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -19956,18 +19956,18 @@
     "pickupRadius": 70,
     "priceMult": 1,
     "recipes": [],
-    "regen": 0.3,
+    "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
-      "blast": 2,
+      "blast": 1,
       "checkout": 0,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
       "heat": 0,
       "kitchen": 0,
-      "snacks": 2,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -20099,7 +20099,7 @@
     "sellRate": 0.5,
     "sets": {
       "blast": 0,
-      "checkout": 2,
+      "checkout": 1,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
@@ -21204,18 +21204,18 @@
     "pickupRadius": 70,
     "priceMult": 1,
     "recipes": [],
-    "regen": 0.3,
+    "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
-      "blast": 2,
+      "blast": 1,
       "checkout": 0,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
       "heat": 0,
       "kitchen": 0,
-      "snacks": 2,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -21277,18 +21277,18 @@
     "pickupRadius": 70,
     "priceMult": 1,
     "recipes": [],
-    "regen": 0.3,
+    "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
-      "blast": 2,
+      "blast": 1,
       "checkout": 0,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
       "heat": 0,
       "kitchen": 0,
-      "snacks": 2,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -21425,15 +21425,15 @@
       "blast": 0,
       "checkout": 0,
       "cleaning": 0,
-      "electric": 3,
+      "electric": 2,
       "frost": 0,
       "heat": 0,
       "kitchen": 0,
       "snacks": 0,
-      "tools": 2
+      "tools": 1
     },
     "shoveCooldown": 3,
-    "shoveDamage": 12,
+    "shoveDamage": 6,
     "shoveDistMult": 1,
     "shoveKnockMult": 1,
     "stinkDps": 0,
@@ -21447,8 +21447,8 @@
         "burn": null,
         "burstInterval": 0,
         "chain": 0,
-        "chainChance": 0.3,
-        "chainJumps": 3,
+        "chainChance": 0.2,
+        "chainJumps": 2,
         "cooldown": 0.661376,
         "count": 1,
         "critChance": 0,
@@ -22481,7 +22481,7 @@
     "sellRate": 0.5,
     "sets": {
       "blast": 0,
-      "checkout": 2,
+      "checkout": 1,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
@@ -22551,7 +22551,7 @@
     "sellRate": 0.5,
     "sets": {
       "blast": 0,
-      "checkout": 2,
+      "checkout": 1,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
@@ -22689,7 +22689,7 @@
     "sellRate": 0.5,
     "sets": {
       "blast": 0,
-      "checkout": 2,
+      "checkout": 1,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
@@ -22830,7 +22830,7 @@
       "electric": 0,
       "frost": 0,
       "heat": 0,
-      "kitchen": 3,
+      "kitchen": 2,
       "snacks": 0,
       "tools": 0
     },
@@ -22854,7 +22854,7 @@
         "cooldown": 1,
         "count": 1,
         "critChance": 0,
-        "damage": 11.448,
+        "damage": 10.494,
         "duration": 0,
         "echo": 0,
         "frostRing": false,
@@ -22956,7 +22956,7 @@
     "pickupRadius": 70,
     "priceMult": 1,
     "recipes": [],
-    "regen": 0.3,
+    "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
@@ -22967,7 +22967,7 @@
       "frost": 0,
       "heat": 0,
       "kitchen": 0,
-      "snacks": 2,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -23097,7 +23097,7 @@
     "sellRate": 0.5,
     "sets": {
       "blast": 0,
-      "checkout": 2,
+      "checkout": 1,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
@@ -23240,10 +23240,10 @@
       "heat": 0,
       "kitchen": 0,
       "snacks": 0,
-      "tools": 2
+      "tools": 1
     },
     "shoveCooldown": 3,
-    "shoveDamage": 12,
+    "shoveDamage": 6,
     "shoveDistMult": 1,
     "shoveKnockMult": 1,
     "stinkDps": 0,
@@ -23364,7 +23364,7 @@
     "pickupRadius": 70,
     "priceMult": 1,
     "recipes": [],
-    "regen": 0.55,
+    "regen": 0.25,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
@@ -23375,7 +23375,7 @@
       "frost": 0,
       "heat": 0,
       "kitchen": 0,
-      "snacks": 2,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -23528,7 +23528,7 @@
       "electric": 0,
       "frost": 0,
       "heat": 0,
-      "kitchen": 3,
+      "kitchen": 2,
       "snacks": 0,
       "tools": 0
     },
@@ -23552,7 +23552,7 @@
         "cooldown": 1,
         "count": 1,
         "critChance": 0,
-        "damage": 13.50864,
+        "damage": 12.38292,
         "duration": 0,
         "echo": 0,
         "frostRing": false,
@@ -23668,10 +23668,10 @@
       "heat": 0,
       "kitchen": 0,
       "snacks": 0,
-      "tools": 2
+      "tools": 1
     },
     "shoveCooldown": 3,
-    "shoveDamage": 12,
+    "shoveDamage": 6,
     "shoveDistMult": 1,
     "shoveKnockMult": 1,
     "stinkDps": 0,
@@ -23792,18 +23792,18 @@
     "pickupRadius": 70,
     "priceMult": 1,
     "recipes": [],
-    "regen": 0.3,
+    "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
-      "blast": 2,
+      "blast": 1,
       "checkout": 0,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
       "heat": 0,
       "kitchen": 0,
-      "snacks": 2,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -23940,10 +23940,10 @@
       "heat": 0,
       "kitchen": 0,
       "snacks": 0,
-      "tools": 2
+      "tools": 1
     },
     "shoveCooldown": 3,
-    "shoveDamage": 12,
+    "shoveDamage": 6,
     "shoveDistMult": 1,
     "shoveKnockMult": 1,
     "stinkDps": 0,
@@ -24998,10 +24998,10 @@
       "heat": 0,
       "kitchen": 0,
       "snacks": 0,
-      "tools": 2
+      "tools": 1
     },
     "shoveCooldown": 3,
-    "shoveDamage": 12,
+    "shoveDamage": 6,
     "shoveDistMult": 1,
     "shoveKnockMult": 1,
     "stinkDps": 0,
@@ -25068,10 +25068,10 @@
       "heat": 0,
       "kitchen": 0,
       "snacks": 0,
-      "tools": 2
+      "tools": 1
     },
     "shoveCooldown": 3,
-    "shoveDamage": 12,
+    "shoveDamage": 6,
     "shoveDistMult": 1,
     "shoveKnockMult": 1,
     "stinkDps": 0,
@@ -25206,10 +25206,10 @@
       "heat": 0,
       "kitchen": 0,
       "snacks": 0,
-      "tools": 2
+      "tools": 1
     },
     "shoveCooldown": 3,
-    "shoveDamage": 12,
+    "shoveDamage": 6,
     "shoveDistMult": 1,
     "shoveKnockMult": 1,
     "stinkDps": 0,
@@ -25335,7 +25335,7 @@
     "sellRate": 0.5,
     "sets": {
       "blast": 0,
-      "checkout": 2,
+      "checkout": 1,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
@@ -25981,14 +25981,14 @@
     "maxHp": 40,
     "moveSpeedMult": 1,
     "pickupRadius": 70,
-    "priceMult": 1,
+    "priceMult": 0.92,
     "recipes": [],
     "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
       "blast": 3,
-      "checkout": 0,
+      "checkout": 1,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
@@ -26022,7 +26022,7 @@
         "critChance": 0,
         "damage": 3.36,
         "duration": 0,
-        "echo": 0.5,
+        "echo": 0.75,
         "frostRing": false,
         "ignite": null,
         "pattern": "burst",
@@ -26366,7 +26366,7 @@
       "blast": 0,
       "checkout": 0,
       "cleaning": 2,
-      "electric": 0,
+      "electric": 1,
       "frost": 0,
       "heat": 0,
       "kitchen": 0,
@@ -26423,12 +26423,12 @@
         "burn": null,
         "burstInterval": 0,
         "chain": 0,
-        "chainChance": 0,
-        "chainJumps": 0,
-        "cooldown": 0.65,
+        "chainChance": 0.1,
+        "chainJumps": 1,
+        "cooldown": 0.585,
         "count": 1,
         "critChance": 0,
-        "damage": 2.12,
+        "damage": 3.18,
         "duration": 0,
         "echo": 0,
         "frostRing": false,
@@ -26443,7 +26443,7 @@
         "slow": null,
         "spreadDeg": 0,
         "tick": 0,
-        "tier": 1,
+        "tier": 2,
         "type": "vacuum",
         "uid": "u2"
       }
@@ -26477,8 +26477,8 @@
       "blast": 0,
       "checkout": 0,
       "cleaning": 3,
-      "electric": 0,
-      "frost": 0,
+      "electric": 1,
+      "frost": 1,
       "heat": 0,
       "kitchen": 0,
       "snacks": 0,
@@ -26534,12 +26534,12 @@
         "burn": null,
         "burstInterval": 0,
         "chain": 0,
-        "chainChance": 0,
-        "chainJumps": 0,
-        "cooldown": 0.65,
+        "chainChance": 0.1,
+        "chainJumps": 1,
+        "cooldown": 0.585,
         "count": 1,
         "critChance": 0,
-        "damage": 2.24,
+        "damage": 3.36,
         "duration": 0,
         "echo": 0,
         "frostRing": false,
@@ -26554,7 +26554,7 @@
         "slow": null,
         "spreadDeg": 0,
         "tick": 0,
-        "tier": 1,
+        "tier": 2,
         "type": "vacuum",
         "uid": "u2"
       },
@@ -26569,10 +26569,10 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 0.55,
+        "cooldown": 0.495,
         "count": 1,
         "critChance": 0,
-        "damage": 3.18,
+        "damage": 4.77,
         "duration": 0,
         "echo": 0,
         "frostRing": false,
@@ -26587,7 +26587,7 @@
         "slow": null,
         "spreadDeg": 0,
         "tick": 0,
-        "tier": 1,
+        "tier": 2,
         "type": "spray",
         "uid": "u3"
       }
@@ -26698,7 +26698,7 @@
     "sets": {
       "blast": 0,
       "checkout": 0,
-      "cleaning": 0,
+      "cleaning": 1,
       "electric": 2,
       "frost": 0,
       "heat": 0,
@@ -26760,10 +26760,10 @@
         "chain": 0,
         "chainChance": 0.2,
         "chainJumps": 2,
-        "cooldown": 0.510044,
+        "cooldown": 0.45904,
         "count": 1,
         "critChance": 0,
-        "damage": 2.24,
+        "damage": 3.36,
         "duration": 0,
         "echo": 0,
         "frostRing": false,
@@ -26773,14 +26773,14 @@
         "popper": null,
         "projectileSpeed": 0,
         "pull": 70,
-        "range": 150,
+        "range": 172.5,
         "recipes": [
           "staticCling"
         ],
         "slow": null,
         "spreadDeg": 0,
         "tick": 0,
-        "tier": 1,
+        "tier": 2,
         "type": "vacuum",
         "uid": "u2"
       }
@@ -26829,11 +26829,11 @@
     "sets": {
       "blast": 0,
       "checkout": 0,
-      "cleaning": 0,
+      "cleaning": 1,
       "electric": 3,
       "frost": 0,
       "heat": 0,
-      "kitchen": 0,
+      "kitchen": 1,
       "snacks": 0,
       "tools": 1
     },
@@ -26891,10 +26891,10 @@
         "chain": 0,
         "chainChance": 0.3,
         "chainJumps": 3,
-        "cooldown": 0.510044,
+        "cooldown": 0.45904,
         "count": 1,
         "critChance": 0,
-        "damage": 2.24,
+        "damage": 3.36,
         "duration": 0,
         "echo": 0,
         "frostRing": false,
@@ -26904,14 +26904,14 @@
         "popper": null,
         "projectileSpeed": 0,
         "pull": 70,
-        "range": 150,
+        "range": 172.5,
         "recipes": [
           "staticCling"
         ],
         "slow": null,
         "spreadDeg": 0,
         "tick": 0,
-        "tier": 1,
+        "tier": 2,
         "type": "vacuum",
         "uid": "u2"
       },
@@ -26928,10 +26928,10 @@
         "chain": 0,
         "chainChance": 0.3,
         "chainJumps": 3,
-        "cooldown": 0.235405,
+        "cooldown": 0.211864,
         "count": 1,
         "critChance": 0,
-        "damage": 2.24,
+        "damage": 3.696,
         "duration": 0,
         "echo": 0,
         "frostRing": false,
@@ -26946,7 +26946,7 @@
         "slow": null,
         "spreadDeg": 0,
         "tick": 0,
-        "tier": 1,
+        "tier": 2,
         "type": "blender",
         "uid": "u3"
       }
@@ -27051,7 +27051,7 @@
       ]
     ],
     "killCoinMult": 1,
-    "maxHp": 40,
+    "maxHp": 50,
     "moveSpeedMult": 1,
     "pickupRadius": 70,
     "priceMult": 1,
@@ -27082,7 +27082,7 @@
       "frost": 2,
       "heat": 0,
       "kitchen": 0,
-      "snacks": 0,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -27144,10 +27144,10 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1,
+        "cooldown": 0.9,
         "count": 1,
         "critChance": 0,
-        "damage": 6.72,
+        "damage": 10.08,
         "duration": 0,
         "echo": 0,
         "frostRing": false,
@@ -27167,7 +27167,7 @@
         },
         "spreadDeg": 0,
         "tick": 0,
-        "tier": 1,
+        "tier": 2,
         "type": "fizz",
         "uid": "u2"
       }
@@ -27193,7 +27193,7 @@
       ]
     ],
     "killCoinMult": 1,
-    "maxHp": 40,
+    "maxHp": 50,
     "moveSpeedMult": 1,
     "pickupRadius": 70,
     "priceMult": 1,
@@ -27224,7 +27224,7 @@
       "frost": 3,
       "heat": 0,
       "kitchen": 0,
-      "snacks": 0,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -27286,10 +27286,10 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1,
+        "cooldown": 0.9,
         "count": 1,
         "critChance": 0,
-        "damage": 7.08,
+        "damage": 10.62,
         "duration": 0,
         "echo": 0,
         "frostRing": false,
@@ -27309,7 +27309,7 @@
         },
         "spreadDeg": 0,
         "tick": 0,
-        "tier": 1,
+        "tier": 2,
         "type": "fizz",
         "uid": "u2"
       },
@@ -27324,10 +27324,10 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 0.55,
+        "cooldown": 0.495,
         "count": 1,
         "critChance": 0,
-        "damage": 3.18,
+        "damage": 4.77,
         "duration": 0,
         "echo": 0,
         "frostRing": false,
@@ -27342,7 +27342,7 @@
         "slow": null,
         "spreadDeg": 0,
         "tick": 0,
-        "tier": 1,
+        "tier": 2,
         "type": "spray",
         "uid": "u3"
       }
@@ -27502,7 +27502,7 @@
         "cooldown": 1.15,
         "count": 1,
         "critChance": 0,
-        "damage": 13.86,
+        "damage": 15.246,
         "duration": 0,
         "echo": 0,
         "frostRing": false,
@@ -27599,7 +27599,7 @@
         "cooldown": 1.15,
         "count": 1,
         "critChance": 0,
-        "damage": 13.86,
+        "damage": 15.246,
         "duration": 0,
         "echo": 0,
         "frostRing": false,
@@ -27633,10 +27633,10 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 2.6,
+        "cooldown": 2.34,
         "count": 1,
         "critChance": 0,
-        "damage": 23.32,
+        "damage": 38.478,
         "duration": 0,
         "echo": 0,
         "frostRing": false,
@@ -27658,7 +27658,7 @@
         "slow": null,
         "spreadDeg": 0,
         "tick": 0,
-        "tier": 1,
+        "tier": 2,
         "type": "cooker",
         "uid": "u3"
       }
@@ -27778,7 +27778,7 @@
         "cooldown": 0.3,
         "count": 1,
         "critChance": 0,
-        "damage": 2.47192,
+        "damage": 2.61184,
         "duration": 0,
         "echo": 0,
         "frostRing": false,
@@ -27806,10 +27806,6 @@
         "u2"
       ],
       [
-        "u0",
-        "u3"
-      ],
-      [
         "u1",
         "u2"
       ],
@@ -27823,15 +27819,7 @@
     "moveSpeedMult": 1,
     "pickupRadius": 70,
     "priceMult": 1,
-    "recipes": [
-      {
-        "id": "brainFreeze",
-        "supportUids": [
-          "u3"
-        ],
-        "weaponUid": "u0"
-      }
-    ],
+    "recipes": [],
     "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
@@ -27840,7 +27828,7 @@
       "checkout": 0,
       "cleaning": 0,
       "electric": 0,
-      "frost": 0,
+      "frost": 1,
       "heat": 0,
       "kitchen": 3,
       "snacks": 0,
@@ -27856,10 +27844,8 @@
         "aoe": 0,
         "arcDeg": 0,
         "bounces": 0,
-        "buffs": [
-          "ice"
-        ],
-        "bundle": 2,
+        "buffs": [],
+        "bundle": 1,
         "burn": null,
         "burstInterval": 0,
         "chain": 0,
@@ -27878,14 +27864,9 @@
         "popper": null,
         "projectileSpeed": 0,
         "pull": 0,
-        "range": 106.25,
-        "recipes": [
-          "brainFreeze"
-        ],
-        "slow": {
-          "duration": 0.6,
-          "pct": 0.4
-        },
+        "range": 85,
+        "recipes": [],
+        "slow": null,
         "spreadDeg": 0,
         "tick": 0,
         "tier": 1,
@@ -27979,7 +27960,7 @@
     ],
     "killCoinMult": 1,
     "maxHp": 65,
-    "moveSpeedMult": 1.12,
+    "moveSpeedMult": 1.18,
     "pickupRadius": 70,
     "priceMult": 1,
     "recipes": [],
@@ -28059,7 +28040,7 @@
     ],
     "killCoinMult": 1,
     "maxHp": 75,
-    "moveSpeedMult": 1.12,
+    "moveSpeedMult": 1.18,
     "pickupRadius": 70,
     "priceMult": 1,
     "recipes": [],
@@ -28096,7 +28077,7 @@
         "chainJumps": 0,
         "cooldown": 1,
         "count": 1,
-        "critChance": 0.05,
+        "critChance": 0.075,
         "damage": 6.72,
         "duration": 0,
         "echo": 0,
@@ -28295,8 +28276,8 @@
       "tools": 3
     },
     "shoveCooldown": 3,
-    "shoveDamage": 36,
-    "shoveDistMult": 1.35,
+    "shoveDamage": 45,
+    "shoveDistMult": 1.525,
     "shoveKnockMult": 1,
     "stinkDps": 0,
     "weapons": [
@@ -28478,10 +28459,10 @@
       "blast": 0,
       "checkout": 0,
       "cleaning": 0,
-      "electric": 2,
+      "electric": 1,
       "frost": 0,
       "heat": 0,
-      "kitchen": 2,
+      "kitchen": 1,
       "snacks": 0,
       "tools": 0
     },
@@ -28500,8 +28481,8 @@
         "burn": null,
         "burstInterval": 0,
         "chain": 0,
-        "chainChance": 0.2,
-        "chainJumps": 2,
+        "chainChance": 0.1,
+        "chainJumps": 1,
         "cooldown": 0.24,
         "count": 1,
         "critChance": 0,
@@ -28669,8 +28650,8 @@
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
-      "heat": 2,
-      "kitchen": 2,
+      "heat": 1,
+      "kitchen": 1,
       "snacks": 0,
       "tools": 0
     },
@@ -28698,14 +28679,7 @@
         "duration": 0,
         "echo": 0,
         "frostRing": false,
-        "ignite": {
-          "burn": {
-            "dps": 3.5,
-            "duration": 3,
-            "tick": 0.5
-          },
-          "chance": 0.15
-        },
+        "ignite": null,
         "pattern": "mortar",
         "pierce": 0,
         "popper": null,
@@ -28856,7 +28830,7 @@
     "pickupRadius": 70,
     "priceMult": 1,
     "recipes": [],
-    "regen": 0.3,
+    "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
@@ -28864,10 +28838,10 @@
       "checkout": 0,
       "cleaning": 0,
       "electric": 0,
-      "frost": 2,
+      "frost": 1,
       "heat": 0,
       "kitchen": 0,
-      "snacks": 2,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -29050,9 +29024,9 @@
     "sellRate": 0.5,
     "sets": {
       "blast": 0,
-      "checkout": 2,
+      "checkout": 1,
       "cleaning": 0,
-      "electric": 2,
+      "electric": 1,
       "frost": 0,
       "heat": 0,
       "kitchen": 0,
@@ -29074,8 +29048,8 @@
         "burn": null,
         "burstInterval": 0,
         "chain": 0,
-        "chainChance": 0.2,
-        "chainJumps": 2,
+        "chainChance": 0.1,
+        "chainJumps": 1,
         "cooldown": 1.28,
         "count": 1,
         "critChance": 0,
@@ -29240,7 +29214,7 @@
     "sets": {
       "blast": 0,
       "checkout": 0,
-      "cleaning": 2,
+      "cleaning": 1,
       "electric": 0,
       "frost": 0,
       "heat": 0,
@@ -29430,10 +29404,10 @@
       "blast": 0,
       "checkout": 0,
       "cleaning": 0,
-      "electric": 2,
+      "electric": 1,
       "frost": 0,
-      "heat": 2,
-      "kitchen": 2,
+      "heat": 1,
+      "kitchen": 1,
       "snacks": 0,
       "tools": 0
     },
@@ -29461,14 +29435,7 @@
         "duration": 0,
         "echo": 0,
         "frostRing": false,
-        "ignite": {
-          "burn": {
-            "dps": 3.5,
-            "duration": 3,
-            "tick": 0.5
-          },
-          "chance": 0.15
-        },
+        "ignite": null,
         "pattern": "zap",
         "pierce": 0,
         "popper": null,
@@ -29625,9 +29592,9 @@
     "sets": {
       "blast": 0,
       "checkout": 0,
-      "cleaning": 2,
+      "cleaning": 1,
       "electric": 0,
-      "frost": 2,
+      "frost": 1,
       "heat": 0,
       "kitchen": 0,
       "snacks": 0,
@@ -29654,7 +29621,7 @@
         "count": 1,
         "critChance": 0,
         "damage": 6,
-        "duration": 4,
+        "duration": 3,
         "echo": 0,
         "frostRing": false,
         "ignite": null,
@@ -29812,18 +29779,18 @@
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
-      "blast": 2,
+      "blast": 1,
       "checkout": 0,
       "cleaning": 0,
-      "electric": 2,
+      "electric": 1,
       "frost": 0,
       "heat": 0,
       "kitchen": 0,
       "snacks": 0,
-      "tools": 2
+      "tools": 1
     },
     "shoveCooldown": 3,
-    "shoveDamage": 12,
+    "shoveDamage": 6,
     "shoveDistMult": 1,
     "shoveKnockMult": 1,
     "stinkDps": 0,
@@ -29837,8 +29804,8 @@
         "burn": null,
         "burstInterval": 0.08,
         "chain": 0,
-        "chainChance": 0.2,
-        "chainJumps": 2,
+        "chainChance": 0.1,
+        "chainJumps": 1,
         "cooldown": 0.814815,
         "count": 3,
         "critChance": 0,
@@ -30006,8 +29973,8 @@
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
-      "heat": 2,
-      "kitchen": 2,
+      "heat": 1,
+      "kitchen": 1,
       "snacks": 0,
       "tools": 0
     },
@@ -30035,14 +30002,7 @@
         "duration": 0,
         "echo": 0,
         "frostRing": false,
-        "ignite": {
-          "burn": {
-            "dps": 3.5,
-            "duration": 3,
-            "tick": 0.5
-          },
-          "chance": 0.15
-        },
+        "ignite": null,
         "pattern": "sweep",
         "pierce": 0,
         "popper": null,
@@ -30193,18 +30153,18 @@
     "pickupRadius": 70,
     "priceMult": 1,
     "recipes": [],
-    "regen": 0.3,
+    "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
-      "blast": 2,
+      "blast": 1,
       "checkout": 0,
       "cleaning": 0,
       "electric": 0,
       "frost": 0,
       "heat": 0,
       "kitchen": 0,
-      "snacks": 2,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -30390,9 +30350,9 @@
       "checkout": 0,
       "cleaning": 0,
       "electric": 0,
-      "frost": 2,
+      "frost": 1,
       "heat": 0,
-      "kitchen": 2,
+      "kitchen": 1,
       "snacks": 0,
       "tools": 0
     },
@@ -30577,9 +30537,9 @@
     "sets": {
       "blast": 0,
       "checkout": 0,
-      "cleaning": 2,
+      "cleaning": 1,
       "electric": 0,
-      "frost": 2,
+      "frost": 1,
       "heat": 0,
       "kitchen": 0,
       "snacks": 0,
@@ -30767,10 +30727,10 @@
       "blast": 0,
       "checkout": 0,
       "cleaning": 0,
-      "electric": 2,
+      "electric": 1,
       "frost": 0,
-      "heat": 2,
-      "kitchen": 2,
+      "heat": 1,
+      "kitchen": 1,
       "snacks": 0,
       "tools": 0
     },
@@ -30789,8 +30749,8 @@
         "burn": null,
         "burstInterval": 0,
         "chain": 0,
-        "chainChance": 0.2,
-        "chainJumps": 2,
+        "chainChance": 0.1,
+        "chainJumps": 1,
         "cooldown": 0.8,
         "count": 1,
         "critChance": 0,
@@ -30798,14 +30758,7 @@
         "duration": 0,
         "echo": 0,
         "frostRing": false,
-        "ignite": {
-          "burn": {
-            "dps": 3.5,
-            "duration": 3,
-            "tick": 0.5
-          },
-          "chance": 0.15
-        },
+        "ignite": null,
         "pattern": "toast",
         "pierce": 0,
         "popper": null,
@@ -30953,7 +30906,7 @@
     "killCoinMult": 1,
     "maxHp": 40,
     "moveSpeedMult": 1,
-    "pickupRadius": 260,
+    "pickupRadius": 130,
     "priceMult": 1,
     "recipes": [],
     "regen": 0,
@@ -30962,8 +30915,8 @@
     "sets": {
       "blast": 0,
       "checkout": 0,
-      "cleaning": 2,
-      "electric": 2,
+      "cleaning": 1,
+      "electric": 1,
       "frost": 0,
       "heat": 0,
       "kitchen": 0,
@@ -30985,8 +30938,8 @@
         "burn": null,
         "burstInterval": 0,
         "chain": 0,
-        "chainChance": 0.2,
-        "chainJumps": 2,
+        "chainChance": 0.1,
+        "chainJumps": 1,
         "cooldown": 0.52,
         "count": 1,
         "critChance": 0,

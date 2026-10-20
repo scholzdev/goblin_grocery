@@ -20,11 +20,11 @@ describe('Piggy Bank: build', () => {
     for (const t of [1, 2, 3]) expect(full([at('toaster'), far('piggy', t)]).killCoinMult).toBeCloseTo(1 + 0.15 * TIER.mult(t), 12);
   });
 
-  it('changes nothing but the kill coin multiplier, besides the Checkout L2 its 3 set points reach', () => {
+  it('changes nothing but the kill coin multiplier, besides the Checkout L1 its 3 set points reach', () => {
     const plain = full([at('toaster')]), withPig = full([at('toaster'), far('piggy', 3)]);
     expect(withPig.weapons).toEqual(plain.weapons);
-    expect(withPig.sets).toEqual({ ...plain.sets, checkout: 2 });
-    expect(withPig.priceMult).toBe(contentSetTune('checkout', 2).priceMult);
+    expect(withPig.sets).toEqual({ ...plain.sets, checkout: 1 });
+    expect(withPig.priceMult).toBe(contentSetTune('checkout', 1).priceMult);
     expect({ ...withPig, killCoinMult: 0, sets: plain.sets, priceMult: plain.priceMult }).toEqual({ ...plain, killCoinMult: 0 });
   });
 

@@ -5,7 +5,7 @@ vi.hoisted(() => { (globalThis as { location?: unknown }).location = { search: '
 
 import { flow } from '../src/flow';
 import { store } from '../src/state/store';
-import { nearUnlocks, profile, unlockedItems } from '../src/state/profile';
+import { nearUnlocks, profile, unlockProgress, unlockedItems } from '../src/state/profile';
 import { newUid, recomputeBuild } from '../src/state/run';
 import { BOSS_WAVE } from '../src/data/waves';
 import { UNLOCKS } from '../src/data/unlocks';
@@ -127,6 +127,18 @@ describe('goal unlocks', () => {
     flow.defeat();
     expect(profile.unlocked).toContain('laser');
     expect(flow.lastResult!.fresh.unlocks).toContain('laser');
+  });
+
+  it('goldstar measures the best tier above ★1, so its progress starts at 0: a ★1 cart is 0 of 2, a ★2 item 1 of 2', () => {
+    const goldstar = UNLOCKS.find((u) => u.id === 'goldstar')!;
+    loseWith(10);
+    expect(unlockProgress(goldstar), 'only ★1 items').toEqual([0, 2]);
+    flow.init(fakeGame as never);
+    flow.startRun();
+    store.state.inventory.placed[0].tier = 2;
+    recomputeBuild(store.state);
+    flow.defeat();
+    expect(unlockProgress(goldstar), 'a ★2 item').toEqual([1, 2]);
   });
 
   it('lab and bot runs leave goalBest alone', () => {

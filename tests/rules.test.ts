@@ -6,14 +6,14 @@ import { inflation, rollDoors, waveSpawnPlan, currentRerollCost, rerollCost, rol
 import { profile, noteEnemy, recordRun, recordOvertime, shiftUnlocked, starterUnlocked } from '../src/state/profile';
 import { mulberry32 } from '../src/systems/rng';
 import { rollEvent, outageDuration } from '../src/systems/events';
-import { EVENTS } from '../src/data/events';
+import { EVENTS, EVENT_LEAD } from '../src/data/events';
 import { cart } from './cart';
 import { setLevels } from '../src/data/sets';
 import { RECIPES } from '../src/data/recipes';
 import { DEPARTMENTS, DEPT_TUNING, THEMES } from '../src/data/departments';
 import { DOOR_POOL, MODIFIERS, ROOM_DOORS } from '../src/data/modifiers';
 import { BOSS_WAVE, ECONOMY, OVERTIME, SHIFTS, SHOP_LEVELS, WAVES, waveDef, bossTuning, eliteChance, enemyAppears } from '../src/data/waves';
-import { BOSS, THEME_SUMMONS, CODEX_ENEMIES, ELITE, ELITE_EXCLUDED, ENEMIES } from '../src/data/enemies';
+import { BOSS, THEME_SUMMONS, CODEX_ENEMIES, ELITE, ELITE_EXCLUDED, ENEMIES, MINI_BOSS } from '../src/data/enemies';
 import { enemyT } from '../src/i18n/data';
 import { setLang } from '../src/i18n/lang';
 import { ITEMS, ITEM_IDS, PLAYER, STARTER_WEAPONS, TIER } from '../src/data/items';
@@ -552,7 +552,7 @@ describe('tiers', () => {
     const mop = w0(inv(it_('mop', 0, 0), it_('fuel', 1, 0)));
     expect(mop.recipes).toContain('greaseFire');
     expect(mop.burn).toEqual({ dps: 5, duration: 2, tick: 0.5 });
-    expect(w0(inv(it_('mop', 0, 0), mk('fuel', 1, 0, 3))).burn!.dps).toBeCloseTo(10 * contentSetTune('heat', 2).burnMult); // the ★3 can is 3 Heat points: L2
+    expect(w0(inv(it_('mop', 0, 0), mk('fuel', 1, 0, 3))).burn!.dps).toBeCloseTo(10); // the ★3 can alone is 3 Heat points: L1, no dps multiplier
     expect(w0(inv(it_('toaster', 0, 0), it_('fuel', 2, 0))).burn!.dps).toBe(2.5);
   });
   it('bubble wrap armor is an onPlayerHit hook (content/items/bubblewrap.test.ts); damagePlayer is plain', () => {
@@ -923,6 +923,10 @@ describe('shifts & overtime', () => {
     for (const id of ELITE_EXCLUDED) for (const w of [3, 6, BOSS_WAVE, BOSS_WAVE + 2]) expect(eliteChance(id, waveDef(w), 3)).toBe(0);
     expect(eliteChance('turkey', waveDef(BOSS_WAVE), 0)).toBe(0);
   });
+  it('aisle 4 brings no new grocery type: the mini-boss is its new thing', () => {
+    expect(MINI_BOSS.aisle).toBe(4);
+    for (const id of Object.keys(WAVES[3].mix) as (keyof typeof WAVES[3]['mix'])[]) expect(WAVES[2].mix[id] ?? 0, id).toBeGreaterThan(0);
+  });
   it('frozen turkey: tank in the later mixes only, frozen dept may boost it', () => {
     expect(ENEMIES.turkey.behavior).toBe('tank');
     expect(ENEMIES.turkey.hp).toBeGreaterThan(ENEMIES.soda.hp);
@@ -1200,7 +1204,7 @@ describe('Test Lab', () => {
 describe('enemy codex', () => {
   it('enemyAppears gives the first aisle', () => {
     expect(enemyAppears('milk').first).toBe(1);
-    expect(enemyAppears('turkey').first).toBe(4);
+    expect(enemyAppears('turkey').first).toBe(5);
     expect(enemyAppears('slice').first).toBe(enemyAppears('melon').first);
     expect(enemyAppears('boss').first).toBe(BOSS_WAVE);
     expect(enemyAppears('milk').depts).toContain('frozen');
@@ -1336,6 +1340,15 @@ describe('aisle events', () => {
       expect(rollEvent(d, 5, 0, just(0.999), false)).toBeNull();
     }
   });
+  it('starts at least EVENT_LEAD s before a short aisle ends, from the same two draws; a 60 s aisle keeps the whole window', () => {
+    const seq = (...v: number[]) => { let i = 0; return () => v[i++]; };
+    const [a, b] = EVENTS.wetFloor.startAt;
+    const short = rollEvent('main', 2, 0, seq(0, 0.999), false)!;
+    expect(short.kind).toBe('wetFloor');
+    expect(waveDef(2).duration).toBeLessThan(b + EVENT_LEAD);
+    expect(short.startAt).toBeCloseTo(a + 0.999 * (waveDef(2).duration - EVENT_LEAD - a), 9);
+    expect(rollEvent('main', 5, 0, seq(0, 0.999), false)!.startAt).toBeCloseTo(a + 0.999 * (b - a), 9);
+  });
   it('outage lasts longer on later shifts and starts inside the window', () => {
     expect(outageDuration(2)).toBe(EVENTS.outage.duration + 2 * EVENTS.outage.durationPerShift);
     const r = rollEvent('electronics', 5, 2, always, false)!;
@@ -1418,7 +1431,7 @@ describe('set bonuses', () => {
     expect(setLevels(sh.placed).kitchen).toBe(1);
     sh.shelf[0] = it_('microwave', 0, 0);
     expect(setLevels(sh.placed).kitchen).toBe(1);
-    sh.placed.push(it_('hotsauce', 4, 0));
+    sh.placed.push(mk('hotsauce', 4, 0, 2));
     expect(setLevels(sh.placed)).toMatchObject({ kitchen: 2, heat: 2, electric: 0, tools: 0 });
     expect(setLevels([]).kitchen).toBe(0);
   });
@@ -1436,23 +1449,23 @@ describe('set bonuses', () => {
     expect(computeBuild(inv(it_('toaster', 0, 0), it_('popper', 2, 0), it_('multipack', 3, 0))).weapons[0].popper!.radius).toBeCloseTo(70 * 1.15);
   });
   it('tools L2 doubles dash damage; snacks L2 regen stacks with snack bag', () => {
-    const t3 = b('nailgun', 'tape', 'boot');
+    const t3 = b('nailgun', 'tape', 'boot', 'magnet');
     expect(t3.shoveDamage).toBe((PLAYER.shove.damage + contentTune('boot', 1).damage) * 2);
-    expect(b('lunchbox', 'energy', 'fizz').regen).toBeCloseTo(0.3);
-    expect(b('lunchbox', 'energy', 'snackbag').regen).toBeCloseTo(contentTune('snackbag', 1).regenHp / contentTune('snackbag', 1).interval + 0.3);
+    expect(b('lunchbox', 'energy', 'fizz', 'fortune').regen).toBeCloseTo(0.3);
+    expect(b('lunchbox', 'energy', 'snackbag', 'fortune').regen).toBeCloseTo(contentTune('snackbag', 1).regenHp / contentTune('snackbag', 1).interval + 0.3);
   });
   it('heat L2: burn dps x1.4 and heat weapons without fuel ignite', () => {
-    const w = bw('toaster', 'pan', 'microwave');
+    const w = bw('toaster', 'pan', 'microwave', 'cooker');
     expect(w.burn).toBeNull();
     expect(w.ignite).toEqual({ chance: 0.15, burn: { dps: 2.5 * 1.4, duration: 3, tick: 0.5 } });
     expect(bw('toaster', 'pan').ignite).toBeNull();
-    const f = w0(inv(it_('pan', 0, 0), it_('fuel', 1, 0), it_('toaster', 0, 3)));
+    const f = w0(inv(it_('pan', 0, 0), it_('fuel', 1, 0), it_('toaster', 0, 3), it_('cooker', 3, 3)));
     expect(f.burn).toEqual({ dps: 2.5 * 1.4, duration: 3, tick: 0.5 });
     expect(f.ignite).toBeNull();
   });
   it('electric: non-zap electrical weapons chain, microwave does not', () => {
     expect(bw('toaster', 'nailgun').chainChance).toBe(0.1);
-    expect(bw('toaster', 'nailgun', 'battery').chainJumps).toBe(2);
+    expect(bw('toaster', 'nailgun', 'battery', 'microwave').chainJumps).toBe(2);
     expect(bw('microwave', 'toaster').chainChance).toBe(0);
     expect(bw('pan', 'toaster').chainChance).toBe(0);
   });
@@ -1466,7 +1479,7 @@ describe('set bonuses', () => {
     expect(cheap.some((o, i) => o.price < full[i].price)).toBe(true);
     const s1 = { ...s, coinLog: [], money: 100 } as RunState; finishWave(s1);
     expect(s1.coinLog.find((c) => c.label === 'Interest')!.amount).toBe(3);
-    s.inventory.placed.push(it_('pricegun', 2, 3));
+    s.inventory.placed.push(mk('pricegun', 2, 3, 2));
     s.build = computeBuild(s.inventory);
     const s2 = { ...s, coinLog: [], money: 100 } as RunState; finishWave(s2);
     expect(s2.coinLog.find((c) => c.label === 'Interest')!.amount).toBe(6);

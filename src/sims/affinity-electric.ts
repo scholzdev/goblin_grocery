@@ -6,11 +6,11 @@ import { Enemy, Item } from '../engine/ids';
 // and the arcs it throws (electric too), reach all of them.
 export default defineSim({
   id: 'affinity-electric',
-  notes: 'Electric L3 (laser, battery, blender, power strip). The Laser and the Blender are electric themselves: the Laser beam hits every enemy on its line for 22, 29 on Soda Six-Pack and Canned Beans (weak to electric, a tinted number), 22 on Sour Milk (the beans soak some). Each hit has a 30% chance to arc to 3 more enemies for half the damage, also electric: 11 on Sour Milk, 15 on soda and beans. The groups stand in one line so the beam reaches them all.',
+  notes: 'Electric L3 (laser, ★2 battery, ★2 blender, power strip: 6 points). The Laser and the Blender are electric themselves: the Laser beam hits every enemy on its line for 22, 29 on Soda Six-Pack and Canned Beans (weak to electric, a tinted number), 22 on Sour Milk (the beans soak some). Each hit has a 30% chance to arc to 3 more enemies for half the damage, also electric: 11 on Sour Milk, 15 on soda and beans. The groups stand in one line so the beam reaches them all.',
   cart: [
     { id: Item.laser, at: [0, 0] },
-    { id: Item.battery, at: [2, 0] },
-    { id: Item.blender, at: [3, 0] },
+    { id: Item.battery, tier: 2, at: [2, 0] },
+    { id: Item.blender, tier: 2, at: [3, 0] },
     { id: Item.powerstrip, at: [3, 2] },
   ],
   enemies: [

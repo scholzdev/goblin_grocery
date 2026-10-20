@@ -12,14 +12,14 @@ import { build, type Spec } from '../../golden/carts';
 afterEach(() => setLang('en'));
 
 // Legacy: 25% slow for 1 s at ★1 (x TIER.mult), capped at 60%. Pan (kitchen / heat) has no combo with the pack; the Kitchen set only touches damage.
-// A ★2 / ★3 pack is 2 / 3 Frost set points on its own: Frost L1 / L2 add 10 points of slow (capped at 60%).
+// A ★2 / ★3 pack is 2 / 3 Frost set points on its own: Frost L1 adds 10 points of slow (capped at 60%).
 const FROST = (lv: number) => contentSetTune('frost', lv);
 const withFrost = (pct: number, lv: number) => Math.min(FROST(lv).slowCap, pct + FROST(lv).slowBonus);
 describe('Ice Pack: build', () => {
   it('slows by 25% / 37.5% / 50% for 1 s at ★1 / ★2 / ★3, plus the Frost level its own set points reach', () => {
     expect(stats([at('pan'), at('ice')]).slow).toEqual({ pct: 0.25, duration: 1 });
     expect(stats([at('pan'), at('ice', 2)]).slow).toEqual({ pct: withFrost(0.375, 1), duration: 1 });
-    expect(stats([at('pan'), at('ice', 3)]).slow).toEqual({ pct: withFrost(0.5, 2), duration: 1 });
+    expect(stats([at('pan'), at('ice', 3)]).slow).toEqual({ pct: withFrost(0.5, 1), duration: 1 });
   });
 
   it('records the buff, and leaves damage-free stats alone', () => {
@@ -38,21 +38,21 @@ describe('Ice Pack: build', () => {
   });
 
   it('does not stack: the highest touching tier counts once', () => {
-    expect(stats([at('pan'), at('ice', 1), at('ice', 3, { near: [0] })]).slow?.pct).toBe(withFrost(0.5, 2)); // 3 Frost points, not 4
+    expect(stats([at('pan'), at('ice', 1), at('ice', 3, { near: [0] })]).slow?.pct).toBe(withFrost(0.5, 1)); // 3 Frost points, not 4: L1
   });
 
   it('Gold Star lifts it one tier, and the 60% cap bites (★3 -> effective ★4 would be 62.5%); its set points rise with it', () => {
     expect(0.25 * TIER.mult(4)).toBe(0.625);
     // (the sticker may touch the pan too here: only the pack's tier matters for the slow)
     const star: Spec = { type: 'goldstar', near: [1] };
-    expect(stats([at('pan'), at('ice', 3), star]).slow?.pct).toBe(withFrost(0.6, 3)); // 4 Frost points: L3
-    expect(stats([at('pan'), at('ice', 2), star]).slow?.pct).toBeCloseTo(withFrost(0.25 * TIER.mult(3), 2)); // ★2 -> effective ★3: 50%, 3 Frost points
+    expect(stats([at('pan'), at('ice', 3), star]).slow?.pct).toBe(withFrost(0.6, 2)); // 4 Frost points: L2
+    expect(stats([at('pan'), at('ice', 2), star]).slow?.pct).toBeCloseTo(withFrost(0.25 * TIER.mult(3), 1)); // ★2 -> effective ★3: 50%, 3 Frost points: L1
   });
 
   it('stays legacy-compatible with the Frost set (+10% on top, capped by the set), which reads s.slow afterwards', () => {
-    // Fizz Cannon (snacks / frost) + Ice Pack (kitchen / frost) = 2 Frost points: L1. With a ★3 pack 4 points: L3 (+15, capped at 70%).
+    // Fizz Cannon (snacks / frost) + Ice Pack (kitchen / frost) = 2 Frost points: L1. With a ★3 pack 4 points: L2 (+10, capped at 60%).
     expect(stats([at('fizz'), at('ice')]).slow?.pct).toBeCloseTo(0.35);
-    expect(stats([at('fizz'), at('ice', 3)]).slow?.pct).toBeCloseTo(0.65);
+    expect(stats([at('fizz'), at('ice', 3)]).slow?.pct).toBeCloseTo(0.6);
   });
 
   it('is overridden by Cold Storage on a Vacuum', () => {

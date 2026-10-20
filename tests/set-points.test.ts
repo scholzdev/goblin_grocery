@@ -8,10 +8,13 @@ let n = 0;
 const copy = (type: ItemTypeId, tier = 1, double = false): ItemInstance => ({ uid: `p${n++}`, type, x: 3 * n, y: 0, rot: 0, tier, ...(double ? { double } : {}) });
 
 describe('set points: each item type adds its tier (+1 double pack)', () => {
-  it('a ★2 and a ★1 Kitchen item make 3 points (level 2); both at ★1 make 2 (level 1)', () => {
+  it('a ★2 and a ★2 Kitchen item make 4 points (level 2); a ★2 and a ★1 make 3, both at ★1 make 2 (level 1)', () => {
+    const two = [copy('sample', 2), copy('hotsauce', 2)];
+    expect(setCount(two, 'kitchen'), '★2 sample + ★2 hot sauce').toBe(4);
+    expect(setLevels(two).kitchen).toBe(2);
     const mixed = [copy('sample', 2), copy('hotsauce', 1)];
     expect(setCount(mixed, 'kitchen'), '★2 sample + ★1 hot sauce').toBe(3);
-    expect(setLevels(mixed).kitchen).toBe(2);
+    expect(setLevels(mixed).kitchen).toBe(1);
     const plain = [copy('sample', 1), copy('hotsauce', 1)];
     expect(setCount(plain, 'kitchen'), '★1 sample + ★1 hot sauce').toBe(2);
     expect(setLevels(plain).kitchen).toBe(1);
@@ -34,7 +37,7 @@ describe('set points: each item type adds its tier (+1 double pack)', () => {
     const inv = build([{ type: 'fan', tier: 3 }, { type: 'goldstar' }]);
     expect(setCount(inv.placed, 'cleaning'), 'fan ★3 touching a Gold Star').toBe(4);
     expect(setCount(inv.placed, 'checkout'), 'the Gold Star is a legendary ★1').toBe(1);
-    expect(computeBuild(inv).sets.cleaning, 'the build reads the same count').toBe(3);
+    expect(computeBuild(inv).sets.cleaning, 'the build reads the same count: 4 points').toBe(2);
     expect(setCount(build([{ type: 'toaster', tier: 3 }, { type: 'goldstar' }]).placed, 'kitchen'), 'weapons are never lifted').toBe(3);
   });
 });

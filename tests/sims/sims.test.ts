@@ -408,7 +408,7 @@ describe('affinity sims', () => {
       expect(sim(id).notes, id).toContain(`${near(dmg)}`);
       expect(sim(id).notes, id).toContain(`${near(dmg * (1 + AFFINITY.weak))}`);
     };
-    const pan = 18 * setTuneAt('kitchen', 3)!.damageMult; // the lone ★3 pan is 3 Kitchen points: L2
+    const pan = 18 * setTuneAt('kitchen', 3)!.damageMult; // the lone ★3 pan is 3 Kitchen points: L1
     expectDamage('affinity-heat', pan);
     expectDamage('affinity-frost', 12.72); // 12 plus the 6% bundle bonus of the Ice Pack touching it
     // the electric sim: the Laser's own (electric) beam, x1.3 on the weak groups, and the arc at half damage (also electric)
