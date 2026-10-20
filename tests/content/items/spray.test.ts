@@ -33,11 +33,11 @@ describe('Spray Bottle: content', () => {
     expect([1, 2, 3].map((t) => itemRules('spray', t))).toEqual([
       'Every 0.55 s sprays a 70° cone (170 reach) for 3 damage to every enemy inside (each once per spray) and makes them Wet for 3 s.',
       'Every 0.5 s sprays a 70° cone (170 reach) for 4.5 damage to every enemy inside (each once per spray) and makes them Wet for 3 s.',
-      'Every 0.44 s sprays a 70° cone (170 reach) for 6 damage to every enemy inside (each once per spray) and makes them Wet for 3 s.',
+      'Every 0.44 s sprays a 70° cone (170 reach) for 6 damage to every enemy inside (each once per spray) and makes them Wet for 3 s. ★3: The spray also washes enemy shots inside the cone out of the air.',
     ]);
     expect(itemT('spray')).toMatchObject({ name: 'Spray Bottle', blurb: 'Pssht pssht pssht. Hits everything in front.' });
     setLang('de');
-    expect([1, 3].map((t) => itemRules('spray', t))).toEqual(['Sprüht alle 0,55 s einen 70°-Kegel (170 Reichweite) und macht 3 Schaden an jedem Gegner darin (je einmal pro Sprühstoß) und macht sie 3 s lang nass.', 'Sprüht alle 0,44 s einen 70°-Kegel (170 Reichweite) und macht 6 Schaden an jedem Gegner darin (je einmal pro Sprühstoß) und macht sie 3 s lang nass.']);
+    expect([1, 3].map((t) => itemRules('spray', t))).toEqual(['Sprüht alle 0,55 s einen 70°-Kegel (170 Reichweite) und macht 3 Schaden an jedem Gegner darin (je einmal pro Sprühstoß) und macht sie 3 s lang nass.', 'Sprüht alle 0,44 s einen 70°-Kegel (170 Reichweite) und macht 6 Schaden an jedem Gegner darin (je einmal pro Sprühstoß) und macht sie 3 s lang nass. ★3: Der Sprühstoß spült auch gegnerische Geschosse im Kegel aus der Luft.']);
     expect(itemT('spray')).toMatchObject({ name: 'Sprühflasche', blurb: 'Pssht pssht pssht. Trifft alles davor.' });
   });
 
@@ -107,5 +107,26 @@ describe('Spray Bottle: pattern cone', () => {
     const mine = hits.filter((c) => c.enemy === trigger.id);
     expect(mine.length).toBeGreaterThanOrEqual(4);
     expect(Math.abs(mine[1].at - mine[0].at - 0.44)).toBeLessThan(0.06);
+  });
+});
+
+describe('Spray Bottle: ★3 washes enemy shots', () => {
+  const spray = (specs: Parameters<typeof arsenal>[0]) => {
+    const { a, fake } = arsenal(specs);
+    fake.spawnEnemy({ x: 100, hp: 1000 });
+    const shots = {
+      inside: fake.spawnHostileShot({ x: 150, y: 20 }),       // 7.6° off the aim, within 170
+      wide: fake.spawnHostileShot({ x: 80, y: 80 }),          // 45°: outside the 70° cone
+      far: fake.spawnHostileShot({ x: 200, y: 0 }),           // beyond 170
+    };
+    a.step(0.5);
+    return { flying: Object.fromEntries(Object.entries(shots).map(([k, s]) => [k, s.active])), sparks: fake.callsOf('fx').filter((f) => f.method === 'spark').length };
+  };
+
+  it('from ★3 (★4 too) a spray destroys the enemy shots inside its cone, with a spark; at ★2, or from a ★3 Leaf Blower on the same pattern, they fly on', () => {
+    expect(spray([at('spray', 2)])).toEqual({ flying: { inside: true, wide: true, far: true }, sparks: 0 });
+    expect(spray([at('spray', 3)])).toEqual({ flying: { inside: false, wide: true, far: true }, sparks: 1 });
+    expect(spray([at('spray', 4)])).toEqual({ flying: { inside: false, wide: true, far: true }, sparks: 1 });
+    expect(spray([at('leafblower', 3), at('spray', 1)]).flying).toEqual({ inside: true, wide: true, far: true });
   });
 });

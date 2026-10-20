@@ -33,12 +33,12 @@ describe('Vacuum: content', () => {
     expect([1, 2, 3].map((t) => itemRules('vacuum', t))).toEqual([
       'Constantly pulls nearby enemies toward the cart. Every 0.65 s, enemies in range take 2 damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you.',
       'Constantly pulls nearby enemies toward the cart. Every 0.59 s, enemies in range take 3 damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you.',
-      'Constantly pulls nearby enemies toward the cart. Every 0.52 s, enemies in range take 4 damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you.',
+      'Constantly pulls nearby enemies toward the cart. Every 0.52 s, enemies in range take 4 damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you. ★3: Your coin pickup radius is 2× as big.',
     ]);
-    expect(itemT('vacuum')).toMatchObject({ name: 'Vacuum', blurb: 'Sucks groceries closer. Sucks coins closer too.' });
+    expect(itemT('vacuum')).toMatchObject({ name: 'Vacuum', blurb: 'Utility weapon. Sucks groceries closer, and coins too.' });
     setLang('de');
-    expect([1, 3].map((t) => itemRules('vacuum', t))).toEqual(['Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,65 s erleiden Gegner im Radius 2 Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir.', 'Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,52 s erleiden Gegner im Radius 4 Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir.']);
-    expect(itemT('vacuum')).toMatchObject({ name: 'Staubsauger', blurb: 'Saugt Gegner heran. Münzen übrigens auch.' });
+    expect([1, 3].map((t) => itemRules('vacuum', t))).toEqual(['Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,65 s erleiden Gegner im Radius 2 Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir.', 'Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,52 s erleiden Gegner im Radius 4 Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir. ★3: Dein Münz-Sammelradius ist 2× so groß.']);
+    expect(itemT('vacuum')).toMatchObject({ name: 'Staubsauger', blurb: 'Hilfswaffe. Saugt Gegner heran, Münzen übrigens auch.' });
   });
 
   it('generates the shop scaling rows', () => {
@@ -128,10 +128,17 @@ describe('Vacuum: pattern pulse', () => {
 describe('Vacuum: coin pickup radius', () => {
   const radius = (specs: Parameters<typeof full>[0], perk = {}) => full(specs, perk).pickupRadius;
 
-  it('adds +60 to the base pickup radius at every tier', () => {
+  it('adds +60 to the base pickup radius below ★3', () => {
     const base = radius([at('toaster')]);
     expect(base).toBe(PLAYER.pickupRadius);
-    for (const t of [1, 2, 3]) expect(radius([at('vacuum', t)])).toBe(base + 60);
+    for (const t of [1, 2]) expect(radius([at('vacuum', t)])).toBe(base + 60);
+  });
+
+  it('from ★3 (★4 too) doubles the whole radius: the base, its +60, a Magnet and the perk', () => {
+    const base = PLAYER.pickupRadius;
+    expect([3, 4].map((t) => radius([at('vacuum', t)]))).toEqual([(base + 60) * 2, (base + 60) * 2]);
+    expect(radius([at('vacuum', 3), { type: 'magnet', near: [], apart: [0] }], { pickupRadius: 25 })).toBe((base + 60 + 60 + 25) * 2);
+    expect(radius([at('vacuum', 2), { type: 'magnet', near: [], apart: [0] }], { pickupRadius: 25 })).toBe(base + 60 + 60 + 25);
   });
 
   it('does not stack: a second vacuum adds nothing, and the perk adds on top', () => {

@@ -30904,7 +30904,7 @@
     "killCoinMult": 1,
     "maxHp": 40,
     "moveSpeedMult": 1,
-    "pickupRadius": 130,
+    "pickupRadius": 260,
     "priceMult": 1,
     "recipes": [],
     "regen": 0,

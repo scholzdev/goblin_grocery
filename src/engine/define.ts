@@ -79,6 +79,8 @@ export const wrapAngle = (a: number): number => {
 /** Weapon tiers (`TIER.weaponDamage` / `TIER.weaponCooldown`): a ★n weapon deals this x its base damage and waits this x its base cooldown. */
 export const weaponDamageMult = (t: number): number => 1 + 0.5 * (t - 1);
 export const weaponCooldownMult = (t: number): number => 1 - 0.1 * (t - 1);
+/** From ★3 on (Gold Star's ★4 included) a weapon has its ★3 behavior (`text.star3`). Its numbers are scalar tune keys: a per-tier array would double them at ★4. */
+export const hasStar3 = (tier: number): boolean => tier >= 3;
 
 /** Distinct item types for set level 1/2/3 (the same for every set; each level includes the lower ones). */
 export const SET_THRESHOLDS: readonly [number, number, number] = [2, 3, 4];

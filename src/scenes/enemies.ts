@@ -46,6 +46,8 @@ export interface Enemy {
   /** Leaf Blower: blown until this time (s); stopped by a wall/prop while marked = slam for blownDmg. */
   blownUntil?: number;
   blownDmg?: number;
+  /** Leaf Blower ★3: the slam also stuns for this long (s). */
+  blownStun?: number;
   /** Ice Sheet: slides (no steering, little friction) until this time (s); the slam uses `blownDmg` like the Leaf Blower's, and also fires on another enemy. */
   slideUntil?: number;
   /** Ice Sheet: the enemies already touching it when the slide began (they are not a collision). */

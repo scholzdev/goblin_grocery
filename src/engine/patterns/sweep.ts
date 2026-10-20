@@ -1,6 +1,6 @@
 import { DEPTH } from '../../data/depth';
 import { newHitTracker, tryHit } from '../../systems/combat';
-import { wrapAngle } from '../define';
+import { hasStar3, wrapAngle } from '../define';
 import { degToRad, repeat } from './common';
 import type { Pattern, PatternEnemy, PatternHost, WeaponRt } from './types';
 
@@ -18,11 +18,11 @@ export function sweepOnce(h: PatternHost, w: WeaponRt, angle: number, bonus = fa
   const swing = sc.hooks['pattern:sweep'].length ? { stats: st, stage: 'before' as 'before' | 'after' | 'hit', x: p.x, y: p.y, angle, bonus, range, dmg, hits: [] as PatternEnemy[], enemy: undefined as PatternEnemy | undefined } : null;
   if (swing) { sc.hooks.emit('pattern:sweep', swing); range = swing.range; dmg = swing.dmg; }
   const tracker = newHitTracker(Infinity);
-  const half = degToRad(st.arcDeg / 2);
+  const half = degToRad((hasStar3(st.tier) && w.tune.fullArc ? w.tune.fullArc : st.arcDeg) / 2); // ★3 Frying Pan: all the way around
   const fx = sc.add.image(p.x, p.y - 22, 'fx_sweep').setRotation(angle + Math.PI).setDepth(DEPTH.fx - 2)
     .setScale(range / 70 * 0.55).setAlpha(0.95);
   if (bonus) fx.setTint(0xfff2d5);
-  sc.tweens.add({ targets: fx, scale: range / 70, alpha: 0, rotation: angle + Math.PI + 0.5 * (Math.random() < 0.5 ? 1 : -1), duration: 220, ease: 'Cubic.Out', onComplete: () => fx.destroy() });
+  sc.tweens.add({ targets: fx, scale: range / 70, alpha: 0, rotation: angle + Math.PI + (half >= Math.PI ? 2 * Math.PI : 0.5) * (Math.random() < 0.5 ? 1 : -1), duration: 220, ease: 'Cubic.Out', onComplete: () => fx.destroy() });
   for (const e of sc.enemies) {
     if (!e.alive || e.state === 'spawn') continue;
     const dx = e.x - p.x, dy = e.y - p.y;

@@ -8142,7 +8142,7 @@
     "rulesByTier": {
       "1": "Schreddert alle 0,3 s jeden Gegner im Umkreis von 85 für 2 Schaden (jeden Gegner einmal pro Tick). Elektrisch.",
       "2": "Schreddert alle 0,27 s jeden Gegner im Umkreis von 85 für 3 Schaden (jeden Gegner einmal pro Tick). Elektrisch.",
-      "3": "Schreddert alle 0,24 s jeden Gegner im Umkreis von 85 für 4 Schaden (jeden Gegner einmal pro Tick). Elektrisch."
+      "3": "Schreddert alle 0,24 s jeden Gegner im Umkreis von 85 für 4 Schaden (jeden Gegner einmal pro Tick). Elektrisch. ★3: Die Klingen ziehen Gegner heran, statt sie wegzustoßen."
     },
     "tierScaling": [
       {
@@ -8170,7 +8170,7 @@
     "rulesByTier": {
       "1": "Shreds every enemy within 85 for 2 damage every 0.3 s (each enemy once per tick). Electrical.",
       "2": "Shreds every enemy within 85 for 3 damage every 0.27 s (each enemy once per tick). Electrical.",
-      "3": "Shreds every enemy within 85 for 4 damage every 0.24 s (each enemy once per tick). Electrical."
+      "3": "Shreds every enemy within 85 for 4 damage every 0.24 s (each enemy once per tick). Electrical. ★3: The blades pull enemies in instead of pushing them away."
     },
     "tierScaling": [
       {
@@ -9224,7 +9224,7 @@
     "rulesByTier": {
       "1": "Bläst alle 0,9 s einen 50°-Kegel (220 Reichweite) für 3 Schaden und einen kräftigen Stoß. Weggeblasene Gegner, die gegen eine Wand oder Deko prallen, erleiden 8 Aufprallschaden (skaliert mit der Stufe).",
       "2": "Bläst alle 0,81 s einen 50°-Kegel (220 Reichweite) für 4,5 Schaden und einen kräftigen Stoß. Weggeblasene Gegner, die gegen eine Wand oder Deko prallen, erleiden 8 Aufprallschaden (skaliert mit der Stufe).",
-      "3": "Bläst alle 0,72 s einen 50°-Kegel (220 Reichweite) für 6 Schaden und einen kräftigen Stoß. Weggeblasene Gegner, die gegen eine Wand oder Deko prallen, erleiden 8 Aufprallschaden (skaliert mit der Stufe)."
+      "3": "Bläst alle 0,72 s einen 50°-Kegel (220 Reichweite) für 6 Schaden und einen kräftigen Stoß. Weggeblasene Gegner, die gegen eine Wand oder Deko prallen, erleiden 8 Aufprallschaden (skaliert mit der Stufe). ★3: Aufgeprallte Gegner sind außerdem 0,5 s lang betäubt."
     },
     "tierScaling": [
       {
@@ -9252,7 +9252,7 @@
     "rulesByTier": {
       "1": "Every 0.9 s blasts a 50° cone (220 reach) for 3 damage and a heavy push. Blown groceries that hit a wall or prop take 8 slam damage (scales with level).",
       "2": "Every 0.81 s blasts a 50° cone (220 reach) for 4.5 damage and a heavy push. Blown groceries that hit a wall or prop take 8 slam damage (scales with level).",
-      "3": "Every 0.72 s blasts a 50° cone (220 reach) for 6 damage and a heavy push. Blown groceries that hit a wall or prop take 8 slam damage (scales with level)."
+      "3": "Every 0.72 s blasts a 50° cone (220 reach) for 6 damage and a heavy push. Blown groceries that hit a wall or prop take 8 slam damage (scales with level). ★3: Slammed groceries are also stunned for 0.5 s."
     },
     "tierScaling": [
       {
@@ -9456,7 +9456,7 @@
     "rulesByTier": {
       "1": "Hinterlässt alle 1,6 s eine Seifenpfütze (Radius 60, hält 3 s). Gegner darin rutschen und werden nass (3 s): 25% langsamer und 3 Schaden alle 0,5 s.",
       "2": "Hinterlässt alle 1,44 s eine Seifenpfütze (Radius 60, hält 3 s). Gegner darin rutschen und werden nass (3 s): 25% langsamer und 4,5 Schaden alle 0,5 s.",
-      "3": "Hinterlässt alle 1,28 s eine Seifenpfütze (Radius 60, hält 3 s). Gegner darin rutschen und werden nass (3 s): 25% langsamer und 6 Schaden alle 0,5 s."
+      "3": "Hinterlässt alle 1,28 s eine Seifenpfütze (Radius 60, hält 3 s). Gegner darin rutschen und werden nass (3 s): 25% langsamer und 6 Schaden alle 0,5 s. ★3: Pfützen halten 2× so lange."
     },
     "tierScaling": [
       {
@@ -9484,7 +9484,7 @@
     "rulesByTier": {
       "1": "Every 1.6 s drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip and get Wet (3 s): 25% slow and 3 damage every 0.5 s.",
       "2": "Every 1.44 s drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip and get Wet (3 s): 25% slow and 4.5 damage every 0.5 s.",
-      "3": "Every 1.28 s drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip and get Wet (3 s): 25% slow and 6 damage every 0.5 s."
+      "3": "Every 1.28 s drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip and get Wet (3 s): 25% slow and 6 damage every 0.5 s. ★3: Puddles last 2× as long."
     },
     "tierScaling": [
       {
@@ -9624,7 +9624,7 @@
     "rulesByTier": {
       "1": "Schwingt alle 1,15 s auf Gegner in der Nähe für 9 Schaden. 150 Reichweite. Trifft jeden Gegner einmal pro Schwung.",
       "2": "Schwingt alle 1,03 s auf Gegner in der Nähe für 13,5 Schaden. 150 Reichweite. Trifft jeden Gegner einmal pro Schwung.",
-      "3": "Schwingt alle 0,92 s auf Gegner in der Nähe für 18 Schaden. 150 Reichweite. Trifft jeden Gegner einmal pro Schwung."
+      "3": "Schwingt alle 0,92 s auf Gegner in der Nähe für 18 Schaden. 150 Reichweite. Trifft jeden Gegner einmal pro Schwung. ★3: Schwingt die vollen 360° rund um den Wagen."
     },
     "tierScaling": [
       {
@@ -9652,7 +9652,7 @@
     "rulesByTier": {
       "1": "Sweeps toward nearby enemies for 9 damage every 1.15 s. 150 reach. Hits each enemy once per swing.",
       "2": "Sweeps toward nearby enemies for 13.5 damage every 1.03 s. 150 reach. Hits each enemy once per swing.",
-      "3": "Sweeps toward nearby enemies for 18 damage every 0.92 s. 150 reach. Hits each enemy once per swing."
+      "3": "Sweeps toward nearby enemies for 18 damage every 0.92 s. 150 reach. Hits each enemy once per swing. ★3: Sweeps the full 360° around the cart."
     },
     "tierScaling": [
       {
@@ -10082,7 +10082,7 @@
     "rulesByTier": {
       "1": "Hinterlässt alle 2 s eine Matschpfütze (Radius 65, hält 4 s). Gegner darin werden nass (3 s): 35% langsamer und 3 Frostschaden alle 0,5 s. Der nächste Frosttreffer einer anderen Quelle auf einen nassen Gegner lässt ihn wegrutschen: Eisfläche.",
       "2": "Hinterlässt alle 1,8 s eine Matschpfütze (Radius 65, hält 4 s). Gegner darin werden nass (3 s): 35% langsamer und 4,5 Frostschaden alle 0,5 s. Der nächste Frosttreffer einer anderen Quelle auf einen nassen Gegner lässt ihn wegrutschen: Eisfläche.",
-      "3": "Hinterlässt alle 1,6 s eine Matschpfütze (Radius 65, hält 4 s). Gegner darin werden nass (3 s): 35% langsamer und 6 Frostschaden alle 0,5 s. Der nächste Frosttreffer einer anderen Quelle auf einen nassen Gegner lässt ihn wegrutschen: Eisfläche."
+      "3": "Hinterlässt alle 1,6 s eine Matschpfütze (Radius 65, hält 4 s). Gegner darin werden nass (3 s): 35% langsamer und 6 Frostschaden alle 0,5 s. Der nächste Frosttreffer einer anderen Quelle auf einen nassen Gegner lässt ihn wegrutschen: Eisfläche. ★3: Tritt ein Gegner zum ersten Mal in eine Pfütze, friert er 0,5 s lang fest."
     },
     "tierScaling": [
       {
@@ -10110,7 +10110,7 @@
     "rulesByTier": {
       "1": "Every 2 s drops a slush puddle (radius 65, lasts 4 s). Enemies inside get Wet (3 s): 35% slow and 3 frost damage every 0.5 s. The next frost hit from another source on a Wet enemy sends it sliding: Ice Sheet.",
       "2": "Every 1.8 s drops a slush puddle (radius 65, lasts 4 s). Enemies inside get Wet (3 s): 35% slow and 4.5 frost damage every 0.5 s. The next frost hit from another source on a Wet enemy sends it sliding: Ice Sheet.",
-      "3": "Every 1.6 s drops a slush puddle (radius 65, lasts 4 s). Enemies inside get Wet (3 s): 35% slow and 6 frost damage every 0.5 s. The next frost hit from another source on a Wet enemy sends it sliding: Ice Sheet."
+      "3": "Every 1.6 s drops a slush puddle (radius 65, lasts 4 s). Enemies inside get Wet (3 s): 35% slow and 6 frost damage every 0.5 s. The next frost hit from another source on a Wet enemy sends it sliding: Ice Sheet. ★3: The first time an enemy steps into a puddle it freezes for 0.5 s."
     },
     "tierScaling": [
       {
@@ -10280,7 +10280,7 @@
     "rulesByTier": {
       "1": "Sprüht alle 0,55 s einen 70°-Kegel (170 Reichweite) und macht 3 Schaden an jedem Gegner darin (je einmal pro Sprühstoß) und macht sie 3 s lang nass.",
       "2": "Sprüht alle 0,5 s einen 70°-Kegel (170 Reichweite) und macht 4,5 Schaden an jedem Gegner darin (je einmal pro Sprühstoß) und macht sie 3 s lang nass.",
-      "3": "Sprüht alle 0,44 s einen 70°-Kegel (170 Reichweite) und macht 6 Schaden an jedem Gegner darin (je einmal pro Sprühstoß) und macht sie 3 s lang nass."
+      "3": "Sprüht alle 0,44 s einen 70°-Kegel (170 Reichweite) und macht 6 Schaden an jedem Gegner darin (je einmal pro Sprühstoß) und macht sie 3 s lang nass. ★3: Der Sprühstoß spült auch gegnerische Geschosse im Kegel aus der Luft."
     },
     "tierScaling": [
       {
@@ -10308,7 +10308,7 @@
     "rulesByTier": {
       "1": "Every 0.55 s sprays a 70° cone (170 reach) for 3 damage to every enemy inside (each once per spray) and makes them Wet for 3 s.",
       "2": "Every 0.5 s sprays a 70° cone (170 reach) for 4.5 damage to every enemy inside (each once per spray) and makes them Wet for 3 s.",
-      "3": "Every 0.44 s sprays a 70° cone (170 reach) for 6 damage to every enemy inside (each once per spray) and makes them Wet for 3 s."
+      "3": "Every 0.44 s sprays a 70° cone (170 reach) for 6 damage to every enemy inside (each once per spray) and makes them Wet for 3 s. ★3: The spray also washes enemy shots inside the cone out of the air."
     },
     "tierScaling": [
       {
@@ -10538,13 +10538,13 @@
     ]
   },
   "items.vacuum.de": {
-    "blurb": "Saugt Gegner heran. Münzen übrigens auch.",
+    "blurb": "Hilfswaffe. Saugt Gegner heran, Münzen übrigens auch.",
     "name": "Staubsauger",
     "rules": "Zieht Gegner in der Nähe ständig zum Wagen. Alle {1} erleiden Gegner im Radius {0} Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir.",
     "rulesByTier": {
       "1": "Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,65 s erleiden Gegner im Radius 2 Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir.",
       "2": "Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,59 s erleiden Gegner im Radius 3 Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir.",
-      "3": "Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,52 s erleiden Gegner im Radius 4 Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir."
+      "3": "Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,52 s erleiden Gegner im Radius 4 Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir. ★3: Dein Münz-Sammelradius ist 2× so groß."
     },
     "tierScaling": [
       {
@@ -10566,13 +10566,13 @@
     ]
   },
   "items.vacuum.en": {
-    "blurb": "Sucks groceries closer. Sucks coins closer too.",
+    "blurb": "Utility weapon. Sucks groceries closer, and coins too.",
     "name": "Vacuum",
     "rules": "Constantly pulls nearby enemies toward the cart. Every {1}, enemies in range take {0} damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you.",
     "rulesByTier": {
       "1": "Constantly pulls nearby enemies toward the cart. Every 0.65 s, enemies in range take 2 damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you.",
       "2": "Constantly pulls nearby enemies toward the cart. Every 0.59 s, enemies in range take 3 damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you.",
-      "3": "Constantly pulls nearby enemies toward the cart. Every 0.52 s, enemies in range take 4 damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you."
+      "3": "Constantly pulls nearby enemies toward the cart. Every 0.52 s, enemies in range take 4 damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you. ★3: Your coin pickup radius is 2× as big."
     },
     "tierScaling": [
       {
