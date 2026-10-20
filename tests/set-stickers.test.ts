@@ -14,6 +14,10 @@ describe('setGains', () => {
   it('a copy that adds no points to its sets gains nothing', () => {
     expect(setGains(at('bell'), { type: 'bell' })).toEqual([]);
   });
+  it('a higher tier of an owned type adds the difference', () => {
+    expect(setGains(at('bell'), { type: 'bell', tier: 2 })).toEqual([{ id: 'checkout', from: 1, to: 2, levelUp: true }]);
+    expect(setGains(at('bell'), { type: 'pricegun', tier: 3 })).toEqual([{ id: 'checkout', from: 1, to: 4, levelUp: true }]);
+  });
   it('level-up at 2 -> 3 as well', () => {
     expect(setGains(at('bell', 'pricegun'), { type: 'coupon' })).toEqual([{ id: 'checkout', from: 2, to: 3, levelUp: true }]);
   });
@@ -24,7 +28,7 @@ describe('setGains', () => {
     expect(g.find((x) => x.id === 'frost')).toMatchObject({ from: 1, to: 2, levelUp: true });
   });
   it('maxed sets are skipped', () => {
-    // Max level is 3 = thresholds[2] (4 types); 3 types is still gaining.
+    // Max level is 3 = thresholds[2] (4 points); 3 points is still gaining.
     expect(setGains(at('bell', 'pricegun', 'coupon'), { type: 'bubblewrap' })).toEqual([{ id: 'checkout', from: 3, to: 4, levelUp: true }]);
     expect(setGains(at('bell', 'pricegun', 'coupon', 'bubblewrap'), { type: 'goldstar' })).toEqual([]);
   });

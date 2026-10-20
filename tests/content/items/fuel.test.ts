@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { ITEMS, TIER } from '../../../src/data/items';
 import fuel from '../../../src/content/items/fuel';
-import { contentItem, contentTune } from '../../../src/engine/registry';
+import { contentItem, contentSetTune, contentTune } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { computeBuild, describeBuffs, tierScaling } from '../../../src/systems/synergies';
@@ -11,14 +11,16 @@ import { arena, around, at, gilded, stats } from '../helpers';
 afterEach(() => setLang('en'));
 
 // Legacy: 2.5 burn dps at ★1 x TIER.mult, 2 s, 0.5 s ticks. Nail Gun (tools / blast / electric) shares only Tools with the can (cooldown, not burn)
-// and has no combo with it.
+// and has no combo with it. A ★2 / ★3 can is 2 / 3 Heat set points on its own: Heat L1 (burns +1 s) / L2 (also x1.4 dps); Gold Star's
+// effective ★4 reaches L3.
 const gun = at('nailgun');
+const HEAT = (lv: number) => contentSetTune('heat', lv);
 
 describe('Fuel Can: build', () => {
-  it('sets enemies on fire for 2.5 / 3.75 / 5 dps at ★1 / ★2 / ★3 (2 s, 0.5 s ticks)', () => {
+  it('sets enemies on fire for 2.5 / 3.75 / 5 dps at ★1 / ★2 / ★3 (2 s, 0.5 s ticks), plus the Heat level its own set points reach', () => {
     expect(stats([gun, at('fuel')]).burn).toEqual({ dps: 2.5, duration: 2, tick: 0.5 });
-    expect(stats([gun, at('fuel', 2)]).burn).toEqual({ dps: 3.75, duration: 2, tick: 0.5 });
-    expect(stats([gun, at('fuel', 3)]).burn).toEqual({ dps: 5, duration: 2, tick: 0.5 });
+    expect(stats([gun, at('fuel', 2)]).burn).toEqual({ dps: 3.75, duration: 2 + HEAT(1).burnExtra, tick: 0.5 });
+    expect(stats([gun, at('fuel', 3)]).burn).toEqual({ dps: 5 * HEAT(2).burnMult, duration: 2 + HEAT(2).burnExtra, tick: 0.5 });
   });
 
   it('records the buff, and leaves damage, range and speed alone (only the Tools set speeds the nail gun up)', () => {
@@ -37,12 +39,12 @@ describe('Fuel Can: build', () => {
   });
 
   it('does not stack: the highest touching tier counts once', () => {
-    expect(stats([gun, at('fuel', 1), at('fuel', 3, { near: [0] })]).burn?.dps).toBe(5);
+    expect(stats([gun, at('fuel', 1), at('fuel', 3, { near: [0] })]).burn?.dps).toBe(5 * HEAT(2).burnMult); // 3 Heat points, not 4
   });
 
   it('Gold Star lifts it one tier (★3 -> effective ★4 = 6.25 dps)', () => {
     const w = stats([gun, at('fuel', 3), gilded(1)]);
-    expect(w.burn?.dps).toBeCloseTo(2.5 * TIER.mult(4));
+    expect(w.burn?.dps).toBeCloseTo(2.5 * TIER.mult(4) * HEAT(3).burnMult); // 4 Heat points: L3
     expect(2.5 * TIER.mult(4)).toBe(6.25);
   });
 
@@ -109,11 +111,11 @@ describe('Fuel Can: runtime', () => {
   });
 
   it('its burn lands on a hit through the engine: dps / duration / tick of the tier, refreshing', () => {
-    for (const [tier, dps] of [[1, 2.5], [2, 3.75], [3, 5]] as const) {
+    for (const [tier, dps, until] of [[1, 2.5, 2], [2, 3.75, 2 + HEAT(1).burnExtra], [3, 5 * HEAT(2).burnMult, 2 + HEAT(2).burnExtra]] as const) {
       const { fake, stats: w } = arena([at('nailgun'), at('fuel', tier)]);
       const e = fake.spawnEnemy({ hp: 100 });
       fake.hit(e, 3, w);
-      expect(e.status).toMatchObject({ burnDps: dps, burnUntil: 2, burnTick: 0.5 });
+      expect(e.status).toMatchObject({ burnDps: dps, burnUntil: until, burnTick: 0.5 });
     }
   });
 });

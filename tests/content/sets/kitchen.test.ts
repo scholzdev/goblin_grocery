@@ -14,7 +14,7 @@ const L1 = [PAN, far('sample')], L2 = [...L1, far('sourdough')], L3 = [...L2, fa
 const base = ITEMS.pan.weapon!.damage * TIER.weaponDamage(1);
 
 describe('Kitchen set: thresholds', () => {
-  it('counts distinct kitchen types: the weapon alone is 1 (no bonus), 2 / 3 / 4 types give L1 / L2 / L3', () => {
+  it('counts set points (one per ★1 kitchen type): the weapon alone is 1 (no bonus), 2 / 3 / 4 give L1 / L2 / L3', () => {
     expect([[PAN], L1, L2, L3].map((c) => sets(c).kitchen)).toEqual([0, 1, 2, 3]);
     expect(sets([PAN, far('sample'), far('sample')]).kitchen).toBe(1); // a duplicate type counts once
   });

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { ITEMS, TIER } from '../../../src/data/items';
 import ice from '../../../src/content/items/ice';
-import { contentComboTune, contentItem, contentTune } from '../../../src/engine/registry';
+import { contentComboTune, contentItem, contentSetTune, contentTune } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { computeBuild, describeBuffs, tierScaling } from '../../../src/systems/synergies';
@@ -12,11 +12,14 @@ import { build, type Spec } from '../../golden/carts';
 afterEach(() => setLang('en'));
 
 // Legacy: 25% slow for 1 s at ★1 (x TIER.mult), capped at 60%. Pan (kitchen / heat) has no combo with the pack; the Kitchen set only touches damage.
+// A ★2 / ★3 pack is 2 / 3 Frost set points on its own: Frost L1 / L2 add 10 points of slow (capped at 60%).
+const FROST = (lv: number) => contentSetTune('frost', lv);
+const withFrost = (pct: number, lv: number) => Math.min(FROST(lv).slowCap, pct + FROST(lv).slowBonus);
 describe('Ice Pack: build', () => {
-  it('slows by 25% / 37.5% / 50% for 1 s at ★1 / ★2 / ★3', () => {
+  it('slows by 25% / 37.5% / 50% for 1 s at ★1 / ★2 / ★3, plus the Frost level its own set points reach', () => {
     expect(stats([at('pan'), at('ice')]).slow).toEqual({ pct: 0.25, duration: 1 });
-    expect(stats([at('pan'), at('ice', 2)]).slow).toEqual({ pct: 0.375, duration: 1 });
-    expect(stats([at('pan'), at('ice', 3)]).slow).toEqual({ pct: 0.5, duration: 1 });
+    expect(stats([at('pan'), at('ice', 2)]).slow).toEqual({ pct: withFrost(0.375, 1), duration: 1 });
+    expect(stats([at('pan'), at('ice', 3)]).slow).toEqual({ pct: withFrost(0.5, 2), duration: 1 });
   });
 
   it('records the buff, and leaves damage-free stats alone', () => {
@@ -35,21 +38,21 @@ describe('Ice Pack: build', () => {
   });
 
   it('does not stack: the highest touching tier counts once', () => {
-    expect(stats([at('pan'), at('ice', 1), at('ice', 3, { near: [0] })]).slow?.pct).toBe(0.5);
+    expect(stats([at('pan'), at('ice', 1), at('ice', 3, { near: [0] })]).slow?.pct).toBe(withFrost(0.5, 2)); // 3 Frost points, not 4
   });
 
-  it('Gold Star lifts it one tier, and the 60% cap bites (★3 -> effective ★4 would be 62.5%)', () => {
+  it('Gold Star lifts it one tier, and the 60% cap bites (★3 -> effective ★4 would be 62.5%); its set points rise with it', () => {
     expect(0.25 * TIER.mult(4)).toBe(0.625);
     // (the sticker may touch the pan too here: only the pack's tier matters for the slow)
     const star: Spec = { type: 'goldstar', near: [1] };
-    expect(stats([at('pan'), at('ice', 3), star]).slow?.pct).toBe(0.6);
-    expect(stats([at('pan'), at('ice', 2), star]).slow?.pct).toBeCloseTo(0.25 * TIER.mult(3)); // ★2 -> effective ★3: 50%, under the cap
+    expect(stats([at('pan'), at('ice', 3), star]).slow?.pct).toBe(withFrost(0.6, 3)); // 4 Frost points: L3
+    expect(stats([at('pan'), at('ice', 2), star]).slow?.pct).toBeCloseTo(withFrost(0.25 * TIER.mult(3), 2)); // ★2 -> effective ★3: 50%, 3 Frost points
   });
 
   it('stays legacy-compatible with the Frost set (+10% on top, capped by the set), which reads s.slow afterwards', () => {
-    // Fizz Cannon (snacks / frost) + Ice Pack (kitchen / frost) = Frost L1.
+    // Fizz Cannon (snacks / frost) + Ice Pack (kitchen / frost) = 2 Frost points: L1. With a ★3 pack 4 points: L3 (+15, capped at 70%).
     expect(stats([at('fizz'), at('ice')]).slow?.pct).toBeCloseTo(0.35);
-    expect(stats([at('fizz'), at('ice', 3)]).slow?.pct).toBeCloseTo(0.6);
+    expect(stats([at('fizz'), at('ice', 3)]).slow?.pct).toBeCloseTo(0.65);
   });
 
   it('is overridden by Cold Storage on a Vacuum', () => {
@@ -116,7 +119,7 @@ describe('Ice Pack: runtime', () => {
   });
 
   it('its slow lands on a hit through the engine: the tier\'s pct for 1 s, refreshing', () => {
-    for (const [tier, pct] of [[1, 0.25], [2, 0.375], [3, 0.5]] as const) {
+    for (const [tier, pct] of [[1, 0.25], [2, withFrost(0.375, 1)], [3, withFrost(0.5, 2)]] as const) {
       const { fake, stats: w } = arena([at('nailgun'), at('ice', tier)]);
       const e = fake.spawnEnemy({ hp: 100 });
       fake.hit(e, 3, w);

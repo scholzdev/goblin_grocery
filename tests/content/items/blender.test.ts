@@ -7,7 +7,7 @@ import { contentItem } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { tierScaling } from '../../../src/systems/synergies';
-import { around, arsenal, at, stats } from '../helpers';
+import { around, arsenal, at, setTuneAt, stats } from '../helpers';
 
 afterEach(() => setLang('en'));
 
@@ -56,18 +56,19 @@ describe('Blender: content', () => {
 });
 
 describe('Blender: build', () => {
-  it('damage grows +50% and the interval shrinks -10% per ★ (to the bit), as the content tune says', () => {
+  it('damage grows +50% and the interval shrinks -10% per ★ (to the bit), as the content tune says, times the Kitchen bonus its own set points reach', () => {
     const base = ITEMS.blender.weapon!;
     const tune = contentItem('blender')!.tune as unknown as Record<string, readonly number[]>;
+    const kitchen = (t: number) => setTuneAt('kitchen', t)?.damageMult ?? 1;
     for (const t of [1, 2, 3]) {
       const w = stats([at('blender', t)]);
       expect(w.tier).toBe(t);
-      expect(w.damage).toBe(base.damage * weaponDamageMult(t));
+      expect(w.damage).toBe(base.damage * weaponDamageMult(t) * kitchen(t));
       expect(w.cooldown).toBe(base.cooldown * weaponCooldownMult(t));
-      expect(w.damage).toBe(tune.damage[t - 1]);
+      expect(w.damage).toBe(tune.damage[t - 1] * kitchen(t));
       expect(w.cooldown).toBe(tune.cooldown[t - 1]);
     }
-    expect([1, 2, 3].map((t) => stats([at('blender', t)]).damage)).toEqual([2.0, 3.0, 4.0]);
+    expect([1, 2, 3].map((t) => stats([at('blender', t)]).damage)).toEqual([2.0, 3.0, 4.0].map((d, i) => d * kitchen(i + 1)));
   });
 
   it('carries the base shape of the pattern into the build', () => {
@@ -76,7 +77,7 @@ describe('Blender: build', () => {
 });
 
 describe('Blender: pattern aura', () => {
-  it('shreds every enemy within range + radius once per tick (0.24 s at ★3) with a quiet push of 20', () => {
+  it('shreds every enemy within range + radius once per tick (0.24 s at ★3, x1.1 from its own Kitchen L2) with a quiet push of 20', () => {
     const { a, fake } = arsenal([at('blender', 3)]);
     const trigger = fake.spawnEnemy({ x: 70, hp: 1000 }); // inside 85, so the blender fires
     const rim = fake.spawnEnemy({ x: 0, y: -100, hp: 1000 }); // beyond 85 but inside 85 + 20
@@ -84,7 +85,7 @@ describe('Blender: pattern aura', () => {
     a.step(0.45);
     const hits = fake.callsOf('damage');
     expect(hits.map((c) => c.enemy)).toEqual([trigger.id, rim.id]);
-    expect(hits.every((c) => c.dmg === 4)).toBe(true);
+    expect(hits.every((c) => c.dmg === 4 * setTuneAt('kitchen', 3)!.damageMult)).toBe(true);
     expect(hits.map((c) => c.opts)).toEqual([{ kb: 20, kbX: 1, kbY: 0, quiet: true }, { kb: 20, kbX: 0, kbY: -1, quiet: true }]);
     expect(hits.some((c) => c.enemy === out.id)).toBe(false);
     expect(a.sounds).toEqual(['blender']);

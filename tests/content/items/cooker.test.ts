@@ -8,7 +8,7 @@ import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { tierScaling } from '../../../src/systems/synergies';
 import { explodeAt } from '../../../src/engine/patterns';
-import { around, arsenal, at, stats } from '../helpers';
+import { around, arsenal, at, setTuneAt, stats } from '../helpers';
 
 afterEach(() => setLang('en'));
 
@@ -57,18 +57,19 @@ describe('Pressure Cooker: content', () => {
 });
 
 describe('Pressure Cooker: build', () => {
-  it('damage grows +50% and the interval shrinks -10% per ★ (to the bit), as the content tune says', () => {
+  it('damage grows +50% and the interval shrinks -10% per ★ (to the bit), as the content tune says, times the Kitchen bonus its own set points reach', () => {
     const base = ITEMS.cooker.weapon!;
     const tune = contentItem('cooker')!.tune as unknown as Record<string, readonly number[]>;
+    const kitchen = (t: number) => setTuneAt('kitchen', t)?.damageMult ?? 1;
     for (const t of [1, 2, 3]) {
       const w = stats([at('cooker', t)]);
       expect(w.tier).toBe(t);
-      expect(w.damage).toBe(base.damage * weaponDamageMult(t));
+      expect(w.damage).toBe(base.damage * weaponDamageMult(t) * kitchen(t));
       expect(w.cooldown).toBe(base.cooldown * weaponCooldownMult(t));
-      expect(w.damage).toBe(tune.damage[t - 1]);
+      expect(w.damage).toBe(tune.damage[t - 1] * kitchen(t));
       expect(w.cooldown).toBe(tune.cooldown[t - 1]);
     }
-    expect([1, 2, 3].map((t) => stats([at('cooker', t)]).damage)).toEqual([16.0, 24.0, 32.0]);
+    expect([1, 2, 3].map((t) => stats([at('cooker', t)]).damage)).toEqual([16.0, 24.0, 32.0].map((d, i) => d * kitchen(i + 1)));
   });
 
   it('carries the base shape of the pattern into the build', () => {
@@ -98,7 +99,7 @@ describe('Pressure Cooker: pattern mortar', () => {
     expect(a.recoils).toHaveLength(1);
   });
 
-  it('explodes on landing: 32 damage to everything within 90 + radius with a push of 220 away from the center, nothing outside', () => {
+  it('explodes on landing: 32 damage (x1.1 from its own Kitchen L2) to everything within 90 + radius with a push of 220 away from the center, nothing outside', () => {
     const { a, fake } = arsenal([at('cooker', 3)]);
     const { lone, c1, c2, c3 } = cluster(fake);
     a.step(0.5);
@@ -106,7 +107,7 @@ describe('Pressure Cooker: pattern mortar', () => {
     a.run(40, 0.05);
     const hits = fake.callsOf('damage');
     expect(hits.map((c) => c.enemy)).toEqual([c1.id, c2.id, c3.id]);
-    expect(hits.every((c) => c.dmg === 32)).toBe(true);
+    expect(hits.every((c) => c.dmg === 32 * setTuneAt('kitchen', 3)!.damageMult)).toBe(true);
     expect(hits[0].opts).toEqual({ kb: 220, kbX: 0, kbY: 0, tags: ['blast'] });
     expect(hits[1].opts).toMatchObject({ kb: 220, kbX: 1, kbY: 0 });
     expect(hits.some((c) => c.enemy === lone.id)).toBe(false);
@@ -149,6 +150,6 @@ describe('Pressure Cooker: pattern mortar', () => {
     const e = fake.spawnEnemy({ x: 500, y: 300, hp: 1000 });
     explodeAt(a, 500, 300, a.weapons[0].stats);
     expect(fake.callsOf('damage')).toHaveLength(1);
-    expect(fake.callsOf('damage')[0]).toMatchObject({ enemy: e.id, dmg: 32 });
+    expect(fake.callsOf('damage')[0]).toMatchObject({ enemy: e.id, dmg: 32 * setTuneAt('kitchen', 3)!.damageMult });
   });
 });

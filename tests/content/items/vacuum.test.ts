@@ -6,9 +6,12 @@ import { contentItem } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { tierScaling } from '../../../src/systems/synergies';
-import { around, arsenal, at, full, stats } from '../helpers';
+import { around, arsenal, at, full, setTuneAt, stats } from '../helpers';
 
 afterEach(() => setLang('en'));
+
+// A lone ★3 cleaning weapon is 3 Cleaning set points: L2 (range / area x1.15, puddles +1 s).
+const CLEANING = setTuneAt('cleaning', 3)!;
 
 // Pulse: constant suction every frame plus a damage pulse every cooldown (engine/patterns/pulse.ts), and the +60 coin pickup radius (a final `player` build hook).
 // Pattern behaviour runs headless through the FakeArsenal (src/engine/patterns/fakeHost.ts): the cart's real build, the compiled hooks, a fake clock.
@@ -85,9 +88,9 @@ describe('Vacuum: pattern pulse', () => {
     expect(heavy.ky).toBeCloseTo(-70 * 9 * 0.1 * (1 - 0.5 * 0.7));
   });
 
-  it('does not pull outside the range (150 + radius), inside the nozzle (radius sum + 12), while not firing, or a spawning enemy', () => {
+  it('does not pull outside the range (150 x Cleaning L2 + radius), inside the nozzle (radius sum + 12), while not firing, or a spawning enemy', () => {
     const { a, fake } = arsenal([at('vacuum', 3)]);
-    const far = fake.spawnEnemy({ x: -171, hp: 1000 });
+    const far = fake.spawnEnemy({ x: -(150 * CLEANING.rangeMult + 21), hp: 1000 });
     const close = fake.spawnEnemy({ x: 50, hp: 1000 });
     const spawning = fake.spawnEnemy({ x: -100, hp: 1000, state: 'spawn' });
     a.step(0.1);
@@ -108,7 +111,7 @@ describe('Vacuum: pattern pulse', () => {
     const hits = fake.callsOf('damage');
     expect(hits.map((c) => [c.enemy, c.dmg, c.opts])).toEqual([[e1.id, 4, {}], [e2.id, 4, {}]]);
     expect(hits.some((c) => c.enemy === out.id)).toBe(false);
-    expect(fake.callsOf('fx').filter((c) => c.method === 'ring').map((c) => c.args.slice(0, 5))).toEqual([['fx_pulse', 0, 0, 150 * 2.2, 420]]);
+    expect(fake.callsOf('fx').filter((c) => c.method === 'ring').map((c) => c.args.slice(0, 5))).toEqual([['fx_pulse', 0, 0, 150 * CLEANING.rangeMult * 2.2, 420]]);
     expect(fake.callsOf('sound').map((c) => [c.name, c.opts])).toEqual([['vacuum_pulse', { volume: 0.7 }]]);
     a.run(12, 0.05);
     const all = fake.callsOf('damage');

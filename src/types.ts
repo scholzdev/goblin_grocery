@@ -78,7 +78,7 @@ export interface ItemInstance {
   rot: Rotation;
   /** 1..MAX_TIER. Missing = 1. Raised by merging duplicates or buying an upgrade. */
   tier?: number;
-  /** Bought as a double pack: counts as 2 distinct types toward its family set. */
+  /** Bought as a double pack: +1 set point in each of its sets. */
   double?: boolean;
   /** Jelly Beans only: current flavor (= which element set it counts for). Missing = heat. */
   flavor?: ElementTag;
@@ -186,7 +186,7 @@ export interface Build {
   regen: number;           // HP per second during combat (snack bag)
   killCoinMult: number;    // piggy bank: multiplier on regular kill coins
   recipes: ActiveRecipe[];
-  /** Set-bonus level per set (0/1/2), counted over distinct placed types. */
+  /** Set-bonus level per set (0..3), from the set points of the placed items (data/sets.ts). */
   sets: Record<SetId, 0 | 1 | 2 | 3>;
   priceMult: number;       // checkout L1: shop price multiplier
   sellRate: number;        // share of an item's value a sale pays (0.5; Barter Stamp raises it)

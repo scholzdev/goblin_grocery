@@ -6,7 +6,7 @@ import { contentItem } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { tierScaling } from '../../../src/systems/synergies';
-import { around, arsenal, at, stats } from '../helpers';
+import { around, arsenal, at, setTuneAt, stats } from '../helpers';
 
 afterEach(() => setLang('en'));
 
@@ -55,18 +55,19 @@ describe('Frying Pan: content', () => {
 });
 
 describe('Frying Pan: build', () => {
-  it('damage grows +50% and the interval shrinks -10% per ★ (to the bit), as the content tune says', () => {
+  it('damage grows +50% and the interval shrinks -10% per ★ (to the bit), as the content tune says, times the Kitchen bonus its own set points reach', () => {
     const base = ITEMS.pan.weapon!;
     const tune = contentItem('pan')!.tune as unknown as Record<string, readonly number[]>;
+    const kitchen = (t: number) => setTuneAt('kitchen', t)?.damageMult ?? 1;
     for (const t of [1, 2, 3]) {
       const w = stats([at('pan', t)]);
       expect(w.tier).toBe(t);
-      expect(w.damage).toBe(base.damage * weaponDamageMult(t));
+      expect(w.damage).toBe(base.damage * weaponDamageMult(t) * kitchen(t));
       expect(w.cooldown).toBe(base.cooldown * weaponCooldownMult(t));
-      expect(w.damage).toBe(tune.damage[t - 1]);
+      expect(w.damage).toBe(tune.damage[t - 1] * kitchen(t));
       expect(w.cooldown).toBe(tune.cooldown[t - 1]);
     }
-    expect([1, 2, 3].map((t) => stats([at('pan', t)]).damage)).toEqual([9.0, 13.5, 18.0]);
+    expect([1, 2, 3].map((t) => stats([at('pan', t)]).damage)).toEqual([9.0, 13.5, 18.0].map((d, i) => d * kitchen(i + 1)));
   });
 
   it('carries the base shape of the pattern into the build', () => {
@@ -83,7 +84,7 @@ describe('Frying Pan: pattern sweep', () => {
     a.step(0.5);
     const hits = fake.callsOf('damage');
     expect(hits).toHaveLength(1);
-    expect(hits[0]).toMatchObject({ enemy: near.id, dmg: 18, source: 'u0', opts: { kb: 150, kbX: 1, kbY: 0 } });
+    expect(hits[0]).toMatchObject({ enemy: near.id, dmg: 18 * setTuneAt('kitchen', 3)!.damageMult, source: 'u0', opts: { kb: 150, kbX: 1, kbY: 0 } }); // its 3 set points: Kitchen L2
     expect([behind, far].every((e) => !hits.some((h) => h.enemy === e.id))).toBe(true);
     expect(a.sounds).toEqual(['pan_clang@1']);
     expect(a.sprites.map((s) => s.key)).toEqual(['fx_sweep']);

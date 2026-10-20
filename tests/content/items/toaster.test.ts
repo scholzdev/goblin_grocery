@@ -7,7 +7,7 @@ import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { tierScaling } from '../../../src/systems/synergies';
 import { degToRad } from '../../../src/engine/patterns';
-import { arsenal, at, stats } from '../helpers';
+import { arsenal, at, setTuneAt, stats } from '../helpers';
 
 afterEach(() => setLang('en'));
 
@@ -56,18 +56,19 @@ describe('Toaster: content', () => {
 });
 
 describe('Toaster: build', () => {
-  it('damage grows +50% and the interval shrinks -10% per ★ (to the bit), as the content tune says', () => {
+  it('damage grows +50% and the interval shrinks -10% per ★ (to the bit), as the content tune says, times the Kitchen bonus its own set points reach', () => {
     const base = ITEMS.toaster.weapon!;
     const tune = contentItem('toaster')!.tune as unknown as Record<string, readonly number[]>;
+    const kitchen = (t: number) => setTuneAt('kitchen', t)?.damageMult ?? 1;
     for (const t of [1, 2, 3]) {
       const w = stats([at('toaster', t)]);
       expect(w.tier).toBe(t);
-      expect(w.damage).toBe(base.damage * weaponDamageMult(t));
+      expect(w.damage).toBe(base.damage * weaponDamageMult(t) * kitchen(t));
       expect(w.cooldown).toBe(base.cooldown * weaponCooldownMult(t));
-      expect(w.damage).toBe(tune.damage[t - 1]);
+      expect(w.damage).toBe(tune.damage[t - 1] * kitchen(t));
       expect(w.cooldown).toBe(tune.cooldown[t - 1]);
     }
-    expect([1, 2, 3].map((t) => stats([at('toaster', t)]).damage)).toEqual([9.0, 13.5, 18.0]);
+    expect([1, 2, 3].map((t) => stats([at('toaster', t)]).damage)).toEqual([9.0, 13.5, 18.0].map((d, i) => d * kitchen(i + 1)));
   });
 
   it('carries the base shape of the pattern into the build', () => {
@@ -85,7 +86,7 @@ describe('Toaster: pattern toast', () => {
     fake.spawnEnemy({ x: 500, y: 380, hp: 1000 });
     a.run(60, 0.02);
     const [s1, s2] = a.spawned;
-    expect(s1).toMatchObject({ key: 'proj_toast', x: 118, y: 400, speed: 540, damage: 18, maxHits: 1 });
+    expect(s1).toMatchObject({ key: 'proj_toast', x: 118, y: 400, speed: 540, damage: 18 * setTuneAt('kitchen', 3)!.damageMult, maxHits: 1 }); // its 3 set points: Kitchen L2
     expect(s1.angle).toBe(Math.atan2(60, 300 - 18));
     expect(s1.life).toBe(455 / 540);
     expect(s1.stats).toBe(b.weapons[0]);
@@ -115,12 +116,12 @@ describe('Toaster: pattern toast', () => {
     expect(taped.a.spawned[0].maxHits).toBe(3);
   });
 
-  it('a toast that reaches its enemy deals the ★3 damage with a push of 60 along its heading', () => {
+  it('a toast that reaches its enemy deals the ★3 damage (with its own Kitchen L2) and a push of 60 along its heading', () => {
     const { a, fake } = arsenal([at('toaster', 3)], P);
     const e = fake.spawnEnemy({ x: 400, y: 400, hp: 1000 });
     a.run(60, 0.02);
     const [hit] = fake.callsOf('damage');
-    expect(hit).toMatchObject({ enemy: e.id, dmg: 18, opts: { kb: 60, kbX: 1, kbY: 0 } });
+    expect(hit).toMatchObject({ enemy: e.id, dmg: 18 * setTuneAt('kitchen', 3)!.damageMult, opts: { kb: 60, kbX: 1, kbY: 0 } });
   });
 
   it('Multipack adds toasts to the volley, fanned 12° apart around the aim when no recipe set a spread', () => {

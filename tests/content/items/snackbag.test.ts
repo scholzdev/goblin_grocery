@@ -15,7 +15,7 @@ afterEach(() => setLang('en'));
 const BASE = PLAYER.maxHp; // 40
 
 // Legacy: a legendary (★1 only, no Gold Star): +20 max HP and 0.25 HP/s regen (1 HP every 4 s). It adds to the Lunchbox and the snacks set
-// (L1/L2 +10 max HP, L2+ regen 0.3, L3 +20 and 0.6; a set is 2/3/4 distinct snacks types), and the total max HP is rounded after Expired Milk's x0.9.
+// (L1/L2 +10 max HP, L2+ regen 0.3, L3 +20 and 0.6; a set level is 2/3/4 set points, one per ★ of each type's best copy), and the total max HP is rounded after Expired Milk's x0.9.
 describe('Family-Size Snack Bag: build', () => {
   it('adds 20 max HP and 0.25 HP/s regen, anywhere in the cart', () => {
     const plain = full([at('toaster')]), b = full([at('toaster'), far('snackbag')]);
@@ -63,8 +63,8 @@ describe('Family-Size Snack Bag: build', () => {
   it('is rounded together with the rest after Expired Milk (x0.9)', () => {
     expect(full([at('toaster'), far('snackbag'), far('expiredmilk')]).maxHp).toBe(Math.round((BASE + 10 + 20) * HP_MULT)); // Snacks L1: 2 types
     expect(Math.round((BASE + 10 + 20) * HP_MULT)).toBe(63);
-    // Snack Bag + Lunchbox ★2 + Expired Milk = 3 snacks types (L2): (40 + 10 + 20 + 23) x 0.9 = 83.7 -> 84
-    expect(full([at('toaster'), far('snackbag'), far('lunchbox', 2), far('expiredmilk')]).maxHp).toBe(84);
+    // Snack Bag + Lunchbox ★2 + Expired Milk = 4 snacks points (L3): (40 + 20 + 20 + 23) x 0.9 = 92.7 -> 93
+    expect(full([at('toaster'), far('snackbag'), far('lunchbox', 2), far('expiredmilk')]).maxHp).toBe(93);
     expect(full([at('toaster'), far('snackbag'), far('expiredmilk')], { maxHp: -8 }).regen).toBe(0.25); // Expired Milk leaves regen alone
   });
 });

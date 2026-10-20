@@ -3,7 +3,8 @@ import { Item, Set } from '../../engine/ids';
 
 // Legendary (★1 only). Two effects:
 //  - the tier lift: modules and passives touching it work `tiers` effective tiers higher. It cannot be a build hook (it feeds
-//    every other hook's tier), so it is declared with `tierBoost` and read by `eff()` in computeBuild (see engine/build.ts `tierBoostOf`).
+//    every other hook's tier), so it is declared with `tierBoost` and read by `eff()` in computeBuild and by the set points
+//    (see engine/build.ts `tierBoostOf`).
 //    No chaining: one lift however many stars touch the item; weapons and legendaries are never lifted.
 //  - Bundle Deal: weapons touching it count `bundle` more items (the +6% per item itself stays in computeBuild).
 const TIERS = 1;

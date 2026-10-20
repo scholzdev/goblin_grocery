@@ -46,7 +46,7 @@ describe('burn (WeaponStats.burn)', () => {
     const e = strong.fake.spawnEnemy({ hp: 100 });
     strong.fake.hit(e, 3, strong.stats);
     strong.fake.advance(1); strong.fake.hit(e, 3, weak.stats);
-    expect(e.status.burnDps).toBe(5);
+    expect(e.status.burnDps).toBe(5 * contentSetTune('heat', 2).burnMult); // the ★3 can is 3 Heat points: L2
     strong.fake.advance(5); strong.fake.hit(e, 3, weak.stats); // the burn is long over
     expect(e.status.burnDps).toBe(2.5);
   });
@@ -140,7 +140,7 @@ describe('slow (WeaponStats.slow)', () => {
     const e = strong.fake.spawnEnemy({ hp: 100 });
     strong.fake.hit(e, 3, strong.stats);
     strong.fake.advance(0.5); strong.fake.hit(e, 3, weak.stats);
-    expect(e.status).toMatchObject({ slowPct: 0.5, slowUntil: 1.5 });
+    expect(e.status).toMatchObject({ slowPct: Math.min(contentSetTune('frost', 2).slowCap, 0.5 + contentSetTune('frost', 2).slowBonus), slowUntil: 1.5 }); // the ★3 pack is 3 Frost points: L2
     strong.fake.advance(2); strong.fake.hit(e, 3, weak.stats); // expired: the weaker slow replaces it
     expect(e.status.slowPct).toBe(0.25);
   });

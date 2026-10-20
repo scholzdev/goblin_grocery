@@ -6,7 +6,7 @@ import { contentItem } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { tierScaling } from '../../../src/systems/synergies';
-import { around, arsenal, at, stats } from '../helpers';
+import { around, arsenal, at, setTuneAt, stats } from '../helpers';
 
 afterEach(() => setLang('en'));
 
@@ -55,18 +55,19 @@ describe('Microwave: content', () => {
 });
 
 describe('Microwave: build', () => {
-  it('damage grows +50% and the interval shrinks -10% per ★ (to the bit), as the content tune says', () => {
+  it('damage grows +50% and the interval shrinks -10% per ★ (to the bit), as the content tune says, times the Kitchen bonus its own set points reach', () => {
     const base = ITEMS.microwave.weapon!;
     const tune = contentItem('microwave')!.tune as unknown as Record<string, readonly number[]>;
+    const kitchen = (t: number) => setTuneAt('kitchen', t)?.damageMult ?? 1;
     for (const t of [1, 2, 3]) {
       const w = stats([at('microwave', t)]);
       expect(w.tier).toBe(t);
-      expect(w.damage).toBe(base.damage * weaponDamageMult(t));
+      expect(w.damage).toBe(base.damage * weaponDamageMult(t) * kitchen(t));
       expect(w.cooldown).toBe(base.cooldown * weaponCooldownMult(t));
-      expect(w.damage).toBe(tune.damage[t - 1]);
+      expect(w.damage).toBe(tune.damage[t - 1] * kitchen(t));
       expect(w.cooldown).toBe(tune.cooldown[t - 1]);
     }
-    expect([1, 2, 3].map((t) => stats([at('microwave', t)]).damage)).toEqual([24.0, 36.0, 48.0]);
+    expect([1, 2, 3].map((t) => stats([at('microwave', t)]).damage)).toEqual([24.0, 36.0, 48.0].map((d, i) => d * kitchen(i + 1)));
   });
 
   it('carries the base shape of the pattern into the build', () => {
@@ -84,7 +85,7 @@ describe('Microwave: pattern zap', () => {
     a.step(0.5);
     const hits = fake.callsOf('damage');
     expect(hits.map((c) => c.enemy)).toEqual([tank.id, next.id]);
-    expect(hits.every((c) => c.dmg === 48 && c.source === 'u0')).toBe(true);
+    expect(hits.every((c) => c.dmg === 48 * setTuneAt('kitchen', 3)!.damageMult && c.source === 'u0')).toBe(true); // its 3 set points: Kitchen L2
     expect(hits.map((c) => c.opts)).toEqual([{ kb: 80, kbX: 0, kbY: 0 }, { kb: 80, kbX: 1, kbY: 0 }]);
     expect([weak, outside].some((e) => hits.some((c) => c.enemy === e.id))).toBe(false);
     expect(a.sounds).toEqual(['zap']);

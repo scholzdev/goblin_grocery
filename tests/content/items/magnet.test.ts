@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { ITEMS, PLAYER, TIER } from '../../../src/data/items';
 import magnet from '../../../src/content/items/magnet';
-import { contentItem, contentTune } from '../../../src/engine/registry';
+import { contentItem, contentSetTune, contentTune } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { tierScaling } from '../../../src/systems/synergies';
@@ -18,10 +18,11 @@ describe('Magnet: build', () => {
     expect([1, 2, 3].map((t) => full([at('toaster'), far('magnet', t)]).pickupRadius)).toEqual([BASE + 60, BASE + 90, BASE + 120]);
   });
 
-  it('changes nothing but the pickup radius, and does not touch the weapon stats', () => {
+  it('changes nothing but the pickup radius; the weapons change only by the Tools L1 its 2 set points reach', () => {
     const plain = full([at('toaster')]), withMagnet = full([at('toaster'), far('magnet', 2)]);
-    expect(withMagnet.weapons).toEqual(plain.weapons);
-    expect({ ...withMagnet, pickupRadius: 0 }).toEqual({ ...plain, pickupRadius: 0 });
+    expect(withMagnet.sets).toEqual({ ...plain.sets, tools: 1 });
+    expect(withMagnet.weapons).toEqual(plain.weapons.map((w) => ({ ...w, cooldown: w.cooldown / contentSetTune('tools', 1).cooldownDiv })));
+    expect({ ...withMagnet, pickupRadius: 0, sets: plain.sets, weapons: plain.weapons }).toEqual({ ...plain, pickupRadius: 0 });
   });
 
   it('does not stack: the best copy in the whole cart counts once, wherever it sits', () => {

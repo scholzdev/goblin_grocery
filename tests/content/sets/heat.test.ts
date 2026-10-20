@@ -16,7 +16,7 @@ const igniteCart = (n: number) => [PAN, ...[far('hotsauce'), far('cooker'), far(
 const stats = (c: Parameters<typeof full>[0]) => full(c).weapons[0];
 
 describe('Heat set: burn', () => {
-  it('2 / 3 / 4 distinct heat types give L1 / L2 / L3; the pan alone is 1', () => {
+  it('2 / 3 / 4 set points (one per ★1 heat type) give L1 / L2 / L3; the pan alone is 1', () => {
     expect([0, 1, 2].map((n) => full(burnCart(n)).sets.heat)).toEqual([1, 2, 3]); // pan + fuel = 2 types, + hotsauce 3, + cooker 4
     expect(full([PAN]).sets.heat).toBe(0);
   });

@@ -17,7 +17,7 @@ import { BOSS, THEME_SUMMONS, CODEX_ENEMIES, ELITE, ELITE_EXCLUDED, ENEMIES } fr
 import { enemyT } from '../src/i18n/data';
 import { setLang } from '../src/i18n/lang';
 import { ITEMS, ITEM_IDS, PLAYER, STARTER_WEAPONS, TIER } from '../src/data/items';
-import { contentTune } from '../src/engine/registry';
+import { contentSetTune, contentTune } from '../src/engine/registry';
 import { STARTING_ITEMS, UNLOCKS } from '../src/data/unlocks';
 import { createLabRun, labAddItem, labDoor, cartUpgradeCost, shelfUpgradeCost, upgradeCart, upgradeShelf, chooseDoor, finishWave, leaveShop, startNextWave, buyOffer, mergeTargetFor, createRun, damagePlayer, mergeItems, moveItem, openShop, previewMerge, previewMove, repair, reroll, sellItem, upgradeCost, upgradeItem, upgradeShop } from '../src/state/run';
 import { OBSTACLES, hazardRects } from '../src/data/obstacles';
@@ -464,7 +464,7 @@ describe('tiers', () => {
   });
   it('weapon tier scales damage and cooldown; sell price uses tier', () => {
     const w = w0(inv(mk('toaster', 0, 0, 2)));
-    expect(w.damage).toBeCloseTo(9 * 1.5);
+    expect(w.damage).toBeCloseTo(9 * 1.5 * contentSetTune('kitchen', 1).damageMult); // its own 2 Kitchen points: L1
     expect(w.cooldown).toBeCloseTo(ITEMS.toaster.weapon!.cooldown * 0.9);
     expect(sellPrice('toaster', 2)).toBe(12);
   });
@@ -559,7 +559,7 @@ describe('tiers', () => {
     const mop = w0(inv(it_('mop', 0, 0), it_('fuel', 1, 0)));
     expect(mop.recipes).toContain('greaseFire');
     expect(mop.burn).toEqual({ dps: 5, duration: 2, tick: 0.5 });
-    expect(w0(inv(it_('mop', 0, 0), mk('fuel', 1, 0, 3))).burn!.dps).toBeCloseTo(10);
+    expect(w0(inv(it_('mop', 0, 0), mk('fuel', 1, 0, 3))).burn!.dps).toBeCloseTo(10 * contentSetTune('heat', 2).burnMult); // the ★3 can is 3 Heat points: L2
     expect(w0(inv(it_('toaster', 0, 0), it_('fuel', 2, 0))).burn!.dps).toBe(2.5);
   });
   it('bubble wrap armor is an onPlayerHit hook (content/items/bubblewrap.test.ts); damagePlayer is plain', () => {
@@ -608,14 +608,14 @@ describe('legendaries / bundle / shop levels', () => {
     const nonAdj = w0(inv(it_('toaster', 1, 1), mk('fan', 0, 1, 3), it_('goldstar', 4, 3)));
     expect(nonAdj.projectileSpeed).toBeCloseTo(540 * 1.6);
   });
-  it('goldstar lunchbox hp = round(15*1.5)=23, no heal', () => {
+  it('goldstar lunchbox hp = round(15*1.5)=23 plus Snacks L1 (2 set points), no heal', () => {
     const s = shopRun();
     s.inventory.shelf[0] = it_('lunchbox', 0, 0);
     s.inventory.shelf[1] = it_('goldstar', 0, 0);
     expect(moveItem(s, s.inventory.shelf[0]!.uid, { where: 'grid', x: 0, y: 2, rot: 0 }).ok).toBe(true);
     expect(s.build.maxHp).toBe(55);
     expect(moveItem(s, s.inventory.shelf[1]!.uid, { where: 'grid', x: 0, y: 3, rot: 0 }).ok).toBe(true);
-    expect(s.build.maxHp).toBe(40 + 23);
+    expect(s.build.maxHp).toBe(40 + 23 + contentSetTune('snacks', 1).maxHp);
     expect(s.hp).toBe(40);
   });
   it('snackbag and laser', () => {
@@ -1416,7 +1416,7 @@ describe('armored / shield / healer / thief enemies', () => {
 describe('set bonuses', () => {
   const b = (...types: ItemTypeId[]) => computeBuild(inv(...types.map((t, i) => it_(t, i % 5, Math.floor(i / 5) * 2))));
   const bw = (...types: ItemTypeId[]) => b(...types).weapons.find((w) => w.type === types[0])!;
-  it('setLevels counts distinct types, ignores duplicates and the shelf', () => {
+  it('setLevels counts each type once (its best copy) and ignores the shelf', () => {
     const sh = inv(it_('toaster', 0, 0), it_('toaster', 2, 0), it_('pan', 0, 1));
     expect(setLevels(sh.placed).kitchen).toBe(1);
     sh.shelf[0] = it_('microwave', 0, 0);

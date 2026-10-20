@@ -101,7 +101,7 @@ export function goldenCarts(): GoldenCart[] {
   // 3. Every combo with exactly its required parts, each touching the first part (weapon, or the first support for cart combos).
   for (const r of Object.values(RECIPES)) add(`combo.${r.id}`, recipeParts(r).map((type, i) => S(type, i === 0 ? {} : { near: [0] })));
 
-  // 4. Set bonuses L1/L2/L3 (2/3/4 distinct types).
+  // 4. Set bonuses L1/L2/L3 (2/3/4 set points: one per member, all ★1).
   for (const id of SET_ORDER) for (const lv of [1, 2, 3]) add(`set.${id}.L${lv}`, SET_CARTS[id].slice(0, lv + 1 + (SET_LEAD[id] ?? 0)));
 
   // 5. Edge cases.

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { ITEMS, TIER } from '../../../src/data/items';
 import popper from '../../../src/content/items/popper';
-import { contentItem, contentTune } from '../../../src/engine/registry';
+import { contentItem, contentSetTune, contentTune } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { computeBuild, describeBuffs, tierScaling } from '../../../src/systems/synergies';
@@ -13,10 +13,10 @@ afterEach(() => setLang('en'));
 // Legacy: 6 confetti damage at ★1 x TIER.mult, radius 70. Toaster (kitchen / heat / electric) shares no set with the popper (snacks / blast) and
 // has no combo with it; a Nail Gun (blast) adds the Blast set.
 describe('Party Popper: build', () => {
-  it('explodes kills for 6 / 9 / 12 damage in a 70 radius at ★1 / ★2 / ★3', () => {
+  it('explodes kills for 6 / 9 / 12 damage in a 70 radius at ★1 / ★2 / ★3; at ★2 / ★3 its own set points reach Blast L1 / L2 (+15% radius)', () => {
     expect(stats([at('toaster'), at('popper')]).popper).toEqual({ damage: 6, radius: 70 });
-    expect(stats([at('toaster'), at('popper', 2)]).popper).toEqual({ damage: 9, radius: 70 });
-    expect(stats([at('toaster'), at('popper', 3)]).popper).toEqual({ damage: 12, radius: 70 });
+    expect(stats([at('toaster'), at('popper', 2)]).popper).toEqual({ damage: 9, radius: 70 * contentSetTune('blast', 1).radiusMult });
+    expect(stats([at('toaster'), at('popper', 3)]).popper).toEqual({ damage: 12, radius: 70 * contentSetTune('blast', 2).radiusMult });
   });
 
   it('records the buff, and nothing else changes', () => {

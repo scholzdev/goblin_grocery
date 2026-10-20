@@ -17,7 +17,7 @@ const cart = (weapon: ReturnType<typeof at>, n: number) => [weapon, ...members(n
 const stats = (c: Parameters<typeof full>[0]) => full(c).weapons[0], sets = (c: Parameters<typeof full>[0]) => full(c).sets;
 
 describe('Cleaning set: thresholds', () => {
-  it('2 / 3 / 4 distinct cleaning types give L1 / L2 / L3; the weapon alone is 1', () => {
+  it('2 / 3 / 4 set points (one per ★1 cleaning type) give L1 / L2 / L3; the weapon alone is 1', () => {
     expect([0, 1, 2, 3].map((n) => sets(cart(MOP, n)).cleaning)).toEqual([0, 1, 2, 3]);
   });
 

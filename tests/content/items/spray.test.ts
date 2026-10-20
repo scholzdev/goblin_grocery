@@ -6,9 +6,12 @@ import { contentItem } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { tierScaling } from '../../../src/systems/synergies';
-import { around, arsenal, at, stats } from '../helpers';
+import { around, arsenal, at, setTuneAt, stats } from '../helpers';
 
 afterEach(() => setLang('en'));
+
+// A lone ★3 cleaning weapon is 3 Cleaning set points: L2 (range / area x1.15, puddles +1 s).
+const CLEANING = setTuneAt('cleaning', 3)!;
 
 // Cone: the same pattern as the Leaf Blower with the spray's own numbers (engine/patterns/cone.ts): a wider cone, a light push (40), the spray sprite, no slam.
 // Pattern behaviour runs headless through the FakeArsenal (src/engine/patterns/fakeHost.ts): the cart's real build, the compiled hooks, a fake clock.
@@ -94,7 +97,7 @@ describe('Spray Bottle: pattern cone', () => {
     fake.spawnEnemy({ x: 100, hp: 1000 });
     a.step(0.5);
     expect(a.sprites[0].key).toBe('fx_spray');
-    expect(a.tweens[0]).toMatchObject({ displayWidth: 170 * 1.05 });
+    expect(a.tweens[0]).toMatchObject({ displayWidth: 170 * CLEANING.rangeMult * 1.05 });
   });
 
   it('cools down in 0.44 s at ★3 and reaches 170 + radius', () => {
