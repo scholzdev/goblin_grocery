@@ -1,4 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { SET_THRESHOLDS } from '../src/engine/define';
+import { setLang, t } from '../src/i18n';
 import { createRun } from '../src/state/run';
 import { settings } from '../src/state/settings';
 import { store } from '../src/state/store';
@@ -61,6 +63,14 @@ describe('disclosure: sets', () => {
     expect(setsVisible()).toEqual({ panel: true, inspector: true });
     store.state.lab = false;
     expect(setsVisible(), 'a normal run of the same profile').toEqual({ panel: false, inspector: false });
+  });
+
+  it('the set tip names the set thresholds, in EN and DE', () => {
+    const [a, b, c] = SET_THRESHOLDS;
+    expect(t('tipSets')).toContain(`${a}, ${b} and ${c} points`);
+    setLang('de');
+    expect(t('tipSets')).toContain(`${a}, ${b} und ${c} Punkte`);
+    setLang('en');
   });
 });
 
