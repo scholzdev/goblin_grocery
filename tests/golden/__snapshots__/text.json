@@ -6243,7 +6243,7 @@
     {
       "lines": [
         "Kills explodieren: 6 Schaden, Radius 70 (Partyknaller)",
-        "Treffer wiederholen sich mit 50 % Schaden (Doppeltüte)",
+        "Treffer wiederholen sich mit 75 % Schaden (Doppeltüte ★2)",
         "Mengenrabatt: 2 Gegenstände → +12 % Schaden"
       ],
       "weapon": "nailgun"
@@ -6253,7 +6253,7 @@
     {
       "lines": [
         "Kills explode: 6 dmg, 70 radius (Party Popper)",
-        "Hits repeat for 50% damage (Double Bag)",
+        "Hits repeat for 75% damage (Double Bag ★2)",
         "Bundle Deal: 2 items → +12% damage"
       ],
       "weapon": "nailgun"
@@ -6625,7 +6625,7 @@
     {
       "lines": [
         "Brand 2,5/s für 2 s (Benzinkanister)",
-        "+25 % Schaden (Scharfe Soße)",
+        "+38 % Schaden (Scharfe Soße ★2)",
         "Mengenrabatt: 2 Gegenstände → +12 % Schaden",
         "Combo: Zischende Pfanne"
       ],
@@ -6636,7 +6636,7 @@
     {
       "lines": [
         "Burn 2.5/s for 2s (Fuel Can)",
-        "+25% damage (Hot Sauce)",
+        "+38% damage (Hot Sauce ★2)",
         "Bundle Deal: 2 items → +12% damage",
         "Combo: Sizzling Skillet"
       ],
@@ -6647,7 +6647,7 @@
     {
       "lines": [
         "Brand 2,5/s für 2 s (Benzinkanister)",
-        "+25 % Schaden (Scharfe Soße)",
+        "+38 % Schaden (Scharfe Soße ★2)",
         "Mengenrabatt: 2 Gegenstände → +12 % Schaden",
         "Combo: Zischende Pfanne"
       ],
@@ -6655,7 +6655,7 @@
     },
     {
       "lines": [
-        "+25 % Schaden (Scharfe Soße)",
+        "+38 % Schaden (Scharfe Soße ★2)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "cooker"
@@ -6665,7 +6665,7 @@
     {
       "lines": [
         "Burn 2.5/s for 2s (Fuel Can)",
-        "+25% damage (Hot Sauce)",
+        "+38% damage (Hot Sauce ★2)",
         "Bundle Deal: 2 items → +12% damage",
         "Combo: Sizzling Skillet"
       ],
@@ -6673,7 +6673,7 @@
     },
     {
       "lines": [
-        "+25% damage (Hot Sauce)",
+        "+38% damage (Hot Sauce ★2)",
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "cooker"
@@ -6710,9 +6710,7 @@
   "buffs.set.kitchen.L3.de": [
     {
       "lines": [
-        "Verlangsamung 25 % für 1 s (Kühlakku)",
-        "Mengenrabatt: 2 Gegenstände → +12 % Schaden",
-        "Combo: Eiskopfschmerz"
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "blender"
     }
@@ -6720,9 +6718,7 @@
   "buffs.set.kitchen.L3.en": [
     {
       "lines": [
-        "Slow 25% for 1s (Ice Pack)",
-        "Bundle Deal: 2 items → +12% damage",
-        "Combo: Brain Freeze"
+        "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "blender"
     }
@@ -6790,7 +6786,7 @@
   "buffs.set.tools.L2.de": [
     {
       "lines": [
-        "Mehr Reichweite / extra Durchschlag (Panzertape)",
+        "Mehr Reichweite / extra Durchschlag (Panzertape ★2)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "nailgun"
@@ -6799,7 +6795,7 @@
   "buffs.set.tools.L2.en": [
     {
       "lines": [
-        "Bigger reach / extra pierce (Duct Tape)",
+        "Bigger reach / extra pierce (Duct Tape ★2)",
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "nailgun"
@@ -6808,7 +6804,7 @@
   "buffs.set.tools.L3.de": [
     {
       "lines": [
-        "Mehr Reichweite / extra Durchschlag (Panzertape)",
+        "Mehr Reichweite / extra Durchschlag (Panzertape ★2)",
         "Mengenrabatt: 2 Gegenstände → +12 % Schaden"
       ],
       "weapon": "nailgun"
@@ -6817,7 +6813,7 @@
   "buffs.set.tools.L3.en": [
     {
       "lines": [
-        "Bigger reach / extra pierce (Duct Tape)",
+        "Bigger reach / extra pierce (Duct Tape ★2)",
         "Bundle Deal: 2 items → +12% damage"
       ],
       "weapon": "nailgun"
@@ -10544,7 +10540,7 @@
     "rulesByTier": {
       "1": "Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,65 s erleiden Gegner im Radius 2 Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir.",
       "2": "Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,59 s erleiden Gegner im Radius 3 Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir.",
-      "3": "Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,52 s erleiden Gegner im Radius 4 Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir. ★3: Dein Münz-Sammelradius ist 2× so groß."
+      "3": "Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,52 s erleiden Gegner im Radius 4 Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir. ★3: Jeder Schadensstoß stößt die Gegner direkt am Wagen zurück."
     },
     "tierScaling": [
       {
@@ -10572,7 +10568,7 @@
     "rulesByTier": {
       "1": "Constantly pulls nearby enemies toward the cart. Every 0.65 s, enemies in range take 2 damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you.",
       "2": "Constantly pulls nearby enemies toward the cart. Every 0.59 s, enemies in range take 3 damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you.",
-      "3": "Constantly pulls nearby enemies toward the cart. Every 0.52 s, enemies in range take 4 damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you. ★3: Your coin pickup radius is 2× as big."
+      "3": "Constantly pulls nearby enemies toward the cart. Every 0.52 s, enemies in range take 4 damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you. ★3: Each damage pulse knocks the groceries right at the cart back out."
     },
     "tierScaling": [
       {
