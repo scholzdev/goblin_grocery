@@ -23,7 +23,7 @@ const TARGET: Record<string, Target> = {
   buy: { anchor: '#shop .offers', avoid: ['#shop .offers-head', '#shop .grid-wrap'], prefer: ['below', 'above', 'left'] },
   place: SHOP_GRID,
   merge: SHOP_GRID,
-  sets: { anchor: '#shop .sets', avoid: ['#shop .grid-wrap'], prefer: ['right', 'below', 'above'] },
+  sets: { anchor: '#shop .sets', avoid: ['#shop .grid-wrap'], prefer: ['above', 'right'] }, // above: the set level-up card appears below the receipt at the same moment
   combos: { anchor: '#shop .combos', avoid: ['#shop .grid-wrap'], prefer: ['below', 'above', 'left'] },
   door: { anchor: '.route .doors', avoid: ['.route .door', '.route h2', '.route .progress'], prefer: ['below', 'above'] },
 };
