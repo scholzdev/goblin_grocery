@@ -65,6 +65,10 @@ export interface RunRecord {
   aislesPlayed: number;
   kills: number;
   coinsEarned: number;
+  /** Shop merges the rules carried out: two copies became one of the next tier. */
+  merges: number;
+  rerolls: number;
+  sells: number;
   aisles: AisleRecord[];
   /** Every item the run got hold of: the starter weapon, shop buys, crates, stockrooms. */
   acquired: { item: string; tier: number; from: 'start' | 'shop' | 'crate' | 'stockroom' }[];

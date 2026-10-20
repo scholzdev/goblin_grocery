@@ -173,9 +173,10 @@ export function playRun(o: RunOptions): RunRecord {
     startNextWave(state);
   }
 
+  const done = (kind: ShopAction['kind']): number => shopLog.reduce((n, e) => n + e.steps.filter((s) => s.ok && s.kind === kind).length, 0);
   return {
     seed: o.seed, starter, weapon, shift, theme, result, ...(diedAt !== undefined ? { diedAt, cause } : {}), aislesPlayed: aisles.length, kills: state.stats.kills, coinsEarned: state.stats.coinsEarned,
-    aisles, acquired, finalBuild: snapshot(state), shopLog,
+    merges: done('merge'), rerolls: done('reroll'), sells: done('sell'), aisles, acquired, finalBuild: snapshot(state), shopLog,
   };
 }
 
