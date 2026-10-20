@@ -1,4 +1,4 @@
-import { reached, type AisleRecord, type FinalBuild, type RunRecord, type ShopLogEntry } from './report';
+import { reached, type AisleRecord, type FinalBuild, type ReportMeta, type RunRecord, type ShopLogEntry } from './report';
 
 // The structural numbers the mechanics review compared (docs/buildlab.md, "Mechanics metrics"), computed from a build-lab report.
 
@@ -106,4 +106,88 @@ export function computeMetrics(report: MetricsInput): Metrics {
     comboRate: Object.fromEntries(byName(combos).map(([k, c]) => [k, c / n])),
     setRate: Object.fromEntries(byName(sets).map(([k, s]) => [k, { lv2: s.lv2 / n, lv3: s.lv3 / n }])),
   };
+}
+
+type Fmt = 'int' | 'num' | 'pct';
+type Value = number | null | undefined;
+
+const OVERVIEW: [string, Fmt, (m: Metrics) => number][] = [
+  ['runs', 'int', (m) => m.runs],
+  ['win rate', 'pct', (m) => m.winRate],
+  ['win rate standard error', 'pct', (m) => m.winRateSE],
+  ['average aisle reached', 'num', (m) => m.avgAisleReached],
+  ['merges per run', 'num', (m) => m.mergesPerRun],
+  ['★2 items at run end', 'int', (m) => m.star2],
+  ['★2 items per run', 'num', (m) => m.star2PerRun],
+  ['★3 items at run end', 'int', (m) => m.star3],
+  ['★3 items per run', 'num', (m) => m.star3PerRun],
+  ['combos at run end per run', 'num', (m) => m.combosPerRun],
+  ['distinct combos at run end', 'int', (m) => m.distinctCombos],
+  ['weapons at run end per run', 'num', (m) => m.weaponsPerRun],
+  ['rerolls per run', 'num', (m) => m.rerollsPerRun],
+  ['sells per run', 'num', (m) => m.sellsPerRun],
+];
+
+interface Table {
+  title: string;
+  key: string;
+  fmt: Fmt;
+  rows: (m: Metrics) => Record<string, number | null>;
+  /** The rows count or share runs, so a key one input lacks is 0 there (not n/a). */
+  absentIsZero?: boolean;
+}
+const perAisle = (f: (a: AisleMetrics) => number | null) => (m: Metrics) => Object.fromEntries(Object.entries(m.byAisle).map(([k, a]) => [k, f(a)]));
+const perSet = (lv: 'lv2' | 'lv3') => (m: Metrics) => Object.fromEntries(Object.entries(m.setRate).map(([k, s]) => [k, s[lv]]));
+
+const TABLES: Table[] = [
+  { title: 'Runs that reached the aisle', key: 'aisle', fmt: 'int', rows: perAisle((a) => a.reached), absentIsZero: true },
+  { title: 'Share of all deaths, by aisle', key: 'aisle', fmt: 'pct', rows: perAisle((a) => a.deathShare), absentIsZero: true },
+  { title: 'Death rate among runs that reached the aisle', key: 'aisle', fmt: 'pct', rows: perAisle((a) => a.deathRate) },
+  { title: 'HP lost by aisle (fights only)', key: 'aisle', fmt: 'num', rows: perAisle((a) => a.hpLost) },
+  { title: 'Coins at shop entry', key: 'shop', fmt: 'num', rows: (m) => m.coinsAtShop },
+  { title: 'Combo formation (share of runs with the combo active at run end)', key: 'combo', fmt: 'pct', rows: (m) => m.comboRate, absentIsZero: true },
+  { title: 'Sets at level 2 or more at run end', key: 'set', fmt: 'pct', rows: perSet('lv2'), absentIsZero: true },
+  { title: 'Sets at level 3 at run end', key: 'set', fmt: 'pct', rows: perSet('lv3'), absentIsZero: true },
+];
+
+const show = (v: Value, f: Fmt): string => (v == null ? 'n/a' : f === 'pct' ? `${(v * 100).toFixed(1)}%` : f === 'int' ? String(v) : v.toFixed(2));
+
+function delta(a: Value, b: Value, f: Fmt): string {
+  if (a == null || b == null) return 'n/a';
+  const s = (f === 'pct' ? (b - a) * 100 : b - a).toFixed(f === 'int' ? 0 : f === 'pct' ? 1 : 2);
+  const signed = Number(s) > 0 ? `+${s}` : Number(s) < 0 ? s : s.replace('-', '');
+  return f === 'pct' ? `${signed} pts` : signed;
+}
+
+const markdownTable = (head: string[], rows: string[][]): string =>
+  [head, head.map((_, i) => (i ? '---:' : '---')), ...rows].map((r) => `| ${r.join(' | ')} |`).join('\n');
+
+export interface MetricsColumn { name: string; file: string; meta: ReportMeta; metrics: Metrics }
+
+const COMPARABLE = ['starter', 'weapon', 'shift', 'theme', 'pool', 'policy', 'proxy'] as const;
+
+/** The markdown report of one input, or of two side by side with the delta B - A. */
+export function formatMetrics(cols: MetricsColumn[]): string {
+  const two = cols.length === 2;
+  const head = (key: string) => [key, ...cols.map((c) => c.name), ...(two ? [`${cols[1].name} - ${cols[0].name}`] : [])];
+  const cells = (vals: Value[], f: Fmt) => [...vals.map((v) => show(v, f)), ...(two ? [delta(vals[0], vals[1], f)] : [])];
+
+  const out = ['# Mechanics metrics', ''];
+  for (const c of cols) {
+    const m = c.meta;
+    out.push(`- ${c.name} = ${c.file}: ${m.runs} runs, seed ${m.seed}, starter ${m.starter}, weapon ${m.weapon}, shift ${m.shift}, theme ${m.theme}, pool ${m.pool}, policy ${m.policy}, rev ${m.gitRev ?? 'unknown'}`);
+  }
+  const differ = two ? COMPARABLE.filter((k) => JSON.stringify(cols[0].meta[k]) !== JSON.stringify(cols[1].meta[k])) : [];
+  if (differ.length) out.push(`- The inputs differ in ${differ.join(', ')}. Read the deltas with that in mind.`);
+
+  out.push('', '## Overview', '', markdownTable(head('metric'), OVERVIEW.map(([label, f, get]) => [label, ...cells(cols.map((c) => get(c.metrics)), f)])));
+  for (const t of TABLES) {
+    const rows = cols.map((c) => t.rows(c.metrics));
+    const value = (r: Record<string, number | null>, k: string): Value => (k in r ? r[k] : t.absentIsZero ? 0 : undefined);
+    const keys = [...new Set(rows.flatMap((r) => Object.keys(r)))];
+    const top = (k: string) => Math.max(...rows.map((r) => value(r, k) ?? -Infinity));
+    keys.sort(keys.every((k) => /^\d+$/.test(k)) ? (a, b) => Number(a) - Number(b) : (a, b) => top(b) - top(a) || (a < b ? -1 : 1));
+    out.push('', `## ${t.title}`, '', keys.length ? markdownTable(head(t.key), keys.map((k) => [k, ...cells(rows.map((r) => value(r, k)), t.fmt)])) : 'none');
+  }
+  return out.join('\n');
 }
