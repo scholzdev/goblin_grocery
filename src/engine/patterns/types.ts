@@ -1,5 +1,5 @@
 import type Phaser from 'phaser';
-import type { Build, BurnEffect, SlowEffect, WeaponBase, WeaponPattern, WeaponStats } from '../../types';
+import type { Build, BurnEffect, HitSource, SlowEffect, WeaponBase, WeaponPattern, WeaponStats } from '../../types';
 import type { HitTracker } from '../../systems/combat';
 import type { AudioKey } from '../../data/assets';
 import type { CombatEnemy, FxApi, PlayerView } from '../ctx';
@@ -64,6 +64,8 @@ export interface Shot {
   damage: number;
   tracker: HitTracker;
   stats: WeaponStats | null; // null = enemy projectile
+  /** The enemy attack that fired it, kept from fire time (null for the goblin's own shots). */
+  source: HitSource | null;
   /** Armed by a hook: `pattern:shotMove` runs for the shot every frame. */
   homing: boolean;
   spin: number;

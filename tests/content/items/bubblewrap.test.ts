@@ -75,9 +75,9 @@ describe('Bubble Wrap: the legacy reads are gone', () => {
     expect(source('run.ts')).not.toMatch(/build\.armor/);
     const arena_ = source('ArenaScene.ts');
     expect(arena_).not.toContain('invulnBonus');
-    const hurt = arena_.slice(arena_.indexOf('hurtPlayer(dmg: number)'), arena_.indexOf('enemySwipe('));
+    const hurt = arena_.slice(arena_.indexOf('hurtPlayer(dmg: number, source: HitSource)'), arena_.indexOf('enemySwipe('));
     expect(hurt.indexOf('let invuln = PLAYER.invuln;')).toBeGreaterThan(-1);
-    expect(hurt.indexOf("emit('onPlayerHit'")).toBeLessThan(hurt.indexOf('damagePlayer(store.state, dmg)'));
+    expect(hurt.indexOf("emit('onPlayerHit'")).toBeLessThan(hurt.indexOf('damagePlayer(store.state, dmg, source)'));
   });
 });
 

@@ -12,7 +12,7 @@ import { isDashHit } from '../engine/hitTags';
 import { addCoins, damagePlayer, payPunchCard, takeStockroomItem } from '../state/run';
 import { hitArmor, newHitTracker, shredGain, shredStacks, tryHit, weakenedDamage, weakenMult, type HitTracker } from '../systems/combat';
 import { isWet, wetElectricMult } from '../engine/wet';
-import type { EnemyId, ShopOffer, WaveDef, WeaponStats } from '../types';
+import type { EnemyId, HitSource, ShopOffer, WaveDef, WeaponStats } from '../types';
 import { play, setWheel } from '../audio/sfx';
 import { musicFor, playMusic } from '../audio/music';
 import { settings } from '../state/settings';
@@ -33,7 +33,7 @@ import { hitTags } from '../engine/hitTags';
 import { contentSetTune } from '../engine/registry';
 import { Enemy as EnemyIds } from '../engine/ids';
 import { PhaserCtx } from './phaserCtx';
-import { createEnemy, drawTelegraph, updateEnemy, type Enemy } from './enemies';
+import { attackBy, createEnemy, drawTelegraph, updateEnemy, type Enemy } from './enemies';
 import { Arsenal } from './weapons';
 import { PlayerOverlay } from './playerOverlay';
 import { Hazards } from './hazards';
@@ -959,14 +959,14 @@ export class ArenaScene extends Phaser.Scene {
     }
   }
 
-  hurtPlayer(dmg: number): boolean {
+  hurtPlayer(dmg: number, source: HitSource): boolean {
     const p = this.player;
     if (store.state.phase !== 'combat' || this.ending || p.dead) return true;
     if (p.invulnT > 0 || p.protectT > 0 || store.state.labGod) return true;
     // Hooks may lower `dmg` and change the i-frames (Bubble Wrap: armor and +0.25 s).
     let invuln = PLAYER.invuln;
     if (this.hooks.onPlayerHit.length) { const ev = { dmg, invuln }; this.hooks.emit('onPlayerHit', ev); dmg = ev.dmg; invuln = ev.invuln; }
-    const dead = damagePlayer(store.state, dmg);
+    const dead = damagePlayer(store.state, dmg, source);
     if (store.state.punch) punchHit(store.state.punch);
     p.invulnT = invuln;
     p.hurtT = 0.45;
@@ -987,7 +987,7 @@ export class ArenaScene extends Phaser.Scene {
     const dx = near.x - e.x, dy = near.y - e.y;
     const d = near.d;
     const diff = Math.abs(Phaser.Math.Angle.Wrap(Math.atan2(dy, dx) - a));
-    if (d < e.def.attackRange + 26 + p.radius && diff < Phaser.Math.DegToRad(e.def.arcDeg / 2 + 10)) this.hurtPlayer(this.enemyDmg(e, e.def.attackDamage));
+    if (d < e.def.attackRange + 26 + p.radius && diff < Phaser.Math.DegToRad(e.def.arcDeg / 2 + 10)) this.hurtPlayer(this.enemyDmg(e, e.def.attackDamage), attackBy(e, 'swipe'));
   }
 
   /**
@@ -997,8 +997,8 @@ export class ArenaScene extends Phaser.Scene {
    */
   enemyDmg(e: Enemy, dmg: number): number { return weakenedDamage(e, dmg, this.time.now / 1000); }
 
-  spawnEnemyShot(key: string, x: number, y: number, a: number, speed: number, life: number, damage: number): void {
-    this.arsenal.spawnEnemyShot(key, x, y, a, speed, life, damage);
+  spawnEnemyShot(key: string, x: number, y: number, a: number, speed: number, life: number, damage: number, source: HitSource): void {
+    this.arsenal.spawnEnemyShot(key, x, y, a, speed, life, damage, source);
   }
 
   // ───────────────────────────── main loop ─────────────────────────────
@@ -1239,7 +1239,7 @@ export class ArenaScene extends Phaser.Scene {
       const d2 = dx * dx + dy * dy;
       if (d2 > r * r) continue;
       const charging = e.state === 'attack' && (e.def.behavior === 'charger' || (e.def.behavior === 'boss' && e.bossMove === 'charge'));
-      this.hurtPlayer(this.enemyDmg(e, e.def.contactDamage + (charging ? 3 : 0)));
+      this.hurtPlayer(this.enemyDmg(e, e.def.contactDamage + (charging ? 3 : 0)), attackBy(e, charging ? 'charge' : 'contact'));
       // Keep groceries from stacking inside the cart.
       const d = Math.sqrt(d2) || 1;
       if (e.def.behavior !== 'boss') { e.x = near.x + (dx / d) * r; e.y = near.y + (dy / d) * r; }

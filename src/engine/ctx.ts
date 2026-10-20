@@ -1,4 +1,4 @@
-import type { BurnEffect, Build, EnemyId, SlowEffect, WeaponStats } from '../types';
+import type { BurnEffect, Build, EnemyId, HitSource, ItemTypeId, SlowEffect, WeaponStats } from '../types';
 import type { StatusFx } from '../systems/combat';
 import type { UIKey } from '../i18n';
 import type { AudioKey } from '../data/assets';
@@ -179,14 +179,14 @@ export interface RuntimeCtx {
   readonly player: PlayerView;
   /** Closest point of the goblin's cart hitbox to (x, y). */
   playerNear(x: number, y: number): { x: number; y: number; d: number };
-  /** `ArenaScene.hurtPlayer`: i-frames, `onPlayerHit` hooks (Bubble Wrap armor), death. */
-  hurt(dmg: number): void;
+  /** `ArenaScene.hurtPlayer`: i-frames, `onPlayerHit` hooks (Bubble Wrap armor), death. `source` is booked in the run's damage taken. */
+  hurt(dmg: number, source: HitSource): void;
   heal(hp: number): void;
   /**
    * Damage with no hurt reaction, no i-frames and no `onPlayerHit` hooks (Ghost Pepper's burn, Scratch Ticket's loss): the HP never drops below 1, so it never
-   * kills. Ignored in god mode.
+   * kills. Ignored in god mode. Booked as item `by`'s self-damage.
    */
-  drain(hp: number): void;
+  drain(hp: number, by: ItemTypeId): void;
   /** The flying heart + "+N" popup of a heal at (x, y). */
   healFx(x: number, y: number): void;
 

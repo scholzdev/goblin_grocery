@@ -176,7 +176,7 @@ export class AisleEvents {
       sc.fx.spark(z.x, z.y - 10, 10, 0xffe066);
       sc.fx.ring('fx_pulse', z.x, z.y, P.sparkR * 2.2, 240, 0xffe066);
       play('zap', { rate: 1.1 });
-      if (sc.playerNear(z.x, z.y).d < P.sparkR) sc.hurtPlayer(P.damage);
+      if (sc.playerNear(z.x, z.y).d < P.sparkR) sc.hurtPlayer(P.damage, { how: 'event', by: 'powerSurge' });
       return false;
     });
   }
