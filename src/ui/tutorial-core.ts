@@ -45,8 +45,11 @@ export const TIPS: Entry[] = [
 const RANK: Record<TutPhase, number> = { combat: 0, shop: 1, route: 2 };
 const tutPhase = (p: Phase): TutPhase | null => (p === 'checkout' ? 'combat' : p === 'combat' || p === 'shop' || p === 'route' ? p : null);
 
-export const freshProgress = (): Progress => ({ done: false, seen: [] });
-export const skipAll = (): Progress => ({ done: true, seen: [...STEPS, ...TIPS].map((e) => e.id) });
+const OWN = new Set([...STEPS, ...TIPS].map((e) => e.id));
+/** Replay: steps and tips start over. Ids in `seen` the tutorial does not own (the systems a profile has met, state/disclosure.ts) are kept. */
+export const freshProgress = (seen: string[] = []): Progress => ({ done: false, seen: seen.filter((id) => !OWN.has(id)) });
+/** Skip: every step and tip counts as seen, other ids in `seen` are kept. */
+export const skipAll = (seen: string[] = []): Progress => ({ done: true, seen: [...freshProgress(seen).seen, ...OWN] });
 
 /** The callout to show right now (a step if its phase matches, else a triggered tip), or null. Never in the Test Lab. */
 export function pick(p: Progress, s: Snap): { id: string; tip: boolean } | null {

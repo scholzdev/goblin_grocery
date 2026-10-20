@@ -76,6 +76,14 @@ describe('tutorial step machine', () => {
     expect(pick(p, snap({ flags: ['elite'], boss: true }))).toBeNull();
     expect(show(freshProgress(), snap())).toBe('move');
   });
+
+  it('replay and skip keep the systems the profile has met', () => {
+    const seen = ['move', 'merge', 'sys:sets', 'sys:shatter'];
+    expect(freshProgress(seen).seen).toEqual(['sys:sets', 'sys:shatter']);
+    const skipped = skipAll(seen).seen;
+    expect(skipped).toEqual(expect.arrayContaining(['sys:sets', 'sys:shatter', 'move', 'door', 'merge']));
+    expect(new Set(skipped).size, 'no id twice').toBe(skipped.length);
+  });
 });
 
 it('door step completes even when a combat tip is already pickable', () => {
