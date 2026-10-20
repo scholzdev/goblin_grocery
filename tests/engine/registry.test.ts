@@ -81,6 +81,14 @@ describe('validateContent', () => {
     expect(errors({ items: { 'items/fuel.ts': item({ text: { en: item().text.en } }) } })).toMatch(/text needs both "en" and "de"/);
   });
 
+  it('checks a ★3 line like the rules: in both languages, same placeholders, keys in tune', () => {
+    const star3 = (en: string | undefined, de: string | undefined) => item({ text: { en: { ...item().text.en, star3: en }, de: { ...item().text.de, star3: de } } });
+    expect(errors({ items: { 'items/fuel.ts': star3('★3: {dps|ps} more.', '★3: {dps|ps} mehr.') } })).toBe('');
+    expect(errors({ items: { 'items/fuel.ts': star3('★3: more.', undefined) } })).toMatch(/text\.de\.star3 must be a non-empty string/);
+    expect(errors({ items: { 'items/fuel.ts': star3('★3: {dps|ps} more.', '★3: mehr.') } })).toMatch(/text\.en\.star3 and text\.de\.star3 use different placeholders/);
+    expect(errors({ items: { 'items/fuel.ts': star3('★3: {dmg} more.', '★3: {dmg} mehr.') } })).toMatch(/text\.en\.star3 uses \{dmg\} but tune has no "dmg"/);
+  });
+
   it('checks per-tier arrays', () => {
     expect(errors({ items: { 'items/fuel.ts': item({ tune: { dps: [2.5, 3.75], duration: 2 } }) } })).toMatch(/tune\.dps must be a number or an array of exactly 3 numbers/);
     expect(errors({ items: { 'items/fuel.ts': item({ tune: { dps: [1, 2, 3, 4], duration: 2 } }) } })).toMatch(/exactly 3/);
