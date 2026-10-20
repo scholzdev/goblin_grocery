@@ -51,7 +51,7 @@ export interface ShiftDef {
 /** Difficulty ladder, index 0 = Shift 1 (base game). Multipliers stack with department ones. */
 export const SHIFTS: ShiftDef[] = [
   { name: 'Day Shift', blurb: 'The store as you know it.', hpMult: 1, speedMult: 1, countMult: 1, coinMult: 1, bossHpMult: 1, dmgMult: 1 },
-  { name: 'Evening Shift', blurb: 'Tougher groceries.', hpMult: 1.2, speedMult: 1, countMult: 1, coinMult: 1, bossHpMult: 1.1, dmgMult: 1.1, boss: { coins: 45, volleyCount: 9 } },
+  { name: 'Evening Shift', blurb: 'Tougher groceries.', hpMult: 1.1, speedMult: 1, countMult: 1, coinMult: 1, bossHpMult: 1.1, dmgMult: 1.1, boss: { coins: 45, volleyCount: 9 } },
   { name: 'Late Shift', blurb: 'Tougher, faster, more of them.', hpMult: 1.35, speedMult: 1.08, countMult: 1.15, coinMult: 1, bossHpMult: 1.2, dmgMult: 1.2, boss: { coins: 60, volleyCount: 9, summonTypes: [Enemy.milk, Enemy.banana, Enemy.egg] } },
   { name: 'Graveyard Shift', blurb: 'Crowded aisles, thinner pockets.', hpMult: 1.5, speedMult: 1.12, countMult: 1.25, coinMult: 0.85, bossHpMult: 1.3, dmgMult: 1.3, boss: { coins: 80, volleyCount: 9, summonTypes: [Enemy.milk, Enemy.banana, Enemy.egg], summonCount: 6, enrageAfter: 45 } },
   { name: 'Black Friday', blurb: 'Everyone wants a refund. Everyone.', hpMult: 1.7, speedMult: 1.15, countMult: 1.35, coinMult: 0.8, bossHpMult: 1.4, dmgMult: 1.45, boss: { coins: 100, volleyCount: 11, summonTypes: [Enemy.banana, Enemy.egg, Enemy.melon], summonCount: 6, enrageAfter: 35 } },
