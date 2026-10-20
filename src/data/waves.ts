@@ -11,7 +11,7 @@ export const WAVES: WaveDef[] = [
   { index: 5, duration: 60, boss: false, total: 52, mix: { milk: 2, banana: 2, soda: 1, spitter: 1, baguette: 1.5, egg: 1, turkey: 0.8, beans: 0.8, gum: 0.8, cereal: 0.8, expired: 0.8, honey: 0.4, giftcard: 0.3, sanitizer: 0.5 }, group: [3, 5], hpScale: 1.8, speedScale: 1.06, dmgScale: 1.7 },
   { index: 6, duration: 60, boss: false, total: 55, mix: { milk: 2, banana: 2, soda: 1.5, spitter: 1.5, baguette: 1.5, egg: 1, melon: 1, turkey: 1, beans: 1, gum: 1, cereal: 1, expired: 1, honey: 0.5, giftcard: 0.3, sanitizer: 0.5 }, group: [4, 6], hpScale: 2.2, speedScale: 1.08, dmgScale: 1.85 },
   { index: 7, duration: 60, boss: false, total: 60, mix: { milk: 2, banana: 2, soda: 2, spitter: 1.5, baguette: 2, egg: 1.5, melon: 1.5, turkey: 1.2, beans: 1.2, gum: 1.2, cereal: 1.2, expired: 1.2, honey: 0.6, giftcard: 0.3, sanitizer: 0.6 }, group: [4, 7], hpScale: 2.6, speedScale: 1.1, dmgScale: 2.0 },
-  { index: 8, duration: 60, boss: true, total: 6, mix: { milk: 2, banana: 1 }, group: [2, 3], hpScale: 2.0, speedScale: 1.1, dmgScale: 1.7 },
+  { index: 8, duration: 60, boss: true, total: 6, mix: { milk: 2, banana: 1 }, group: [2, 3], hpScale: 2.6, speedScale: 1.1, dmgScale: 2.1 },
 ];
 
 export const BOSS_WAVE = WAVES.length;
