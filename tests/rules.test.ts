@@ -13,7 +13,7 @@ import { RECIPES } from '../src/data/recipes';
 import { DEPARTMENTS, DEPT_TUNING, THEMES } from '../src/data/departments';
 import { DOOR_POOL, MODIFIERS, ROOM_DOORS } from '../src/data/modifiers';
 import { BOSS_WAVE, ECONOMY, OVERTIME, SHIFTS, SHOP_LEVELS, WAVES, waveDef, bossTuning, eliteChance, enemyAppears } from '../src/data/waves';
-import { BOSS, THEME_SUMMONS, CODEX_ENEMIES, ELITE, ELITE_EXCLUDED, ENEMIES } from '../src/data/enemies';
+import { BOSS, THEME_SUMMONS, CODEX_ENEMIES, ELITE, ELITE_EXCLUDED, ENEMIES, MINI_BOSS } from '../src/data/enemies';
 import { enemyT } from '../src/i18n/data';
 import { setLang } from '../src/i18n/lang';
 import { ITEMS, ITEM_IDS, PLAYER, STARTER_WEAPONS, TIER } from '../src/data/items';
@@ -923,6 +923,10 @@ describe('shifts & overtime', () => {
     for (const id of ELITE_EXCLUDED) for (const w of [3, 6, BOSS_WAVE, BOSS_WAVE + 2]) expect(eliteChance(id, waveDef(w), 3)).toBe(0);
     expect(eliteChance('turkey', waveDef(BOSS_WAVE), 0)).toBe(0);
   });
+  it('aisle 4 brings no new grocery type: the mini-boss is its new thing', () => {
+    expect(MINI_BOSS.aisle).toBe(4);
+    for (const id of Object.keys(WAVES[3].mix) as (keyof typeof WAVES[3]['mix'])[]) expect(WAVES[2].mix[id] ?? 0, id).toBeGreaterThan(0);
+  });
   it('frozen turkey: tank in the later mixes only, frozen dept may boost it', () => {
     expect(ENEMIES.turkey.behavior).toBe('tank');
     expect(ENEMIES.turkey.hp).toBeGreaterThan(ENEMIES.soda.hp);
@@ -1200,7 +1204,7 @@ describe('Test Lab', () => {
 describe('enemy codex', () => {
   it('enemyAppears gives the first aisle', () => {
     expect(enemyAppears('milk').first).toBe(1);
-    expect(enemyAppears('turkey').first).toBe(4);
+    expect(enemyAppears('turkey').first).toBe(5);
     expect(enemyAppears('slice').first).toBe(enemyAppears('melon').first);
     expect(enemyAppears('boss').first).toBe(BOSS_WAVE);
     expect(enemyAppears('milk').depts).toContain('frozen');
