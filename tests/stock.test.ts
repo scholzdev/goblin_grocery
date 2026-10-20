@@ -45,7 +45,13 @@ const seeAll = () => { profile.seen = UNLOCKS.flatMap((u) => (u.kind === 'item' 
 
 describe('run stock: what flow.startRun puts in the run', () => {
   const saved = { unlocked: [...profile.unlocked], seen: [...profile.seen] };
-  beforeEach(() => { flow.init(fakeGame as never); profile.unlocked = []; profile.seen = []; });
+  beforeEach(() => {
+    flow.init(fakeGame as never);
+    profile.unlocked = [];
+    profile.seen = [];
+    vi.spyOn(Date, 'now').mockReturnValue(424242);
+    vi.spyOn(Math, 'random').mockReturnValue(0);
+  });
   afterEach(() => { profile.unlocked = saved.unlocked; profile.seen = saved.seen; vi.restoreAllMocks(); });
 
   it('a fresh profile keeps every starting shop item', () => {
@@ -100,8 +106,6 @@ describe('run stock: what flow.startRun puts in the run', () => {
 
   it('drawing the stock leaves flow.rng alone: shops 2+ roll the same with or without an extra stock draw', () => {
     unlockAll(); seeAll();
-    vi.spyOn(Date, 'now').mockReturnValue(424242);
-    vi.spyOn(Math, 'random').mockReturnValue(0);
     const shops = (extraDraw: boolean) => {
       flow.startRun('toaster', 0, 'nailgun', 'electronics');
       const s = store.state;
