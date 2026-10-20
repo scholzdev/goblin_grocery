@@ -1,11 +1,11 @@
 import { origin } from './common';
 import type { Pattern, PatternHost, Shot } from './types';
 
-/** Popcorn ★3: a kernel whose flight ran out without a hit pops once more, from where it landed at the nearest enemy in range. */
-export function repopKernel(h: PatternHost, s: Shot): void {
+/** Popcorn ★3: a kernel whose flight ran out without a hit pops once more for `damage`, from where it landed at the nearest enemy in range. */
+export function repopKernel(h: PatternHost, s: Shot, damage: number): void {
   const st = s.stats!, t = h.sc.nearestEnemyFrom(s.x, s.y, st.range);
   if (!t) return;
-  h.spawn('proj_kernel', s.x, s.y, Math.atan2(t.y - s.y, t.x - s.x), st.projectileSpeed, st.range / st.projectileSpeed, s.repop, st, 1 + st.pierce);
+  h.spawn('proj_kernel', s.x, s.y, Math.atan2(t.y - s.y, t.x - s.x), st.projectileSpeed, st.range / st.projectileSpeed, damage, st, 1 + st.pierce);
   h.sound('toast_pop', { rate: 1.4, volume: 0.5 });
 }
 

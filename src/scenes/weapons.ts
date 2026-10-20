@@ -41,7 +41,7 @@ export class Arsenal implements PatternHost {
   private makeShot(key: string): Shot {
     const img = this.scene.add.image(0, 0, key).setVisible(false);
     const shadow = this.scene.add.image(0, 0, 'shadow').setVisible(false).setDisplaySize(22, 7).setAlpha(0.6).setDepth(DEPTH.decal);
-    return { img, shadow, active: false, x: 0, y: 0, vx: 0, vy: 0, life: 0, damage: 0, tracker: newHitTracker(1), stats: null, homing: false, spin: 0, maxLife: 1, ricochet: false, splash: null, killBounce: false, repop: 0 };
+    return { img, shadow, active: false, x: 0, y: 0, vx: 0, vy: 0, life: 0, damage: 0, tracker: newHitTracker(1), stats: null, homing: false, spin: 0, maxLife: 1, ricochet: false, splash: null };
   }
 
   /** The runtime of the weapon with this uid (what `ctx.sweep` / `explode` / `beam` act on). */

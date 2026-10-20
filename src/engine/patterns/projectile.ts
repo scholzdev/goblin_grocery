@@ -21,7 +21,7 @@ export function updateShots(h: PatternHost, dt: number): void {
     if (!s.active) continue;
     s.life -= dt;
     if (s.life <= 0) {
-      if (s.repop && !s.tracker.hits.size) repopKernel(h, s);
+      if (s.repop && !s.tracker.hits.size) repopKernel(h, s, s.repop);
       h.kill(s);
       continue;
     }
