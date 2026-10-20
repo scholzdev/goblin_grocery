@@ -5,7 +5,7 @@ import { DEPARTMENTS } from '../data/departments';
 import { ZONES, type ZoneId } from '../data/zones';
 import { SHIFTS } from '../data/waves';
 import { CART_SKINS, GOBLIN_SKINS, UNLOCKS } from '../data/unlocks';
-import { enemyTextTune } from '../engine/define';
+import { enemyTextTune, hasStar3 } from '../engine/define';
 import { contentCombo, contentEnemy, contentItem, contentSet } from '../engine/registry';
 import { renderAll, renderText } from '../engine/text';
 import type { CartSkin, GoblinSkin } from '../data/unlocks';
@@ -22,7 +22,7 @@ export const itemT = (id: ItemTypeId) => {
 export const itemRules = (id: ItemTypeId, tier = 1): string => {
   const c = contentItem(id)!, t = c.text[lang()];
   const rules = renderText(t.rules, c.tune, tier, lang());
-  return tier >= 3 && t.star3 ? `${rules} ${renderText(t.star3, c.tune, tier, lang())}` : rules;
+  return hasStar3(tier) && t.star3 ? `${rules} ${renderText(t.star3, c.tune, tier, lang())}` : rules;
 };
 /** A combo's name and texts in the current language, the placeholders filled from its tune. */
 export const recipeT = (id: RecipeId) => {
