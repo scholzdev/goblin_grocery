@@ -44,7 +44,7 @@ describe('shop receipt: interest next aisle', () => {
 
   it('shows the higher cap of Checkout L2', () => {
     const s = run(80);
-    s.inventory = build([at('pan'), far('bell'), far('flag'), far('tipjar')], 8, 6);
+    s.inventory = build([at('pan'), far('bell'), far('flag'), far('tipjar', 2)], 8, 6);
     recomputeBuild(s);
     expect(interestLineHtml(s)).toContain('+6 (max 6)');
   });

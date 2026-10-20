@@ -71,7 +71,7 @@ describe('Ice Sheet: wet + a frost hit', () => {
   it('with the Frost set a freeze pre-empts it: a hit that freezes never slides, one that does not freeze does (the wet freeze chance is doubled)', () => {
     let froze = 0, slid = 0;
     for (let seed = 1; seed <= 60 && !(froze && slid); seed++) {
-      const { fake, stats } = arsenal([at('fizz'), at('ice'), at('mop')], { seed });
+      const { fake, stats } = arsenal([at('fizz'), at('ice'), at('mop', 2)], { seed });
       expect(fake.build.sets.frost).toBeGreaterThanOrEqual(2);
       const e = fake.spawnEnemy({ hp: 1000, x: 100 });
       fake.wet(e);

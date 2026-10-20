@@ -10,7 +10,7 @@ import { around, arsenal, at, setTuneAt, stats } from '../helpers';
 
 afterEach(() => setLang('en'));
 
-// A lone ★3 cleaning weapon is 3 Cleaning set points: L2 (range / area x1.15, puddles +1 s).
+// A lone ★3 cleaning weapon is 3 Cleaning set points: L1 (range / area x1.15).
 const CLEANING = setTuneAt('cleaning', 3)!;
 
 // Cone: a blast toward the nearest enemy, every enemy in it once (engine/patterns/cone.ts). The leaf blower's push (300), sprite (fx_gust) and slam damage come from its content; the spray bottle shares the pattern.

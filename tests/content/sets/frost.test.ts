@@ -10,12 +10,12 @@ afterEach(() => setLang('en'));
 
 const ice = contentTune('ice', 1); // slow pct .25 for 1 s at ★1
 const FIZZ = at('fizz'), ICE = at('ice'); // a frost weapon, and its Ice Pack touching it
-// Frost members that touch nothing: Mop and Spray Bottle (weapons elsewhere in the cart).
-const cart = (n: number) => [FIZZ, ICE, ...[far('mop'), far('spray')].slice(0, n)];
+// Frost members that touch nothing: a ★2 Mop and a ★2 Spray Bottle (weapons elsewhere in the cart), 2 Frost points each.
+const cart = (n: number) => [FIZZ, ICE, ...[far('mop', 2), far('spray', 2)].slice(0, n)];
 const stats = (c: Parameters<typeof full>[0]) => full(c).weapons[0];
 
 describe('Frost set: slow bonus', () => {
-  it('2 / 3 / 4 set points (one per ★1 frost type) give L1 / L2 / L3 (fizz + ice = 2)', () => {
+  it('2 / 4 / 6 set points give L1 / L2 / L3 (fizz + ice = 2, each ★2 member adds 2)', () => {
     expect([0, 1, 2].map((n) => full(cart(n)).sets.frost)).toEqual([1, 2, 3]);
     expect(full([FIZZ, far('ice')]).sets.frost).toBe(1);
   });
@@ -33,10 +33,11 @@ describe('Frost set: slow bonus', () => {
     expect(stats(cart(2)).slow).toEqual({ pct: ice.pct + 0.15, duration: ice.duration });
   });
 
-  it('is capped at 60% (L1, L2) / 70% (L3); a Gold Star-lifted Ice Pack is 4 Frost points on its own, so it meets the L3 cap', () => {
+  it('is capped at 60% (L1, L2) / 70% (L3); a Gold Star-lifted Ice Pack is 4 Frost points, so two ★1 members take it to the L3 cap', () => {
     expect(contentTune('ice', 4).pct).toBeGreaterThan(0.6);
-    expect(stats([FIZZ, at('ice', 3), gilded(1)]).slow!.pct).toBe(0.7); // ★3 lifted to an effective ★4: 5 Frost points, L3
-    expect(stats([at('pan'), at('ice', 3)]).slow!.pct).toBeCloseTo(0.6, 12); // ★3 alone: 3 Frost points, L2: 0.5 + 0.1, right at the cap
+    expect(stats([FIZZ, at('ice', 3), gilded(1), far('mop')]).slow!.pct).toBe(0.7); // ★3 lifted to an effective ★4: 6 Frost points, L3
+    expect(stats([FIZZ, at('ice', 3), gilded(1)]).slow!.pct).toBe(0.6); // 5 Frost points: L2, still the 60% cap
+    expect(stats([at('pan'), at('ice', 3)]).slow!.pct).toBeCloseTo(0.6, 12); // ★3 alone: 3 Frost points, L1: 0.5 + 0.1, right at the cap
   });
 
   it('applies to the slow a combo sets, not only the Ice Pack\'s (after the combos)', () => {
@@ -151,9 +152,9 @@ describe('Frost set: freeze', () => {
 });
 
 describe('Frost set: draw order next to the Electric chain', () => {
-  // Nailgun (electrical) + Ice Pack touching it + Fizz and Mop (Frost L2) + Battery (Electric L1: 10% to arc to 1 enemy): both sets roll on one hit.
+  // Nailgun (electrical) + Ice Pack touching it + Fizz and a ★2 Mop (Frost L2) + Battery (Electric L1: 10% to arc to 1 enemy): both sets roll on one hit.
   const both = (seed: number) => {
-    const a = arena([at('nailgun'), ICE, far('fizz'), far('mop'), far('battery')], { seed });
+    const a = arena([at('nailgun'), ICE, far('fizz'), far('mop', 2), far('battery')], { seed });
     const target = a.fake.spawnEnemy({ hp: 1000, x: 0, y: 0 }), other = a.fake.spawnEnemy({ hp: 1000, x: 60, y: 0 });
     return { ...a, target, other };
   };

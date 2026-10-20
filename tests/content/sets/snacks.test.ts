@@ -9,12 +9,12 @@ import { expectSetText } from './helpers';
 afterEach(() => setLang('en'));
 
 const FIZZ = at('fizz'); // a snacks weapon
-// Snacks members with no HP or regen of their own: Energy Drink and Fortune Cookie (passives), Multipack (a module not next to the weapon).
-const MEMBERS = [far('energy'), far('fortune'), far('multipack')];
+// Snacks members with no HP or regen of their own: Energy Drink and a ★2 Fortune Cookie (passives), a ★2 Multipack (a module not next to the weapon).
+const MEMBERS = [far('energy'), far('fortune', 2), far('multipack', 2)];
 const cart = (n: number) => [FIZZ, ...MEMBERS.slice(0, n)];
 
 describe('Snacks set: thresholds', () => {
-  it('2 / 3 / 4 set points (one per ★1 snacks type) give L1 / L2 / L3; the weapon alone is 1', () => {
+  it('2 / 4 / 6 set points give L1 / L2 / L3 (weapon 1, energy 1, each ★2 member 2); the weapon alone is 1', () => {
     expect([0, 1, 2, 3].map((n) => full(cart(n)).sets.snacks)).toEqual([0, 1, 2, 3]);
   });
 
@@ -50,15 +50,15 @@ describe('Snacks set: thresholds', () => {
   it('adds to the items\' own HP and regen: Lunchbox, Snack Bag (their regen 0.25 plus the set\'s, either order)', () => {
     const lunch = contentTune('lunchbox', 1).hp;
     expect(full([FIZZ, far('lunchbox'), far('energy')]).maxHp).toBe(PLAYER.maxHp + Math.round(lunch) + 10);
-    const bag = full([FIZZ, far('snackbag'), far('energy'), far('fortune')]); // L3: fizz, snackbag, energy, fortune
+    const bag = full([FIZZ, far('snackbag'), far('energy', 2), far('fortune', 2)]); // L3: fizz 1, snackbag 1, ★2 energy 2, ★2 fortune 2
     expect(bag.sets.snacks).toBe(3);
     expect(bag.regen).toBeCloseTo(0.25 + 0.6, 12);
   });
 
   it('comes before Expired Milk\'s x0.9: the curse multiplies the finished total, rounded once', () => {
-    // Expired Milk is a snacks passive itself: fizz + energy + milk = L2 (+10 HP), + fortune = L3 (+20 HP).
+    // Expired Milk is a snacks passive itself: fizz + energy + milk = 3 points, L1 (+10 HP); ★2 energy + ★2 fortune make 6, L3 (+20 HP).
     expect(full([FIZZ, far('energy'), far('expiredmilk')]).maxHp).toBe(Math.round((PLAYER.maxHp + 10) * 0.9));
-    expect(full([FIZZ, far('energy'), far('fortune'), far('expiredmilk')]).maxHp).toBe(Math.round((PLAYER.maxHp + 20) * 0.9));
+    expect(full([FIZZ, far('energy', 2), far('fortune', 2), far('expiredmilk')]).maxHp).toBe(Math.round((PLAYER.maxHp + 20) * 0.9));
   });
 });
 

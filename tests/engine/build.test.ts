@@ -89,7 +89,7 @@ describe('computeBuild dispatch', () => {
   });
 
   it('runs a set hook when its level is above 0, with the level as tier', () => {
-    run('toaster', ['sample', 'ice']); // toaster (kitchen), sample (kitchen), ice (kitchen): Kitchen L2
+    run('toaster', ['sample', 'ice', 'basil']); // toaster, sample, ice, basil: 4 Kitchen points, Kitchen L2
     expect(calls.filter((c) => c.startsWith('set'))).toEqual(['set:2']);
   });
 

@@ -209,7 +209,7 @@ describe('the real registry', () => {
     expect(contentSets().map((c) => c.id).sort()).toEqual([...SET_ORDER].sort());
     expect(SET_IDS).toEqual(SET_ORDER);
     for (const id of SET_ORDER) expect(contentSet(id)?.id).toBe(id);
-    expect(SET_THRESHOLDS).toEqual([2, 3, 4]);
+    expect(SET_THRESHOLDS).toEqual([2, 4, 6]);
   });
   it('every set tune is a number or an L1/L2/L3 triple, and each bonus line renders at its level in EN and DE', () => {
     for (const c of contentSets()) {

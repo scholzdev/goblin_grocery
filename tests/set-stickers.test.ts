@@ -18,19 +18,20 @@ describe('setGains', () => {
     expect(setGains(at('bell'), { type: 'bell', tier: 2 })).toEqual([{ id: 'checkout', from: 1, to: 2, levelUp: true }]);
     expect(setGains(at('bell'), { type: 'pricegun', tier: 3 })).toEqual([{ id: 'checkout', from: 1, to: 4, levelUp: true }]);
   });
-  it('level-up at 2 -> 3 as well', () => {
-    expect(setGains(at('bell', 'pricegun'), { type: 'coupon' })).toEqual([{ id: 'checkout', from: 2, to: 3, levelUp: true }]);
+  it('level-up at 3 -> 4 (level 2) as well; 2 -> 3 stays level 1', () => {
+    expect(setGains(at('bell', 'pricegun'), { type: 'coupon' })).toEqual([{ id: 'checkout', from: 2, to: 3, levelUp: false }]);
+    expect(setGains(at('bell', 'pricegun', 'coupon'), { type: 'bubblewrap' })).toEqual([{ id: 'checkout', from: 3, to: 4, levelUp: true }]);
   });
   it('multi-set item returns one entry per set', () => {
     const g = setGains(at('pan', 'blender', 'mop'), { type: 'ice' });
     expect(g.map((x) => x.id).sort()).toEqual(['frost', 'kitchen']);
-    expect(g.find((x) => x.id === 'kitchen')).toMatchObject({ from: 2, to: 3, levelUp: true });
+    expect(g.find((x) => x.id === 'kitchen')).toMatchObject({ from: 2, to: 3, levelUp: false });
     expect(g.find((x) => x.id === 'frost')).toMatchObject({ from: 1, to: 2, levelUp: true });
   });
   it('maxed sets are skipped', () => {
-    // Max level is 3 = thresholds[2] (4 points); 3 points is still gaining.
-    expect(setGains(at('bell', 'pricegun', 'coupon'), { type: 'bubblewrap' })).toEqual([{ id: 'checkout', from: 3, to: 4, levelUp: true }]);
-    expect(setGains(at('bell', 'pricegun', 'coupon', 'bubblewrap'), { type: 'goldstar' })).toEqual([]);
+    // Max level is 3 = thresholds[2] (6 points); 5 points is still gaining.
+    expect(setGains([pack('bell', { tier: 3 }), pack('pricegun', { tier: 2 })], { type: 'bubblewrap' })).toEqual([{ id: 'checkout', from: 5, to: 6, levelUp: true }]);
+    expect(setGains([pack('bell', { tier: 3 }), pack('pricegun', { tier: 3 })], { type: 'goldstar' })).toEqual([]);
   });
   it('a double pack of a type already owned as a double pack predicts no level-up (bug 6)', () => {
     expect(setGains([pack('bell', { double: true }), pack('pricegun')], { type: 'bell', double: true }), '[bell (double), pricegun] + double Bell').toEqual([]);

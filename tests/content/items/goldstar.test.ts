@@ -33,9 +33,11 @@ describe('Gold Star Sticker: tier lift', () => {
     expect(crit([at('toaster'), corner('fortune', 1), gilded(1)])).toBeCloseTo(0.075, 12); // ★1 -> effective ★2
   });
 
-  it('lifts a touching passive that only changes the player (Lunchbox ★3: 30 -> 37.5 -> 38 max HP), and its set points (Snacks L2 -> L3)', () => {
-    expect(full([at('toaster'), corner('lunchbox', 3)]).maxHp).toBe(40 + 30 + contentSetTune('snacks', 2).maxHp);
-    expect(full([at('toaster'), corner('lunchbox', 3), gilded(1)]).maxHp).toBe(40 + 38 + contentSetTune('snacks', 3).maxHp);
+  it('lifts a touching passive that only changes the player (Lunchbox ★3: 30 -> 37.5 -> 38 max HP), and its set points (Snacks L1 -> L2)', () => {
+    expect(full([at('toaster'), corner('lunchbox', 3)]).sets.snacks).toBe(1);
+    expect(full([at('toaster'), corner('lunchbox', 3)]).maxHp).toBe(40 + 30 + contentSetTune('snacks', 1).maxHp);
+    expect(full([at('toaster'), corner('lunchbox', 3), gilded(1)]).sets.snacks).toBe(2);
+    expect(full([at('toaster'), corner('lunchbox', 3), gilded(1)]).maxHp).toBe(40 + 38 + contentSetTune('snacks', 2).maxHp);
   });
 
   it('only lifts what it touches', () => {

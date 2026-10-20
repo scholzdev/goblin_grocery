@@ -10,14 +10,14 @@ afterEach(() => setLang('en'));
 const fuel = contentTune('fuel', 1); // the burn the Fuel Can gives at ★1; the set's ignite is built from it too
 const PAN = at('pan'); // a heat weapon (kitchen, element heat)
 const FUEL = at('fuel'); // touches the pan: gives it a burn
-// Heat members that touch nothing: Hot Sauce (module), Cooker and Toaster (weapons elsewhere in the cart).
-const burnCart = (n: number) => [PAN, FUEL, ...[far('hotsauce'), far('cooker')].slice(0, n)];
-const igniteCart = (n: number) => [PAN, ...[far('hotsauce'), far('cooker'), far('toaster')].slice(0, n)];
+// Heat members that touch nothing: Hot Sauce (module), Cooker and Toaster (weapons elsewhere in the cart). A ★2 member is 2 points.
+const burnCart = (n: number) => [PAN, FUEL, ...[far('hotsauce', 2), far('cooker', 2)].slice(0, n)];
+const igniteCart = (n: number) => [PAN, ...[far('hotsauce'), far('cooker', 2), far('toaster', 2)].slice(0, n)];
 const stats = (c: Parameters<typeof full>[0]) => full(c).weapons[0];
 
 describe('Heat set: burn', () => {
-  it('2 / 3 / 4 set points (one per ★1 heat type) give L1 / L2 / L3; the pan alone is 1', () => {
-    expect([0, 1, 2].map((n) => full(burnCart(n)).sets.heat)).toEqual([1, 2, 3]); // pan + fuel = 2 types, + hotsauce 3, + cooker 4
+  it('2 / 4 / 6 set points give L1 / L2 / L3; the pan alone is 1', () => {
+    expect([0, 1, 2].map((n) => full(burnCart(n)).sets.heat)).toEqual([1, 2, 3]); // pan + fuel = 2 points, + ★2 hotsauce 4, + ★2 cooker 6
     expect(full([PAN]).sets.heat).toBe(0);
   });
 
@@ -39,7 +39,7 @@ describe('Heat set: burn', () => {
   });
 
   it('extends any weapon\'s burn, not only heat weapons\'', () => {
-    const fizz = stats([at('fizz'), FUEL, far('hotsauce'), far('cooker')]); // heat L2 (fuel, hotsauce, cooker), fizz is frost
+    const fizz = stats([at('fizz'), FUEL, far('hotsauce'), far('cooker', 2)]); // heat L2 (fuel 1, hotsauce 1, ★2 cooker 2), fizz is frost
     expect(fizz.burn).toEqual({ dps: fuel.dps * 1.4, duration: fuel.duration + 1, tick: fuel.tick });
   });
 
@@ -51,7 +51,7 @@ describe('Heat set: burn', () => {
 });
 
 describe('Heat set: ignite chance (L2+)', () => {
-  it('no ignite below L2: L0 (the pan alone) and L1 (two heat types)', () => {
+  it('no ignite below L2: L0 (the pan alone) and L1 (two heat points)', () => {
     expect(stats(igniteCart(0)).ignite).toBeNull();
     expect(full(igniteCart(1)).sets.heat).toBe(1);
     expect(stats(igniteCart(1)).ignite).toBeNull();
@@ -67,11 +67,11 @@ describe('Heat set: ignite chance (L2+)', () => {
   });
 
   it('only for heat-element weapons without a burn', () => {
-    expect(stats([at('fizz'), far('hotsauce'), far('cooker'), far('toaster')]).ignite).toBeNull(); // fizz is a frost weapon
-    const withBurn = stats([PAN, FUEL, far('hotsauce'), far('cooker')]);
+    expect(stats([at('fizz'), far('hotsauce'), far('cooker', 2), far('toaster', 2)]).ignite).toBeNull(); // fizz is a frost weapon
+    const withBurn = stats([PAN, FUEL, far('hotsauce'), far('cooker', 2)]);
     expect(withBurn.burn).not.toBeNull();
     expect(withBurn.ignite).toBeNull();
-    const beans = stats([PAN, { ...far('jellybeans'), flavor: 'heat' }, far('cooker')]); // L2 through the beans
+    const beans = stats([PAN, { ...far('jellybeans'), flavor: 'heat' }, far('cooker', 2)]); // L2 through the beans
     expect(beans.ignite).not.toBeNull(); // the pan itself is heat; the beans are far, so the pan has no burn
   });
 });

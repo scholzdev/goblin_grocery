@@ -552,7 +552,7 @@ describe('tiers', () => {
     const mop = w0(inv(it_('mop', 0, 0), it_('fuel', 1, 0)));
     expect(mop.recipes).toContain('greaseFire');
     expect(mop.burn).toEqual({ dps: 5, duration: 2, tick: 0.5 });
-    expect(w0(inv(it_('mop', 0, 0), mk('fuel', 1, 0, 3))).burn!.dps).toBeCloseTo(10 * contentSetTune('heat', 2).burnMult); // the ★3 can is 3 Heat points: L2
+    expect(w0(inv(it_('mop', 0, 0), mk('fuel', 1, 0, 3))).burn!.dps).toBeCloseTo(10); // the ★3 can alone is 3 Heat points: L1, no dps multiplier
     expect(w0(inv(it_('toaster', 0, 0), it_('fuel', 2, 0))).burn!.dps).toBe(2.5);
   });
   it('bubble wrap armor is an onPlayerHit hook (content/items/bubblewrap.test.ts); damagePlayer is plain', () => {
@@ -1418,7 +1418,7 @@ describe('set bonuses', () => {
     expect(setLevels(sh.placed).kitchen).toBe(1);
     sh.shelf[0] = it_('microwave', 0, 0);
     expect(setLevels(sh.placed).kitchen).toBe(1);
-    sh.placed.push(it_('hotsauce', 4, 0));
+    sh.placed.push(mk('hotsauce', 4, 0, 2));
     expect(setLevels(sh.placed)).toMatchObject({ kitchen: 2, heat: 2, electric: 0, tools: 0 });
     expect(setLevels([]).kitchen).toBe(0);
   });
@@ -1436,23 +1436,23 @@ describe('set bonuses', () => {
     expect(computeBuild(inv(it_('toaster', 0, 0), it_('popper', 2, 0), it_('multipack', 3, 0))).weapons[0].popper!.radius).toBeCloseTo(70 * 1.15);
   });
   it('tools L2 doubles dash damage; snacks L2 regen stacks with snack bag', () => {
-    const t3 = b('nailgun', 'tape', 'boot');
+    const t3 = b('nailgun', 'tape', 'boot', 'magnet');
     expect(t3.shoveDamage).toBe((PLAYER.shove.damage + contentTune('boot', 1).damage) * 2);
-    expect(b('lunchbox', 'energy', 'fizz').regen).toBeCloseTo(0.3);
-    expect(b('lunchbox', 'energy', 'snackbag').regen).toBeCloseTo(contentTune('snackbag', 1).regenHp / contentTune('snackbag', 1).interval + 0.3);
+    expect(b('lunchbox', 'energy', 'fizz', 'fortune').regen).toBeCloseTo(0.3);
+    expect(b('lunchbox', 'energy', 'snackbag', 'fortune').regen).toBeCloseTo(contentTune('snackbag', 1).regenHp / contentTune('snackbag', 1).interval + 0.3);
   });
   it('heat L2: burn dps x1.4 and heat weapons without fuel ignite', () => {
-    const w = bw('toaster', 'pan', 'microwave');
+    const w = bw('toaster', 'pan', 'microwave', 'cooker');
     expect(w.burn).toBeNull();
     expect(w.ignite).toEqual({ chance: 0.15, burn: { dps: 2.5 * 1.4, duration: 3, tick: 0.5 } });
     expect(bw('toaster', 'pan').ignite).toBeNull();
-    const f = w0(inv(it_('pan', 0, 0), it_('fuel', 1, 0), it_('toaster', 0, 3)));
+    const f = w0(inv(it_('pan', 0, 0), it_('fuel', 1, 0), it_('toaster', 0, 3), it_('cooker', 3, 3)));
     expect(f.burn).toEqual({ dps: 2.5 * 1.4, duration: 3, tick: 0.5 });
     expect(f.ignite).toBeNull();
   });
   it('electric: non-zap electrical weapons chain, microwave does not', () => {
     expect(bw('toaster', 'nailgun').chainChance).toBe(0.1);
-    expect(bw('toaster', 'nailgun', 'battery').chainJumps).toBe(2);
+    expect(bw('toaster', 'nailgun', 'battery', 'microwave').chainJumps).toBe(2);
     expect(bw('microwave', 'toaster').chainChance).toBe(0);
     expect(bw('pan', 'toaster').chainChance).toBe(0);
   });
@@ -1466,7 +1466,7 @@ describe('set bonuses', () => {
     expect(cheap.some((o, i) => o.price < full[i].price)).toBe(true);
     const s1 = { ...s, coinLog: [], money: 100 } as RunState; finishWave(s1);
     expect(s1.coinLog.find((c) => c.label === 'Interest')!.amount).toBe(3);
-    s.inventory.placed.push(it_('pricegun', 2, 3));
+    s.inventory.placed.push(mk('pricegun', 2, 3, 2));
     s.build = computeBuild(s.inventory);
     const s2 = { ...s, coinLog: [], money: 100 } as RunState; finishWave(s2);
     expect(s2.coinLog.find((c) => c.label === 'Interest')!.amount).toBe(6);

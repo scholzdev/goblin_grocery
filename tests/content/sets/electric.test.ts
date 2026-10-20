@@ -11,13 +11,13 @@ import { draws, expectSetText, seedWhere } from './helpers';
 afterEach(() => setLang('en'));
 
 const TOASTER = at('toaster'); // an electrical weapon (toast)
-// Electric members that touch nothing: Battery (module), Vacuum and Blender (electrical weapons elsewhere in the cart).
-const MEMBERS = [far('battery'), far('vacuum'), far('blender')];
+// Electric members that touch nothing: Battery (module), a ★2 Vacuum and a ★2 Blender (electrical weapons elsewhere in the cart, 2 points each).
+const MEMBERS = [far('battery'), far('vacuum', 2), far('blender', 2)];
 const cart = (n: number) => [TOASTER, ...MEMBERS.slice(0, n)];
 const stats = (c: Parameters<typeof full>[0], i = 0) => full(c).weapons[i];
 
 describe('Electric set: chain stats', () => {
-  it('2 / 3 / 4 set points (one per ★1 electrical type) give L1 / L2 / L3; the toaster alone is 1', () => {
+  it('2 / 4 / 6 set points give L1 / L2 / L3 (toaster 1, battery 1, each ★2 member 2); the toaster alone is 1', () => {
     expect([0, 1, 2, 3].map((n) => full(cart(n)).sets.electric)).toEqual([0, 1, 2, 3]);
   });
 
@@ -36,15 +36,15 @@ describe('Electric set: chain stats', () => {
     expect(by('toaster').chainChance).toBe(0.3);
     expect(by('vacuum').chainChance).toBe(0.3);
     expect(by('blender').chainChance).toBe(0.3);
-    const micro = full([at('microwave'), far('battery'), far('vacuum')]);
-    expect(micro.sets.electric).toBe(2); // microwave + battery + vacuum = 3 types: L2
+    const micro = full([at('microwave'), far('battery'), far('vacuum', 2)]);
+    expect(micro.sets.electric).toBe(2); // microwave 1 + battery 1 + ★2 vacuum 2 = 4 points: L2
     expect(micro.weapons.find((w) => w.type === 'microwave')!.chainChance).toBe(0);
     expect(micro.weapons.find((w) => w.type === 'vacuum')!.chainChance).toBe(0.2);
   });
 
   it('non-electrical weapons get nothing', () => {
-    const pan = full([at('pan'), far('battery'), far('vacuum'), far('blender')]);
-    expect(pan.sets.electric).toBe(2); // three electrical types, none of them the pan: L2
+    const pan = full([at('pan'), far('battery'), far('vacuum', 2), far('blender')]);
+    expect(pan.sets.electric).toBe(2); // three electrical types (4 points), none of them the pan: L2
     expect(pan.weapons.find((w) => w.type === 'pan')!.chainChance).toBe(0);
   });
 });

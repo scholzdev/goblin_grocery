@@ -11,12 +11,12 @@ afterEach(() => setLang('en'));
 const popper = contentTune('popper', 1); // damage and radius of the Party Popper blast at ★1
 const GUN = at('nailgun'); // a blast weapon (element blast)
 const stats = (c: Parameters<typeof full>[0]) => full(c).weapons[0];
-// Blast members that touch nothing: Slam Bumper (passive), Double Bag (module not next to the weapon), Party Popper (module, far).
-const popFar = [far('popper'), far('bumper'), far('doublebag')];
-const rooms = (n: number) => [GUN, ...popFar.slice(0, n)]; // nailgun counts too: n = 1 -> 2 blast types (L1) ...
+// Blast members that touch nothing: Party Popper (module, far), a ★2 Slam Bumper (passive) and a ★2 Double Bag (module not next to the weapon).
+const popFar = [far('popper'), far('bumper', 2), far('doublebag', 2)];
+const rooms = (n: number) => [GUN, ...popFar.slice(0, n)]; // nailgun counts too: n = 1 -> 2 blast points (L1), 2 -> 4 (L2), 3 -> 6 (L3)
 
 describe('Blast set: thresholds and radius', () => {
-  it('2 / 3 / 4 set points (one per ★1 blast type) give L1 / L2 / L3', () => {
+  it('2 / 4 / 6 set points give L1 / L2 / L3', () => {
     expect([0, 1, 2, 3].map((n) => full(rooms(n)).sets.blast)).toEqual([0, 1, 2, 3]);
   });
 
@@ -30,7 +30,7 @@ describe('Blast set: thresholds and radius', () => {
   });
 
   it('L3 replaces the number: 25%', () => {
-    const w = stats([at('pan'), at('popper'), far('bumper'), far('doublebag'), far('multipack')]); // 4 blast types
+    const w = stats([at('pan'), at('popper'), far('bumper', 2), far('doublebag', 2), far('multipack')]); // 4 blast types, 6 points
     expect(w.popper).toEqual({ damage: popper.damage, radius: popper.radius * 1.25 });
   });
 
@@ -124,8 +124,8 @@ describe('Blast set: pop on kills', () => {
   });
 
   it('rolls after the Kitchen heal when both sets are at L2: the first draw heals, the second pops', () => {
-    // Pan + Sample + Sourdough = Kitchen L2; Popper + Bumper + Double Bag = Blast L2.
-    const cart = [at('pan'), far('sample'), far('sourdough'), ...popFar];
+    // Pan + Sample + ★2 Sourdough = Kitchen L2 (4 points); Popper + ★2 Bumper + ★2 Double Bag = Blast L2 (5 points).
+    const cart = [at('pan'), far('sample'), far('sourdough', 2), ...popFar];
     const both = seedWhere((r) => r < 0.05, (r) => r < 0.1);
     const a = arena(cart, { seed: both, hp: 10, maxHp: 100 });
     expect(a.b.sets).toMatchObject({ kitchen: 2, blast: 2 });

@@ -67,7 +67,7 @@ Typed signatures that go with it: `HookCtx.tuneOf` / `stateOf` take an `OwnerId`
 
 **A weapon.** An item with `kind: 'weapon'` and `weapon: { pattern, base stats }`. `pattern` names a file in `src/engine/patterns/`; to make a new pattern, add the file and register it in `patterns/index.ts`. Weapon tuning (damage, cooldown per tier) goes through `WEAPON_ROWS`. Add a sim `src/sims/weapon-<id>.ts`.
 
-**A set.** `src/content/sets/<id>.ts` (`defineSet`) with per-level arrays in `tune` (`[L1, L2, L3]`) and `text.<lang>.bonus` as three strings. A set is active at level above 0 (`SET_THRESHOLDS` 2 / 3 / 4 distinct types). Its build effect is a `set`-phase hook (or `post-combo`), its combat effect a runtime hook. Adding a set id means adding it to `FAMILIES` or `ELEMENTS` in `define.ts`.
+**A set.** `src/content/sets/<id>.ts` (`defineSet`) with per-level arrays in `tune` (`[L1, L2, L3]`) and `text.<lang>.bonus` as three strings. A set is active at level above 0 (`SET_THRESHOLDS` 2 / 4 / 6 set points; each item type adds its tier). Its build effect is a `set`-phase hook (or `post-combo`), its combat effect a runtime hook. Adding a set id means adding it to `FAMILIES` or `ELEMENTS` in `define.ts`.
 
 **A combo.** `src/content/combos/<id>.ts` (`defineCombo`) with `requires` (weapon first, unless `cart: true`), optional `replaces` (other combos it switches off) and `suppresses` (module buffs it switches off on its weapon, e.g. Mist Machine suppresses the Desk Fan), `tune`, `text` (`name`, `short`, `summary`, `detail`), a `combo`-phase build hook and runtime hooks. Put the id in `RECIPE_ORDER` and add a sim `src/sims/combo-<id>.ts`.
 
@@ -720,7 +720,7 @@ Nine set files `src/content/sets/<id>.ts` (`defineSet`): kitchen, cleaning, tool
 - `SetContent.extraBuild`: a second list of `BuildSpec`s, flowing into ALL entries of `computeBuild` (the same list the player hooks live in). A set whose bonus has two build positions (Tools: cooldown in `set`, dash damage as a `final` player hook) uses it.
 - `ItemContent.flavored` (Jelly Beans only; the registry requires `sets.length === 1`): `setsOf` takes the flavor as the element for such an item instead of testing `type === 'jellybeans'`. `ItemDef.flavored` is copied by `itemDefOf`.
 - Number-only formatters `pctn` (`10`), `pctup` (`(v-1)*100`), `pctdown` (`(1-v)*100`) for the set rows that embed a percentage inside prose.
-- `SET_ORDER` (the legacy iteration order, which also fixes the registration order of the sets) and `SET_THRESHOLDS = [2,3,4]` in `define.ts`. The registry checks that the set ids equal `SET_ORDER`.
+- `SET_ORDER` (the legacy iteration order, which also fixes the registration order of the sets) and `SET_THRESHOLDS = [2,4,6]` in `define.ts`. The registry checks that the set ids equal `SET_ORDER`.
 
 **Order decisions (all golden-verified).**
 

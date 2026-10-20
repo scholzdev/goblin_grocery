@@ -10,7 +10,7 @@ import { around, arsenal, at, full, setTuneAt, stats } from '../helpers';
 
 afterEach(() => setLang('en'));
 
-// A lone ★3 cleaning weapon is 3 Cleaning set points: L2 (range / area x1.15, puddles +1 s).
+// A lone ★3 cleaning weapon is 3 Cleaning set points: L1 (range / area x1.15).
 const CLEANING = setTuneAt('cleaning', 3)!;
 
 // Pulse: constant suction every frame plus a damage pulse every cooldown (engine/patterns/pulse.ts), and the +60 coin pickup radius (a final `player` build hook).

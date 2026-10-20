@@ -23,21 +23,21 @@ describe('Expired Milk: build fields', () => {
 
   it('multiplies the finished max HP by 0.9 and rounds once (the legacy Math.round(total x 0.9))', () => {
     expect(full([at('toaster'), far('expiredmilk')]).maxHp).toBe(Math.round(PLAYER.maxHp * 0.9)); // 36
-    expect(full([at('toaster'), far('expiredmilk'), far('lunchbox', 2), far('snackbag')]).maxHp).toBe(Math.round((PLAYER.maxHp + 20 + 23 + 20) * 0.9)); // 4 Snacks points (the ★2 Lunchbox counts 2), L3: +20
+    expect(full([at('toaster'), far('expiredmilk'), far('lunchbox', 2), far('snackbag'), far('fortune', 2)]).maxHp).toBe(Math.round((PLAYER.maxHp + 20 + 23 + 20) * 0.9)); // 6 Snacks points (the ★2 Lunchbox and ★2 Fortune count 2), L3: +20
     expect(1 - contentTune('expiredmilk', 1).hpCut).toBe(0.9);
   });
 
   it('does not stack: the best copy counts once (aura and curse)', () => {
     const b = full([at('toaster'), far('expiredmilk', 1), far('expiredmilk', 3)]);
     expect(b.stinkDps).toBe(6);
-    expect(b.maxHp).toBe(Math.round((PLAYER.maxHp + contentSetTune('snacks', 2).maxHp) * 0.9)); // the ★3 copy alone is 3 Snacks points: L2
+    expect(b.maxHp).toBe(Math.round((PLAYER.maxHp + contentSetTune('snacks', 1).maxHp) * 0.9)); // the ★3 copy alone is 3 Snacks points: L1
   });
 
-  it('changes nothing but stinkDps and maxHp, besides the Snacks L2 its 3 set points reach', () => {
+  it('changes nothing but stinkDps and maxHp, besides the Snacks L1 its 3 set points reach', () => {
     const plain = full([at('toaster')]), withMilk = full([at('toaster'), far('expiredmilk', 3)]);
     expect(withMilk.weapons).toEqual(plain.weapons);
-    expect(withMilk.sets).toEqual({ ...plain.sets, snacks: 2 });
-    expect(withMilk.regen).toBe(contentSetTune('snacks', 2).regen);
+    expect(withMilk.sets).toEqual({ ...plain.sets, snacks: 1 });
+    expect(withMilk.regen).toBe(0); // L1 gives no regen
     expect({ ...withMilk, stinkDps: 0, maxHp: 0, sets: plain.sets, regen: plain.regen }).toEqual({ ...plain, stinkDps: 0, maxHp: 0 });
   });
 });

@@ -21,25 +21,25 @@ const SNACKS = (lv: number) => contentSetTune('snacks', lv);
 describe('Lunchbox: build', () => {
   it('adds 15 / 23 / 30 max HP at ★1 / ★2 / ★3 (★2 rounds 22.5 up), plus the Snacks level its own set points reach', () => {
     expect(full([at('toaster')]).maxHp).toBe(BASE);
-    expect([1, 2, 3].map((t) => full([at('toaster'), far('lunchbox', t)]).maxHp)).toEqual([BASE + 15, BASE + 23 + SNACKS(1).maxHp, BASE + 30 + SNACKS(2).maxHp]);
+    expect([1, 2, 3].map((t) => full([at('toaster'), far('lunchbox', t)]).maxHp)).toEqual([BASE + 15, BASE + 23 + SNACKS(1).maxHp, BASE + 30 + SNACKS(1).maxHp]); // a lone ★2 or ★3 is Snacks L1
   });
 
-  it('changes nothing but max HP, besides the Snacks L2 its 3 set points reach', () => {
+  it('changes nothing but max HP, besides the Snacks L1 its 3 set points reach', () => {
     const plain = full([at('toaster')]), withBox = full([at('toaster'), far('lunchbox', 3)]);
     expect(withBox.weapons).toEqual(plain.weapons);
-    expect(withBox.sets).toEqual({ ...plain.sets, snacks: 2 });
-    expect(withBox.regen).toBe(SNACKS(2).regen);
+    expect(withBox.sets).toEqual({ ...plain.sets, snacks: 1 });
+    expect(withBox.regen).toBe(0); // L1 gives no regen
     expect({ ...withBox, maxHp: 0, sets: plain.sets, regen: plain.regen }).toEqual({ ...plain, maxHp: 0 });
   });
 
   it('does not stack: the best copy in the whole cart counts once', () => {
-    expect(full([at('toaster'), far('lunchbox', 1), far('lunchbox', 3)]).maxHp).toBe(BASE + 30 + SNACKS(2).maxHp);
+    expect(full([at('toaster'), far('lunchbox', 1), far('lunchbox', 3)]).maxHp).toBe(BASE + 30 + SNACKS(1).maxHp);
     expect(full([at('toaster'), far('lunchbox', 2), at('lunchbox', 1, { near: [0] })]).maxHp).toBe(BASE + 23 + SNACKS(1).maxHp);
   });
 
   it('Gold Star lifts it one tier (★3 -> effective ★4: round(15 x 2.5) = round(37.5) = 38), its set points too', () => {
     expect(15 * TIER.mult(4)).toBe(37.5);
-    expect(full([at('toaster'), corner('lunchbox', 3), gilded(1)]).maxHp).toBe(BASE + 38 + SNACKS(3).maxHp); // 4 Snacks points: L3
+    expect(full([at('toaster'), corner('lunchbox', 3), gilded(1)]).maxHp).toBe(BASE + 38 + SNACKS(2).maxHp); // 4 Snacks points: L2
     expect(full([at('toaster'), corner('lunchbox', 1), gilded(1)]).maxHp).toBe(BASE + 23 + SNACKS(1).maxHp); // ★1 -> effective ★2: L1
   });
 
@@ -51,8 +51,8 @@ describe('Lunchbox: build', () => {
   it('adds to the snacks set, Snack Bag and Expired Milk: the total is rounded once, after the x0.9', () => {
     // Snacks L1 (lunchbox + energy): +10.
     expect(full([at('toaster'), far('lunchbox'), far('energy')]).maxHp).toBe(BASE + 10 + 15);
-    // Lunchbox ★2 + Snack Bag + Expired Milk = 4 snacks points (L3: +20): (40 + 20 + 23 + 20) x 0.9 = 92.7 -> 93.
-    expect(full([at('toaster'), far('lunchbox', 2), far('snackbag'), far('expiredmilk')]).maxHp).toBe(Math.round((BASE + 20 + 23 + 20) * HP_MULT));
+    // Lunchbox ★2 + Snack Bag + Expired Milk + Fortune ★2 = 6 snacks points (L3: +20): (40 + 20 + 23 + 20) x 0.9 = 92.7 -> 93.
+    expect(full([at('toaster'), far('lunchbox', 2), far('snackbag'), far('expiredmilk'), far('fortune', 2)]).maxHp).toBe(Math.round((BASE + 20 + 23 + 20) * HP_MULT));
     expect(Math.round((BASE + 20 + 23 + 20) * HP_MULT)).toBe(93);
     // Lunchbox ★1 + Expired Milk (L1: +10): (40 + 10 + 15) x 0.9 = 58.5 -> 59 (a ".5" the legacy rounding turns up).
     expect(full([at('toaster'), far('lunchbox'), far('expiredmilk')]).maxHp).toBe(Math.round((BASE + 10 + 15) * HP_MULT));
