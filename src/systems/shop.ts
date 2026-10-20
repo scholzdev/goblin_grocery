@@ -1,7 +1,7 @@
-import { MINI_BOSS } from '../data/enemies';
+import { ELITE_EXCLUDED, MINI_BOSS } from '../data/enemies';
 import { DEPARTMENTS, DEPT_TUNING } from '../data/departments';
 import { DOOR_POOL, MODIFIERS, ROOMS, ROOM_DOORS, type DoorId } from '../data/modifiers';
-import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS, waveDef } from '../data/waves';
+import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS, eliteChance, waveDef } from '../data/waves';
 import { PLAYER, ITEMS, ITEM_IDS, STARTER_WEAPONS, TIER } from '../data/items';
 import { RECIPES } from '../data/recipes';
 import { ZONES, ZONE_TUNING, zonesOf, type ZoneId } from '../data/zones';
@@ -148,6 +148,22 @@ export function waveSpawnPlan(state: AisleSpec): SpawnPlan {
   for (const [k, v] of Object.entries(w.mix) as [EnemyId, number][]) mix[k] = v * (d.mix[k] ?? (T.basics.includes(k) ? 1 : T.offTheme));
   if (zone) for (const [k, m] of Object.entries(zone.tilt) as [EnemyId, number][]) if (mix[k] !== undefined) mix[k] *= m;
   return { total: Math.round(w.total * d.countMult * m.countMult * sh.countMult), mix, hpScale: w.hpScale * d.hpMult * m.hpMult * sh.hpMult, speedScale: w.speedScale * d.speedMult * sh.speedMult, dmgScale: w.dmgScale * sh.dmgMult };
+}
+
+/** Elites behind a door: none can spawn, some may, the modifier raises the chance, or every eligible grocery is Elite. */
+export type EliteOdds = 'none' | 'some' | 'more' | 'all';
+export interface AislePreview { plan: SpawnPlan; top: EnemyId[]; elites: EliteOdds; hazard: HazardLayout }
+
+/**
+ * The aisle behind a door, read on the route screen without choosing it (no state change, no random draw): its spawn plan, the 3 most
+ * common groceries by expected count, the elite odds and the floor hazard. An elite's affix is rolled when it spawns, so it is never shown.
+ */
+export function previewAisle(state: RunState, id: AisleDoor): AislePreview {
+  const a: AisleSpec = { ...doorAisle(state, id), wave: state.wave + 1, theme: state.theme, shift: state.shift };
+  const plan = waveSpawnPlan(a), w = waveDef(a.wave), bonus = w.boss ? 0 : MODIFIERS[a.modifier].eliteBonus;
+  const common = plan.total > 0 ? (Object.entries(plan.mix) as [EnemyId, number][]).filter(([, v]) => v > 0).sort((x, y) => y[1] - x[1]).map(([k]) => k) : [];
+  const eligible = common.find((k) => !ELITE_EXCLUDED.includes(k)), chance = eligible ? eliteChance(eligible, w, a.shift) + bonus : 0;
+  return { plan, top: common.slice(0, 3), elites: chance <= 0 ? 'none' : chance >= 1 ? 'all' : bonus > 0 ? 'more' : 'some', hazard: aisleHazard(a) };
 }
 
 export interface HazardLayout { kind: HazardKind; spots: number; beltSpeed: number }
