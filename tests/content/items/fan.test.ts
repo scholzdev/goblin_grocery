@@ -64,7 +64,7 @@ describe('Desk Fan: build', () => {
     const [w] = computeBuild(inv).weapons;
     expect(w.recipes).toEqual(['mistMachine']);
     expect(w.buffs).toEqual([]);
-    expect(w.range).toBeCloseTo(spray.range * 1.4 * 1.15); // Mist Machine x1.4, Cleaning L1 x1.15; no x1.6 from the fan
+    expect(w.range).toBeCloseTo(spray.range * 1.4 * 1.25); // Mist Machine x1.4, Cleaning L3 x1.25 (1 + 3 points from the ★3 fan); no x1.6 from the fan
   });
 });
 

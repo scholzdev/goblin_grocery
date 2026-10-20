@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { ITEMS, PLAYER, TIER } from '../../../src/data/items';
 import bell from '../../../src/content/items/bell';
-import { contentItem, contentTune } from '../../../src/engine/registry';
+import { contentItem, contentSetTune, contentTune } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { tierScaling } from '../../../src/systems/synergies';
@@ -19,10 +19,12 @@ describe('Shopping Bell: build', () => {
     expect([1, 2, 3].map((t) => full([at('toaster'), far('bell', t)]).shoveCooldown)).toEqual([2.5, 2.25, 2]);
   });
 
-  it('changes nothing but the dash cooldown', () => {
+  it('changes nothing but the dash cooldown, besides the Checkout L2 its 3 set points reach', () => {
     const plain = full([at('toaster')]), withBell = full([at('toaster'), far('bell', 3)]);
     expect(withBell.weapons).toEqual(plain.weapons);
-    expect({ ...withBell, shoveCooldown: 0 }).toEqual({ ...plain, shoveCooldown: 0 });
+    expect(withBell.sets).toEqual({ ...plain.sets, checkout: 2 });
+    expect(withBell.priceMult).toBe(contentSetTune('checkout', 2).priceMult);
+    expect({ ...withBell, shoveCooldown: 0, sets: plain.sets, priceMult: plain.priceMult }).toEqual({ ...plain, shoveCooldown: 0 });
   });
 
   it('does not stack: the best copy in the whole cart counts once', () => {

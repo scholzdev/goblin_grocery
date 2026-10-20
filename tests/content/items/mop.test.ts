@@ -7,9 +7,13 @@ import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { tierScaling } from '../../../src/systems/synergies';
 import { contentSetTune } from '../../../src/engine/registry';
-import { around, arsenal, at, far, stats } from '../helpers';
+import { around, arsenal, at, far, setTuneAt, stats } from '../helpers';
 
 afterEach(() => setLang('en'));
+
+// A lone ★3 mop is 3 Cleaning and 3 Frost set points: Cleaning L2 (area x1.15, puddles +1 s) and Frost L2 (+10 points of slow).
+const CLEANING = setTuneAt('cleaning', 3)!, FROST = setTuneAt('frost', 3)!;
+const R = 60 * CLEANING.aoeMult;
 
 // Puddle: a soap puddle behind the cart every cooldown, no target needed (engine/patterns/puddle.ts). Grease Fire's burning slick is in tests/content/combos/greaseFire.test.ts.
 // Pattern behaviour runs headless through the FakeArsenal (src/engine/patterns/fakeHost.ts): the cart's real build, the compiled hooks, a fake clock.
@@ -80,7 +84,7 @@ describe('Mop: pattern puddle', () => {
     const { a } = arsenal([at('mop', 3)], { player: { x: 300, y: 200, facing: 1 } });
     a.step(0.5);
     const [pd] = a.puddles;
-    expect([pd.x, pd.y, pd.r]).toEqual([260, 204, 60]);
+    expect([pd.x, pd.y, pd.r]).toEqual([260, 204, R]);
     expect(a.recoils).toEqual([]);
     expect(a.sounds).toEqual(['splash']);
     expect(a.weapons[0].cd).toBeCloseTo(1.28);
@@ -97,8 +101,8 @@ describe('Mop: pattern puddle', () => {
     a.step(0.5);
     const img = a.sprites[0];
     expect(img.key).toBe('fx_puddle');
-    expect(img.log).toContain('setDisplaySize(36,24)');
-    expect(a.tweens[0]).toMatchObject({ displayWidth: 132, displayHeight: 60 * 1.36, duration: 200, ease: 'Back.Out' });
+    expect(img.log).toContain(`setDisplaySize(${R * 0.6},${R * 0.4})`);
+    expect(a.tweens[0]).toMatchObject({ displayWidth: R * 2.2, displayHeight: R * 1.36, duration: 200, ease: 'Back.Out' });
   });
 
   it('slows 25% for 0.5 s (from its tune), and the next puddle comes a ★3 interval later', () => {
@@ -115,12 +119,12 @@ describe('Mop: pattern puddle', () => {
       a.step(0.5);
       return +(a.puddles[0].until - 0.5).toFixed(6);
     };
-    expect([2, 3, 4].map((t) => life([at('mop', t)]))).toEqual([3, 6, 6]);
+    expect([2, 3, 4].map((t) => life([at('mop', t)]))).toEqual([3, (3 + 1) * 2, (3 + 2) * 2]); // its own Cleaning points: L1 adds no time, L2 +1 s, L3 +2 s
     expect(life([at('mop', 3), far('fan'), far('spray'), far('vacuum')])).toBe((3 + 2) * 2); // Cleaning L3: +2 s
     expect(life([at('snowcone', 3)])).toBe(4);
   });
 
-  it('every 0.5 s each enemy inside the ellipse takes 6 quiet damage and a slow; outside the flattened ellipse nothing', () => {
+  it('every 0.5 s each enemy inside the ellipse takes 6 quiet damage and a slow (25%, plus Frost L2); outside the flattened ellipse nothing', () => {
     const { a, fake } = arsenal([at('mop', 3)]);
     const inside = fake.spawnEnemy({ x: -40, y: 34, hp: 100000 });   // 30 below the center: inside r x 0.62 = 37
     const outside = fake.spawnEnemy({ x: -40, y: 50, hp: 100000 });  // 46 below: outside
@@ -129,15 +133,15 @@ describe('Mop: pattern puddle', () => {
     expect(mine).toHaveLength(3);
     expect(mine.every((c) => c.dmg === 6 && c.opts.quiet === true)).toBe(true);
     expect(fake.callsOf('damage').some((c) => c.enemy === outside.id)).toBe(false);
-    expect(inside.status.slowPct).toBe(0.25);
+    expect(inside.status.slowPct).toBe(0.25 + FROST.slowBonus);
   });
 
   it('Frost sets make the slip stronger: base + bonus, up to the cap (from the Frost set tune)', () => {
-    const { a, fake, b } = arsenal([at('mop', 3), far('ice')]); // mop + ice pack: Frost L1
-    expect(b.sets.frost).toBe(1);
+    const { a, fake, b } = arsenal([at('mop', 3), far('ice')]); // mop ★3 + ice pack: 4 Frost points, L3
+    expect(b.sets.frost).toBe(3);
     const e = fake.spawnEnemy({ x: -40, y: 4, hp: 100000 });
     a.run(15, 0.05);
-    const f = contentSetTune('frost', 1);
+    const f = contentSetTune('frost', 3);
     expect(e.status.slowPct).toBe(Math.min(f.slowCap, 0.25 + f.slowBonus));
     expect(e.status.slowPct).toBeGreaterThan(0.25);
   });

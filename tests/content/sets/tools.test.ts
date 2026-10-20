@@ -17,7 +17,7 @@ const cart = (n: number) => [GUN, ...MEMBERS.slice(0, n)];
 const baseCooldown = ITEMS.nailgun.weapon!.cooldown * TIER.weaponCooldown(1);
 
 describe('Tools set: thresholds', () => {
-  it('2 / 3 / 4 distinct tools types give L1 / L2 / L3; the weapon alone is 1', () => {
+  it('2 / 3 / 4 set points (one per ★1 tools type) give L1 / L2 / L3; the weapon alone is 1', () => {
     expect([0, 1, 2, 3].map((n) => full(cart(n)).sets.tools)).toEqual([0, 1, 2, 3]);
   });
 
@@ -59,7 +59,7 @@ describe('Tools set: dash damage ordering', () => {
   it('multiplies Running Boot\'s bonus too (the legacy (6 + boot + perk) x mult)', () => {
     expect(full([GUN, far('magnet'), far('boot')]).shoveDamage).toBe((PLAYER.shove.damage + boot) * 2); // L2
     expect(full([GUN, far('magnet'), far('boot'), far('sparewheel')]).shoveDamage).toBe((PLAYER.shove.damage + boot) * 3); // L3
-    expect(full([GUN, far('magnet'), far('boot', 3)]).shoveDamage).toBe((PLAYER.shove.damage + contentTune('boot', 3).damage) * 2);
+    expect(full([GUN, far('magnet'), far('boot', 3)]).shoveDamage).toBe((PLAYER.shove.damage + contentTune('boot', 3).damage) * 3); // the ★3 boot is 3 points: 5 in all, L3
   });
 
   it('multiplies the perk\'s dash damage as well', () => {

@@ -15,7 +15,7 @@ const cart = (n: number) => [FIZZ, ICE, ...[far('mop'), far('spray')].slice(0, n
 const stats = (c: Parameters<typeof full>[0]) => full(c).weapons[0];
 
 describe('Frost set: slow bonus', () => {
-  it('2 / 3 / 4 distinct frost types give L1 / L2 / L3 (fizz + ice = 2)', () => {
+  it('2 / 3 / 4 set points (one per ★1 frost type) give L1 / L2 / L3 (fizz + ice = 2)', () => {
     expect([0, 1, 2].map((n) => full(cart(n)).sets.frost)).toEqual([1, 2, 3]);
     expect(full([FIZZ, far('ice')]).sets.frost).toBe(1);
   });
@@ -33,12 +33,10 @@ describe('Frost set: slow bonus', () => {
     expect(stats(cart(2)).slow).toEqual({ pct: ice.pct + 0.15, duration: ice.duration });
   });
 
-  it('is capped at 60% (L1, L2) / 70% (L3), also after a Gold Star lifts the Ice Pack', () => {
-    const lifted = (n: number) => stats([FIZZ, at('ice', 3), gilded(1), ...[far('mop'), far('spray')].slice(0, n)]).slow!.pct; // ★3 lifted to an effective ★4
+  it('is capped at 60% (L1, L2) / 70% (L3); a Gold Star-lifted Ice Pack is 4 Frost points on its own, so it meets the L3 cap', () => {
     expect(contentTune('ice', 4).pct).toBeGreaterThan(0.6);
-    expect(lifted(0)).toBe(0.6);
-    expect(lifted(2)).toBe(0.7);
-    expect(stats([FIZZ, at('ice', 3), far('mop')]).slow!.pct).toBeCloseTo(0.6, 12); // ★3: 0.5 + 0.1, right at the cap
+    expect(stats([FIZZ, at('ice', 3), gilded(1)]).slow!.pct).toBe(0.7); // ★3 lifted to an effective ★4: 5 Frost points, L3
+    expect(stats([at('pan'), at('ice', 3)]).slow!.pct).toBeCloseTo(0.6, 12); // ★3 alone: 3 Frost points, L2: 0.5 + 0.1, right at the cap
   });
 
   it('applies to the slow a combo sets, not only the Ice Pack\'s (after the combos)', () => {

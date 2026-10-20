@@ -17,7 +17,7 @@ const MEMBERS = [far('bell'), far('flag'), far('tipjar'), far('coupon')];
 const cart = (n: number): Spec[] => [PAN, ...MEMBERS.slice(0, n)];
 
 describe('Checkout set: thresholds', () => {
-  it('2 / 3 / 4 distinct checkout types give L1 / L2 / L3 (the pan does not count)', () => {
+  it('2 / 3 / 4 set points (one per ★1 checkout type) give L1 / L2 / L3 (the pan does not count)', () => {
     expect([0, 1, 2, 3, 4].map((n) => full(cart(n)).sets.checkout)).toEqual([0, 0, 1, 2, 3]);
   });
 

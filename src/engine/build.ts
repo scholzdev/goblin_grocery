@@ -85,7 +85,8 @@ for (const c of contentItems()) if (c.tierBoost) BOOSTS.set(c.id, { amount: reso
 
 /**
  * The effective-tier lift of an instance in this cart: the largest `tierBoost` among the booster items touching it (so two stars
- * never add up), 0 when none applies. A booster does not lift the kinds it `excludes`. Used by `eff()` in computeBuild and `describeBuffs`.
+ * never add up), 0 when none applies. A booster does not lift the kinds it `excludes`. Used by `eff()` in computeBuild, `describeBuffs`
+ * and the set points (data/sets.ts).
  */
 export function tierBoostOf(placed: ItemInstance[]): (i: ItemInstance) => number {
   const boosters = new Map<string, Boost>();

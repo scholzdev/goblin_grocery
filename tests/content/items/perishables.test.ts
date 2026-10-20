@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { contentItem, iconOf, sellValue } from '../../../src/engine/registry';
+import { contentItem, contentSetTune, iconOf, sellValue } from '../../../src/engine/registry';
 import { sellPrice } from '../../../src/systems/shop';
 import { createRun, openShop, sellItem } from '../../../src/state/run';
 import { mulberry32 } from '../../../src/systems/rng';
@@ -133,7 +133,8 @@ describe('Potted Basil', () => {
     expect(dmg(100) / REF).toBeCloseTo(1.08, 10);
     expect(dmg(1000) / REF).toBeCloseTo(1.8, 10);
     expect(dmg(50, 2) / REF).toBeCloseTo(1.06, 10);
-    expect(dmg(50, 3) / REF).toBeCloseTo(1.08, 10);
+    // pan + ★3 basil = 4 Kitchen points: L3 instead of the reference's L1
+    expect(dmg(50, 3) / REF).toBeCloseTo((1.08 * contentSetTune('kitchen', 3).damageMult) / contentSetTune('kitchen', 1).damageMult, 10);
   });
 
   it('keeps the count across aisles and loses it when sold', () => {

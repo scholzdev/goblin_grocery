@@ -74,7 +74,7 @@ export function rollOffers(state: RunState, rng: Rng, shopIndex: number, guarant
     let r = rng() * ws.reduce((a, b) => a + b, 0), i = 0;
     while (i < regular.length - 1 && (r -= ws[i]) >= 0) i++;
     add(regular.splice(i, 1)[0], rng() < lv.tier3 ? 3 : rng() < lv.tier2 ? 2 : 1);
-    // Double pack: counts as 2 types in its family set, costs x1.5 (never legendary, never an opener).
+    // Double pack: +1 set point in each of its sets, costs x1.5 (never legendary, never an opener).
     if (shopIndex >= 2 && rng() < ECONOMY.doublePackChance) { const o = offers[offers.length - 1]; o.double = true; o.price = Math.round(o.price * ECONOMY.doublePackPriceMult); }
   }
   if (!opts.keep) return offers;

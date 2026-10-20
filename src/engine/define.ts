@@ -82,7 +82,7 @@ export const weaponCooldownMult = (t: number): number => 1 - 0.1 * (t - 1);
 /** From ★3 on (Gold Star's ★4 included) a weapon has its ★3 behavior (`text.star3`). Its numbers are scalar tune keys: a per-tier array would double them at ★4. */
 export const hasStar3 = (tier: number): boolean => tier >= 3;
 
-/** Distinct item types for set level 1/2/3 (the same for every set; each level includes the lower ones). */
+/** Set points for set level 1/2/3 (the same for every set; each level includes the lower ones). Points: data/sets.ts `setWeight`. */
 export const SET_THRESHOLDS: readonly [number, number, number] = [2, 3, 4];
 
 /** The flavors a Jelly Beans instance can take (rerolled every shop visit). */
@@ -169,7 +169,7 @@ export interface BuildCtx<T extends Tune = Tune> {
    * Jelly Beans reads the Fuel Can / Ice Pack / Party Popper numbers this way.
    */
   tuneOf(id: ItemTypeId, tier: number): Readonly<Record<string, number>>;
-  /** Effective number of distinct item types in a set (a double pack counts 2 in its family). */
+  /** Set points in a set: per item type its best copy's tier (Gold Star lift included), +1 for a double pack. */
   count(set: SetId): number;
   /** Level (0..3) of a set. */
   level(set: SetId): 0 | 1 | 2 | 3;

@@ -17,7 +17,7 @@ const cart = (n: number) => [TOASTER, ...MEMBERS.slice(0, n)];
 const stats = (c: Parameters<typeof full>[0], i = 0) => full(c).weapons[i];
 
 describe('Electric set: chain stats', () => {
-  it('2 / 3 / 4 distinct electrical types give L1 / L2 / L3; the toaster alone is 1', () => {
+  it('2 / 3 / 4 set points (one per ★1 electrical type) give L1 / L2 / L3; the toaster alone is 1', () => {
     expect([0, 1, 2, 3].map((n) => full(cart(n)).sets.electric)).toEqual([0, 1, 2, 3]);
   });
 

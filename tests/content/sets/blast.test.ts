@@ -16,7 +16,7 @@ const popFar = [far('popper'), far('bumper'), far('doublebag')];
 const rooms = (n: number) => [GUN, ...popFar.slice(0, n)]; // nailgun counts too: n = 1 -> 2 blast types (L1) ...
 
 describe('Blast set: thresholds and radius', () => {
-  it('2 / 3 / 4 distinct blast types give L1 / L2 / L3', () => {
+  it('2 / 3 / 4 set points (one per ★1 blast type) give L1 / L2 / L3', () => {
     expect([0, 1, 2, 3].map((n) => full(rooms(n)).sets.blast)).toEqual([0, 1, 2, 3]);
   });
 

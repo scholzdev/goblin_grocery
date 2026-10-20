@@ -7,7 +7,7 @@ import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { tierScaling } from '../../../src/systems/synergies';
 import { combatRng } from '../../../src/systems/rng';
-import { around, arsenal, at, stats } from '../helpers';
+import { around, arsenal, at, setTuneAt, stats } from '../helpers';
 
 afterEach(() => setLang('en'));
 
@@ -56,16 +56,17 @@ describe('Nail Gun: content', () => {
 });
 
 describe('Nail Gun: build', () => {
-  it('damage grows +50% and the interval shrinks -10% per ★ (to the bit), as the content tune says', () => {
+  it('damage grows +50% and the interval shrinks -10% per ★ (to the bit), as the content tune says, the interval also by the Tools bonus its own set points reach', () => {
     const base = ITEMS.nailgun.weapon!;
     const tune = contentItem('nailgun')!.tune as unknown as Record<string, readonly number[]>;
+    const tools = (t: number) => setTuneAt('tools', t)?.cooldownDiv ?? 1;
     for (const t of [1, 2, 3]) {
       const w = stats([at('nailgun', t)]);
       expect(w.tier).toBe(t);
       expect(w.damage).toBe(base.damage * weaponDamageMult(t));
-      expect(w.cooldown).toBe(base.cooldown * weaponCooldownMult(t));
+      expect(w.cooldown).toBe(base.cooldown * weaponCooldownMult(t) / tools(t));
       expect(w.damage).toBe(tune.damage[t - 1]);
-      expect(w.cooldown).toBe(tune.cooldown[t - 1]);
+      expect(w.cooldown).toBe(tune.cooldown[t - 1] / tools(t));
     }
     expect([1, 2, 3].map((t) => stats([at('nailgun', t)]).damage)).toEqual([3.0, 4.5, 6.0]);
   });
@@ -91,9 +92,9 @@ describe('Nail Gun: pattern burst', () => {
     expect(first[0].life).toBe(480 / 760);
     expect(Math.abs(first[1].at - first[0].at - 0.08)).toBeLessThan(0.02);
     expect(Math.abs(first[2].at - first[1].at - 0.08)).toBeLessThan(0.02);
-    // the next burst starts one ★3 interval (0.88 s) after the first
+    // the next burst starts one ★3 interval (0.88 s, faster by its own Tools L2) after the first
     const second = nails(a)[3];
-    expect(Math.abs(second.at - first[0].at - 0.88 - 0.01)).toBeLessThan(0.03);
+    expect(Math.abs(second.at - first[0].at - 0.88 / setTuneAt('tools', 3)!.cooldownDiv - 0.01)).toBeLessThan(0.03);
   });
 
   it('draws exactly one number per nail from the combat rng, in order, and the "nail_burst" sound plays on the first nail only', () => {

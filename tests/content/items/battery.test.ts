@@ -6,25 +6,27 @@ import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { computeBuild, describeBuffs, tierScaling } from '../../../src/systems/synergies';
 import { cart } from '../../cart';
-import { around, at, gilded, stats } from '../helpers';
+import { around, at, gilded, setTuneAt, stats } from '../helpers';
 
 afterEach(() => setLang('en'));
 
 // Legacy: +12% attack speed at ★1 (x TIER.mult), electric weapons get 1.5x of the bonus. Toaster is electric (Electric set L1 only adds arcs),
 // Pan is not; neither shares a set with the battery (tools) and neither has a combo with it.
+// A ★2 / ★3 battery is 2 / 3 Tools set points on its own (Tools L1 / L2: every weapon +8% attack rate); Gold Star's effective ★4 reaches L3.
 const toaster = ITEMS.toaster.weapon!, pan = ITEMS.pan.weapon!;
+const tools = (points: number) => setTuneAt('tools', points)?.cooldownDiv ?? 1;
 
 describe('Battery: build', () => {
-  it('speeds a non-electric weapon up by 12% / 18% / 24% at ★1 / ★2 / ★3', () => {
+  it('speeds a non-electric weapon up by 12% / 18% / 24% at ★1 / ★2 / ★3, plus the Tools level its own set points reach', () => {
     expect(stats([at('pan'), at('battery')]).cooldown).toBeCloseTo(pan.cooldown / 1.12);
-    expect(stats([at('pan'), at('battery', 2)]).cooldown).toBeCloseTo(pan.cooldown / 1.18);
-    expect(stats([at('pan'), at('battery', 3)]).cooldown).toBeCloseTo(pan.cooldown / 1.24);
+    expect(stats([at('pan'), at('battery', 2)]).cooldown).toBeCloseTo(pan.cooldown / 1.18 / tools(2));
+    expect(stats([at('pan'), at('battery', 3)]).cooldown).toBeCloseTo(pan.cooldown / 1.24 / tools(3));
   });
 
-  it('speeds an electric weapon up by 1.5x the bonus: 18% / 27% / 36%', () => {
+  it('speeds an electric weapon up by 1.5x the bonus: 18% / 27% / 36%, plus the Tools level its own set points reach', () => {
     expect(stats([at('toaster'), at('battery')]).cooldown).toBeCloseTo(toaster.cooldown / 1.18);
-    expect(stats([at('toaster'), at('battery', 2)]).cooldown).toBeCloseTo(toaster.cooldown / 1.27);
-    expect(stats([at('toaster'), at('battery', 3)]).cooldown).toBeCloseTo(toaster.cooldown / 1.36);
+    expect(stats([at('toaster'), at('battery', 2)]).cooldown).toBeCloseTo(toaster.cooldown / 1.27 / tools(2));
+    expect(stats([at('toaster'), at('battery', 3)]).cooldown).toBeCloseTo(toaster.cooldown / 1.36 / tools(3));
   });
 
   it('records the buff, and nothing else changes', () => {
@@ -36,19 +38,19 @@ describe('Battery: build', () => {
     expect(w.recipes).toEqual([]);
   });
 
-  it('does nothing for a weapon it does not touch', () => {
+  it('does nothing for a weapon it does not touch, beyond the Tools L2 its 3 set points reach', () => {
     const w = stats([at('pan'), at('battery', 3, { near: [], apart: [0] })]);
-    expect(w.cooldown).toBe(pan.cooldown);
+    expect(w.cooldown).toBe(pan.cooldown / tools(3));
     expect(w.buffs).toEqual([]);
   });
 
   it('does not stack: the highest touching tier counts once', () => {
-    expect(stats([at('pan'), at('battery', 1), at('battery', 3, { near: [0] })]).cooldown).toBeCloseTo(pan.cooldown / 1.24);
+    expect(stats([at('pan'), at('battery', 1), at('battery', 3, { near: [0] })]).cooldown).toBeCloseTo(pan.cooldown / 1.24 / tools(3));
   });
 
   it('Gold Star lifts it one tier (★3 -> effective ★4 = +30% / +45% electric)', () => {
-    expect(stats([at('pan'), at('battery', 3), gilded(1)]).cooldown).toBeCloseTo(pan.cooldown / (1 + 0.12 * TIER.mult(4)));
-    expect(stats([at('toaster'), at('battery', 3), gilded(1)]).cooldown).toBeCloseTo(toaster.cooldown / (1 + 0.12 * 1.5 * TIER.mult(4)));
+    expect(stats([at('pan'), at('battery', 3), gilded(1)]).cooldown).toBeCloseTo(pan.cooldown / (1 + 0.12 * TIER.mult(4)) / tools(4));
+    expect(stats([at('toaster'), at('battery', 3), gilded(1)]).cooldown).toBeCloseTo(toaster.cooldown / (1 + 0.12 * 1.5 * TIER.mult(4)) / tools(4));
     expect(1 + 0.12 * 1.5 * TIER.mult(4)).toBeCloseTo(1.45);
   });
 });

@@ -8,7 +8,7 @@ import { FakeCtx } from '../../src/engine/fakeCtx';
 import { hitTags, weaponTags } from '../../src/engine/hitTags';
 import { MARK_MULT, markedDamage } from '../../src/engine/marks';
 import type { ItemTypeId } from '../../src/types';
-import { arena, arsenal, at, far } from '../content/helpers';
+import { arena, arsenal, at, far, setTuneAt } from '../content/helpers';
 
 // The element soft counters: the pure rules (engine/affinity), the hit tags (engine/hitTags), and the damage / status / stagger pipeline through FakeCtx,
 // which mirrors ArenaScene.damageEnemy. The enemy table itself is pinned in tests/content/enemies/registry.test.ts.
@@ -271,8 +271,9 @@ describe('damage through the pipeline, per tag source', () => {
     const milk = fake.spawnReal('milk', { x: 300, y: 100, hp: 1000 }), plain = fake.spawnEnemy({ x: 330, y: 100, hp: 1000 });
     a.step(0.5);
     a.run(40, 0.05);
-    expect(1000 - plain.hp).toBe(32);
-    expect(1000 - milk.hp).toBeCloseTo(32 * 1.3, 10);
+    const pot = 32 * setTuneAt('kitchen', 3)!.damageMult; // the lone ★3 cooker is 3 Kitchen points: L2
+    expect(1000 - plain.hp).toBeCloseTo(pot, 10);
+    expect(1000 - milk.hp).toBeCloseTo(pot * 1.3, 10);
   });
 
   it('labelled hits carry their tags: the Leaf Blower slam is cleaning (expired x1.3), a live cable electric, an oven vent heat', () => {
@@ -358,7 +359,8 @@ describe('status durations in the pattern code', () => {
     a.run(15, 0.05);
     const last = (id: number) => fake.callsOf('damage').filter((c) => c.enemy === id).at(-1)!.at;
     expect(es.map((e) => +(e.status.slowUntil - last(e.id)).toFixed(6))).toEqual([0.25, 0.5, 0.75]);
-    expect(es.map((e) => e.status.slowPct)).toEqual([0.25, 0.25, 0.25]);
+    const pct = 0.25 + setTuneAt('frost', 3)!.slowBonus; // the lone ★3 mop is 3 Frost points: L2
+    expect(es.map((e) => e.status.slowPct)).toEqual([pct, pct, pct]);
   });
 });
 

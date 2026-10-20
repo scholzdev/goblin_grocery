@@ -14,7 +14,7 @@ const MEMBERS = [far('energy'), far('fortune'), far('multipack')];
 const cart = (n: number) => [FIZZ, ...MEMBERS.slice(0, n)];
 
 describe('Snacks set: thresholds', () => {
-  it('2 / 3 / 4 distinct snacks types give L1 / L2 / L3; the weapon alone is 1', () => {
+  it('2 / 3 / 4 set points (one per ★1 snacks type) give L1 / L2 / L3; the weapon alone is 1', () => {
     expect([0, 1, 2, 3].map((n) => full(cart(n)).sets.snacks)).toEqual([0, 1, 2, 3]);
   });
 

@@ -6,9 +6,12 @@ import { contentItem } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { tierScaling } from '../../../src/systems/synergies';
-import { around, arsenal, at, stats } from '../helpers';
+import { around, arsenal, at, setTuneAt, stats } from '../helpers';
 
 afterEach(() => setLang('en'));
+
+// A lone ★3 cleaning weapon is 3 Cleaning set points: L2 (range / area x1.15, puddles +1 s).
+const CLEANING = setTuneAt('cleaning', 3)!;
 
 // Cone: a blast toward the nearest enemy, every enemy in it once (engine/patterns/cone.ts). The leaf blower's push (300), sprite (fx_gust) and slam damage come from its content; the spray bottle shares the pattern.
 // Pattern behaviour runs headless through the FakeArsenal (src/engine/patterns/fakeHost.ts): the cart's real build, the compiled hooks, a fake clock.
@@ -105,15 +108,16 @@ describe('Leaf Blower: pattern cone', () => {
     const gust = a.sprites[0];
     expect(gust.key).toBe('fx_gust');
     expect(gust.log).toContain('setOrigin(0,0.5)');
-    expect(a.tweens[0]).toMatchObject({ displayWidth: 220 * 1.05, alpha: 0, duration: 260 });
+    expect(a.tweens[0]).toMatchObject({ displayWidth: 220 * CLEANING.rangeMult * 1.05, alpha: 0, duration: 260 });
   });
 
-  it('fires only for an enemy inside 220, but aims at the nearest one up to 40 farther', () => {
+  it('fires only for an enemy inside its range (220 x Cleaning L2), but aims at the nearest one up to 40 farther', () => {
     const { a, fake } = arsenal([at('leafblower', 3)]);
-    fake.spawnEnemy({ x: 230, hp: 1000 });
+    const range = 220 * CLEANING.rangeMult;
+    fake.spawnEnemy({ x: range + 10, hp: 1000 });
     a.step(0.5);
     expect(fake.callsOf('damage')).toHaveLength(0);
-    fake.enemies[0].x = 215;
+    fake.enemies[0].x = range - 5;
     a.step(0.05);
     expect(fake.callsOf('damage')).toHaveLength(1);
   });

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { ITEMS, PLAYER } from '../../../src/data/items';
 import bowlingball from '../../../src/content/items/bowlingball';
-import { contentItem } from '../../../src/engine/registry';
+import { contentItem, contentSetTune } from '../../../src/engine/registry';
 import { itemRules } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { cartWeight, slowWeight } from '../../../src/systems/weight';
@@ -29,11 +29,12 @@ describe('Cart weight', () => {
 });
 
 describe('Bowling Ball: dash damage', () => {
-  it('adds 1 / 1.5 / 2 damage per occupied cell at ★1 / ★2 / ★3, the ball\'s own 4 cells included', () => {
+  it('adds 1 / 1.5 / 2 damage per occupied cell at ★1 / ★2 / ★3, the ball\'s own 4 cells included (★3: after its own Tools L2 doubled the base)', () => {
     const cellCount = cells('toaster', 'bowlingball');
+    const base = [BASE, BASE, BASE * contentSetTune('tools', 2).shoveDamageMult];
     [1, 1.5, 2].forEach((per, i) => {
       const b = full([at('toaster'), far('bowlingball', i + 1)]);
-      expect(b.shoveDamage).toBeCloseTo(BASE + per * cellCount, 12);
+      expect(b.shoveDamage).toBeCloseTo(base[i] + per * cellCount, 12);
     });
   });
 
@@ -62,7 +63,7 @@ describe('Bowling Ball: dash damage', () => {
     const one = full([at('toaster'), far('bowlingball', 1)]);
     const two = full([at('toaster'), far('bowlingball', 1), far('bowlingball', 3)]);
     expect(two.shoveKnockMult).toBe(one.shoveKnockMult);
-    expect(two.shoveDamage).toBe(BASE + 2 * cells('toaster', 'bowlingball', 'bowlingball')); // best tier (★3) x all cells, once
+    expect(two.shoveDamage).toBe(BASE * contentSetTune('tools', 2).shoveDamageMult + 2 * cells('toaster', 'bowlingball', 'bowlingball')); // best tier (★3) x all cells, once; 3 Tools points: L2
   });
 });
 

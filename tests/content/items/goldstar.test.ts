@@ -2,12 +2,12 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { ITEMS, TIER } from '../../../src/data/items';
 import goldstar from '../../../src/content/items/goldstar';
 import { tierBoostOf } from '../../../src/engine/build';
-import { contentItem, contentTune } from '../../../src/engine/registry';
+import { contentItem, contentSetTune, contentTune } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { computeBuild, describeBuffs, tierScaling } from '../../../src/systems/synergies';
 import { build } from '../../golden/carts';
-import { around, at, corner, far, full, gilded, stats } from '../helpers';
+import { around, at, corner, full, gilded, stats } from '../helpers';
 
 afterEach(() => setLang('en'));
 
@@ -33,9 +33,9 @@ describe('Gold Star Sticker: tier lift', () => {
     expect(crit([at('toaster'), corner('fortune', 1), gilded(1)])).toBeCloseTo(0.075, 12); // ★1 -> effective ★2
   });
 
-  it('lifts a touching passive that only changes the player (Lunchbox ★3: 30 -> 37.5 -> 38 max HP)', () => {
-    expect(full([at('toaster'), corner('lunchbox', 3)]).maxHp).toBe(40 + 30);
-    expect(full([at('toaster'), corner('lunchbox', 3), gilded(1)]).maxHp).toBe(40 + 38);
+  it('lifts a touching passive that only changes the player (Lunchbox ★3: 30 -> 37.5 -> 38 max HP), and its set points (Snacks L2 -> L3)', () => {
+    expect(full([at('toaster'), corner('lunchbox', 3)]).maxHp).toBe(40 + 30 + contentSetTune('snacks', 2).maxHp);
+    expect(full([at('toaster'), corner('lunchbox', 3), gilded(1)]).maxHp).toBe(40 + 38 + contentSetTune('snacks', 3).maxHp);
   });
 
   it('only lifts what it touches', () => {
@@ -66,7 +66,7 @@ describe('Gold Star Sticker: tier lift', () => {
     const w = stats([at('toaster', 2), STAR]);
     expect(w.tier).toBe(2);
     const base = ITEMS.toaster.weapon!;
-    expect(w.damage).toBeCloseTo(base.damage * TIER.weaponDamage(2) * (1 + BUNDLE * 2), 12);
+    expect(w.damage).toBeCloseTo(base.damage * TIER.weaponDamage(2) * (1 + BUNDLE * 2) * contentSetTune('kitchen', 1).damageMult, 12); // its own ★2: 2 Kitchen points, not 3
     expect(w.cooldown).toBeCloseTo(base.cooldown * TIER.weaponCooldown(2), 12);
   });
 
@@ -129,7 +129,7 @@ describe('Gold Star Sticker: Bundle Deal', () => {
 
   it('is a checkout item', () => {
     expect(ITEMS.goldstar.family).toBe('checkout');
-    expect(full([at('pan'), STAR, far('bell')]).sets.checkout).toBe(1);
+    expect(full([at('pan'), STAR, corner('bell')]).sets.checkout).toBe(1); // a bell it does not touch: 1 + 1 set points
   });
 });
 

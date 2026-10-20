@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { ITEMS, PLAYER, TIER } from '../../../src/data/items';
 import expiredmilk from '../../../src/content/items/expiredmilk';
-import { contentItem, contentTune } from '../../../src/engine/registry';
+import { contentItem, contentSetTune, contentTune } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { tierScaling } from '../../../src/systems/synergies';
@@ -23,20 +23,22 @@ describe('Expired Milk: build fields', () => {
 
   it('multiplies the finished max HP by 0.9 and rounds once (the legacy Math.round(total x 0.9))', () => {
     expect(full([at('toaster'), far('expiredmilk')]).maxHp).toBe(Math.round(PLAYER.maxHp * 0.9)); // 36
-    expect(full([at('toaster'), far('expiredmilk'), far('lunchbox', 2), far('snackbag')]).maxHp).toBe(Math.round((PLAYER.maxHp + 10 + 23 + 20) * 0.9)); // Snacks L2: +10
+    expect(full([at('toaster'), far('expiredmilk'), far('lunchbox', 2), far('snackbag')]).maxHp).toBe(Math.round((PLAYER.maxHp + 20 + 23 + 20) * 0.9)); // 4 Snacks points (the ★2 Lunchbox counts 2), L3: +20
     expect(1 - contentTune('expiredmilk', 1).hpCut).toBe(0.9);
   });
 
   it('does not stack: the best copy counts once (aura and curse)', () => {
     const b = full([at('toaster'), far('expiredmilk', 1), far('expiredmilk', 3)]);
     expect(b.stinkDps).toBe(6);
-    expect(b.maxHp).toBe(Math.round(PLAYER.maxHp * 0.9));
+    expect(b.maxHp).toBe(Math.round((PLAYER.maxHp + contentSetTune('snacks', 2).maxHp) * 0.9)); // the ★3 copy alone is 3 Snacks points: L2
   });
 
-  it('changes nothing but stinkDps and maxHp', () => {
+  it('changes nothing but stinkDps and maxHp, besides the Snacks L2 its 3 set points reach', () => {
     const plain = full([at('toaster')]), withMilk = full([at('toaster'), far('expiredmilk', 3)]);
     expect(withMilk.weapons).toEqual(plain.weapons);
-    expect({ ...withMilk, stinkDps: 0, maxHp: 0, sets: plain.sets }).toEqual({ ...plain, stinkDps: 0, maxHp: 0 });
+    expect(withMilk.sets).toEqual({ ...plain.sets, snacks: 2 });
+    expect(withMilk.regen).toBe(contentSetTune('snacks', 2).regen);
+    expect({ ...withMilk, stinkDps: 0, maxHp: 0, sets: plain.sets, regen: plain.regen }).toEqual({ ...plain, stinkDps: 0, maxHp: 0 });
   });
 });
 
