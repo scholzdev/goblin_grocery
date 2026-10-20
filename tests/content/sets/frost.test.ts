@@ -33,7 +33,7 @@ describe('Frost set: slow bonus', () => {
     expect(stats(cart(2)).slow).toEqual({ pct: ice.pct + 0.15, duration: ice.duration });
   });
 
-  it('is capped at 60% (L1, L2) / 70% (L3), also after a Gold Star lifts the Ice Pack', () => {
+  it('is capped at 60% (L1, L2) / 70% (L3); a Gold Star-lifted Ice Pack is 4 Frost points on its own, so it meets the L3 cap', () => {
     expect(contentTune('ice', 4).pct).toBeGreaterThan(0.6);
     expect(stats([FIZZ, at('ice', 3), gilded(1)]).slow!.pct).toBe(0.7); // ★3 lifted to an effective ★4: 5 Frost points, L3
     expect(stats([at('pan'), at('ice', 3)]).slow!.pct).toBeCloseTo(0.6, 12); // ★3 alone: 3 Frost points, L2: 0.5 + 0.1, right at the cap
