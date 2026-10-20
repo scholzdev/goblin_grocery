@@ -193,7 +193,7 @@ export function playAisle(state: RunState, flow: Rng, opts: AisleOpts = {}): Ais
     if (wave.index === MINI_BOSS.aisle && state.modifier !== 'stockroom') { miniDue = true; miniAt = MINI_BOSS.at; }
   }
   const kind: AisleKind = boss ? 'boss' : miniDue ? 'mini' : 'fight';
-  // Punch Card (ArenaScene: rolled at the aisle start, fed credited kills, landed hits and the aisle clock; pays when the goal is met)
+  // the Punch Card, run as ArenaScene runs it
   state.punch = rollPunchCard(state.seed, state.inventory, { aisle: state.wave, boss, total: plan.total, fight: state.modifier !== 'stockroom' }) ?? undefined;
   const timeLeft = (): number => (boss || miniDue ? -1 : Math.max(0, wave.duration - waveTime));
 
