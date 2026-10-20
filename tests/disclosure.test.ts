@@ -64,6 +64,31 @@ describe('disclosure: sets', () => {
   });
 });
 
+describe('disclosure: reactions', () => {
+  it('each reaction is announced the first time it fires for the profile, never again', () => {
+    const s = runWith(build([{ type: 'toaster' }]));
+    expect(disclosure.disclose(s)).toEqual([]);
+    s.stats.damage.reactions.shatter = 1;
+    expect(disclosure.disclose(s)).toEqual(['shatter']);
+    s.stats.damage.reactions.shatter = 2;
+    expect(disclosure.disclose(s), 'same run').toEqual([]);
+    const next = runWith(build([{ type: 'toaster' }]));
+    next.stats.damage.reactions.shatter = 1;
+    next.stats.damage.reactions.fumes = 1;
+    expect(disclosure.disclose(next), 'next run').toEqual(['fumes']);
+  });
+
+  it('the banner names the reaction and says what it does, in EN and DE', async () => {
+    const { REACTION_TEXT } = await import('../src/engine/reactions');
+    const { t, setLang } = await import('../src/i18n');
+    const banner = () => [t(REACTION_TEXT.shatter.name), t(REACTION_TEXT.shatter.desc)];
+    expect(banner()).toEqual(['Shatter', 'Burn + frost: a burst of extra damage on the enemy.']);
+    setLang('de');
+    expect(banner()).toEqual(['Splitter', 'Brand + Frost: ein Stoß Zusatzschaden auf den Gegner.']);
+    setLang('en');
+  });
+});
+
 describe('disclosure: profiles from before', () => {
   const storage = (data: Record<string, unknown>) => {
     const m = new Map(Object.entries(data).map(([k, v]) => [k, JSON.stringify(v)]));

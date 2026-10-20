@@ -32,6 +32,7 @@ import { damageBreakdownHtml, damageTakenHtml, sourceNames } from './damageBreak
 import { t, fmtNum, lang, setLang, LANGS, type Lang, type UIKey } from '../i18n';
 import { newSetLevels } from '../data/sets';
 import { allSystemsShown, disclose, setsShown, showAllSystems } from '../state/disclosure';
+import { REACTION_TEXT } from '../engine/reactions';
 import { ZONES } from '../data/zones';
 import { previewAisle, type AislePreview } from '../systems/shop';
 import { cartSkinT, deptT, enemyT, goblinSkinT, itemT, recipeT, setBonusT, shiftT, starterT, tagT, unlockNeedT, zoneT } from '../i18n/data';
@@ -134,7 +135,10 @@ export function initUi(_game: Phaser.Game): void {
     }
     setBase = now;
   });
-  setInterval(() => { if (store.state) disclose(store.state); }, 250);
+  // Records the systems the run meets (state/disclosure.ts); a reaction is named and explained the first time it fires for this profile.
+  setInterval(() => {
+    if (store.state) for (const id of disclose(store.state)) if (id !== 'sets') celebrate(t('newReaction'), t(REACTION_TEXT[id].name), null, t(REACTION_TEXT[id].desc));
+  }, 250);
   store.on('pause', render);
   store.on('run-end', render);
   store.on('run-start', () => hud.reset());
@@ -216,12 +220,12 @@ function setBonusCard(ups: { id: SetId; lv: number }[]): void {
   }, SET_CARD_MS);
 }
 
-function celebrate(title: string, name: string, icon: string, line: string | null = t('addedCatalog')): void {
+function celebrate(title: string, name: string, icon: string | null, line: string | null = t('addedCatalog')): void {
   const el = document.createElement('div');
   el.className = 'celebrate';
   // Several discoveries at once stack downwards instead of overlapping.
   el.style.top = `${92 + ui.querySelectorAll('.celebrate').length * 104}px`;
-  el.innerHTML = `<img src="${svg(icon)}" alt=""><div><small>${title}</small><b>${name}</b>${line ? `<span>${line}</span>` : ''}</div>`;
+  el.innerHTML = `${icon ? `<img src="${svg(icon)}" alt="">` : ''}<div><small>${title}</small><b>${name}</b>${line ? `<span>${line}</span>` : ''}</div>`;
   ui.append(el);
   play('upgrade');
   setTimeout(() => el.remove(), 2800);
