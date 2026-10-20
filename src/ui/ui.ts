@@ -31,6 +31,7 @@ import { affinityRowsHtml } from './affinity';
 import { damageBreakdownHtml, damageTakenHtml, sourceNames } from './damageBreakdown';
 import { t, fmtNum, lang, setLang, LANGS, type Lang, type UIKey } from '../i18n';
 import { newSetLevels } from '../data/sets';
+import { allSystemsShown, disclose, setsShown, showAllSystems } from '../state/disclosure';
 import { ZONES } from '../data/zones';
 import { previewAisle, type AislePreview } from '../systems/shop';
 import { cartSkinT, deptT, enemyT, goblinSkinT, itemT, recipeT, setBonusT, shiftT, starterT, tagT, unlockNeedT, zoneT } from '../i18n/data';
@@ -129,10 +130,11 @@ export function initUi(_game: Phaser.Game): void {
     const now = snap();
     if (setBase) {
       const ups = newSetLevels(setBase, now);
-      if (ups.length) setBonusCard(ups);
+      if (ups.length && setsShown(st)) setBonusCard(ups);
     }
     setBase = now;
   });
+  setInterval(() => { if (store.state) disclose(store.state); }, 250);
   store.on('pause', render);
   store.on('run-end', render);
   store.on('run-start', () => hud.reset());
@@ -291,6 +293,7 @@ function settingsHtml(): string {
     <label class="check"><input type="checkbox" data-set="reducedMotion" ${settings.reducedMotion ? 'checked' : ''}>${t('reducedMotion')}</label>
     <label class="check"><input type="checkbox" data-set="shake" ${settings.shake ? 'checked' : ''}>${t('screenShake')}</label>
     <label class="check"><input type="checkbox" data-set="damageColors" ${settings.damageColors ? 'checked' : ''}>${t('damageColors')}</label>
+    <label class="check"><input type="checkbox" data-sys="all" ${allSystemsShown() ? 'checked disabled' : ''}>${t('showAllSystems')}</label>
     <button class="btn small" data-act="replay-tutorial">${t('tutReplay')}</button>
     ${controlsHtml()}
     ${desktop ? `<label class="check"><input type="checkbox" data-set="fullscreen" ${settings.fullscreen ? 'checked' : ''}>${t('fullscreen')}</label>` : ''}
@@ -667,7 +670,7 @@ function historyHtml(): string {
   const rows = profile.history.map((h) => `<div class="hcard">
       <div class="htop"><span class="hstamp ${h.win ? 'win' : ''}">${h.win ? t('stampWin') : t('stampLoss')}</span><b>${fmt.format(h.t)}</b>${h.daily ? `<span class="badge">${t('histDaily')}</span>` : ''}<span class="hscore display">${t('pts', { n: h.score })}</span></div>
       <div class="hmeta">${t('histAisle', { n: h.aisle })} · ${t('shiftN', { n: h.shift + 1, name: shiftT(h.shift).name })} · ${starterT(h.starter).name}</div>
-      <div class="hicons">${h.items.map((i) => `<img src="${svg(`icon_${i}`)}" title="${itemT(i).name}" alt="${itemT(i).name}">`).join('')}${h.sets.map((x) => `<span class="hset" title="${x.id} ${x.lv}">${setIcon(x.id, 14)}<small>${x.lv}</small></span>`).join('')}</div>
+      <div class="hicons">${h.items.map((i) => `<img src="${svg(`icon_${i}`)}" title="${itemT(i).name}" alt="${itemT(i).name}">`).join('')}${!setsShown() ? '' : h.sets.map((x) => `<span class="hset" title="${x.id} ${x.lv}">${setIcon(x.id, 14)}<small>${x.lv}</small></span>`).join('')}</div>
     </div>`).join('');
   return `<h2>${t('historyTitle')}</h2><div class="hlist">${rows || `<div class="hempty">${t('historyEmpty')}</div>`}</div>`;
 }
@@ -804,6 +807,7 @@ const applyMotion = (): void => { document.documentElement.classList.toggle('red
 
 function onInput(e: Event): void {
   const el = e.target as HTMLInputElement;
+  if (el.dataset.sys) { showAllSystems(); el.disabled = true; store.changed(); return; } // met systems stay met: no way back
   const k = el.dataset.set as keyof typeof settings | undefined;
   if (!k) return;
   if (k === 'language') { changeLanguage(el.value as Lang); return; }

@@ -10,6 +10,7 @@ let shop: typeof import('../src/ui/shop');
 beforeAll(async () => {
   vi.stubGlobal('location', { search: '' }); // ui/shop.ts reads `location` at import time
   shop = await import('../src/ui/shop');
+  (await import('../src/state/disclosure')).showAllSystems(); // a profile that has met sets
 });
 afterAll(() => { setLang('en'); vi.unstubAllGlobals(); });
 

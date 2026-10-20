@@ -18,6 +18,8 @@ export interface Snap {
   /** A weapon touches another item in the cart. */
   supported: boolean;
   mergePair: boolean;
+  /** A set is at level 1 or more in the cart. */
+  setActive: boolean;
   boss: boolean;
   flags: string[];
 }
@@ -36,6 +38,7 @@ export const STEPS: Entry[] = [
 ];
 export const TIPS: Entry[] = [
   { id: 'merge', at: 'shop', on: (s) => s.mergePair, done: (s) => s.ms >= 8000 },
+  { id: 'sets', at: 'shop', on: (s) => s.setActive, done: (s) => s.ms >= 8000 },
   { id: 'elite', at: 'combat', on: (s) => s.flags.includes('elite'), done: (s) => s.ms >= 7000 },
   { id: 'obstacles', at: 'combat', on: (s) => s.flags.includes('obstacles'), done: (s) => s.ms >= 7000 },
   { id: 'event', at: 'combat', on: (s) => s.flags.includes('event'), done: (s) => s.ms >= 7000 },

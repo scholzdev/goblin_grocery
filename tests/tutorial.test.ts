@@ -3,7 +3,7 @@ import { advance, freshProgress, pick, skipAll, STEPS, type Progress, type Snap 
 
 const snap = (o: Partial<Snap> = {}): Snap => ({
   lab: false, phase: 'combat', shown: null, ms: 0, kills: 0, moved: false, dashed: false, moneyUp: false,
-  bought: false, supported: false, mergePair: false, boss: false, flags: [], ...o,
+  bought: false, supported: false, mergePair: false, setActive: false, boss: false, flags: [], ...o,
 });
 const show = (p: Progress, s: Snap) => pick(p, s)?.id;
 

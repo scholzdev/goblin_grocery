@@ -2,6 +2,7 @@ import { store } from '../state/store';
 import { settings, saveSettings } from '../state/settings';
 import { flow } from '../flow';
 import { mergeTargetFor } from '../state/run';
+import { setActive } from '../state/disclosure';
 import { BOSS_WAVE } from '../data/waves';
 import { ITEMS } from '../data/items';
 import { t } from '../i18n';
@@ -22,6 +23,7 @@ const TARGET: Record<string, Target> = {
   buy: { anchor: '#shop .offers', avoid: ['#shop .offers-head', '#shop .grid-wrap'], prefer: ['below', 'above', 'left'] },
   place: SHOP_GRID,
   merge: SHOP_GRID,
+  sets: { anchor: '#shop .sets', avoid: ['#shop .grid-wrap'], prefer: ['right', 'below', 'above'] },
   combos: { anchor: '#shop .combos', avoid: ['#shop .grid-wrap'], prefer: ['below', 'above', 'left'] },
   door: { anchor: '.route .doors', avoid: ['.route .door', '.route h2', '.route .progress'], prefer: ['below', 'above'] },
 };
@@ -83,6 +85,7 @@ function snap(): Snap {
     bought: !!s.shop?.offers.some((o) => o.sold),
     supported: s.build.weapons.some((w) => s.build.adjacency.some((p) => p.includes(w.uid))),
     mergePair: all.some((i) => i && !ITEMS[i.type].legendary && mergeTargetFor(inv, i.type, i.tier ?? 1, i)),
+    setActive: setActive(s),
     boss: s.wave === BOSS_WAVE && !s.overtime && s.phase === 'combat',
     flags,
   };
