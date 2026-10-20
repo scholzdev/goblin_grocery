@@ -808,11 +808,11 @@ describe('departments and routes', () => {
     const s = createRun(1);
     s.modifier = 'rush';
     finishWave(s);
-    expect(s.coinLog).toEqual([{ label: 'Wave clear bonus', amount: 15 }]);
-    expect(s.money).toBe(15);
+    expect(s.coinLog).toEqual([{ label: 'Wave clear bonus', amount: 15 }, { label: 'Interest', amount: 1 }]);
+    expect(s.money).toBe(16);
     const m = createRun(1);
     finishWave(m);
-    expect(m.money).toBe(12);
+    expect(m.coinLog).toEqual([{ label: 'Wave clear bonus', amount: 12 }, { label: 'Interest', amount: 1 }]);
   });
   it('themes are flat: no multipliers, rosters only reference real enemies', () => {
     expect(THEMES).toEqual(['main', 'frozen', 'bakery', 'electronics', 'checkout']);
@@ -951,8 +951,9 @@ describe('shifts & overtime', () => {
   it('shift coin multiplier scales the wave clear bonus', () => {
     const a = createRun(1), b = createRun(1, 'toaster', SHIFTS.length - 1);
     finishWave(a); finishWave(b);
-    expect(b.money - PLAYER.startMoney).toBe(Math.round(ECONOMY.waveClearBonus * SHIFTS[SHIFTS.length - 1].coinMult));
-    expect(a.money - PLAYER.startMoney).toBe(ECONOMY.waveClearBonus);
+    const clear = (s: RunState): number | undefined => s.coinLog.find((c) => c.label === 'Wave clear bonus')?.amount;
+    expect(clear(b)).toBe(Math.round(ECONOMY.waveClearBonus * SHIFTS[SHIFTS.length - 1].coinMult));
+    expect(clear(a)).toBe(ECONOMY.waveClearBonus);
   });
   it('overtime doors are never the boss; normal runs still get the boss door', () => {
     const s = createRun(1);
@@ -1459,7 +1460,7 @@ describe('set bonuses', () => {
     expect(bw('microwave', 'toaster').chainChance).toBe(0);
     expect(bw('pan', 'toaster').chainChance).toBe(0);
   });
-  it('checkout L1 discounts rolled offers; L2 pays capped interest after the clear bonus', () => {
+  it('checkout L1 discounts rolled offers but keeps the base interest cap; L2 raises the cap', () => {
     const s = shopRun();
     s.inventory.placed.push(it_('bell', 0, 3), it_('coupon', 1, 3));
     s.build = computeBuild(s.inventory);
@@ -1467,12 +1468,12 @@ describe('set bonuses', () => {
     const cheap = rollOffers(s, mulberry32(5), 1, false), full = rollOffers({ ...s, build: { ...s.build, priceMult: 1 } }, mulberry32(5), 1, false);
     expect(cheap.every((o, i) => o.price <= full[i].price)).toBe(true);
     expect(cheap.some((o, i) => o.price < full[i].price)).toBe(true);
-    s.money = 0; finishWave(s);
-    expect(s.coinLog.some((c) => c.label === 'Interest')).toBe(false);
+    const s1 = { ...s, coinLog: [], money: 100 } as RunState; finishWave(s1);
+    expect(s1.coinLog.find((c) => c.label === 'Interest')!.amount).toBe(3);
     s.inventory.placed.push(it_('pricegun', 2, 3));
     s.build = computeBuild(s.inventory);
     const s2 = { ...s, coinLog: [], money: 100 } as RunState; finishWave(s2);
-    expect(s2.coinLog.find((c) => c.label === 'Interest')!.amount).toBe(5);
+    expect(s2.coinLog.find((c) => c.label === 'Interest')!.amount).toBe(6);
     const s3 = { ...s, coinLog: [], money: 0 } as RunState; finishWave(s3);
     const clear = s3.coinLog.find((c) => c.label === 'Wave clear bonus')!.amount;
     expect(s3.coinLog.find((c) => c.label === 'Interest')?.amount ?? 0).toBe(Math.floor(clear / 10));

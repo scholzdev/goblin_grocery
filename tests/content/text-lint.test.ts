@@ -7,7 +7,6 @@ import { contentCombos, contentEnemies, contentItems, contentSets } from '../../
 type Texts = Record<string, string | readonly string[]>;
 const ALLOWED: Record<string, string> = {
   'item:coupon.rules': 'one coin per drop: the unit of a coin drop, not a tuned amount',
-  'set:checkout.bonus': 'interest pays one coin per step: the unit of a coin',
   'item:pricegun.blurb': 'a joke ("50% OFF"), not the crit chance',
   'item:fortune.blurb': 'a joke (lucky numbers 2, 2, 2)',
   'combo:expressCheckout.detail': 'the cooldown is written "1.0 s" (the s formatter prints "1 s"); tune.icd is 1.0, pinned in expressCheckout.test.ts',

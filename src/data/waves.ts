@@ -62,6 +62,9 @@ export const bossTuning = (shift: number): BossTuning => ({ ...BOSS, ...SHIFTS[s
 
 export const ECONOMY = {
   waveClearBonus: 12,
+  /** Every run earns +1 coin per `interestPer` held at an aisle's end, up to `interestCap`; Checkout L2/L3 raise the cap (its tune). */
+  interestPer: 10,
+  interestCap: 3,
   /** Reroll n (0-based) costs (1 + ceil(shop / 2)) * (n + 1). */
   rerollBase: 1,
   repairBase: 6,      // repair = base + perShop * shop
