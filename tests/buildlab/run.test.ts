@@ -3,7 +3,9 @@ import { createGreedyPolicy, type Policy } from '../../src/buildlab/policy';
 import { BOSS_WAVE } from '../../src/data/waves';
 import { PROXY } from '../../src/buildlab/combat';
 import { canPlace } from '../../src/systems/inventory';
-import { ITEMS } from '../../src/data/items';
+import { ITEMS, ITEM_IDS } from '../../src/data/items';
+import { drawStock } from '../../src/systems/stock';
+import { stockRng } from '../../src/systems/rng';
 import { ALL_STARTERS, playRun, runBatch, runSeed } from '../../src/buildlab/run';
 import { summarize, type Report, type RunRecord } from '../../src/buildlab/report';
 import type { Inventory, ItemInstance } from '../../src/types';
@@ -116,6 +118,16 @@ describe('build-lab run', () => {
       const r = playRun({ seed: runSeed(6, 0), starter });
       expect(r.starter).toBe(starter);
       for (const a of r.acquired) expect(ITEMS[a.item as keyof typeof ITEMS], a.item).toBeDefined();
+    }
+  });
+
+  it('`stock` plays from the stock a real run with everything unlocked draws', () => {
+    for (let i = 0; i < 4; i++) {
+      const seed = runSeed(9, i), weapon = (['toaster', 'pan', 'nailgun'] as const)[i % 3];
+      const { pool } = drawStock({ source: ITEM_IDS, weapon, theme: 'bakery', fresh: [] }, stockRng(seed));
+      const r = playRun({ seed, weapon, theme: 'bakery', pool: 'stock' });
+      const offered = [...r.shopLog.flatMap((e) => e.offers.map((o) => o.item)), ...r.acquired.map((a) => a.item)];
+      for (const t of offered) expect(pool, `seed ${seed}: ${t}`).toContain(t);
     }
   });
 });

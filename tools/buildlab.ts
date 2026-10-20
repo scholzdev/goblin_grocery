@@ -3,7 +3,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { basename, dirname } from 'node:path';
 import { analyze, toMarkdown } from '../src/buildlab/balance';
 import { evolve } from '../src/buildlab/evolve';
-import { ALL_STARTERS, runBatch } from '../src/buildlab/run';
+import { ALL_STARTERS, POOLS, runBatch, type PoolMode } from '../src/buildlab/run';
 import { createGreedyPolicy, type PolicyFactory } from '../src/buildlab/policy';
 import { formatSummary } from '../src/buildlab/report';
 import type { DepartmentId, StarterId, StarterWeapon } from '../src/types';
@@ -18,7 +18,7 @@ const USAGE = `usage: npm run buildlab -- [options]
   --weapon ID|all   starting weapon: toaster | pan | nailgun | all (default toaster)
   --shift N         difficulty, 0 = Day Shift (default 0)
   --theme ID        run theme: main | frozen | bakery | electronics | checkout (default main)
-  --pool all|starting   items that may appear in shops (default all)
+  --pool all|starting|stock   items that may appear in shops (default all; stock: a real run's stock)
   --policy NAME     greedy (default)
   --out FILE        JSON report (default buildlab-out/run.json)
   --quiet           no summary on stdout
@@ -33,7 +33,7 @@ evolve options (optimizer + balance report, docs/buildlab.md):
   --top-k N         distinct best genomes kept (default 8)
   --held-out N      held-out runs per reported genome (default 48)
   --control N       random genomes in the control population (default 12)
-  --shift N --theme ID --pool all|starting   as above
+  --shift N --theme ID --pool all|starting|stock   as above
   --out PATH        writes PATH.json and PATH.md (default buildlab-out/evolve)
   --quiet           no progress on stdout`;
 
@@ -53,6 +53,12 @@ export function parseArgs(argv: string[]): Record<string, string | true> {
   return out;
 }
 
+const poolOf = (v: string | true | undefined): PoolMode => {
+  const p = String(v ?? 'all');
+  if (!Object.hasOwn(POOLS, p)) throw new Error(`--pool is one of ${Object.keys(POOLS).join(', ')}`);
+  return p as PoolMode;
+};
+
 const num = (v: string | true | undefined, name: string, d: number): number => {
   if (v === undefined) return d;
   const n = Number(v);
@@ -68,8 +74,7 @@ async function mainEvolve(argv: string[]): Promise<number> {
   const weapons = weapon === 'all' ? WEAPONS : [weapon as StarterWeapon];
   for (const s of starters) if (!ALL_STARTERS.includes(s)) throw new Error(`unknown starter "${s}" (${ALL_STARTERS.join(', ')}, all)`);
   for (const w of weapons) if (!WEAPONS.includes(w)) throw new Error(`unknown weapon "${w}" (${WEAPONS.join(', ')}, all)`);
-  const pool = String(a.pool ?? 'all');
-  if (pool !== 'all' && pool !== 'starting') throw new Error('--pool is all or starting');
+  const pool = poolOf(a.pool);
   const base = String(a.out ?? 'buildlab-out/evolve').replace(/\.(json|md)$/, '');
   const quiet = !!a.quiet, pct = (n: number) => `${(n * 100).toFixed(1)}%`;
   const res = evolve({
@@ -101,8 +106,7 @@ export async function main(argv: string[]): Promise<number> {
   const weapons = weapon === 'all' ? WEAPONS : [weapon as StarterWeapon];
   for (const s of starters) if (!ALL_STARTERS.includes(s)) throw new Error(`unknown starter "${s}" (${ALL_STARTERS.join(', ')}, all)`);
   for (const w of weapons) if (!WEAPONS.includes(w)) throw new Error(`unknown weapon "${w}" (${WEAPONS.join(', ')}, all)`);
-  const pool = String(a.pool ?? 'all');
-  if (pool !== 'all' && pool !== 'starting') throw new Error('--pool is all or starting');
+  const pool = poolOf(a.pool);
   const policy = POLICIES[String(a.policy ?? 'greedy')];
   if (!policy) throw new Error(`unknown policy "${a.policy}" (${Object.keys(POLICIES).join(', ')})`);
   const out = String(a.out ?? 'buildlab-out/run.json');

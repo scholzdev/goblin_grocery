@@ -5,6 +5,7 @@ import { STARTER_ORDER } from '../engine/define';
 import { newDamageStats } from '../systems/damageStats';
 import { mulberry32, type Rng } from '../systems/rng';
 import { rollMiniCrates, rollStockroom } from '../systems/shop';
+import { applyStock } from '../systems/stock';
 import {
   buyOffer, chooseDoor, createRun, finishWave, leaveShop, mergeItems, moveItem, openShop, repair, reroll, sellItem, startNextWave, takeStockroomItem,
   upgradeCart, upgradeItem, upgradeShelf, upgradeShop,
@@ -18,6 +19,17 @@ import { summarize, type AisleRecord, type FinalBuild, type Report, type RunReco
 // actions -> leaveShop -> chooseDoor -> startNextWave -> aisle ... Left out: profile / unlock recording, scoring, the end screens, audio, tutorial
 // events, overtime after the boss, the daily seed and the loyalty voucher.
 
+/**
+ * Which items a run's shops may offer. `all`: every item (the Test Lab pool). `starting`: what a fresh profile has unlocked.
+ * `stock`: every item unlocked, then the stock a real run draws (src/systems/stock.ts). Only `stock` has shop-1 openers.
+ */
+export const POOLS = {
+  all: (s: RunState) => { s.pool = [...ITEM_IDS]; },
+  starting: (s: RunState) => { s.pool = [...STARTING_ITEMS]; },
+  stock: (s: RunState) => applyStock(s, ITEM_IDS, []),
+};
+export type PoolMode = keyof typeof POOLS;
+
 export interface RunOptions {
   seed: number;
   /** The character (perk). Default `toaster`. */
@@ -27,8 +39,8 @@ export interface RunOptions {
   /** Difficulty index (0 = Day Shift). */
   shift?: number;
   theme?: DepartmentId;
-  /** `all`: every item may appear in shops (the Test Lab pool, the default). `starting`: only what a fresh profile has unlocked. */
-  pool?: 'all' | 'starting';
+  /** See POOLS. Default `all`. */
+  pool?: PoolMode;
   /** Default: the greedy policy. */
   policy?: PolicyFactory;
 }
@@ -138,7 +150,7 @@ function take(state: RunState, offers: ShopOffer[], idx: number, acquired: RunRe
 export function playRun(o: RunOptions): RunRecord {
   const starter = o.starter ?? 'toaster', weapon = o.weapon ?? 'toaster', shift = o.shift ?? 0, theme = o.theme ?? 'main';
   const state = createRun(o.seed, starter, shift, weapon, theme);
-  state.pool = (o.pool ?? 'all') === 'all' ? [...ITEM_IDS] : [...STARTING_ITEMS];
+  POOLS[o.pool ?? 'all'](state);
   state.phase = 'combat';
   const flow = mulberry32(o.seed); // flow.rng: shop rolls, doors, spawns, kill coins
   const policy = (o.policy ?? (() => createGreedyPolicy()))();
@@ -190,7 +202,7 @@ export interface BatchOptions {
   weapons?: StarterWeapon[];
   shift?: number;
   theme?: DepartmentId;
-  pool?: 'all' | 'starting';
+  pool?: PoolMode;
   policy?: PolicyFactory;
   /** Name stored in the meta (default: the policy's name). */
   now?: () => number;
