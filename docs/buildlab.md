@@ -184,7 +184,7 @@ Shop protocol: the lab calls `decideShop(state, view)` again and again with the 
 | `door.<kind>` | relative odds of each door kind (the boss door is forced) |
 | `rule.rushAvoidHpFrac`, `rushAvoidUntilWave` | skip the Rush door while hp is below that share of max hp, or in aisles up to that number |
 
-Placement scoring is the Phase 1a one: the policy tries every free spot and rotation, computes the real `Build`, and takes the best `Σ combo weights + Σ set weights x level + rule.buffWeight x buffs`. Crates and stockrooms use the same placement score (plus `rule.pickItem x` the item weight).
+Placement scoring is the Phase 1a one: the policy tries every free spot and rotation, computes the real `Build`, and takes the best `Σ combo weight x combo credit + Σ set weights x level + rule.buffWeight x buffs`. The combo credit is the greedy one (`comboCredits`): 1 per formed combo on each anchor, `0.5 x` the share of parts in place for one not formed yet. Crates and stockrooms use the same placement score (plus `rule.pickItem x` the item weight).
 
 **The greedy policy is one genome**: `greedyGenome()` (all item weights 1, combo weights 10, set weights 0, buffWeight 1, tierBonus 0, repairMargin 9, upgrade thresholds 45/30/25, no rerolls, no selling, Rush avoided below 60% hp up to aisle 3). `tests/buildlab/genome.test.ts` plays both over a batch and compares the JSON byte for byte.
 
