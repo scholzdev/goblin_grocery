@@ -34,11 +34,11 @@ describe('Blender: content', () => {
     expect([1, 2, 3].map((t) => itemRules('blender', t))).toEqual([
       'Shreds every enemy within 85 for 2 damage every 0.3 s (each enemy once per tick). Electrical.',
       'Shreds every enemy within 85 for 3 damage every 0.27 s (each enemy once per tick). Electrical.',
-      'Shreds every enemy within 85 for 4 damage every 0.24 s (each enemy once per tick). Electrical.',
+      'Shreds every enemy within 85 for 4 damage every 0.24 s (each enemy once per tick). Electrical. ★3: The blades pull enemies in instead of pushing them away.',
     ]);
     expect(itemT('blender')).toMatchObject({ name: 'Blender', blurb: 'Whirring blades around the cart.' });
     setLang('de');
-    expect([1, 3].map((t) => itemRules('blender', t))).toEqual(['Schreddert alle 0,3 s jeden Gegner im Umkreis von 85 für 2 Schaden (jeden Gegner einmal pro Tick). Elektrisch.', 'Schreddert alle 0,24 s jeden Gegner im Umkreis von 85 für 4 Schaden (jeden Gegner einmal pro Tick). Elektrisch.']);
+    expect([1, 3].map((t) => itemRules('blender', t))).toEqual(['Schreddert alle 0,3 s jeden Gegner im Umkreis von 85 für 2 Schaden (jeden Gegner einmal pro Tick). Elektrisch.', 'Schreddert alle 0,24 s jeden Gegner im Umkreis von 85 für 4 Schaden (jeden Gegner einmal pro Tick). Elektrisch. ★3: Die Klingen ziehen Gegner heran, statt sie wegzustoßen.']);
     expect(itemT('blender')).toMatchObject({ name: 'Mixer', blurb: 'Surrende Klingen rund um den Wagen.' });
   });
 
@@ -76,18 +76,34 @@ describe('Blender: build', () => {
 });
 
 describe('Blender: pattern aura', () => {
-  it('shreds every enemy within range + radius once per tick (0.24 s at ★3) with a quiet push of 20', () => {
-    const { a, fake } = arsenal([at('blender', 3)]);
+  it('shreds every enemy within range + radius once per tick with a quiet push of 20 (out, below ★3)', () => {
+    const { a, fake } = arsenal([at('blender', 2)]);
     const trigger = fake.spawnEnemy({ x: 70, hp: 1000 }); // inside 85, so the blender fires
     const rim = fake.spawnEnemy({ x: 0, y: -100, hp: 1000 }); // beyond 85 but inside 85 + 20
     const out = fake.spawnEnemy({ x: -106, hp: 1000 });
     a.step(0.45);
     const hits = fake.callsOf('damage');
     expect(hits.map((c) => c.enemy)).toEqual([trigger.id, rim.id]);
-    expect(hits.every((c) => c.dmg === 4)).toBe(true);
+    expect(hits.every((c) => c.dmg === 3)).toBe(true);
     expect(hits.map((c) => c.opts)).toEqual([{ kb: 20, kbX: 1, kbY: 0, quiet: true }, { kb: 20, kbX: 0, kbY: -1, quiet: true }]);
     expect(hits.some((c) => c.enemy === out.id)).toBe(false);
     expect(a.sounds).toEqual(['blender']);
+  });
+
+  it('from ★3 (★4 too) the blades pull enemies in with 20, but push away the ones already touching the cart (closer than 20 + 20 + 12)', () => {
+    const push = (tier: number) => {
+      const { a, fake } = arsenal([at('blender', tier)]);
+      fake.spawnEnemy({ x: 70, hp: 1000 });
+      fake.spawnEnemy({ x: 0, y: -100, hp: 1000 });
+      fake.spawnEnemy({ x: -50, hp: 1000 });
+      a.step(0.45);
+      return fake.callsOf('damage').map((c) => c.opts);
+    };
+    const out = [{ kb: 20, kbX: 1, kbY: 0, quiet: true }, { kb: 20, kbX: 0, kbY: -1, quiet: true }, { kb: 20, kbX: -1, kbY: 0, quiet: true }];
+    const pulled = [{ kb: 20, kbX: -1, kbY: 0, quiet: true }, { kb: 20, kbX: 0, kbY: 1, quiet: true }, { kb: 20, kbX: -1, kbY: 0, quiet: true }];
+    expect(push(2)).toEqual(out);
+    expect(push(3)).toEqual(pulled);
+    expect(push(4)).toEqual(pulled);
   });
 
   it('plays the sound once per tick that hit something, and ticks again every 0.24 s', () => {
