@@ -543,7 +543,7 @@ export class ArenaScene extends Phaser.Scene {
   /** Stun from hazards. The boss shrugs it off to keep its patterns readable. */
   private regenFxT = 0;
 
-  /** Leaf Blower slam: a blown grocery stopped by the arena edge or a prop takes impact damage once. */
+  /** Leaf Blower slam: a blown grocery stopped by the arena edge or a prop takes impact damage once (and the ★3 blower's stun). */
   slamEnemy(e: Enemy): void {
     const dmg = e.blownDmg ?? 0;
     e.blownUntil = 0; // the slam lands once; a slide goes on (no steering) until `slideUntil`
@@ -551,6 +551,7 @@ export class ArenaScene extends Phaser.Scene {
     this.fx.spark(e.x, e.y - 30, 4, 0xcfefff);
     this.fx.shake(0.003, 80);
     this.damageEnemy(e, dmg, null, { label: 'Slam', tags: ['cleaning'] }); // the Leaf Blower's slam
+    if (e.blownStun) this.stunEnemy(e, e.blownStun);
   }
 
   /** Ice Sheet: shoves a grocery away from the goblin and marks it as blown, so the Leaf Blower's slam (`slamEnemy`) lands when it stops at a wall, a prop or another enemy. Bosses are immune. */
@@ -559,7 +560,7 @@ export class ArenaScene extends Phaser.Scene {
     const now = this.time.now / 1000, dx = e.x - this.player.x, dy = e.y - this.player.y, d = Math.hypot(dx, dy) || 1;
     const k = 1 - e.def.knockbackResist;
     e.kx = (dx / d) * speed * k; e.ky = (dy / d) * speed * k;
-    e.slideUntil = now + seconds; e.blownUntil = now + seconds; e.blownDmg = slam;
+    e.slideUntil = now + seconds; e.blownUntil = now + seconds; e.blownDmg = slam; e.blownStun = 0;
     e.slideTouch = new Set(this.enemies.filter((o) => o !== e && o.alive && Math.hypot(o.x - e.x, o.y - e.y) < o.def.radius + e.def.radius).map((o) => o.id)); // already in contact: not a collision
     return seconds;
   }
@@ -728,7 +729,7 @@ export class ArenaScene extends Phaser.Scene {
     if (o.kb) {
       const k = o.kb * (1 - e.def.knockbackResist) * (this.hazards.onIce(e.x, e.y) ? DEPT_TUNING.ice.knockbackMult : 1) * hit.kbMult;
       e.kx += (o.kbX ?? 0) * k * 3; e.ky += (o.kbY ?? 0) * k * 3;
-      if (o.blow) { e.blownUntil = now + 0.6; e.blownDmg = o.blow; } // Leaf Blower: marked until it stops against a wall or prop
+      if (o.blow) { e.blownUntil = now + 0.6; e.blownDmg = o.blow; e.blownStun = o.blowStun; } // Leaf Blower: marked until it stops against a wall or prop
     }
     if (!o.isDot && !o.quiet) {
       // Short flash with a re-trigger gap so constant fire never leaves a sprite solid white.

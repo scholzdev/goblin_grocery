@@ -33,11 +33,11 @@ describe('Leaf Blower: content', () => {
     expect([1, 2, 3].map((t) => itemRules('leafblower', t))).toEqual([
       'Every 0.9 s blasts a 50° cone (220 reach) for 3 damage and a heavy push. Blown groceries that hit a wall or prop take 8 slam damage (scales with level).',
       'Every 0.81 s blasts a 50° cone (220 reach) for 4.5 damage and a heavy push. Blown groceries that hit a wall or prop take 8 slam damage (scales with level).',
-      'Every 0.72 s blasts a 50° cone (220 reach) for 6 damage and a heavy push. Blown groceries that hit a wall or prop take 8 slam damage (scales with level).',
+      'Every 0.72 s blasts a 50° cone (220 reach) for 6 damage and a heavy push. Blown groceries that hit a wall or prop take 8 slam damage (scales with level). ★3: Slammed groceries are also stunned for 0.5 s.',
     ]);
     expect(itemT('leafblower')).toMatchObject({ name: 'Leaf Blower', blurb: 'Huff and puff. Slams groceries into things.' });
     setLang('de');
-    expect([1, 3].map((t) => itemRules('leafblower', t))).toEqual(['Bläst alle 0,9 s einen 50°-Kegel (220 Reichweite) für 3 Schaden und einen kräftigen Stoß. Weggeblasene Gegner, die gegen eine Wand oder Deko prallen, erleiden 8 Aufprallschaden (skaliert mit der Stufe).', 'Bläst alle 0,72 s einen 50°-Kegel (220 Reichweite) für 6 Schaden und einen kräftigen Stoß. Weggeblasene Gegner, die gegen eine Wand oder Deko prallen, erleiden 8 Aufprallschaden (skaliert mit der Stufe).']);
+    expect([1, 3].map((t) => itemRules('leafblower', t))).toEqual(['Bläst alle 0,9 s einen 50°-Kegel (220 Reichweite) für 3 Schaden und einen kräftigen Stoß. Weggeblasene Gegner, die gegen eine Wand oder Deko prallen, erleiden 8 Aufprallschaden (skaliert mit der Stufe).', 'Bläst alle 0,72 s einen 50°-Kegel (220 Reichweite) für 6 Schaden und einen kräftigen Stoß. Weggeblasene Gegner, die gegen eine Wand oder Deko prallen, erleiden 8 Aufprallschaden (skaliert mit der Stufe). ★3: Aufgeprallte Gegner sind außerdem 0,5 s lang betäubt.']);
     expect(itemT('leafblower')).toMatchObject({ name: 'Laubbläser', blurb: 'Puff puff. Schleudert Gegner gegen Sachen.' });
   });
 
@@ -139,5 +139,29 @@ describe('Leaf Blower: pattern cone', () => {
     const t = taped.fake.spawnEnemy(wide);
     taped.a.step(0.5);
     expect(taped.fake.callsOf('damage').some((c) => c.enemy === t.id)).toBe(true);
+  });
+});
+
+describe('Leaf Blower: ★3 slam stun', () => {
+  const blowStun = (type: 'leafblower' | 'spray', tier: number) => {
+    const { a, fake } = arsenal([at(type, tier)]);
+    fake.spawnEnemy({ x: 150, hp: 1000 });
+    a.step(0.5);
+    return fake.callsOf('damage')[0].opts.blowStun;
+  };
+
+  it('from ★3 (★4 too) each blast hit carries a 0.5 s stun for its slam; at ★2 the slam only hurts, and a ★3 Spray Bottle on the same pattern carries none', () => {
+    expect([2, 3, 4].map((t) => blowStun('leafblower', t))).toEqual([undefined, 0.5, 0.5]);
+    expect(blowStun('spray', 3)).toBeUndefined();
+  });
+
+  // The slam happens in the Phaser scene (a blown grocery stopped by a wall or prop), which no headless harness runs.
+  it('the arena keeps the stun with the blow mark, the slam applies it, an Ice Sheet slide clears it (source guards)', () => {
+    const scene = Object.values(import.meta.glob('../../../src/scenes/ArenaScene.ts', { query: '?raw', import: 'default', eager: true }) as Record<string, string>)[0];
+    expect(scene).toContain('if (o.blow) { e.blownUntil = now + 0.6; e.blownDmg = o.blow; e.blownStun = o.blowStun; }');
+    const slam = scene.slice(scene.indexOf('slamEnemy(e: Enemy): void {'), scene.indexOf('slideEnemy(e: Enemy'));
+    expect(slam).toContain('if (e.blownStun) this.stunEnemy(e, e.blownStun);');
+    expect(slam.indexOf("label: 'Slam'")).toBeLessThan(slam.indexOf('this.stunEnemy('));
+    expect(scene).toContain('e.blownDmg = slam; e.blownStun = 0;');
   });
 });
