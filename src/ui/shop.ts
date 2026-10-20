@@ -21,7 +21,7 @@ import { pickNext, type Dir } from '../input/pad-core';
 import { icons, setIcon } from './icons';
 import { strongVsHtml } from './affinity';
 import { t, fmtNum } from '../i18n';
-import { itemRules, itemT, recipeT, setBonusT, tagT } from '../i18n/data';
+import { itemRules, itemT, recipeT, setBonusT, star3Teaser, tagT } from '../i18n/data';
 import { lvOf, setCount as setCountOf, setGains, setWeight, setsOf, type SetCandidate } from '../data/sets';
 import { tierBoostOf } from '../engine/build';
 import { SET_ORDER, SET_THRESHOLDS, flavorOf } from '../engine/define';
@@ -305,14 +305,16 @@ function render(): void {
     const fp = cells.map((c) => `<i style="grid-column:${c.x + 1};grid-row:${c.y + 1}"></i>`).join('');
     const rar = def.legendary ? t('legendaryKind', { k: kindLabel(o.type) }) : o.tier === 3 ? t('epicKind', { k: kindLabel(o.type) }) : o.tier === 2 ? t('rareKind', { k: kindLabel(o.type) }) : kindLabel(o.type);
     const stks = o.sold || !sets ? '' : setBadges(s.inventory.placed, o);
+    const s3 = o.sold ? '' : star3Teaser(o.type, o.tier);
     // Undiscounted price: struck through when a discount (Checkout, coupons, starter perk) baked a lower price in.
     const list = Math.max(1, Math.round(TIER.value(def.price, o.tier) * infl));
     const was = list > o.price ? list : Math.max(1, Math.round(o.price / infl));
     const struck = !o.sold && (list > o.price || infl > 1) ? was : undefined;
-    return `<div class="card ${rarityClass(o.type, o.tier)} ${o.sold ? 'sold' : ''} ${why || poor ? 'blocked' : ''} ${lv ? 'lvl' : ''}" data-offer="${o.slot}" data-type="${o.type}" ${poor ? `title="${t('needCoins', { n: o.price - s.money })}"` : ''} ${o.sold ? `data-sold="${t('soldStamp')}"` : ''} role="button" tabindex="0"
+    return `<div class="card ${rarityClass(o.type, o.tier)} ${s3 ? 'has-s3' : ''} ${o.sold ? 'sold' : ''} ${why || poor ? 'blocked' : ''} ${lv ? 'lvl' : ''}" data-offer="${o.slot}" data-type="${o.type}" ${poor ? `title="${t('needCoins', { n: o.price - s.money })}"` : ''} ${o.sold ? `data-sold="${t('soldStamp')}"` : ''} role="button" tabindex="0"
       aria-label="${t('buyAria', { rar, name: itemT(o.type).name, price: o.price })}">
       <img class="art" src="${svg(`icon_${o.type}`)}" alt="">
       <div class="nm">${itemT(o.type).name}</div><div class="fp" style="grid-template-columns:repeat(${w},10px)">${fp}</div>
+      ${s3 ? `<div class="s3" title="${esc(s3)}">${esc(s3)}</div>` : ''}
       <span class="price-tag">${costPill(o.price, s.money >= o.price, struck)}</span>
       ${lv ? `<span class="lvlup" title="${t('combinesTip', { name: itemT(o.type).name })}">${t('combinesTag', { n: (lv.tier ?? 1) + 1 })}</span>` : ''}
       ${o.double && !o.sold ? `<span class="dblpack" title="${esc(t('setDouble'))}">${t('packSticker')}</span>` : ''}
@@ -446,7 +448,8 @@ export function inspectorHtml(type: ItemTypeId, uid: string | null, offer?: Shop
   const callout = !ws && def.weapon && loc?.where === 'shelf'
     ? `<div class="callout">${icons.crate(30)}<div><b>${t('shelfTitle')}</b><span>${t('shelfText')}</span></div></div>` : '';
 
-  body += `<p class="rules">${esc(itemRules(type, tier))}</p>`; // numbers follow the item's level
+  const teaser = star3Teaser(type, tier);
+  body += `<p class="rules">${esc(itemRules(type, tier))}${teaser ? `<span class="s3">${esc(teaser)}</span>` : ''}</p>`; // numbers follow the item's level
 
   // Level comparison: each level column tinted in its rarity colour, the current one stronger and labelled.
   const scale = tierScaling(type);
