@@ -6,7 +6,7 @@ import { inflation, rollDoors, waveSpawnPlan, currentRerollCost, rerollCost, rol
 import { profile, noteEnemy, recordRun, recordOvertime, shiftUnlocked, starterUnlocked } from '../src/state/profile';
 import { mulberry32 } from '../src/systems/rng';
 import { rollEvent, outageDuration } from '../src/systems/events';
-import { EVENTS } from '../src/data/events';
+import { EVENTS, EVENT_LEAD } from '../src/data/events';
 import { cart } from './cart';
 import { setLevels } from '../src/data/sets';
 import { RECIPES } from '../src/data/recipes';
@@ -1335,6 +1335,15 @@ describe('aisle events', () => {
       if (d !== 'electronics') expect(rollEvent(d, 5, 0, just(c - 0.001), false)?.kind).toBe('wetFloor');
       expect(rollEvent(d, 5, 0, just(0.999), false)).toBeNull();
     }
+  });
+  it('starts at least EVENT_LEAD s before a short aisle ends, from the same two draws; a 60 s aisle keeps the whole window', () => {
+    const seq = (...v: number[]) => { let i = 0; return () => v[i++]; };
+    const [a, b] = EVENTS.wetFloor.startAt;
+    const short = rollEvent('main', 2, 0, seq(0, 0.999), false)!;
+    expect(short.kind).toBe('wetFloor');
+    expect(waveDef(2).duration).toBeLessThan(b + EVENT_LEAD);
+    expect(short.startAt).toBeCloseTo(a + 0.999 * (waveDef(2).duration - EVENT_LEAD - a), 9);
+    expect(rollEvent('main', 5, 0, seq(0, 0.999), false)!.startAt).toBeCloseTo(a + 0.999 * (b - a), 9);
   });
   it('outage lasts longer on later shifts and starts inside the window', () => {
     expect(outageDuration(2)).toBe(EVENTS.outage.duration + 2 * EVENTS.outage.durationPerShift);

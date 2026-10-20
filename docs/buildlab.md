@@ -49,7 +49,7 @@ Randomness, as in the game: `mulberry32(seed)` is `flow.rng` (shop rolls, doors,
 
 Aisle by kind:
 
-- Aisle 1..7: the real `waveSpawnPlan` (mix, count, hp / speed / damage scales, department, modifier, shift), groups scheduled like `ArenaScene.planWave` (same draw order, same ramp, same entries, the 70-enemy cap), elites by `eliteChance` + modifier bonus with the real affixes (swift, tough, splitter, plated; pickpocket only rolls), melon slices, splitter copies. The aisle ends after its 60 s, remaining enemies swept without credit (as `beginCheckout` does).
+- Aisle 1..7: the real `waveSpawnPlan` (mix, count, hp / speed / damage scales, department, modifier, shift), groups scheduled like `ArenaScene.planWave` (same draw order, same ramp, same entries, the 70-enemy cap), elites by `eliteChance` + modifier bonus with the real affixes (swift, tough, splitter, plated; pickpocket only rolls), melon slices, splitter copies. The aisle ends after its `duration` (38 s in aisles 1 and 2, 60 s after), remaining enemies swept without credit (as `beginCheckout` does).
 - Aisle 4 (mini-boss, unless the door was a stockroom): the boss variant is rolled from `flow.rng`, arrives at 8 s with the real `miniBossDef`, summons and volleys; the aisle ends when it dies; `rollMiniCrates` is resolved by the policy (`pickCrate`); the item goes through `takeStockroomItem` (shelf, or coins if the shelf is full).
 - Stockroom door: no fight; `rollStockroom` resolved by `pickStockroom`.
 - Aisle 8 (boss): the department boss arrives at 1.6 s, six escorts by the plan, the Manager's cycle (volley, charge, summon, special), enrage after 61.6 s. Killing it is the win. Overtime after the boss is not played.
@@ -97,7 +97,7 @@ These values are NOT calibrated against human play (there is no recorded data). 
 
 Per aisle: `aisle`, `kind` (`fight`, `mini`, `boss`, `stockroom`), `department`, `modifier`, `seconds`, `spawned`, `kills`, `leftover` (alive when the aisle ended: the "wipe pressure" signal), `escaped` (Gift Cards), `clearTime` (when the last enemy of the plan died; `null` if some were left), `cleared`, `hpBefore`, `hpAfter`, `damageTaken`, `coins`, `dealt`, `dps`, `died`, `stalled`, `miniDefeated`, `bossDefeated`, `combos` and `sets` of the cart at the start, `weapons`, `loot` (crate / stockroom pick), and `damage`: `byType`, `dot`, `weak`, `resisted`, `shred`, `mark`, `reactions`, `bySource` (weapon item id, `burn`, `poison`, labels).
 
-A regular aisle always lasts its full 60 s (that is the game's rule), so `clearTime` is `null` whenever the cart cannot clear the aisle in time; use `leftover` and `dps` to rank builds then. `playAisle(..., { mode: 'clear' })` runs on until everything is dead (at most 30 s extra) when you want a time-to-clear.
+A regular aisle always lasts its full `duration` (38 s in aisles 1 and 2, 60 s after; that is the game's rule), so `clearTime` is `null` whenever the cart cannot clear the aisle in time; use `leftover` and `dps` to rank builds then. `playAisle(..., { mode: 'clear' })` runs on until everything is dead (at most 30 s extra) when you want a time-to-clear.
 
 ## The output
 
