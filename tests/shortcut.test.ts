@@ -139,4 +139,15 @@ describe('Shortcut Key', () => {
     expect(profile.stats.deptClears.main).toBe(before.main + 3);
     expect(profile.stats.deptClears.clearance).toBe(before.clearance + 1);
   });
+
+  it('a won run that took the Staff Only door counts the boss clear once', () => {
+    const s = createRun(1);
+    const route = [...Array<'main'>(BOSS_WAVE - 1).fill('main'), 'boss' as const];
+    Object.assign(s, { route, mods: route.map(() => 'none'), skippedAisles: [3], wave: BOSS_WAVE });
+    s.stats.wavesCleared = BOSS_WAVE - 1; // flow.victory sets this whether or not an aisle was skipped
+    const before = { main: profile.stats.deptClears.main ?? 0, boss: profile.stats.deptClears.boss ?? 0 };
+    recordRun(s, true);
+    expect(profile.stats.deptClears.boss, 'one boss clear').toBe(before.boss + 1);
+    expect(profile.stats.deptClears.main, 'every played aisle before the boss').toBe(before.main + BOSS_WAVE - 2);
+  });
 });

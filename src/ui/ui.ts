@@ -22,7 +22,7 @@ import { initShop, shopKey, shopPad, gridHtml, combosHtml, starsHtml, rarityClas
 import { DEPARTMENTS, THEMES } from '../data/departments';
 import { MODIFIERS, type DoorId, type ModifierId } from '../data/modifiers';
 import { CART_SKINS, GOBLIN_SKINS, UNLOCKS, type CartSkin, type GoblinSkin } from '../data/unlocks';
-import { COUPON_COINS, STAMPS_PER_CARD, cartUnlocked, dailyBestToday, discoverRecipe, goblinUnlocked, isNew, markSeen, newCount, profile, saveProfile, shiftUnlocked, starterUnlocked, unlockedItems } from '../state/profile';
+import { COUPON_COINS, STAMPS_PER_CARD, cartUnlocked, dailyBestToday, discoverRecipe, goblinUnlocked, isNew, markSeen, newCount, profile, saveProfile, shiftUnlocked, starterUnlocked, unlockProgress, unlockedItems } from '../state/profile';
 import { ITEM_IDS } from '../data/items';
 import type { DepartmentId, EnemyId, ItemTypeId, LabOpts, Perk, RecipeId, SetId, StarterId, StarterWeapon } from '../types';
 import type { Fresh } from '../state/profile';
@@ -431,7 +431,7 @@ function starterHtml(): string {
       <img src="${svg(d.theme.icon)}" alt=""><span class="wp-text"><span class="wp-head"><b>${dt.short}</b></span><span class="wp-stat">${dt.blurb}</span></span></button>`;
   };
   const detail = `<div class="detail"><span class="who">${portrait(id)}</span><div class="dtxt"><div class="dn display">${stT.name}</div><div class="blurb">${stT.blurb}</div><div class="sig"><b>${t('sigLabel')}</b> ${t(`sig_${id}` as UIKey)}</div>
-      ${away ? `<div class="need">🔒 ${gate ? `${unlockNeedT(gate.id)} (${gate.progress(profile.stats).join('/')})` : t('charLocked')}</div>`
+      ${away ? `<div class="need">🔒 ${gate ? `${unlockNeedT(gate.id)} (${unlockProgress(gate).join('/')})` : t('charLocked')}</div>`
         : st.perk ? `<ul>${perkLines(st.perk).map((l) => `<li>${l}</li>`).join('')}</ul>` : ''}</div></div>`;
   const reason = away ? t('charLocked') : shiftLock ? t('winShiftStarter', { n: pickedShift }) : '';
   return `<div class="route loadout-pick"><h2 class="display">${t('pickStarter')}</h2>
@@ -737,7 +737,7 @@ function codexTab(tab: 'combos' | 'items' | 'enemies'): string {
   const tiles = ITEM_IDS.map((ty) => {
     if (unlocked.has(ty)) return `<div class="codex-item ${ITEMS[ty].legendary ? 'legendary' : ''}" data-card="${ty}">${newTag(`item:${ty}`)}<img src="${svg(`icon_${ty}`)}" alt=""><span>${itemT(ty).name}</span></div>`;
     const u = UNLOCKS.find((x) => x.kind === 'item' && x.item === ty)!;
-    return `<div class="codex-item locked" data-card="${ty}"><img src="${svg(`icon_${ty}`)}" alt=""><span>${unlockNeedT(u.id)}</span>${bar(u.progress(profile.stats))}</div>`;
+    return `<div class="codex-item locked" data-card="${ty}"><img src="${svg(`icon_${ty}`)}" alt=""><span>${unlockNeedT(u.id)}</span>${bar(unlockProgress(u))}</div>`;
   }).join('');
   return `<h2>${t('catalog')}</h2>${tabs}<div class="codex-items">${tiles}</div>`;
 }
@@ -747,13 +747,13 @@ function wardrobeHtml(): string {
     const ok = goblinUnlocked(k), u = UNLOCKS.find((x) => x.kind === 'goblin' && x.skin === k);
     const key = k === 'classic' ? 'goblin_head' : `goblin_head__${k}`;
     return `<button class="skin ${profile.goblin === k ? 'on' : ''} ${ok ? '' : 'locked'}" data-act="skin" data-skin="goblin:${k}" ${ok ? '' : 'disabled'}>
-      <img src="${svg(key)}" alt=""><b>${goblinSkinT(k).name}</b><small>${ok ? (profile.goblin === k ? t('equipped') : goblinSkinT(k).blurb) : unlockNeedT(u!.id)}</small>${ok ? '' : bar(u!.progress(profile.stats))}</button>`;
+      <img src="${svg(key)}" alt=""><b>${goblinSkinT(k).name}</b><small>${ok ? (profile.goblin === k ? t('equipped') : goblinSkinT(k).blurb) : unlockNeedT(u!.id)}</small>${ok ? '' : bar(unlockProgress(u!))}</button>`;
   }).join('');
   const carts = (Object.keys(CART_SKINS) as CartSkin[]).map((k) => {
     const ok = cartUnlocked(k), u = UNLOCKS.find((x) => x.kind === 'cart' && x.skin === k);
     const key = k === 'chrome' ? 'cart_back' : `cart_back__${k}`;
     return `<button class="skin ${profile.cart === k ? 'on' : ''} ${ok ? '' : 'locked'}" data-act="skin" data-skin="cart:${k}" ${ok ? '' : 'disabled'}>
-      <img src="${svg(key)}" alt=""><b>${cartSkinT(k).name}</b><small>${ok ? (profile.cart === k ? t('equipped') : cartSkinT(k).blurb) : unlockNeedT(u!.id)}</small>${ok ? '' : bar(u!.progress(profile.stats))}</button>`;
+      <img src="${svg(key)}" alt=""><b>${cartSkinT(k).name}</b><small>${ok ? (profile.cart === k ? t('equipped') : cartSkinT(k).blurb) : unlockNeedT(u!.id)}</small>${ok ? '' : bar(unlockProgress(u!))}</button>`;
   }).join('');
   return `<h2>${t('wardrobe')}</h2><h5 class="sec">${t('goblin')}</h5><div class="skins">${goblins}</div><h5 class="sec">${t('cart')}</h5><div class="skins">${carts}</div>`;
 }

@@ -978,7 +978,8 @@ describe('shifts & overtime', () => {
     expect(shiftUnlocked('toaster', 2)).toBe(false);
     recordRun(createRun(1, 'pan', 0), true);
     expect(profile.stats.bestShift.pan).toBe(1);
-    recordOvertime(3); recordOvertime(1);
+    const ot = (wave: number) => Object.assign(createRun(1), { overtime: true, counted: { kills: 0, coins: 0 }, wave, route: Array(wave).fill('main'), mods: Array(wave).fill('none') });
+    recordOvertime(ot(BOSS_WAVE + 4)); recordOvertime(ot(BOSS_WAVE + 2));
     expect(profile.stats.bestOvertime).toBe(3);
   });
 });

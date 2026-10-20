@@ -235,18 +235,9 @@ export const flow = {
       store.emit('run-end');
       return;
     }
-    if (s.overtime) { // the run was already counted at victory
-      const past = Math.max(0, s.wave - BOSS_WAVE - 1);
-      recordOvertime(past);
-      const { daily } = recordFinish(s, won, score);
-      this.lastResult = { score, newBest: false, fresh: runSnap ? freshSince(runSnap) : emptyFresh(), near: nearUnlocks(), daily };
-      play('defeat');
-      store.changed();
-      store.emit('run-end');
-      return;
-    }
-    const newBest = submitRun({ score, wave: s.wave, won, date: new Date().toISOString().slice(0, 10) });
-    const got = recordRun(s, won).map((u) => u.id);
+    // An overtime run was submitted and recorded at victory, so only what came after it is added.
+    const newBest = !s.overtime && submitRun({ score, wave: s.wave, won, date: new Date().toISOString().slice(0, 10) });
+    const got = (s.overtime ? recordOvertime(s) : recordRun(s, won)).map((u) => u.id);
     const fresh = runSnap ? freshSince(runSnap) : emptyFresh();
     fresh.unlocks = [...new Set([...fresh.unlocks, ...got])];
     const { loyalty, daily } = recordFinish(s, won, score);

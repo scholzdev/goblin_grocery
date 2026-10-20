@@ -214,7 +214,7 @@ Progress persists between runs in local storage (`src/state/profile.ts`, rules i
 | Feature | How it works |
 |---|---|
 | **Catalog** (main menu) | A combo is discovered the first time it's active in your cart, with a pop-up. Undiscovered combos show the weapon plus `?` slots. The Items tab shows every item, with requirements and progress bars for locked ones. |
-| **Unlocks** | Start with 12 items. Unlock the other 19 by reaching aisles, clearing departments, lifetime kills and coins, discovering combos, and winning. Locked items never appear in shops. |
+| **Unlocks** | Start with 12 items. Unlock the other 19 by reaching aisles, clearing departments, lifetime kills and coins, discovering combos, winning, and goals met within a single run (a set at its top level, a win with three weapons). Locked items never appear in shops. |
 | **Wardrobe** | 3 goblin skins (Night Shift, Freezer Burn, Employee of the Month) and 2 cart skins (Sale Cart, Golden Cart) unlock through milestones. |
 
 The end-of-run receipt lists anything that run unlocked.
