@@ -1,3 +1,4 @@
+import { hasStar3 } from '../define';
 import type { Pattern, PatternHost, WeaponRt } from './types';
 
 /** The suction range and pull multiplier right now: the weapon's own, times Full Suck's boost while it runs. */
@@ -27,7 +28,7 @@ function suction(h: PatternHost, w: WeaponRt, dt: number): void {
   sc.fx.suck(p.x, p.y, range, pulling && Math.random() < dt * 22, st.frostRing ? 0xcff3ff : undefined);
 }
 
-/** Vacuum: constant suction (`tick`), and every cooldown a damage pulse on everything inside the radius. */
+/** Vacuum: constant suction (`tick`), and every cooldown a damage pulse on everything inside the radius; from ★3 it knocks the groceries within `tune.nozzle` of the cart's edge back out (`tune.blowback`). */
 export const pulse: Pattern = {
   id: 'pulse',
   tick(h, w, dt, firing) {
@@ -38,11 +39,14 @@ export const pulse: Pattern = {
     const p = sc.player;
     const st = w.stats;
     const { range } = boosted(h, w);
+    const blowback = hasStar3(st.tier) ? w.tune.blowback : 0;
     sc.fx.ring(st.frostRing ? 'fx_frost' : 'fx_pulse', p.x, p.y, range * 2.2, 420, undefined, true);
     for (const e of sc.enemies) {
       if (!e.alive || e.state === 'spawn') continue;
-      if (Math.hypot(p.x - e.x, p.y - e.y) > range + e.def.radius) continue;
-      sc.damageEnemy(e, st.damage, st, {});
+      const dx = e.x - p.x, dy = e.y - p.y, d = Math.hypot(dx, dy);
+      if (d > range + e.def.radius) continue;
+      const atCart = blowback > 0 && d < p.radius + e.def.radius + w.tune.nozzle;
+      sc.damageEnemy(e, st.damage, st, atCart ? { kb: blowback, kbX: dx / (d || 1), kbY: dy / (d || 1) } : {});
       if (st.frostRing) sc.fx.frostBurst(e.x, e.y - 20, 3);
     }
     // Static Cling throws lightning at a few of the groceries inside the pulse.
