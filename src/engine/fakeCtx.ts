@@ -17,6 +17,7 @@ import { hitTags } from './hitTags';
 import { damageType } from './damageType';
 import { applyHitStatuses, scheduleEcho } from './onHitStatuses';
 import { applyKillEffects } from './onKillEffects';
+import { beamOnce, explodeAt, spawnFirePool, sweepOnce, type PatternEnemy, type PatternHost, type WeaponRt } from './patterns';
 
 // `RuntimeCtx` for tests (docs/item-hooks-refactor.md §5/§6): a deterministic clock and rng, an in-memory enemy list, and a log of
 // every effect a hook asked for. No Phaser, no timers: delayed callbacks and tweens run when the test calls `advance(s)`.
@@ -102,6 +103,11 @@ export class FakeCtx implements RuntimeCtx {
   active = true;
   /** The compiled hooks `damage`/`hit`/`hurt` dispatch to. */
   hooks: HookTable = EMPTY_HOOKS;
+  /**
+   * The weapons `spawnShot`, `spawnPool`, `sweep`, `explode` and `beam` act on, routed like `PhaserCtx` routes them to the scene's arsenal (the build
+   * lab sets its `FakeArsenal`). Without one, as in a test of a single hook, a spawned shot only lands in `playerShots` and the others are only logged.
+   */
+  arsenal: PatternHost | null = null;
   readonly fx: FxApi;
   /** The run's damage breakdown as `ArenaScene` keeps it (`RunStats.damageByWeapon` + `damage`): every hit of `runHit` is recorded here. */
   readonly dmgLog: DamageSink = { damageByWeapon: {}, damage: newDamageStats() };
@@ -320,11 +326,15 @@ export class FakeCtx implements RuntimeCtx {
 
   spawnShot(spec: ShotSpec): CombatShot | null {
     this.log({ kind: 'spawnShot', spec });
+    if (this.arsenal) return this.arsenal.spawn(spec.key, spec.x, spec.y, spec.angle, spec.speed, spec.life, spec.damage, spec.stats, spec.maxHits);
     const s: CombatShot = { active: true, x: spec.x, y: spec.y, vx: Math.cos(spec.angle) * spec.speed, vy: Math.sin(spec.angle) * spec.speed, life: spec.life, damage: spec.damage, stats: spec.stats, splash: null, tracker: { hits: new Set() } };
     this.playerShots.push(s);
     return s;
   }
-  spawnPool(spec: PoolSpec): void { this.log({ kind: 'spawnPool', spec }); }
+  spawnPool(spec: PoolSpec): void {
+    this.log({ kind: 'spawnPool', spec });
+    if (this.arsenal) spawnFirePool(this.arsenal, spec.x, spec.y, spec.r, spec.time, spec.stats, spec.tune);
+  }
   /** Damages every enemy in the radius with `fromPopper` (so poppers never re-trigger), as the scene does. */
   pullCoins(): void { this.log({ kind: 'pullCoins' }); }
   boostWeapon(weaponUid: string, boost: { pull: number; range: number }, seconds: number): void { this.log({ kind: 'boostWeapon', weapon: weaponUid, ...boost, seconds }); }
@@ -332,9 +342,21 @@ export class FakeCtx implements RuntimeCtx {
     this.log({ kind: 'popperBlast', x: pos.x, y: pos.y, damage: pop.damage, radius: pop.radius, setPop });
     for (const e of this.inRadius(pos, pop.radius)) this.damage(e, pop.damage, null, { fromPopper: true, label: 'Party Popper' });
   }
-  sweep(weaponUid: string, angle: number, bonus = false): void { this.log({ kind: 'sweep', weapon: weaponUid, angle, bonus }); }
-  explode(weaponUid: string, x: number, y: number): void { this.log({ kind: 'explode', weapon: weaponUid, x, y }); }
-  beam(weaponUid: string, target: CombatEnemy, echo = false): void { this.log({ kind: 'beam', weapon: weaponUid, target: target.id, echo }); }
+  sweep(weaponUid: string, angle: number, bonus = false): void {
+    this.log({ kind: 'sweep', weapon: weaponUid, angle, bonus });
+    const a = this.arsenal, w = this.weaponOf(weaponUid);
+    if (a && w) sweepOnce(a, w, angle, bonus);
+  }
+  explode(weaponUid: string, x: number, y: number): void {
+    this.log({ kind: 'explode', weapon: weaponUid, x, y });
+    const a = this.arsenal, w = this.weaponOf(weaponUid);
+    if (a && w) explodeAt(a, x, y, w.stats);
+  }
+  beam(weaponUid: string, target: CombatEnemy, echo = false): void {
+    this.log({ kind: 'beam', weapon: weaponUid, target: target.id, echo });
+    const a = this.arsenal, w = this.weaponOf(weaponUid);
+    if (a && w) beamOnce(a, w, target as PatternEnemy, echo);
+  }
   enemyShots(): readonly CombatShot[] { return this.hostileShots.filter((s) => s.active); }
   killShot(shot: CombatShot): void { this.log({ kind: 'killShot', shot }); shot.active = false; }
   reflectShot(shot: CombatShot, mult: number): void { this.log({ kind: 'reflectShot', shot, mult }); shot.active = false; }
@@ -360,6 +382,7 @@ export class FakeCtx implements RuntimeCtx {
 
   // ---- internals ----------------------------------------------------------------------------------------------------------------
 
+  private weaponOf(uid: string): WeaponRt | undefined { return this.arsenal?.weapons.find((w) => w.stats.uid === uid); }
   private log(c: { kind: CallKind } & Record<string, unknown>): void { this.calls.push({ at: this.time, ...c } as Call); }
   private later(seconds: number, fn: () => void): void { this.queue.push({ due: this.time + seconds, seq: this.seq++, fn }); }
 

@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { PROXY, playAisle } from '../../src/buildlab/combat';
-import { Enemy, Item } from '../../src/engine/ids';
+import { Combo, Enemy, Item } from '../../src/engine/ids';
 import { mulberry32 } from '../../src/systems/rng';
+import type { RecipeId } from '../../src/types';
 import { bareToaster, stateWith, strongCart } from './helpers';
 
 // The combat proxy: a stronger cart clears a fixed aisle faster, a cart with no weapon takes damage and dies, Weaken lowers the damage taken.
@@ -58,5 +59,32 @@ describe('combat proxy', () => {
     const boss = playAisle(stateWith(strongCart(), { aisle: 8 }), flow());
     expect(boss.kind).toBe('boss');
     expect(boss.seconds).toBeLessThanOrEqual(PROXY.bossCap);
+  });
+});
+
+describe('combat proxy: effects that combo hooks spawn', () => {
+  // Neither side can die within the aisle, so a run with the combo and one without it last equally long and differ only by the combo's damage.
+  const ENDLESS = [{ id: Enemy.milk, count: 14, hpScale: 1000 }];
+  const cart = (specs: Parameters<typeof stateWith>[0], combo: RecipeId, keep = true) => {
+    const s = stateWith(specs, { hp: 5000 });
+    expect(s.build.recipes.map((r) => r.id), `the cart forms ${combo}`).toContain(combo);
+    if (!keep) s.build.recipes = s.build.recipes.filter((r) => r.id !== combo);
+    return s;
+  };
+
+  it('Ray Gun: the bolts that replace the nails fly and hit', () => {
+    const s = cart([{ type: Item.nailgun }, { type: Item.battery }, { type: Item.tinfoilhat }, { type: Item.magnet }], Combo.rayGun);
+    const r = playAisle(s, flow(), { mode: 'clear', only: MILK });
+    expect(r.damage.bySource.nailgun ?? 0, 'Nail Gun damage').toBeGreaterThan(0);
+  });
+
+  it('Reheat: the fire pools a zap leaves burn the enemies in them', () => {
+    const burn = (keep: boolean) => playAisle(cart([{ type: Item.microwave }, { type: Item.fuel }], Combo.reheat, keep), flow(), { mode: 'clear', only: ENDLESS }).damage.bySource.burn ?? 0;
+    expect(burn(true), 'burn damage with Reheat vs the same cart without it').toBeGreaterThan(burn(false));
+  });
+
+  it('Shrapnel: the fragments of an explosion hit enemies', () => {
+    const cooker = (keep: boolean) => playAisle(cart([{ type: Item.cooker }, { type: Item.tape }], Combo.shrapnel, keep), flow(), { mode: 'clear', only: ENDLESS }).damage.bySource.cooker ?? 0;
+    expect(cooker(true), 'Pressure Cooker damage with Shrapnel vs the same cart without it').toBeGreaterThan(cooker(false));
   });
 });

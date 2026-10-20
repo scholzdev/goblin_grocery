@@ -150,6 +150,7 @@ export function playAisle(state: RunState, flow: Rng, opts: AisleOpts = {}): Ais
   const fake = new FakeCtx({ seed: state.seed, aisle: state.wave, build, hp: state.hp, maxHp: build.maxHp, boss, player: { x: PLAYER_START.x, y: PLAYER_START.y } });
   fake.attach(buildHooks(state.inventory, build.recipes, build.sets, fake));
   const arsenal = new FakeArsenal(fake, build);
+  fake.arsenal = arsenal;
   arsenal.electricalRate = dept.electricalRate;
   arsenal.applyLooks();
   if (fake.hooks.onAisleStart.length) fake.hooks.emit('onAisleStart', { aisle: state.wave, boss, department: dept.id, modifier: state.modifier });
