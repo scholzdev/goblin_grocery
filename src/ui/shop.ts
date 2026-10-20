@@ -3,7 +3,7 @@ import { profile, unlockedItems } from '../state/profile';
 import { ITEMS, ITEM_IDS, TIER, cellsFor, cellsOf } from '../data/items';
 import { RECIPES, recipeIcon, recipeParts } from '../data/recipes';
 import { BOSS_WAVE, ECONOMY, SHOP_LEVELS } from '../data/waves';
-import { cartUpgradeCost, nextCartSize, shelfUpgradeCost, upgradeCart, upgradeShelf, buyOffer, mergeItems, mergeTargetFor, upgradeShop, shopUpgradeCost, moveItem, previewMerge, previewMove, repair, reroll, sellItem, toggleShopLock, type MoveTarget } from '../state/run';
+import { cartUpgradeCost, nextCartSize, shelfUpgradeCost, upgradeCart, upgradeShelf, buyOffer, interestPreview, mergeItems, mergeTargetFor, upgradeShop, shopUpgradeCost, moveItem, previewMerge, previewMove, repair, reroll, sellItem, toggleShopLock, type MoveTarget } from '../state/run';
 import { findItem, rotateCells, rotatedSize, footprint } from '../systems/inventory';
 import { describeBuffs, tierScaling } from '../systems/synergies';
 import { currentRerollCost, inflation, repairCost, sellPrice } from '../systems/shop';
@@ -258,6 +258,12 @@ function setBadges(placed: ItemInstance[], type: ItemTypeId, double = false): st
   }).join('');
 }
 
+/** Receipt line under the wallet: what the next aisle's end pays as interest at the current money (`interestPreview`). */
+export function interestLineHtml(s: RunState): string {
+  const { amount, cap } = interestPreview(s);
+  return `<div class="interest-next"><span>${t('interestNext')}</span><span>${t('interestNextAmount', { n: amount, max: cap })}</span></div>`;
+}
+
 function render(): void {
   const s = store.state;
   receiptPreview = null;
@@ -307,6 +313,7 @@ function render(): void {
       <div class="lines">${earned || `<div class="line"><span>${t('noCoins')}</span><span>0</span></div>`}${spent ? '<hr class="dash">' + spent : ''}</div>
       <hr class="dash">
       <div class="total"><span>${t('wallet')}</span><span><img class="coin-ico" src="${svg('coin')}" alt=""> ${s.money}</span></div>
+      ${interestLineHtml(s)}
       <div class="hpbox"><img src="${svg('heart')}" width="26" alt=""><div class="hpbar"><i style="width:${(100 * s.hp) / s.build.maxHp}%"></i></div><span>${Math.ceil(s.hp)}/${s.build.maxHp}</span></div>
       <button class="btn small gold" data-act="repair" style="margin-top:10px" ${shop.repairUsed || s.hp >= s.build.maxHp || s.money < rcost ? 'disabled' : ''}>
         ${shop.repairUsed ? t('repaired') : t('repairBtn', { hp: ECONOMY.repairHp }) + costPill(rcost, s.money >= rcost)}</button>

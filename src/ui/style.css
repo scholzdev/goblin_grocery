@@ -204,6 +204,8 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 #shop .lines .line.neg span:last-child { color: var(--coral-deep); }
 #shop .lines .line span:last-child { font-family: var(--display); font-weight: 400; }
 #shop .total { display: flex; justify-content: space-between; align-items: center; font-family: var(--display); font-size: 30px; }
+#shop .interest-next { display: flex; justify-content: space-between; gap: 8px; font-size: 15px; font-weight: 700; }
+#shop .interest-next span:last-child { font-family: var(--display); font-weight: 400; }
 #shop .hpbox { display: flex; align-items: center; gap: 10px; font-weight: 800; margin-top: 8px; }
 #shop .hpbox .hpbar { flex: 1; height: 16px; border: 3px solid var(--plum); border-radius: 8px; background: #e9d9f1; overflow: hidden; }
 #shop .hpbox .hpbar > i { display: block; height: 100%; background: var(--coral); }
