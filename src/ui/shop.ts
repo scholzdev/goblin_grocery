@@ -20,9 +20,9 @@ import { icons, setIcon } from './icons';
 import { strongVsHtml } from './affinity';
 import { t, fmtNum } from '../i18n';
 import { itemRules, itemT, recipeT, setBonusT, tagT } from '../i18n/data';
-import { lvOf, setCount as setCountOf, setGains, setsOf } from '../data/sets';
+import { lvOf, setCount as setCountOf, setGains, setsOf, type SetCandidate } from '../data/sets';
 import { SET_ORDER, SET_THRESHOLDS, flavorOf } from '../engine/define';
-import type { Build, ItemInstance, ItemTypeId, RecipeId, Rotation, RunState, SetId } from '../types';
+import type { Build, ItemInstance, ItemTypeId, RecipeId, Rotation, RunState, SetId, ShopOffer } from '../types';
 
 // Cell pitch in design pixels (cell + 4px gap). 92 for the 4×4 and 5×4 carts; shrinks so bigger carts fit the same 460×368 area.
 let CELL = 92;
@@ -53,8 +53,7 @@ interface Drag {
 let drag: Drag | null = null;
 let hoverUid: string | null = null;
 let hoverType: ItemTypeId | null = null;
-let hoverTier: number | undefined;
-let hoverDouble = false;
+let hoverOffer: ShopOffer | undefined;
 let hoverSlot: number | null = null;
 let hoverSet: SetId | null = null;
 let receiptPreview: ItemTypeId | null = null; // offer type whose set gains the receipt is currently previewing
@@ -219,9 +218,9 @@ const chipHtml = (id: SetId): string => `<span class="chip set-${id}">${setIcon(
 export const activeSets = (): { id: SetId; n: number; lv: number }[] =>
   SET_ORDER.map((id) => ({ id, n: setCount(id) })).filter((x) => x.n > 0).map((x) => ({ ...x, lv: setLv(x.n) })).sort((a, b) => b.lv - a.lv || b.n - a.n);
 
-export function setsHtml(preview?: ItemTypeId, previewDouble = false): string {
+export function setsHtml(preview?: SetCandidate): string {
   const t1 = SET_THRESHOLDS[0];
-  const gm = new Map((preview ? setGains(store.state.inventory.placed, preview, previewDouble) : []).map((g) => [g.id, g]));
+  const gm = new Map((preview ? setGains(store.state.inventory.placed, preview) : []).map((g) => [g.id, g]));
   const have = activeSets();
   const ghosts = SET_ORDER.filter((id) => gm.get(id)?.from === 0);
   if (!have.length && !ghosts.length) return '';
@@ -248,8 +247,8 @@ function setCardHtml(id: SetId): string {
 const gainText = (g: ReturnType<typeof setGains>[number]): string => { const th = SET_THRESHOLDS, ni = th.findIndex((x) => x > g.to); return g.levelUp ? t('setStkUp', { n: lvOf(g.to) }) : t((['setStkMore', 'setStkMore2', 'setStkMore3'] as const)[Math.max(0, ni < 0 ? 2 : ni)], { n: th[Math.max(0, ni < 0 ? 2 : ni)] - g.to }); };
 
 /** Offer-card set badges: level-up first, then sets already started, then new ones (max 3). Maxed / already-counted sets get none. */
-function setBadges(placed: ItemInstance[], type: ItemTypeId, double = false): string {
-  const gains = new Map(setGains(placed, type, double).map((g) => [g.id, g]));
+function setBadges(placed: ItemInstance[], offer: SetCandidate): string {
+  const gains = new Map(setGains(placed, offer).map((g) => [g.id, g]));
   const rank = (g: ReturnType<typeof setGains>[number]): number => (g.levelUp ? 0 : g.from >= 1 ? 1 : 2);
   return [...gains.values()].sort((a, b) => rank(a) - rank(b)).slice(0, 3).map((g) => {
     const lvl = lvOf(g.to);
@@ -280,7 +279,7 @@ function render(): void {
     const w = Math.max(...cells.map((c) => c.x)) + 1;
     const fp = cells.map((c) => `<i style="grid-column:${c.x + 1};grid-row:${c.y + 1}"></i>`).join('');
     const rar = def.legendary ? t('legendaryKind', { k: kindLabel(o.type) }) : o.tier === 3 ? t('epicKind', { k: kindLabel(o.type) }) : o.tier === 2 ? t('rareKind', { k: kindLabel(o.type) }) : kindLabel(o.type);
-    const stks = o.sold ? '' : setBadges(s.inventory.placed, o.type, !!o.double);
+    const stks = o.sold ? '' : setBadges(s.inventory.placed, o);
     // Undiscounted price: struck through when a discount (Checkout, coupons, starter perk) baked a lower price in.
     const list = Math.max(1, Math.round(TIER.value(def.price, o.tier) * infl));
     const was = list > o.price ? list : Math.max(1, Math.round(o.price / infl));
@@ -366,12 +365,12 @@ function slotChip(uid: string | null): string {
   return `<span class="chip slot-chip slot-cycle" data-slot-uid="${uid}" title="${esc(t('activeSlotPick'))}">${slot} · ${esc(bindingLabel(settings.keys, ACTIVE_KEYS[slot - 1], t('keySpace')))}</span>`;
 }
 
-export function inspectorHtml(type: ItemTypeId, uid: string | null, offerTier?: number, offerDouble = false): string {
+export function inspectorHtml(type: ItemTypeId, uid: string | null, offer?: ShopOffer): string {
   const s = store.state;
   const def = ITEMS[type];
   const ws = uid ? s.build.weapons.find((x) => x.uid === uid) : null;
   const loc = uid ? findItem(s.inventory, uid) : null;
-  const tier = loc?.inst.tier ?? offerTier ?? 1;
+  const tier = loc?.inst.tier ?? offer?.tier ?? 1;
   const cells = cellsFor(type, tier);
   const w = Math.max(...cells.map((c) => c.x)) + 1, h = Math.max(...cells.map((c) => c.y)) + 1;
   const rc = rarityClass(type, tier);
@@ -379,8 +378,8 @@ export function inspectorHtml(type: ItemTypeId, uid: string | null, offerTier?: 
   const weaponTag = (def.tags ?? []).find((tg): tg is keyof typeof KIND_BY_TAG => tg in KIND_BY_TAG);
   const kind = def.kind === 'weapon' && weaponTag ? t(KIND_BY_TAG[weaponTag]) : kindLabel(type);
   const otherTags = (def.tags ?? []).filter((tg) => !(tg in KIND_BY_TAG));
-  const gains = offerTier !== undefined && !loc && s ? setGains(s.inventory.placed, type, offerDouble) : [];
-  const dblNote = offerDouble || (loc?.inst.double ?? false) ? `<span class="chip dbl">${esc(t('setDouble', { set: tagT(def.family) }))}</span>` : '';
+  const gains = offer && !loc && s ? setGains(s.inventory.placed, offer) : [];
+  const dblNote = offer?.double || loc?.inst.double ? `<span class="chip dbl">${esc(t('setDouble', { set: tagT(def.family) }))}</span>` : '';
   const flavor = type === 'jellybeans' ? (loc ? flavorOf(loc.inst) : null) : null;
   const binder = type === 'binder' && loc?.inst.binderFamily ? `<span class="chip">${esc(t('binderChip', { f: tagT(loc.inst.binderFamily), n: Math.min(20, (loc.inst.binderSold ?? 0) * 2) }))}</span>` : '';
   const setChips = setsOf(type, flavor ?? undefined).map((id) => { const g = gains.find((x) => x.id === id); return `<span class="chip set-${id}${s?.build?.sets?.[id] ? ' act' : ''}">${setIcon(id, 14)}${tagT(id)}${g ? ` <small>(${gainText(g)})</small>` : ''}</span>`; }).join('');
@@ -466,7 +465,7 @@ function refreshHover(): void {
   if (pv !== receiptPreview) {
     receiptPreview = pv;
     const sets = root.querySelector('.sets');
-    if (sets) { sets.innerHTML = setsHtml(pv ?? undefined, hoverDouble); }
+    if (sets) { sets.innerHTML = setsHtml(pv ? hoverOffer : undefined); }
   }
   if (hoverSet) { // set coupon hover: glow member items, card to the right of the receipt
     for (const p of s.inventory.placed) if (setsOf(p.type, flavorOf(p)).includes(hoverSet)) root.querySelector(`.grid .item[data-uid="${p.uid}"]`)?.classList.add('setlit');
@@ -482,7 +481,7 @@ function refreshHover(): void {
     if (other) root.querySelector(`.grid .item[data-uid="${other}"]`)?.classList.add('affect');
   }
   const anchor = focusUid ? root.querySelector<HTMLElement>(`.item[data-uid="${focusUid}"]`) : root.querySelector<HTMLElement>(`.card[data-offer="${hoverSlot}"]`);
-  showCard(inspectorHtml(type, focusUid, hoverType ? hoverTier : undefined, hoverType ? hoverDouble : false), anchor, !!focusUid && focusUid === selectedUid && s.phase === 'shop');
+  showCard(inspectorHtml(type, focusUid, hoverType ? hoverOffer : undefined), anchor, !!focusUid && focusUid === selectedUid && s.phase === 'shop');
 }
 
 /** Floating item card beside `anchor`; `pinned` (selected item) makes it clickable for the Combine button. */
@@ -649,8 +648,7 @@ function hoverFrom(el: HTMLElement): void {
   hoverType = type;
   loyaltyOn = loyalty;
   hoverSlot = offer ? Number(offer.dataset.offer) : null;
-  hoverTier = offer ? store.state.shop?.offers.find((o) => o.slot === hoverSlot)?.tier : undefined;
-  hoverDouble = offer ? !!store.state.shop?.offers.find((o) => o.slot === hoverSlot)?.double : false;
+  hoverOffer = offer ? store.state.shop?.offers.find((o) => o.slot === hoverSlot) : undefined;
   refreshHover();
 }
 
