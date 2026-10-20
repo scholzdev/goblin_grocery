@@ -82,7 +82,7 @@ export const BOSS: BossTuning = {
 export const MINI_BOSS = {
   aisle: 4,
   at: 8,
-  hp: 340,
+  hp: 260,
   scale: 2.1,
   coins: 12,
   /** Seconds after it arrives before it enrages (faster moves, like the Manager). */
