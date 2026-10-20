@@ -2,13 +2,15 @@ import { ENEMIES } from '../../data/enemies';
 import { isSpent, pickRicochetTarget, shieldBlocks, tryHit } from '../../systems/combat';
 import { DEPTH } from '../../data/depth';
 import type { ShotMoveEvent } from '../hooks';
+import { repopKernel } from './popcorn';
 import type { PatternHost, Shot } from './types';
 
 /** The Cereal Box's shield numbers (its content tune). */
 const SHIELD = ENEMIES.cereal.tune;
 
 /**
- * Flight and impact of every player projectile (toast, nails, caps, Ray Gun bolts), shared by the projectile patterns: life, bounds, the
+ * Flight and impact of every player projectile (toast, nails, caps, kernels, Ray Gun bolts), shared by the projectile patterns: life (a ★3 kernel that
+ * lands without a hit pops once more), bounds, the
  * Cereal Box cardboard front, damage, `pattern:shotHit`, piercing and the ricochet bounce (one more for a ★3 cap's first knockout). Cosmetic trails come from the weapon's look.
  */
 export function updateShots(h: PatternHost, dt: number): void {
@@ -18,7 +20,11 @@ export function updateShots(h: PatternHost, dt: number): void {
   for (const s of h.shots) {
     if (!s.active) continue;
     s.life -= dt;
-    if (s.life <= 0) { h.kill(s); continue; }
+    if (s.life <= 0) {
+      if (s.repop && !s.tracker.hits.size) repopKernel(h, s);
+      h.kill(s);
+      continue;
+    }
     const st = s.stats!;
     if (s.homing && moveHooks.length) { // a hook armed this shot (Nailstorm): let it steer before the move
       move ??= {
