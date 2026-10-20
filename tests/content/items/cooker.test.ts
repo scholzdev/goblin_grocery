@@ -144,7 +144,7 @@ describe('Pressure Cooker: pattern mortar', () => {
     expect(a.pots).toHaveLength(2);
   });
 
-  it('from ★3 a second pot at half damage and half radius goes to the densest group outside the first blast; ★2 lobs one', () => {
+  it('from ★3 a second pot at half damage and half radius goes to the densest group the first blast will not reach; ★2 lobs one', () => {
     for (const tier of [2, 3, 4]) {
       const { a, fake, b } = arsenal([at('cooker', tier)]);
       const { lone, c1 } = cluster(fake);
@@ -161,14 +161,11 @@ describe('Pressure Cooker: pattern mortar', () => {
       expect(hits.filter((c) => c.enemy !== lone.id).every((c) => c.dmg === st.damage), `★${tier}`).toBe(true);
       expect(fake.callsOf('sound').map((c) => c.name), `★${tier}`).toEqual(['whistle', 'whistle', 'boom', 'boom']);
     }
-  });
-
-  it('the ★3 second pot needs an enemy the first blast will not reach', () => {
-    const { a, fake } = arsenal([at('cooker', 3)]);
-    fake.spawnEnemy({ x: 200, y: 0, hp: 1000 });
-    fake.spawnEnemy({ x: 200 + 90 + 20, y: 0, hp: 1000 }); // on the edge of 90 + radius: the first blast reaches it
-    while (!a.pots.length) a.step(0.05);
-    expect(a.pots).toHaveLength(1);
+    const edge = arsenal([at('cooker', 3)]);
+    edge.fake.spawnEnemy({ x: 200, y: 0, hp: 1000 });
+    edge.fake.spawnEnemy({ x: 200 + 90 + 20, y: 0, hp: 1000 });
+    while (!edge.a.pots.length) edge.a.step(0.05);
+    expect(edge.a.pots, 'the other enemy is on the edge of 90 + radius: the first blast reaches it').toHaveLength(1);
   });
 
   it('explodeAt is also the entry point for Pot Slam: it explodes the given weapon\'s numbers at any spot', () => {

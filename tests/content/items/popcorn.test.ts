@@ -86,7 +86,7 @@ describe('Popcorn Maker: ★3 re-pop', () => {
     return { ...r, v, t, u, repops: r.a.spawned.slice(6) };
   };
 
-  it('★2 kernels that miss are gone; from ★3 each pops once more at the nearest enemy for half its damage', () => {
+  it('★2 kernels that miss are gone; from ★3 each that lands pops once more at the nearest enemy for half its damage', () => {
     expect(afterVolley(2).repops).toHaveLength(0);
     for (const [tier, damage] of [[3, 6], [4, 7.5]]) {
       const { repops, fake, t } = afterVolley(tier);
@@ -94,23 +94,20 @@ describe('Popcorn Maker: ★3 re-pop', () => {
       expect(repops.every((s) => s.key === 'proj_kernel' && s.damage === damage / 2 && s.x > 340 && s.angle === repops[0].angle), `★${tier}`).toBe(true);
       expect(fake.callsOf('damage').filter((c) => c.enemy === t.id).map((c) => c.dmg), `★${tier}`).toEqual([damage / 2, damage / 2, damage / 2, damage / 2, damage / 2]);
     }
+    // Near the top edge (shots die above y 120) the kernels that miss leave the floor before their flight ends: that is not landing.
+    const edge = arsenal([at('popcorn', 3)], { player: { x: 100, y: 200 } });
+    edge.fake.spawnEnemy({ x: 130, y: 130, hp: 1 });
+    const far = edge.fake.spawnEnemy({ x: 330, y: 120, hp: 1000 }); // out of the goblin's range, within 240 of where the kernels leave
+    while (!edge.a.spawned.length) edge.a.step(0.02);
+    edge.a.weapons[0].cd = 99;
+    edge.a.run(60, 0.02);
+    expect(edge.a.spawned).toHaveLength(6);
+    expect(edge.fake.callsOf('damage').some((c) => c.enemy === far.id)).toBe(false);
   });
 
   it('a kernel that hits does not pop again, and a re-popped kernel never pops a second time', () => {
     const { repops, fake, u } = afterVolley(3, 1);
     expect(repops).toHaveLength(5); // the five that missed V; the one that hit stays spent
     expect(fake.callsOf('damage').some((c) => c.enemy === u.id)).toBe(false); // four re-pops miss the dead T and land near U, without popping on
-  });
-
-  it('only a kernel whose flight runs out pops again: one that flies off the floor is gone', () => {
-    // The goblin stands near the top edge (shots die above y 120); the kernels that miss V leave the floor long before their flight ends.
-    const r = arsenal([at('popcorn', 3)], { player: { x: 100, y: 200 } });
-    r.fake.spawnEnemy({ x: 130, y: 130, hp: 1 });
-    const t = r.fake.spawnEnemy({ x: 330, y: 120, hp: 1000 }); // out of the goblin's range, within 240 of where the kernels leave
-    while (!r.a.spawned.length) r.a.step(0.02);
-    r.a.weapons[0].cd = 99;
-    r.a.run(60, 0.02);
-    expect(r.a.spawned).toHaveLength(6);
-    expect(r.fake.callsOf('damage').some((c) => c.enemy === t.id)).toBe(false);
   });
 });

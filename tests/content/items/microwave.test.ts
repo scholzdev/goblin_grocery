@@ -104,15 +104,12 @@ describe('Microwave: pattern zap', () => {
     return zaps[1] - zaps[0];
   };
 
-  it('from ★3 knocking out the zapped target charges the next zap in half the cooldown; ★2 waits the full cooldown', () => {
+  it('from ★3 knocking out the zapped target (not one only splashed) charges the next zap in half the cooldown; ★2 waits the full cooldown', () => {
     expect(zapGap(2, { hp: 30 }, { hp: 20 })).toBeCloseTo(2.4 * 0.9, 1);
     expect(zapGap(3, { hp: 30 }, { hp: 20 })).toBeCloseTo(2.4 * 0.8 * 0.5, 1);
     expect(zapGap(4, { hp: 30 }, { hp: 20 })).toBeCloseTo(2.4 * 0.7 * 0.5, 1);
     expect(zapGap(3, { hp: 1000 }, { hp: 20 })).toBeCloseTo(2.4 * 0.8, 1);
-  });
-
-  it('a knockout by the splash alone does not speed up the next zap', () => {
-    expect(zapGap(3, { hp: 1000 }, { hp: 1, x: 240, y: 0 })).toBeCloseTo(2.4 * 0.8, 1);
+    expect(zapGap(3, { hp: 1000 }, { hp: 1, x: 240, y: 0 }), 'B dies in the splash only').toBeCloseTo(2.4 * 0.8, 1);
   });
 
   it('an Elite comes first, whatever the HP of the others', () => {
