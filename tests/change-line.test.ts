@@ -40,7 +40,7 @@ describe('shop: what a drop changed', () => {
   });
 
   it('set level changes are named only while sets are shown, in EN and DE', () => {
-    const sold = shopWith(build([{ type: 'toaster' }, { type: 'sample', at: [4, 3] }, { type: 'hotsauce', at: [0, 3] }]));
+    const sold = shopWith(build([{ type: 'toaster' }, { type: 'sample', tier: 2, at: [4, 3] }, { type: 'hotsauce', at: [0, 3] }]));
     const before = sold.build;
     expect(sellItem(sold, 'u1').ok).toBe(true);
     expect(changeLine(before, sold.build, true)).toEqual(['Kitchen set level 2 → 1']);
