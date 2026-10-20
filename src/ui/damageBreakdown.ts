@@ -1,5 +1,5 @@
 import { DAMAGE_TYPES, ELEMENT_COLORS, type DamageType } from '../engine/damageType';
-import { totalDamage } from '../systems/damageStats';
+import { hitOfKey, totalDamage } from '../systems/damageStats';
 import { REACTION_IDS } from '../engine/define';
 
 import { t, fmtNum, type UIKey } from '../i18n';
@@ -72,12 +72,6 @@ const hitLabel = (src: HitSource): string => {
   return `${hitName(src)} (${tags.join(', ')})`;
 };
 
-/** The `RunStats.taken` key back as its source (no affix: the totals do not split by it). */
-const takenSource = (key: string): HitSource => {
-  const i = key.indexOf(':');
-  return { how: key.slice(0, i), by: key.slice(i + 1) } as HitSource;
-};
-
 /** The damage-taken block of the run-end receipt: on a defeat the hit that ended the run, then the sources that took the most HP. '' when nothing hit. */
 export function damageTakenHtml(stats: Pick<RunStats, 'taken' | 'lastHit'>, won: boolean): string {
   const top = Object.entries(stats.taken).sort((a, b) => b[1] - a[1]).slice(0, TAKEN_ROWS);
@@ -85,7 +79,7 @@ export function damageTakenHtml(stats: Pick<RunStats, 'taken' | 'lastHit'>, won:
   const line = (label: string, v: string) => `<div class="line"><span>${label}</span><span>${v}</span></div>`;
   const killer = !won && stats.lastHit ? `<div class="killer">${line(t('wipedOutBy'), esc(hitLabel(stats.lastHit)))}</div>` : '';
   return `<hr class="dash"><div class="dmg">${killer}
-    <div class="dh">${t('damageTaken')}</div>${top.map(([k, v]) => line(esc(hitLabel(takenSource(k))), fmtNum(Math.round(v)))).join('')}
+    <div class="dh">${t('damageTaken')}</div>${top.map(([k, v]) => line(esc(hitLabel(hitOfKey(k))), fmtNum(Math.round(v)))).join('')}
   </div>`;
 }
 

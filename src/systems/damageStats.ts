@@ -70,8 +70,12 @@ export function recordReaction(sink: Pick<DamageSink, 'damage'>, id: ReactionId)
 /** All damage dealt (the sum of the types). */
 export const totalDamage = (d: DamageStats): number => DAMAGE_TYPES.reduce((a, t) => a + d.byType[t], 0);
 
-/** The `RunStats.taken` key of a source. */
+/** The `RunStats.taken` key of a source, and back (without the affix: the totals do not split by it). */
 export const hitKey = (src: HitSource): string => `${src.how}:${src.by}`;
+export const hitOfKey = (key: string): HitSource => {
+  const i = key.indexOf(':');
+  return { how: key.slice(0, i), by: key.slice(i + 1) } as HitSource;
+};
 
 /** The goblin lost `dmg` HP to `src`. A hit that took no HP (at the drain floor, after death) changes nothing, so `lastHit` stays the real killer. */
 export function recordHit(stats: Pick<RunStats, 'taken' | 'lastHit'>, src: HitSource, dmg: number): void {
