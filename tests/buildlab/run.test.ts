@@ -111,7 +111,7 @@ describe('build-lab run', () => {
   });
 
   it('counts the merges, rerolls and sales the shop rules carried out', () => {
-    // Acts once, in the first shop. Shop rolls cannot be steered, so the test puts the second copy on the shelf itself.
+    // Shop rolls cannot be steered, so the scripted policy puts the second copy on the shelf itself.
     const once = (acts: (s: RunState) => ShopAction[]): PolicyFactory => () => ({ ...createGreedyPolicy(), decideShop: (s, v) => (s.wave === 1 && v.round === 0 ? acts(s) : []) });
     const spareToaster = (s: RunState): string => {
       const uid = newUid(s);
