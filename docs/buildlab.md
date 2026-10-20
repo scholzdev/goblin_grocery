@@ -36,8 +36,10 @@ No new dependency: the content registry uses `import.meta.glob`, which plain nod
 | `src/buildlab/combat.ts` | `PROXY` (every tunable) and `playAisle`: one aisle on `FakeCtx`. |
 | `src/buildlab/policy.ts` | `Policy` interface, `ShopAction`, `bestPlacement`, `createGreedyPolicy`. |
 | `src/buildlab/report.ts` | JSON types, `summarize`, `formatSummary`. |
+| `src/buildlab/metrics.ts` | `computeMetrics`, `formatMetrics`: the mechanics metrics over a report. |
 | `tools/buildlab.mjs`, `tools/buildlab.ts` | Launcher and CLI. |
-| `tests/buildlab/*.test.ts` | Determinism, full runs, placements, proxy sanity, crates, JSON shape. |
+| `tools/mechanics-metrics.mjs` | The mechanics-metrics CLI. |
+| `tests/buildlab/*.test.ts` | Determinism, full runs, placements, proxy sanity, crates, JSON shape, metrics. |
 
 ## What a run does
 
@@ -99,14 +101,42 @@ A regular aisle always lasts its full 60 s (that is the game's rule), so `clearT
 
 ```
 { meta:    { seed, runs, starter, weapon, shift, theme, pool, policy, proxy, gitRev?, durationMs },
-  runs:    [{ seed, starter, weapon, shift, theme, result: 'win'|'dead', diedAt?, cause?, aislesPlayed, kills, coinsEarned,
+  runs:    [{ seed, starter, weapon, shift, theme, result: 'win'|'dead', diedAt?, cause?, aislesPlayed, kills, coinsEarned, merges, rerolls, sells,
               aisles: [...], acquired: [{item, tier, from}], finalBuild: { items: [{id, tier, x, y, rot}], shelf, combos, sets, cartSize, maxHp },
               shopLog: [{ shop, hp, moneyIn, moneyOut, shopLevel, offers, steps: [{kind, ok, item?, tier?, cost?, reason?}], door }] }],
   summary: { runs, winRate, avgAisleReached, itemPickRate, itemFinalRate, itemWinRate, comboRate, comboWinRate, setRate,
              reactionTotals, avgDpsByAisle, avgDamageTakenByAisle, deathsByAisle, byStarter } }
 ```
 
-`itemPickRate` is the share of runs that ever held the item (starter, buys, crates, stockrooms); `itemFinalRate` the share that had it in the cart at the end; `itemWinRate` the win rate among those runs (the dominance signal); `comboRate` / `setRate` the share of runs where it was active at the start of at least one fight (sets: per level 1 to 3). `avgAisleReached` counts a win as 8.
+`itemPickRate` is the share of runs that ever held the item (starter, buys, crates, stockrooms); `itemFinalRate` the share that had it in the cart at the end; `itemWinRate` the win rate among those runs (the dominance signal); `comboRate` / `setRate` the share of runs where it was active at the start of at least one fight (sets: per level 1 to 3). `avgAisleReached` counts a win as 8. `merges`, `rerolls` and `sells` count the shop actions the rules carried out in the run. A merge turns two copies into one item of the next tier.
+
+## Mechanics metrics
+
+`tools/mechanics-metrics.mjs` turns build-lab output into structural numbers (merges, star tiers, combos, sets, deaths by aisle) and compares two outputs. To measure a change, write one output on the base commit and one on the changed commit with the same options and seed:
+
+```
+npm run buildlab -- --runs 600 --seed 1 --pool all --out buildlab-out/a.json --quiet
+npm run buildlab -- --runs 600 --seed 1 --pool all --out buildlab-out/b.json --quiet
+node tools/mechanics-metrics.mjs buildlab-out/a.json
+node tools/mechanics-metrics.mjs buildlab-out/a.json buildlab-out/b.json
+node tools/mechanics-metrics.mjs buildlab-out/a.json buildlab-out/b.json --json
+```
+
+With one file the script prints a markdown report. With two files it prints both columns and the delta B - A, with percentages as points. `--json` prints the metrics object, or `{ a, b }` for two files. The header lists each file's options and git revision, and names the options that differ (starter, weapon, shift, theme, pool, policy, proxy). The script refuses a file whose runs have no `merges`, `rerolls` and `sells`. Rerun the build lab to regenerate it. To measure a fresh profile's item pool instead of every item, pass `--pool starting` to both build-lab runs.
+
+| Metric | Definition |
+| --- | --- |
+| win rate | Share of runs won. The standard error is `sqrt(p (1 - p) / runs)`. |
+| average aisle reached | A win counts as 8, as in the summary. |
+| deaths by aisle | Each aisle's share of all deaths, and its death rate, which is the deaths there over the runs that reached it. |
+| HP lost by aisle | Mean `aisles[].damageTaken` over the aisle's fights. Stockrooms are left out. |
+| merges per run | Mean `runs[].merges`. |
+| ★2 and ★3 items | Items at that tier in `finalBuild.items` and `finalBuild.shelf`, in total and per run. |
+| combos at run end | The mean count of `finalBuild.combos` per run, the number of distinct combos over all runs, and per combo the share of runs that end with it active. |
+| sets at run end | Per set, the share of runs whose `finalBuild.sets` level is 2 or more, and the share at level 3. |
+| weapons at run end | Mean `weapons` of the last aisle. No shop follows the last aisle, so its cart is the run-end cart. |
+| coins at shop entry | Mean `shopLog[].moneyIn` per shop, over the runs that reached that shop. |
+| rerolls and sells per run | Mean `runs[].rerolls` and `runs[].sells`. The greedy policy with its default options never rerolls or sells, so both are 0 for it. |
 
 ## The greedy policy
 
