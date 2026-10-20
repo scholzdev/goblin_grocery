@@ -10607,14 +10607,14 @@
   },
   "sets.checkout.de": {
     "L1": "Shop-Preise −8 % (neue Angebote)",
-    "L2": "Zinsen +1 Münze pro 10 gehalten (max. 5)",
-    "L3": "Shop-Preise −15 %; Zinsen +1 Münze pro 10 gehalten (max. 8)",
+    "L2": "Zinsobergrenze steigt auf 6",
+    "L3": "Shop-Preise −15 %; Zinsobergrenze steigt auf 10",
     "name": "Kasse"
   },
   "sets.checkout.en": {
     "L1": "Shop prices −8% (new offers)",
-    "L2": "Interest +1 coin per 10 held (max 5)",
-    "L3": "Shop prices −15%; interest +1 coin per 10 held (max 8)",
+    "L2": "Interest cap raised to 6",
+    "L3": "Shop prices −15%; interest cap raised to 10",
     "name": "Checkout"
   },
   "sets.cleaning.de": {

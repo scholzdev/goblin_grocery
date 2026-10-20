@@ -462,6 +462,8 @@ const en = {
   coinDisplay: 'Candy Display',
   coinWaveClear: 'Wave clear bonus',
   coinInterest: 'Interest',
+  interestNext: 'Interest next aisle',
+  interestNextAmount: '+{n} (max {max})',
   coinSwept: 'Swept up coins',
   priceInflation: 'Prices +{n}%',
   // shop
@@ -1125,6 +1127,8 @@ const de: Record<keyof typeof en, string> = {
   coinDisplay: 'Süßigkeitenaufsteller',
   coinWaveClear: 'Wellenbonus',
   coinInterest: 'Zinsen',
+  interestNext: 'Zinsen nächster Gang',
+  interestNextAmount: '+{n} (max. {max})',
   coinSwept: 'Zusammengekehrt',
   priceInflation: 'Preise +{n} %',
   clickToCombine: 'Gegenstand anklicken zum Kombinieren.',

@@ -386,10 +386,18 @@ export function payPunchCard(state: RunState): void {
   if (state.punch?.status === 'done') addCoins(state, state.punch.coins, t('coinPunchCard'));
 }
 
+const waveClearCoins = (state: RunState): number =>
+  Math.round(ECONOMY.waveClearBonus * DEPARTMENTS[state.department].coinMult * MODIFIERS[state.modifier].coinMult * SHIFTS[state.shift].coinMult);
+
+/** The interest the next `finishWave` pays at the current money and build. It counts that aisle's clear bonus, which is paid first. */
+export function interestPreview(state: RunState): { amount: number; cap: number } {
+  const cap = Math.max(ECONOMY.interestCap, contentSetTune('checkout', state.build.sets.checkout).interestCap);
+  return { amount: Math.min(cap, Math.floor((state.money + waveClearCoins(state)) / ECONOMY.interestPer)), cap };
+}
+
 export function finishWave(state: RunState): void {
-  addCoins(state, Math.round(ECONOMY.waveClearBonus * DEPARTMENTS[state.department].coinMult * MODIFIERS[state.modifier].coinMult * SHIFTS[state.shift].coinMult), t('coinWaveClear'));
-  const ck = contentSetTune('checkout', state.build.sets.checkout);
-  const interest = state.build.sets.checkout >= 2 ? Math.min(ck.interestCap, Math.floor(state.money / ck.interestPer)) : 0;
+  const interest = interestPreview(state).amount;
+  addCoins(state, waveClearCoins(state), t('coinWaveClear'));
   if (interest > 0) addCoins(state, interest, t('coinInterest'));
   state.stats.wavesCleared++;
   state.hp = Math.min(state.build.maxHp, state.hp + PLAYER.repairBetweenWaves);
