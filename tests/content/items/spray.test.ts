@@ -120,10 +120,10 @@ describe('Spray Bottle: ★3 washes enemy shots', () => {
     const shots = {
       inside: fake.spawnHostileShot({ x: 150, y: 20 }),       // 7.6° off the aim, within 170
       wide: fake.spawnHostileShot({ x: 80, y: 80 }),          // 45°: outside the 70° cone
-      far: fake.spawnHostileShot({ x: 200, y: 0 }),           // beyond 170
+      far: fake.spawnHostileShot({ x: 230, y: 0 }),           // beyond the reach at every tier here (★4: 170 x 1.25 from its own Cleaning L3)
     };
     a.step(0.5);
-    return { flying: Object.fromEntries(Object.entries(shots).map(([k, s]) => [k, s.active])), sparks: fake.callsOf('fx').filter((f) => f.method === 'spark').length };
+    return { flying: Object.fromEntries(Object.entries(shots).map(([k, s]) => [k, s.active])), sparks: fake.callsOf('fx').filter((f) => f.method === 'spark' && f.args[3] === 0xcff3ff).length }; // the wash spark, not Cleaning L2's teal spritz on the hit enemy
   };
 
   it('from ★3 (★4 too) a spray destroys the enemy shots inside its cone, with a spark; at ★2, or from a ★3 Leaf Blower on the same pattern, they fly on', () => {

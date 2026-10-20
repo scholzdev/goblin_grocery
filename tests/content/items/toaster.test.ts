@@ -107,7 +107,7 @@ describe('Toaster: pattern toast', () => {
     const toNearest = Math.atan2(0, 300 - 118), toSecond = Math.atan2(250 - 400, 350 - 118);
     expect(volley(2).map((s) => s.angle)).toEqual([toNearest]);
     expect(volley(3).map((s) => s.angle)).toEqual([toNearest, toSecond]);
-    expect(volley(3)[1]).toMatchObject({ key: 'proj_toast', damage: 18, maxHits: 1 });
+    expect(volley(3)[1]).toMatchObject({ key: 'proj_toast', damage: 18 * setTuneAt('kitchen', 3)!.damageMult, maxHits: 1 }); // full damage, with its own Kitchen L2
     expect(volley(4).map((s) => s.angle)).toEqual([toNearest, toSecond]);
     const lone = arsenal([at('toaster', 3)], P);
     lone.fake.spawnEnemy({ x: 400, y: 400, hp: 1000 });
