@@ -188,6 +188,7 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .endcard .dleg i { display: inline-block; width: 10px; height: 10px; border: 2px solid var(--plum); border-radius: 50%; margin-right: 4px; vertical-align: -1px; box-sizing: content-box; }
 .endcard .dlines { margin-top: 2px; font-size: 13px; }
 .endcard .dlines .line { padding: 0; }
+.endcard .killer span:last-child { color: var(--coral); text-align: right; margin-left: 8px; }
 .endcard .score { font-family: var(--display); font-size: 40px; text-align: center; }
 .endcard .newbest { display: block; width: max-content; margin: 0 auto; font-size: 18px; padding: 4px 14px 1px; transform: rotate(-3deg); }
 

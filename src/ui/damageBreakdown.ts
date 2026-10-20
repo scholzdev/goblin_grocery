@@ -3,9 +3,9 @@ import { totalDamage } from '../systems/damageStats';
 import { REACTION_IDS } from '../engine/define';
 
 import { t, fmtNum, type UIKey } from '../i18n';
-import type { Inventory, RunStats } from '../types';
+import type { HitSource, Inventory, RunStats } from '../types';
 import { damageTypeName } from './affinity';
-import { itemT } from '../i18n/data';
+import { enemyT, itemT } from '../i18n/data';
 import { weaponTags } from '../engine/hitTags';
 import { REACTION_LABEL, REACTION_TEXT } from '../engine/reactions';
 
@@ -51,6 +51,41 @@ export function damageBreakdownHtml(stats: Pick<RunStats, 'damageByWeapon' | 'da
     <div class="dh">${t('damageByItem')}</div>${bars}${more}
     <div class="dh">${t('damageByType')}</div>${stack}<div class="dlegend">${legend}</div>
     ${lines ? `<div class="dlines">${lines}</div>` : ''}
+  </div>`;
+}
+
+const TAKEN_ROWS = 3;
+const PLACE_NAMES = { vents: 'dmgVent', cables: 'dmgCable', powerSurge: 'dmgSurge' } as const satisfies Record<string, UIKey>;
+
+const hitName = (src: HitSource): string => {
+  switch (src.how) {
+    case 'hazard': case 'event': return t(PLACE_NAMES[src.by]);
+    case 'self': return itemT(src.by).name;
+    default: return enemyT(src.by).name;
+  }
+};
+
+/** "Baguette Bruiser (swipe, Elite, Swift)": the source's name, how it hit and its Elite affix. */
+const hitLabel = (src: HitSource): string => {
+  const tags = [t(`how_${src.how}`)];
+  if ('affix' in src && src.affix) tags.push(t('lbElite'), t(`affix_${src.affix}`));
+  return `${hitName(src)} (${tags.join(', ')})`;
+};
+
+/** The `RunStats.taken` key back as its source (no affix: the totals do not split by it). */
+const takenSource = (key: string): HitSource => {
+  const i = key.indexOf(':');
+  return { how: key.slice(0, i), by: key.slice(i + 1) } as HitSource;
+};
+
+/** The damage-taken block of the run-end receipt: on a defeat the hit that ended the run, then the sources that took the most HP. '' when nothing hit. */
+export function damageTakenHtml(stats: Pick<RunStats, 'taken' | 'lastHit'>, won: boolean): string {
+  const top = Object.entries(stats.taken).sort((a, b) => b[1] - a[1]).slice(0, TAKEN_ROWS);
+  if (!top.length) return '';
+  const line = (label: string, v: string) => `<div class="line"><span>${label}</span><span>${v}</span></div>`;
+  const killer = !won && stats.lastHit ? `<div class="killer">${line(t('wipedOutBy'), esc(hitLabel(stats.lastHit)))}</div>` : '';
+  return `<hr class="dash"><div class="dmg">${killer}
+    <div class="dh">${t('damageTaken')}</div>${top.map(([k, v]) => line(esc(hitLabel(takenSource(k))), fmtNum(Math.round(v)))).join('')}
   </div>`;
 }
 

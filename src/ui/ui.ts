@@ -28,7 +28,7 @@ import type { DepartmentId, EnemyId, ItemTypeId, LabOpts, Perk, RecipeId, SetId,
 import type { Fresh } from '../state/profile';
 import { modIcon, setIcon } from './icons';
 import { affinityRowsHtml } from './affinity';
-import { damageBreakdownHtml, sourceNames } from './damageBreakdown';
+import { damageBreakdownHtml, damageTakenHtml, sourceNames } from './damageBreakdown';
 import { t, fmtNum, lang, setLang, LANGS, type Lang, type UIKey } from '../i18n';
 import { newSetLevels } from '../data/sets';
 import { ZONES } from '../data/zones';
@@ -543,7 +543,7 @@ function endHtml(): string {
   const won = s.phase === 'victory';
   const res = flow.lastResult;
   const icons = [...s.inventory.placed].map((i) => `<span class="endicon ${rarityClass(i.type, i.tier)}" title="${itemT(i.type).name}"><img src="${svg(`icon_${i.type}`)}" alt="${itemT(i.type).name}">${starsHtml(i.tier)}</span>`).join('');
-  const dmg = damageBreakdownHtml(s.stats, sourceNames(s.inventory), settings.damageColors);
+  const dmg = damageBreakdownHtml(s.stats, sourceNames(s.inventory), settings.damageColors), taken = damageTakenHtml(s.stats, won);
   const mins = Math.floor(s.stats.timeSeconds / 60), secs = Math.floor(s.stats.timeSeconds % 60);
   const fresh = res ? freshHtml(res) : '';
   return `<div class="endcard receipt ${fresh ? 'cols' : ''}">
@@ -561,6 +561,7 @@ function endHtml(): string {
     <div style="font-weight:800;text-align:center">${t('finalCart')}</div>
     <div class="icons">${icons || '—'}</div>
     ${s.build.recipes.length ? `<div style="text-align:center">${s.build.recipes.map((r) => `<span class="badge">${recipeT(r.id).name}</span>`).join(' ')}</div>` : ''}
+    ${taken}
     ${dmg}
     <hr class="dash">
     <div class="score">${t('pts', { n: res?.score ?? 0 })}</div>
