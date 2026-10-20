@@ -242,7 +242,7 @@ Metric: `npm run buildlab -- --runs 50 --seed S --starter all --weapon all --poo
 
 Targets on the stock pool, Day: merges per run at least 2.0, combos at run end at least 2.0, ★3 items at least 0.15, win rate 20% to 35%, aisle 4 below 28% of all deaths, some HP lost in aisle 2. On the starting pool: win rate at most 55%. Evening at least 12%, near 15%.
 
-What moved when the units landed (seed 1): the stock pool's openers and owned weight tripled merges (1.00 to 2.94 against the old pool-all baseline), tier-weighted sets put Kitchen and Tools at level 3 in over half the runs, and base interest raised the coins at every shop. Win rate went from 26% to 49% and aisle 4 held 40% of all deaths, because everything after it had become easy.
+What moved when the units landed (seed 1): the stock pool's openers and owned weight tripled merges (1.00 to 2.94 against the old pool-all baseline), tier-weighted sets put Kitchen and Tools at level 3 in over half the runs, and base interest raised the coins at every shop. Win rate went from 26% (the old baseline, pool all, rev 2b0b851) to 49% (stock pool, 038fff7); the pools differ, so read that as a direction, not a delta. Aisle 4 held 40% of all deaths, because everything after it had become easy.
 
 | Metric (stock, Day, seed 1) | Integrated start (038fff7) | After this pass |
 | --- | ---: | ---: |
