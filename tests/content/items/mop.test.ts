@@ -34,11 +34,11 @@ describe('Mop: content', () => {
     expect([1, 2, 3].map((t) => itemRules('mop', t))).toEqual([
       'Every 1.6 s drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip and get Wet (3 s): 25% slow and 3 damage every 0.5 s.',
       'Every 1.44 s drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip and get Wet (3 s): 25% slow and 4.5 damage every 0.5 s.',
-      'Every 1.28 s drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip and get Wet (3 s): 25% slow and 6 damage every 0.5 s.',
+      'Every 1.28 s drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip and get Wet (3 s): 25% slow and 6 damage every 0.5 s. ★3: Puddles last 2× as long.',
     ]);
     expect(itemT('mop')).toMatchObject({ name: 'Mop', blurb: 'Leaves slippery soap puddles behind you.' });
     setLang('de');
-    expect([1, 3].map((t) => itemRules('mop', t))).toEqual(['Hinterlässt alle 1,6 s eine Seifenpfütze (Radius 60, hält 3 s). Gegner darin rutschen und werden nass (3 s): 25% langsamer und 3 Schaden alle 0,5 s.', 'Hinterlässt alle 1,28 s eine Seifenpfütze (Radius 60, hält 3 s). Gegner darin rutschen und werden nass (3 s): 25% langsamer und 6 Schaden alle 0,5 s.']);
+    expect([1, 3].map((t) => itemRules('mop', t))).toEqual(['Hinterlässt alle 1,6 s eine Seifenpfütze (Radius 60, hält 3 s). Gegner darin rutschen und werden nass (3 s): 25% langsamer und 3 Schaden alle 0,5 s.', 'Hinterlässt alle 1,28 s eine Seifenpfütze (Radius 60, hält 3 s). Gegner darin rutschen und werden nass (3 s): 25% langsamer und 6 Schaden alle 0,5 s. ★3: Pfützen halten 2× so lange.']);
     expect(itemT('mop')).toMatchObject({ name: 'Wischmopp', blurb: 'Hinterlässt rutschige Seifenpfützen.' });
   });
 
@@ -101,13 +101,23 @@ describe('Mop: pattern puddle', () => {
     expect(a.tweens[0]).toMatchObject({ displayWidth: 132, displayHeight: 60 * 1.36, duration: 200, ease: 'Back.Out' });
   });
 
-  it('lasts 3 s with a slow of 25% for 0.5 s (from its tune), and the next puddle comes a ★3 interval later', () => {
+  it('slows 25% for 0.5 s (from its tune), and the next puddle comes a ★3 interval later', () => {
     const { a } = arsenal([at('mop', 3)]);
     a.step(0.5);
     expect(a.puddles[0].slow).toEqual({ pct: 0.25, duration: 0.5 });
-    expect(a.puddles[0].until).toBeCloseTo(0.5 + 3);
     a.run(26, 0.05); // ~1.8 s later
     expect(a.puddles).toHaveLength(2);
+  });
+
+  it('a puddle lasts 3 s below ★3 and twice as long from ★3 (★4 too), the Cleaning set\'s extra seconds included; the Snow Cone keeps its 4 s', () => {
+    const life = (specs: Parameters<typeof arsenal>[0]) => {
+      const { a } = arsenal(specs);
+      a.step(0.5);
+      return +(a.puddles[0].until - 0.5).toFixed(6);
+    };
+    expect([2, 3, 4].map((t) => life([at('mop', t)]))).toEqual([3, 6, 6]);
+    expect(life([at('mop', 3), far('fan'), far('spray'), far('vacuum')])).toBe((3 + 2) * 2); // Cleaning L3: +2 s
+    expect(life([at('snowcone', 3)])).toBe(4);
   });
 
   it('every 0.5 s each enemy inside the ellipse takes 6 quiet damage and a slow; outside the flattened ellipse nothing', () => {
