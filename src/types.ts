@@ -346,6 +346,10 @@ export interface RunState {
   shopLevel: number;
   /** Item types this run may offer (shops, stockroom, crates). Undefined = every item. */
   pool?: ItemTypeId[];
+  /** Combos the run's stock was built around (src/systems/stock.ts), for the shop's combo panel. */
+  featured?: RecipeId[];
+  /** Shop 1's first offers: parts of different combos with the starting weapon (src/systems/stock.ts). */
+  openers?: ItemTypeId[];
   /** Character chosen on the title screen. */
   starter: StarterId;
   weapon: StarterWeapon;

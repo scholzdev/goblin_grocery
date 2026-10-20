@@ -22,9 +22,11 @@ describe('build-lab run', () => {
       const r = playRun({ seed: runSeed(1, i) });
       expect(['win', 'dead']).toContain(r.result);
       expect(r.aisles.length).toBe(r.aislesPlayed);
-      expect(r.aisles.map((a) => a.aisle)).toEqual(r.aisles.map((_, k) => k + 1));
-      if (r.result === 'win') { expect(r.aislesPlayed).toBe(BOSS_WAVE); expect(r.aisles.at(-1)!.bossDefeated).toBe(true); }
-      else { expect(r.diedAt).toBe(r.aislesPlayed); expect(r.aisles.at(-1)!.died).toBe(true); }
+      const aisles = [1];
+      for (const e of r.shopLog) aisles.push(aisles.at(-1)! + (e.door === 'shortcut' ? 2 : 1)); // Staff Only skips the next aisle
+      expect(r.aisles.map((a) => a.aisle)).toEqual(aisles);
+      if (r.result === 'win') { expect(aisles.at(-1)).toBe(BOSS_WAVE); expect(r.aisles.at(-1)!.bossDefeated).toBe(true); }
+      else { expect(r.diedAt).toBe(aisles.at(-1)); expect(r.aisles.at(-1)!.died).toBe(true); }
       expect(r.shopLog.length).toBe(r.aislesPlayed - 1); // a shop after every aisle but the last
     }
   });

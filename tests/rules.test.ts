@@ -208,14 +208,6 @@ describe('run state ops', () => {
     const lc = createRun(5, 'pan');
     expect([lc.starter, lc.weapon, lc.inventory.placed[0].type, lc.build.maxHp]).toEqual(['pan', 'toaster', 'toaster', PLAYER.maxHp + 5]);
   });
-  it('shop 1 guarantees the starting weapon\'s two suggested items', () => {
-    for (const [weapon, want] of [['toaster', ['fan', 'fuel']], ['pan', ['bell', 'hotsauce']]] as const) {
-      expect(STARTER_WEAPONS[weapon].guarantee).toEqual(want);
-      const s = createRun(1, 'coupon', 0, weapon);
-      const types = rollOffers(s, mulberry32(3), 1).map((o) => o.type);
-      for (const t of want) expect(types).toContain(t);
-    }
-  });
   it('every character applies its perk to money and max HP, any weapon', () => {
     for (const [id, st] of Object.entries(PLAYER.starters) as [keyof typeof PLAYER.starters, (typeof PLAYER.starters)[keyof typeof PLAYER.starters]][]) {
       for (const w of Object.keys(STARTER_WEAPONS) as (keyof typeof STARTER_WEAPONS)[]) {
@@ -384,12 +376,13 @@ describe('run state ops', () => {
 });
 
 describe('shop rolls', () => {
-  it('shop 1 has fan + fuel and 4 distinct types', () => {
+  it('shop 1 leads with the run\'s openers and has 4 distinct types', () => {
+    const s = createRun(1);
+    s.openers = ['fan', 'hotsauce'];
     for (let seed = 0; seed < 50; seed++) {
-      const types = rollOffers(createRun(1), mulberry32(seed), 1).map((o) => o.type);
+      const types = rollOffers(s, mulberry32(seed), 1).map((o) => o.type);
       expect(types).toHaveLength(4);
-      expect(types).toContain('fan');
-      expect(types).toContain('fuel');
+      expect(types.slice(0, 2)).toEqual(['fan', 'hotsauce']);
       expect(new Set(types).size).toBe(4);
     }
   });
@@ -653,6 +646,7 @@ describe('legendaries / bundle / shop levels', () => {
   it('level 4 rolls: legendaries only from shop 2, unique, priced by tier', () => {
     const s = createRun(1);
     s.shopLevel = 4;
+    s.openers = ['fan', 'fuel'];
     let legends = 0, t3 = 0;
     for (let seed = 0; seed < 300; seed++) {
       for (const idx of [1, 2, 5]) {
@@ -767,6 +761,7 @@ describe('departments and routes', () => {
       expect(new Set(o.map((x) => x.type)).size).toBe(4);
     }
     const early = createRun(1);
+    early.openers = ['fan', 'fuel'];
     early.modifier = 'clearance';
     early.wave = 1;
     openShop(early, mulberry32(2));

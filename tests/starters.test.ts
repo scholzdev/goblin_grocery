@@ -3,6 +3,8 @@ import { canPlace } from '../src/systems/inventory';
 import { computeBuild } from '../src/systems/synergies';
 import { rollOffers } from '../src/systems/shop';
 import { mulberry32 } from '../src/systems/rng';
+import { applyStock } from '../src/systems/stock';
+import { STARTING_ITEMS } from '../src/data/unlocks';
 import { ITEMS, PLAYER, STARTER_WEAPONS } from '../src/data/items';
 import { RECIPES } from '../src/data/recipes';
 import { createRun } from '../src/state/run';
@@ -21,7 +23,7 @@ describe('starter weapons x characters', () => {
   });
   for (const weapon of weapons) {
     for (const ch of chars) {
-      it(`${ch} + ${weapon}: valid run, weapon once, shop 1 has the guarantee`, () => {
+      it(`${ch} + ${weapon}: valid run, weapon once, shop 1 has the openers`, () => {
         const s = createRun(7, ch, 0, weapon);
         expect(s.weapon).toBe(weapon);
         expect(s.inventory.placed.filter((p) => p.type === weapon)).toHaveLength(1);
@@ -30,15 +32,17 @@ describe('starter weapons x characters', () => {
         expect(canPlace({ ...s.inventory, placed: [] }, weapon, p.x, p.y, p.rot).ok).toBe(true);
         expect(s.build.weapons).toHaveLength(1);
         expect(s.hp).toBe(s.build.maxHp);
+        applyStock(s, STARTING_ITEMS, []);
         const types = rollOffers(s, mulberry32(3), 1).map((o) => o.type);
-        for (const t of STARTER_WEAPONS[weapon].guarantee) expect(types).toContain(t);
+        expect(s.openers!.length).toBeGreaterThanOrEqual(2);
+        for (const t of s.openers!) expect(types).toContain(t);
       });
     }
   }
   it('nailgun start deals damage and reaches Nailstorm with both partners adjacent', () => {
     const s = createRun(1, 'toaster', 0, 'nailgun');
     expect(s.build.weapons[0].damage).toBeGreaterThan(0);
-    expect(RECIPES.nailstorm.supports).toEqual(STARTER_WEAPONS.nailgun.guarantee);
+    expect(RECIPES.nailstorm.supports).toEqual(['magnet', 'battery']);
     const inv = s.inventory;
     const gun = inv.placed[0];
     let n = 0;

@@ -79,6 +79,9 @@ export function unlockedItems(): ItemTypeId[] {
   const extra = UNLOCKS.flatMap((u) => (u.kind === 'item' && isUnlocked(u) ? [u.item] : []));
   return [...new Set([...STARTING_ITEMS, ...extra])];
 }
+/** Unlocked items not yet viewed in the Catalog (the next run's stock puts some in). Starting items are never fresh. */
+export const unseenUnlocks = (): ItemTypeId[] =>
+  UNLOCKS.flatMap((u) => (u.kind === 'item' && isUnlocked(u) && !profile.seen.includes(`item:${u.item}`) ? [u.item] : []));
 
 export const goblinUnlocked = (skin: GoblinSkin): boolean =>
   skin === 'classic' || UNLOCKS.some((u) => u.kind === 'goblin' && u.skin === skin && isUnlocked(u));
