@@ -1,4 +1,6 @@
-import type { DepartmentId, ItemTypeId, StarterId } from '../types';
+import type { DepartmentId, ItemTypeId, RecipeId, SetId, StarterId, StarterWeapon } from '../types';
+import type { DamageType } from '../engine/damageType';
+import type { ReactionId } from '../engine/define';
 
 // Meta-progression: everything here persists across runs (see src/state/profile.ts).
 
@@ -39,11 +41,42 @@ export interface ProfileStats {
   deptClears: Partial<Record<DepartmentId | 'clearance', number>>; // 'clearance' = cleared Clearance Sale aisles (the door modifier, not a department)
 }
 
-export type Unlock =
-  | { id: string; kind: 'item'; item: ItemTypeId; need: string; check: (s: ProfileStats) => boolean; progress: (s: ProfileStats) => [number, number] }
-  | { id: string; kind: 'goblin'; skin: GoblinSkin; need: string; check: (s: ProfileStats) => boolean; progress: (s: ProfileStats) => [number, number] }
-  | { id: string; kind: 'starter'; starter: StarterId; need: string; check: (s: ProfileStats) => boolean; progress: (s: ProfileStats) => [number, number] }
-  | { id: string; kind: 'cart'; skin: CartSkin; need: string; check: (s: ProfileStats) => boolean; progress: (s: ProfileStats) => [number, number] };
+/** One finished run, as goal unlocks measure it (`runSummary` in state/profile). The cart fields describe the cart at run end. */
+export interface RunSummary {
+  won: boolean;
+  wave: number;
+  starter: StarterId;
+  weapon: StarterWeapon;
+  theme: DepartmentId;
+  shift: number;
+  daily: boolean;
+  kills: number;
+  coins: number;
+  sets: Record<SetId, 0 | 1 | 2 | 3>;
+  /** Distinct combos active. */
+  combos: RecipeId[];
+  /** Weapons in the cart. */
+  weapons: number;
+  /** Highest tier among the cart's items. */
+  maxTier: number;
+  reactions: Record<ReactionId, number>;
+  damageByType: Record<DamageType, number>;
+  damageByWeapon: Record<string, number>;
+}
+
+type Reward =
+  | { kind: 'item'; item: ItemTypeId }
+  | { kind: 'goblin'; skin: GoblinSkin }
+  | { kind: 'starter'; starter: StarterId }
+  | { kind: 'cart'; skin: CartSkin };
+
+/** A milestone reads the lifetime stats. A goal asks for something within one run: the best `measure` of any run (`Profile.goalBest`) has to reach `target`. */
+type Condition =
+  | { type?: 'milestone'; check: (s: ProfileStats) => boolean; progress: (s: ProfileStats) => [number, number] }
+  | { type: 'goal'; measure: (r: RunSummary) => number; target: number };
+
+/** `need` is the condition as EN text. */
+export type Unlock = { id: string; need: string } & Reward & Condition;
 
 const at = (n: number) => (v: number) => [Math.min(v, n), n] as [number, number];
 const dept = (s: ProfileStats, d: DepartmentId | 'clearance') => s.deptClears[d] ?? 0;
