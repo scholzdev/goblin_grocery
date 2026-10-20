@@ -1,7 +1,7 @@
 import type { Unlock } from '../data/unlocks';
 import type { HookName, RuntimeHookMap } from './hooks';
 import type { RuntimeCtx } from './ctx';
-import type { ActiveRecipe, BuffId, Build, Cell, DepartmentId, ElementTag, EnemyBehavior, EnemyId, FamilyTag, Inventory, ItemDef, ItemInstance, ItemTypeId, Perk, RecipeId, SetId, StarterWeapon, WeaponBase, WeaponStats } from '../types';
+import type { ActiveRecipe, BuffId, Build, Cell, DepartmentId, ElementTag, EnemyBehavior, EnemyId, FamilyTag, Inventory, ItemDef, ItemInstance, ItemTypeId, Perk, RecipeId, SetId, WeaponBase, WeaponStats } from '../types';
 
 // Content definitions for the item-hooks refactor (docs/item-hooks-refactor.md). Types only plus identity `define*` helpers:
 // a content file is data (tune, text) and pure build behavior together. No Phaser, no DOM, no imports from data/*.
@@ -298,9 +298,7 @@ export interface ItemContent<T extends Tune = Tune> {
   active?: ActiveSpec<T>;
   /** More hooks for other phases when one item needs two (Multipack: `module` damage + `post-combo` count). Never `module`. */
   extraBuild?: readonly BuildSpec<T>[];
-  shopBias?: readonly DepartmentId[];
   enhancedBy?: EnhancedBy;
-  starterGuarantee?: readonly StarterWeapon[];
   /**
    * Gold Star: placed items touching one of these work `tune[key]` effective tiers higher. Read by `eff()` in computeBuild and
    * `describeBuffs`, through `tierBoostOf` (engine/build.ts). No chaining (it lifts the touching item once, however many

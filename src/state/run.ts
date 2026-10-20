@@ -72,7 +72,7 @@ export function createRun(seed: number, starter: StarterId = 'toaster', shift = 
 export function createLabRun(seed: number, o: LabOpts): RunState {
   const s = createRun(seed, o.starter, o.shift, o.weapon, o.dept === 'boss' ? 'main' : o.dept);
   s.inventory = { cols: o.cart[0], rows: o.cart[1], placed: [], shelf: Array(o.shelf).fill(null) };
-  s.unlocked = [...ITEM_IDS];
+  s.pool = [...ITEM_IDS];
   s.lab = true;
   labApply(s, o);
   return s;

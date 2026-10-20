@@ -100,7 +100,7 @@ Weapons fire automatically. Losing window focus pauses the game, and you need to
 
 There are 7 aisles of 60 s each (enemies spawned later in an aisle are tougher, and groups get denser), then the theme's boss in aisle 8 (The Store Manager in the Main Aisle, otherwise one of four themed bosses, see Enemies). The boss enrages after 60 s. Aisle 4 also has a mid-shift boss: a giant grocery that arrives after 8 s, ends the aisle when it falls and drops 3 crates (pick 1). You get a shop after every aisle:
 
-- 4 offers
+- 4 offers, drawn from the run's stock: with more than 24 regular items unlocked, each run draws 24 of them plus one legendary, built around your starting weapon's combos, the theme, fresh unlocks and three featured combos (`src/systems/stock.ts`). Items you own below ★3 come back more often, so copies merge.
 - rerolls that cost 2, 4, 6…
 - one repair for 8 coins
 - a staging shelf with 4 slots
@@ -125,7 +125,7 @@ Items in *italics* are legendary.
 ### Upgrades and synergy
 
 - **Levels:** combine two identical items to level up: ★1+★1 → ★2, ★2+★2 → ★3. Drop one onto the other, or click **Combine** in the item panel; items with a partner show a ▲2 badge. Border colour shows rarity: cream (common), teal (★2 rare), violet (★3 epic) and gold (legendary, can't be combined).
-- **Character + starting weapon:** when you press Play, pick a starting weapon (Toaster or Frying Pan; key `W` toggles, remembered) and one of four goblins (keys 1-4), each with a stat-only perk (`PLAYER.starters`, `STARTER_WEAPONS` in `src/data/items.ts`). Toast Goblin is the all-rounder; Line Cook (+5 max HP, -5% speed) is open from the start; Coupon Clipper (cheaper shops, +12 coins, -8 max HP) unlocks at 400 lifetime coins; Night Shift (+8% speed, faster dash, -10% weapon damage) unlocks at aisle 6. Shop 1 always offers two items that suit the chosen weapon.
+- **Character + starting weapon:** when you press Play, pick a starting weapon (Toaster or Frying Pan; key `W` toggles, remembered) and one of four goblins (keys 1-4), each with a stat-only perk (`PLAYER.starters`, `STARTER_WEAPONS` in `src/data/items.ts`). Toast Goblin is the all-rounder; Line Cook (+5 max HP, -5% speed) is open from the start; Coupon Clipper (cheaper shops, +12 coins, -8 max HP) unlocks at 400 lifetime coins; Night Shift (+8% speed, faster dash, -10% weapon damage) unlocks at aisle 6. Shop 1 opens with one part each of two or three different combos for the chosen weapon.
 - **Store services:** a bigger cart (5×4 → 6×4 → 6×5 → 7×5) and extra shelf slots (4 → 6), always for sale with rising prices.
 - **Bundle Deal:** every weapon gets +6% damage per distinct item type touching it.
 - **Combos (10):**

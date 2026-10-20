@@ -20,7 +20,8 @@ async function drag(from, to, rotate = 0) {
   await page.mouse.move(to.x, to.y, { steps: 8 }); await page.waitForTimeout(80); await page.mouse.up(); await page.waitForTimeout(120);
 }
 console.log('start', await S());
-// Buy fan + fuel (shop 1 guarantees them) by clicking cards; double-click must not double-buy.
+// Buy fan + fuel by clicking cards (put on the table first: shop 1's openers vary per run); double-click must not double-buy.
+await page.evaluate(() => { const { store } = window.__gg; const o = store.state.shop.offers; o[0] = { slot: 0, type: 'fan', price: 9, sold: false, tier: 1 }; o[1] = { slot: 1, type: 'fuel', price: 11, sold: false, tier: 1 }; store.changed(); });
 const fan = await page.$('.card[data-type="fan"]'); await fan.dblclick();
 await (await page.$('.card[data-type="fuel"]')).click();
 console.log('bought', await S());

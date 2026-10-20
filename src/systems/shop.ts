@@ -2,7 +2,7 @@ import { ELITE_EXCLUDED, MINI_BOSS } from '../data/enemies';
 import { DEPARTMENTS, DEPT_TUNING } from '../data/departments';
 import { DOOR_POOL, MODIFIERS, ROOMS, ROOM_DOORS, type DoorId } from '../data/modifiers';
 import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS, eliteChance, waveDef } from '../data/waves';
-import { PLAYER, ITEMS, ITEM_IDS, STARTER_WEAPONS, TIER } from '../data/items';
+import { PLAYER, ITEMS, ITEM_IDS, TIER } from '../data/items';
 import { RECIPES } from '../data/recipes';
 import { ZONES, ZONE_TUNING, zonesOf, type ZoneId } from '../data/zones';
 import { BELTS, CABLE_ROWS, ICE_SPOTS, VENT_SPOTS } from '../data/arena';
@@ -33,7 +33,9 @@ const ENHANCES: Partial<Record<ItemTypeId, (own: Set<ItemTypeId>) => boolean>> =
   coupon: (o) => o.has('fizz'),
 };
 
-function weight(t: ItemTypeId, own: Set<ItemTypeId>): number {
+/** `mergeable`: owned types with a copy below ★3, which another copy can still merge into. */
+function weight(t: ItemTypeId, own: Set<ItemTypeId>, mergeable: Set<ItemTypeId>): number {
+  if (mergeable.has(t)) return ECONOMY.ownedWeight;
   if (ITEMS[t].kind === 'weapon') return own.has(t) ? 1.6 : 1.3;
   if (Object.values(RECIPES).some((r) => (r.weapon ? own.has(r.weapon) : r.supports.some((s) => s !== t && own.has(s))) && r.supports.includes(t))) return 2.2;
   return ENHANCES[t]?.(own) ? 1.8 : 1;
@@ -46,32 +48,33 @@ export function currentRerollCost(state: RunState): number {
   return SHOP_LEVELS[state.shopLevel - 1].freeReroll && !sh.freeRerollUsed ? 0 : rerollCost(sh.rerolls, sh.shopIndex);
 }
 
-/** `guarantee`: shop 1's initial roll includes the starting weapon's two suggested items at ★1 (default: only when shopIndex is 1). */
+/** `guarantee`: shop 1's initial roll: the run's openers (`RunState.openers`) at ★1, the rest at flat weights (default: only when shopIndex is 1). */
 /** `keep`: the offers of a locked shop. Unsold ones stay as they are (price included); each sold slot gets a fresh offer in place. */
 export interface RollOpts { bias?: ItemTypeId[]; legendaryBonus?: number; forceLegendary?: boolean; keep?: ShopOffer[] }
 
 export function rollOffers(state: RunState, rng: Rng, shopIndex: number, guarantee = shopIndex === 1, opts: RollOpts = {}): ShopOffer[] {
   const bias = opts.bias ?? [], bonus = opts.legendaryBonus ?? 0;
-  const { placed, shelf } = state.inventory;
-  const own = new Set<ItemTypeId>([...placed.map((p) => p.type), ...shelf.filter((s) => !!s).map((s) => s!.type)]);
+  const owned = [...state.inventory.placed, ...state.inventory.shelf.filter((s) => !!s)];
+  const own = new Set(owned.map((i) => i.type));
+  const mergeable = new Set(owned.filter((i) => (i.tier ?? 1) < TIER.max).map((i) => i.type));
   const lv = SHOP_LEVELS[Math.max(0, Math.min(SHOP_LEVELS.length, state.shopLevel) - 1)];
   const kept = (opts.keep ?? []).filter((o) => !o.sold);
   const offers: ShopOffer[] = kept.map((o) => ({ ...o }));
   // Checkout set discount is baked in at roll time: offers already on the table keep their price until the next reroll.
   const add = (type: ItemTypeId, tier: number) => offers.push({ slot: offers.length, type, tier, price: Math.max(1, Math.round(TIER.value(ITEMS[type].price, tier) * (PLAYER.starters[state.starter ?? 'toaster'].perk?.priceMult ?? 1) * (state.build?.priceMult ?? 1) * inflation(state, shopIndex))), sold: false });
-  if (guarantee) for (const t of STARTER_WEAPONS[state.weapon ?? 'toaster'].guarantee) add(t, 1);
-  // Locked items (meta-progression) never show up.
-  const allowed = (t: ItemTypeId) => !state.unlocked || state.unlocked.includes(t);
-  const pool = ITEM_IDS.filter((t) => allowed(t) && !ITEMS[t].legendary && !ITEMS[t].noShop && !offers.some((o) => o.type === t));
+  if (guarantee) for (const t of state.openers ?? []) add(t, 1);
+  // Items outside the run's pool never show up.
+  const allowed = (t: ItemTypeId) => !state.pool || state.pool.includes(t);
+  const regular = ITEM_IDS.filter((t) => allowed(t) && !ITEMS[t].legendary && !ITEMS[t].noShop && !offers.some((o) => o.type === t));
   const legends = ITEM_IDS.filter((t) => allowed(t) && ITEMS[t].legendary);
   while (offers.length < ECONOMY.offerCount) {
     const needLegend = !!opts.forceLegendary && offers.length === ECONOMY.offerCount - 1 && !offers.some((o) => ITEMS[o.type].legendary);
     if (legends.length && (needLegend || (shopIndex >= 2 && rng() < lv.legendary + bonus))) { add(legends.splice(Math.floor(rng() * legends.length), 1)[0], 1); continue; }
-    const ws = pool.map((t) => (guarantee ? 1 : weight(t, own)) * (bias.includes(t) ? DEPT_TUNING.biasWeight : 1));
+    const ws = regular.map((t) => (guarantee ? 1 : weight(t, own, mergeable)) * (bias.includes(t) ? DEPT_TUNING.biasWeight : 1));
     let r = rng() * ws.reduce((a, b) => a + b, 0), i = 0;
-    while (i < pool.length - 1 && (r -= ws[i]) >= 0) i++;
-    add(pool.splice(i, 1)[0], rng() < lv.tier3 ? 3 : rng() < lv.tier2 ? 2 : 1);
-    // Double pack: counts as 2 types in its family set, costs x1.5 (never legendary, never the guaranteed starters).
+    while (i < regular.length - 1 && (r -= ws[i]) >= 0) i++;
+    add(regular.splice(i, 1)[0], rng() < lv.tier3 ? 3 : rng() < lv.tier2 ? 2 : 1);
+    // Double pack: counts as 2 types in its family set, costs x1.5 (never legendary, never an opener).
     if (shopIndex >= 2 && rng() < ECONOMY.doublePackChance) { const o = offers[offers.length - 1]; o.double = true; o.price = Math.round(o.price * ECONOMY.doublePackPriceMult); }
   }
   if (!opts.keep) return offers;
@@ -103,7 +106,7 @@ export function rollStockroom(state: RunState, rng: Rng): ShopOffer[] {
 
 /** Mid-shift boss loot: one unlocked legendary you don't own yet (if any), the rest distinct weapons at MINI_BOSS.weaponTier. Pick one. */
 export function rollMiniCrates(state: RunState, rng: Rng): ShopOffer[] {
-  const allowed = (t: ItemTypeId) => !state.unlocked || state.unlocked.includes(t);
+  const allowed = (t: ItemTypeId) => !state.pool || state.pool.includes(t);
   const owned = new Set([...state.inventory.placed, ...state.inventory.shelf].filter((i) => !!i).map((i) => i!.type));
   const take = (pool: ItemTypeId[]) => pool.splice(Math.floor(rng() * pool.length), 1)[0];
   const legends = ITEM_IDS.filter((t) => allowed(t) && ITEMS[t].legendary && !owned.has(t));

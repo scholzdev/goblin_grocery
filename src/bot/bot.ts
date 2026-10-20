@@ -56,7 +56,7 @@ const HP_SLACK = 1.2, DEFENSE_W = 2, REGEN_SECS = 30;
  * by PASS_GAP (share of the target; damage target = POWER_OK x the dps that just clears the aisle, toughness target above), a rule pass buys only what closes
  * that gap, the larger gap first. Damage: the best dps gain per coin among offers and weapon stars (a star is x1.5 damage, x0.9 cooldown), at least PASS_GAIN each.
  */
-const PASS_GAP = 0.15, PASS_GAIN = 0.08, REROLL_FROM = 2; // shop 1 is guaranteed the weapon's two combo parts: no rerolling those away
+const PASS_GAP = 0.15, PASS_GAIN = 0.08, REROLL_FROM = 2; // shop 1 opens with the weapon's combo parts (the stock's openers): no rerolling those away
 /** Doors: dps proxy / dps needed to clear the next aisle from which the harder doors (more enemies or elites) are allowed. */
 const POWER_OK = 2, HARD_LOAD = 1.15;
 const CHEAPEST = Math.min(...ITEM_IDS.map((id) => ITEMS[id].price));

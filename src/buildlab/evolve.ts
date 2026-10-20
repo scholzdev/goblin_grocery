@@ -3,7 +3,7 @@ import { mulberry32 } from '../systems/rng';
 import type { DepartmentId, StarterId, StarterWeapon } from '../types';
 import { crossover, distance, genomePolicy, greedyGenome, mutate, randomGenome, type Genome } from './genome';
 import type { RunRecord } from './report';
-import { playRun, runSeed } from './run';
+import { playRun, runSeed, type PoolMode } from './run';
 
 // The Phase 1b optimizer (docs/buildlab.md "Optimizer"): a seeded (mu + lambda) evolution strategy over `Genome`s. Elites are kept and never
 // re-evaluated (the eval seeds are fixed for the whole run, common random numbers), offspring are mutated or crossed elites. Everything is
@@ -30,7 +30,7 @@ export interface EvolveOptions {
   weapons?: StarterWeapon[];
   shift?: number;
   theme?: DepartmentId;
-  pool?: 'all' | 'starting';
+  pool?: PoolMode;
   /** Distinct best genomes kept for the report (default 8). */
   topK?: number;
   /** Runs per genome on the held-out seeds (default 48). */
@@ -74,7 +74,7 @@ export function evalPairs(base: number, n: number, starters: StarterId[], weapon
 
 const mean = (xs: number[]): number => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0);
 
-export function evaluate(genome: Genome, pairs: Pair[], o: { shift?: number; theme?: DepartmentId; pool?: 'all' | 'starting'; name?: string }): { fitness: number; winRate: number; avgAisle: number; runs: RunRecord[] } {
+export function evaluate(genome: Genome, pairs: Pair[], o: { shift?: number; theme?: DepartmentId; pool?: PoolMode; name?: string }): { fitness: number; winRate: number; avgAisle: number; runs: RunRecord[] } {
   const policy = genomePolicy(genome, o.name);
   const runs = pairs.map((p) => playRun({ ...p, shift: o.shift, theme: o.theme, pool: o.pool, policy }));
   return {

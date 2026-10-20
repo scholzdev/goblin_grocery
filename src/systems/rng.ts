@@ -27,3 +27,8 @@ export const combatSeed = (runSeed: number, aisle: number): number =>
  * so a daily run rolls the same combat numbers every time it is played.
  */
 export const combatRng = (runSeed: number, aisle: number): Rng => mulberry32(combatSeed(runSeed, aisle));
+
+const STOCK_SALT = 0x570c4ed;
+
+/** The run's stock draw (src/systems/stock.ts): a stream of its own, so drawing the stock never shifts `flow.rng`. */
+export const stockRng = (runSeed: number): Rng => mulberry32((Math.imul((runSeed ^ STOCK_SALT) >>> 0, 0x9e3779b1) ^ STOCK_SALT) >>> 0);

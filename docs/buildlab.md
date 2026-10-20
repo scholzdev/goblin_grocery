@@ -19,7 +19,7 @@ npm run buildlab -- --runs 50 --seed 1 --starter all
 | `--weapon ID\|all` | `toaster` | Starting weapon: `toaster`, `pan`, `nailgun`. |
 | `--shift N` | 0 | Difficulty (0 = Day Shift). |
 | `--theme ID` | `main` | Run theme. Only the data-driven department effects apply (see deviations). |
-| `--pool all\|starting` | `all` | Which items may appear in shops: every item (like the Test Lab) or a fresh profile's unlocks. |
+| `--pool all\|starting\|stock` | `all` | Which items may appear in shops: every item (like the Test Lab), a fresh profile's unlocks, or `stock`: the stock a real run draws with every item unlocked (`src/systems/stock.ts`). Only `stock` has shop 1's openers; `all` and `starting` roll shop 1 like any other shop at flat weights. |
 | `--policy NAME` | `greedy` | Registered in `tools/buildlab.ts`. |
 | `--out FILE` | `buildlab-out/run.json` | Pretty-printed JSON. `buildlab-out/` is git-ignored. |
 | `--quiet` | | No summary on stdout. |
@@ -43,7 +43,7 @@ No new dependency: the content registry uses `import.meta.glob`, which plain nod
 
 ## What a run does
 
-The order of calls is `flow.ts`'s: `createRun` (seed, character, weapon) -> `unlocked` set -> for each aisle: play it -> `finishWave` -> `openShop` -> policy acts -> `leaveShop` -> policy picks a door -> `chooseDoor` -> `startNextWave`. Everything in the shop is the real rules from `state/run.ts` (`buyOffer`, `mergeItems`, `moveItem`, `upgradeCart`, `repair` ...); an action the rules refuse is logged with its reason and skipped.
+The order of calls is `flow.ts`'s: `createRun` (seed, character, weapon) -> `pool` set (`POOLS` in `src/buildlab/run.ts`) -> for each aisle: play it -> `finishWave` -> `openShop` -> policy acts -> `leaveShop` -> policy picks a door -> `chooseDoor` -> `startNextWave`. Everything in the shop is the real rules from `state/run.ts` (`buyOffer`, `mergeItems`, `moveItem`, `upgradeCart`, `repair` ...); an action the rules refuse is logged with its reason and skipped.
 
 Randomness, as in the game: `mulberry32(seed)` is `flow.rng` (shop rolls, doors, the wave plan, spawns, kill coins); `combatRng(seed, aisle)` is the weapons' rng (crits, statuses, hook rolls) exactly as the arena creates it; the policy has its own `mulberry32(seed ^ 0x51ed270b)`; the proxy's spots and exposure rolls use a third stream (`combatRng(seed ^ 0x1ab5, aisle)`), so the damage model never shifts a weapon's crit rolls.
 

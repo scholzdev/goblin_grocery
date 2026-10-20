@@ -13,6 +13,7 @@ await page.evaluate(() => { window.__gg.store.state.money = 100; window.__gg.sto
 await page.waitForTimeout(150);
 await page.screenshot({ path: 'screenshots/combos-empty.png', clip: { x: 390, y: 540, width: 580, height: 260 } });
 const center = async (sel) => { const r = await (await page.$(sel)).boundingBox(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; };
+await page.evaluate(() => { const { store } = window.__gg; const o = store.state.shop.offers; o[0] = { slot: 0, type: 'fan', price: 9, sold: false, tier: 1 }; o[1] = { slot: 1, type: 'fuel', price: 11, sold: false, tier: 1 }; store.changed(); }); // shop 1's openers vary per run
 await (await page.$('.card[data-type="fan"]')).click();
 await (await page.$('.card[data-type="fuel"]')).click();
 const drag = async (from, to, hold) => { await page.mouse.move(from.x, from.y); await page.mouse.down(); await page.mouse.move(to.x, to.y, { steps: 8 }); await page.waitForTimeout(120); if (!hold) await page.mouse.up(); };
