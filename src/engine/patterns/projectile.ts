@@ -9,7 +9,7 @@ const SHIELD = ENEMIES.cereal.tune;
 
 /**
  * Flight and impact of every player projectile (toast, nails, caps, Ray Gun bolts), shared by the projectile patterns: life, bounds, the
- * Cereal Box cardboard front, damage, `pattern:shotHit`, piercing and the ricochet bounce. Cosmetic trails come from the weapon's look.
+ * Cereal Box cardboard front, damage, `pattern:shotHit`, piercing and the ricochet bounce (one more for a ★3 cap's first knockout). Cosmetic trails come from the weapon's look.
  */
 export function updateShots(h: PatternHost, dt: number): void {
   const sc = h.sc;
@@ -56,6 +56,7 @@ export function updateShots(h: PatternHost, dt: number): void {
       const sp = Math.hypot(s.vx, s.vy) || 1;
       sc.damageEnemy(e, s.damage, st, { kb: 60, kbX: s.vx / sp, kbY: s.vy / sp });
       if (sc.hooks['pattern:shotHit'].length) sc.hooks.emit('pattern:shotHit', { stats: st, shot: s, enemy: e }); // Ray Gun splash, Frostbite Nails' freeze, Nailstorm arms the homing
+      if (s.killBounce && !e.alive) { s.killBounce = false; s.tracker.maxHits++; }
       if (isSpent(s.tracker)) { h.kill(s); break; }
       if (s.ricochet) {
         const next = pickRicochetTarget(s, sc.enemies.filter((x) => x.alive && x.state !== 'spawn'), s.tracker.hits, 230);

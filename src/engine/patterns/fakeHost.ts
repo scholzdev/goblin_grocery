@@ -112,7 +112,7 @@ export class FakeArsenal implements PatternHost {
   spawn(key: string, x: number, y: number, a: number, speed: number, life: number, damage: number, stats: WeaponStats | null, maxHits: number): Shot | null {
     const shot: Shot = {
       img: new StubSprite(key), shadow: new StubSprite('shadow'), active: true, x, y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed, life, damage, tracker: newHitTracker(maxHits),
-      stats, homing: false, spin: 0, maxLife: life, ricochet: key === 'proj_cap', splash: null,
+      stats, homing: false, spin: 0, maxLife: life, ricochet: key === 'proj_cap', splash: null, killBounce: false,
     };
     this.shots.push(shot);
     this.spawned.push({ at: this.fake.time, key, x, y, angle: a, speed, life, damage, stats, maxHits, shot });
