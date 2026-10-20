@@ -113,6 +113,8 @@ export class FakeCtx implements RuntimeCtx {
   readonly dmgLog: DamageSink = { damageByWeapon: {}, damage: newDamageStats() };
   /** The element reactions (engine/reactions.ts), the same rules the arena runs; their counts land in `dmgLog.damage.reactions`. */
   readonly reactor = new Reactor(this, () => this.dmgLog);
+  /** The hit that killed each enemy, as the arena hands it to `killEnemy` (the build lab's kill credit reads it). */
+  readonly killingHit = new WeakMap<CombatEnemy, HitEvent>();
   readonly seed: number;
   private readonly rand: Rng;
   private nextId = 1;
@@ -303,16 +305,17 @@ export class FakeCtx implements RuntimeCtx {
   playerNear(x: number, y: number): { x: number; y: number; d: number } {
     return { x: this.player.x, y: this.player.y, d: Math.hypot(x - this.player.x, y - this.player.y) };
   }
-  /** Mirrors `ArenaScene.hurtPlayer`: i-frames block it, `onPlayerHit` hooks may lower the damage / change the i-frames. */
-  hurt(dmg: number): void {
+  /** Mirrors `ArenaScene.hurtPlayer`: i-frames block it, `onPlayerHit` hooks may lower the damage / change the i-frames. True when the hit landed. */
+  hurt(dmg: number): boolean {
     this.log({ kind: 'hurt', dmg });
     const p = this.player;
-    if (p.dead || p.invulnT > 0 || p.protectT > 0) return;
+    if (p.dead || p.invulnT > 0 || p.protectT > 0) return false;
     let invuln = PLAYER.invuln;
     if (this.hooks.onPlayerHit.length) { const ev = { dmg, invuln }; this.hooks.emit('onPlayerHit', ev); dmg = ev.dmg; invuln = ev.invuln; }
     this.run.hp = Math.max(0, this.run.hp - dmg);
     p.invulnT = invuln;
     if (this.run.hp <= 0) p.dead = true;
+    return true;
   }
   heal(hp: number): void {
     this.log({ kind: 'heal', hp });
@@ -426,6 +429,7 @@ export class FakeCtx implements RuntimeCtx {
     if (e.hp <= 0 && e.alive) { // (a reaction's burst on this very enemy may already have killed it)
       e.alive = false;
       e.state = 'dying';
+      this.killingHit.set(e, hit);
       H.emit('onKill', { enemy: e, hit });
       H.emit('afterKill', { enemy: e, hit });
       applyKillEffects(hit, this);

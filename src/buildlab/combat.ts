@@ -8,13 +8,15 @@ import { Enemy } from '../engine/ids';
 import { FakeCtx } from '../engine/fakeCtx';
 import { buildHooks } from '../engine/hooks';
 import { FakeArsenal } from '../engine/patterns/fakeHost';
+import { isDashHit } from '../engine/hitTags';
 import type { BossKit, BossMove } from '../engine/define';
 import type { CombatEnemy } from '../engine/ctx';
 import { applyWeaken, cleanseAura, giftcardCoins, healTargets, killCoinMult, killCoins, slowFactor, tickBurn, tickPoison, weakenedDamage } from '../systems/combat';
 import { totalDamage, type DamageStats } from '../systems/damageStats';
 import { combatRng, type Rng } from '../systems/rng';
 import { waveSpawnPlan } from '../systems/shop';
-import { addCoins } from '../state/run';
+import { punchHit, punchKill, punchTick, rollPunchCard } from '../systems/contracts';
+import { addCoins, payPunchCard } from '../state/run';
 import type { EnemyDef, EnemyId, RunState } from '../types';
 
 // The build-lab combat proxy (docs/buildlab.md). One aisle played headless: the real weapon patterns, statuses, reactions, armor, affinity and
@@ -193,6 +195,9 @@ export function playAisle(state: RunState, flow: Rng, opts: AisleOpts = {}): Ais
     if (wave.index === MINI_BOSS.aisle && state.modifier !== 'stockroom') { miniDue = true; miniAt = MINI_BOSS.at; }
   }
   const kind: AisleKind = boss ? 'boss' : miniDue ? 'mini' : 'fight';
+  // Punch Card (ArenaScene: rolled at the aisle start, fed credited kills, landed hits and the aisle clock; pays when the goal is met)
+  state.punch = rollPunchCard(state.seed, state.inventory, { aisle: state.wave, boss, total: plan.total, fight: state.modifier !== 'stockroom' }) ?? undefined;
+  const timeLeft = (): number => (boss || miniDue ? -1 : Math.max(0, wave.duration - waveTime));
 
   const pickEntry = (): number => {
     const far = ENTRIES.map((e, i) => ({ i, d: Math.hypot(e.x - px, e.y - py) })).filter((e) => e.d > 320);
@@ -274,7 +279,7 @@ export function playAisle(state: RunState, flow: Rng, opts: AisleOpts = {}): Ais
   // ── damage to the player ──
   const hurt = (dmg: number): void => {
     const before = fake.run.hp;
-    fake.hurt(dmg);
+    if (fake.hurt(dmg) && state.punch) punchHit(state.punch);
     damageTaken += Math.max(0, before - fake.run.hp);
   };
   const bossShots = new WeakSet<object>();
@@ -388,6 +393,8 @@ export function playAisle(state: RunState, flow: Rng, opts: AisleOpts = {}): Ais
   const onDeath = (f: Foe): void => {
     const e = f.e, d = f.d;
     kills++;
+    const hit = fake.killingHit.get(e);
+    if (state.punch && punchKill(state.punch, { tags: hit?.tags ?? [], dash: !!hit && isDashHit(hit.opts), elite: e.elite })) payPunchCard(state);
     const thief = d.id === Enemy.giftcard;
     const n = thief ? giftcardCoins(d.coins, GIFT.coinMult, mults) : f === ref.boss ? bossTuning(state.shift).coins : f.mini ? MINI_BOSS.coins : killCoins(d.coins * (f.e.elite ? ELITE.coinMult : 1), killCoinMult(mults), flow);
     for (let i = 0; i < n; i++) if (thief || d.behavior === 'boss' || flow() < ECONOMY.killCoinChance) award(1);
@@ -434,6 +441,7 @@ export function playAisle(state: RunState, flow: Rng, opts: AisleOpts = {}): Ais
     const now = fake.time;
     waveTime += dt;
     if (build.regen > 0 && fake.run.hp < build.maxHp) fake.run.hp = Math.min(build.maxHp, fake.run.hp + build.regen * dt);
+    if (state.punch && punchTick(state.punch, dt, timeLeft()) === 'done') payPunchCard(state);
     if (!only) updateDirector();
     if (!enraged && ((ref.boss && waveTime > bossTuning(state.shift).enrageAfter + 1.6) || (ref.mini && waveTime > MINI_BOSS.at + MINI_BOSS.enrageAfter))) enraged = true;
     contactors.length = 0;

@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { PROXY, playAisle } from '../../src/buildlab/combat';
 import { Combo, Enemy, Item } from '../../src/engine/ids';
 import { mulberry32 } from '../../src/systems/rng';
+import { rollPunchCard } from '../../src/systems/contracts';
+import { waveSpawnPlan } from '../../src/systems/shop';
+import { t } from '../../src/i18n';
 import type { RecipeId } from '../../src/types';
 import { bareToaster, stateWith, strongCart } from './helpers';
 
@@ -86,5 +89,22 @@ describe('combat proxy: effects that combo hooks spawn', () => {
   it('Shrapnel: the fragments of an explosion hit enemies', () => {
     const cooker = (keep: boolean) => playAisle(cart([{ type: Item.cooker }, { type: Item.tape }], Combo.shrapnel, keep), flow(), { mode: 'clear', only: ENDLESS }).damage.bySource.cooker ?? 0;
     expect(cooker(true), 'Pressure Cooker damage with Shrapnel vs the same cart without it').toBeGreaterThan(cooker(false));
+  });
+});
+
+describe('combat proxy: Punch Card', () => {
+  it('rolls the aisle goal, counts the credited kills and pays a met goal', () => {
+    let paid = 0;
+    for (let seed = 1; seed <= 6; seed++) {
+      const s = stateWith([...strongCart(), { type: Item.punchcard, near: [] }], { seed, aisle: 2 });
+      const card = rollPunchCard(s.seed, s.inventory, { aisle: 2, boss: false, total: waveSpawnPlan(s).total, fight: true })!;
+      const r = playAisle(s, mulberry32(seed));
+      expect(s.punch, `seed ${seed}: the aisle's card`).toMatchObject({ goal: card.goal, target: card.target });
+      if (card.goal === 'any') expect(s.punch!.progress, `seed ${seed}: every credited kill counts`).toBe(Math.min(card.target, r.kills));
+      const coins = s.coinLog.find((c) => c.label === t('coinPunchCard'))?.amount ?? 0;
+      expect(coins, `seed ${seed}: paid exactly for a met goal`).toBe(s.punch!.status === 'done' ? card.coins : 0);
+      if (coins) paid++;
+    }
+    expect(paid, 'some seed meets its goal').toBeGreaterThan(0);
   });
 });
