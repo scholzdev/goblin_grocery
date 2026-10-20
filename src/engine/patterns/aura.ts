@@ -1,4 +1,5 @@
 import { hasStar3 } from '../define';
+import { CART_STANDOFF } from './common';
 import type { Pattern } from './types';
 
 /** Blender: every tick, each enemy inside the radius is hit once. The blade ring (drawn by the arsenal) spins while fighting. */
@@ -22,7 +23,7 @@ export const aura: Pattern = {
       const d = Math.hypot(e.x - p.x, e.y - p.y);
       if (d > st.range + e.def.radius) continue;
       hit = true;
-      const pull = pullIn > 0 && d > p.radius + e.def.radius + 12; // stops short of the cart like the Vacuum, so it never feeds melee enemies into the goblin
+      const pull = pullIn > 0 && d > p.radius + e.def.radius + CART_STANDOFF;
       sc.damageEnemy(e, st.damage, st, { kb: pull ? pullIn : 20, kbX: (pull ? p.x - e.x : e.x - p.x) / (d || 1), kbY: (pull ? p.y - e.y : e.y - p.y) / (d || 1), quiet: true });
     }
     if (hit) h.sound('blender');

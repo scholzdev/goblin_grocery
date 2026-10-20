@@ -8,6 +8,9 @@ import type { PatternHost, Sprite, WeaponRt } from './types';
 /** Degrees to radians (Phaser's `Math.DegToRad`, to the bit). */
 export const degToRad = (deg: number): number => deg * (Math.PI / 180);
 
+/** Pulls stop this far outside the cart, so they never feed melee enemies into the goblin. */
+export const CART_STANDOFF = 12;
+
 /** Where the cart's weapons shoot from: the nose of the cart. */
 export function origin(h: PatternHost): { x: number; y: number } {
   const p = h.sc.player;

@@ -324,7 +324,6 @@ export type HitSource =
   | { how: 'event'; by: Extract<SetEventKind, 'powerSurge'> }
   | { how: 'self'; by: ItemTypeId };
 export type EnemyHitHow = 'contact' | 'charge' | 'swipe' | 'shot' | 'blast' | 'boss';
-export type HitHow = HitSource['how'];
 
 export interface RunStats {
   kills: number;

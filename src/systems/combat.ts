@@ -1,7 +1,14 @@
 import type { BurnEffect, SlowEffect } from '../types';
-import { ENEMIES } from '../data/enemies';
+import { AFFIX, ENEMIES } from '../data/enemies';
 import { SHRED, WEAKEN } from '../engine/define';
 import { Enemy } from '../engine/ids';
+
+/** Tough affix: regenerates after `AFFIX.tough.idle` s without a direct hit. True when it healed this step. */
+export function toughRegen(e: { hp: number; maxHp: number; lastHitT?: number }, dt: number, now: number): boolean {
+  if (e.hp >= e.maxHp || now - (e.lastHitT ?? -Infinity) < AFFIX.tough.idle) return false;
+  e.hp = Math.min(e.maxHp, e.hp + e.maxHp * AFFIX.tough.regenPct * dt);
+  return true;
+}
 
 export interface HitTracker { maxHits: number; hits: Set<number> }
 export const newHitTracker = (maxHits: number): HitTracker => ({ maxHits, hits: new Set() });

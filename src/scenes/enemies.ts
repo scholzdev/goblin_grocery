@@ -3,7 +3,7 @@ import { AFFIX, affixArmor, BOSS, BOSS_KITS, BOSS_SPECIAL, ELITE, MINI_BOSS, ELI
 import { bossTuning } from '../data/waves';
 import { store } from '../state/store';
 import type { EnemyDef, EnemyHitHow, EnemyId, HitSource } from '../types';
-import { cleanseAura, healTargets, newStatus, slowFactor, tickBurn, tickPoison, type StatusFx } from '../systems/combat';
+import { cleanseAura, healTargets, newStatus, slowFactor, tickBurn, tickPoison, toughRegen, type StatusFx } from '../systems/combat';
 import { pushOutCircle } from '../systems/obstacles';
 import { lang, t } from '../i18n';
 import { play } from '../audio/sfx';
@@ -308,10 +308,7 @@ function affixTick(scene: ArenaScene, e: Enemy, dt: number, now: number): void {
       scene.tweens.add({ targets: g, alpha: 0, duration: 260, onComplete: () => g.destroy() });
     }
   } else if (e.affix === 'tough') {
-    if (e.hp < e.maxHp && now - e.lastHitT >= AFFIX.tough.idle) {
-      e.hp = Math.min(e.maxHp, e.hp + e.maxHp * AFFIX.tough.regenPct * dt);
-      if (Math.random() < dt * 2) scene.fx.spark(e.x + Phaser.Math.Between(-10, 10), e.y - 30, 1, AFFIX.tough.color);
-    }
+    if (toughRegen(e, dt, now) && Math.random() < dt * 2) scene.fx.spark(e.x + Phaser.Math.Between(-10, 10), e.y - 30, 1, AFFIX.tough.color);
   } else if (e.affix === 'pickpocket') {
     while (scene.absorbCoin(e.x, e.y, AFFIX.pickpocket.absorbRadius + e.def.radius)) {
       e.loot++;

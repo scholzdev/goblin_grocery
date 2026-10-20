@@ -11,7 +11,7 @@ import { FakeArsenal } from '../engine/patterns/fakeHost';
 import { isDashHit } from '../engine/hitTags';
 import type { BossKit, BossMove } from '../engine/define';
 import type { CombatEnemy } from '../engine/ctx';
-import { applyWeaken, cleanseAura, giftcardCoins, healTargets, killCoinMult, killCoins, slowFactor, tickBurn, tickPoison, weakenedDamage } from '../systems/combat';
+import { applyWeaken, cleanseAura, giftcardCoins, healTargets, killCoinMult, killCoins, slowFactor, tickBurn, tickPoison, toughRegen, weakenedDamage } from '../systems/combat';
 import { totalDamage, type DamageStats } from '../systems/damageStats';
 import { combatRng, type Rng } from '../systems/rng';
 import { waveSpawnPlan } from '../systems/shop';
@@ -318,7 +318,7 @@ export function playAisle(state: RunState, flow: Rng, opts: AisleOpts = {}): Ais
     if (burn > 0) { fake.hit(e, burn, null, { isDot: true }); if (!e.alive) return; }
     const poison = tickPoison(e.status, now);
     if (poison > 0) { fake.hit(e, poison, null, { isDot: true, poison: true }); if (!e.alive) return; }
-    if (f.affix === 'tough' && e.hp < e.maxHp && now - (e.lastHitT ?? -Infinity) >= AFFIX.tough.idle) e.hp = Math.min(e.maxHp, e.hp + e.maxHp * AFFIX.tough.regenPct * dt); // enemies.ts affixTick
+    if (f.affix === 'tough') toughRegen(e, dt, now);
     f.atkCd -= dt;
     if (d.id === Enemy.sanitizer && (f.aux -= dt) <= 0) { f.aux += SANI.cleanseInterval; cleanseAura(e, fake.enemies, SANI.cleanseRadius, now); }
     if (d.behavior === 'healer' && (f.aux -= dt) <= 0) {
