@@ -32,6 +32,8 @@ export interface CombatEnemy {
   stateT?: number;
   /** Scene clock (s) of this boss's last weakness stagger (`engine/affinity.ts` `tryStagger`). */
   staggerAt?: number;
+  /** Scene clock (s) of the last hit that was not damage over time: the Tough affix regenerates after `AFFIX.tough.idle` s without one. */
+  lastHitT?: number;
   def: { id: EnemyId; radius: number; behavior: string; knockbackResist: number; armor?: number; weak?: AffinityMap; resist?: AffinityMap };
 }
 

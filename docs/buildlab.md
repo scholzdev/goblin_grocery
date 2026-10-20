@@ -54,7 +54,9 @@ Aisle by kind:
 
 ## The combat proxy
 
-Real, not modelled: the weapon patterns (`FakeArsenal` runs every pattern), item and combo and set hooks, the damage pipeline (crit, affinity, mark, armor, Shred, Wet, statuses, burn and poison ticks driven here every step, reactions), kill coins (`killCoins`, `giftcardCoins`, `killCoinMult`, the 0.4 drop chance), `build.regen`, bread, honey healing (`healTargets`), the Sanitizer's cleanse (`cleanseAura`), Weaken on enemy damage (`weakenedDamage`), the player hit path (`FakeCtx.hurt`: i-frames, `onPlayerHit` hooks such as Bubble Wrap), the damage breakdown (`systems/damageStats`, including reaction counts).
+Real, not modelled: the weapon patterns (`FakeArsenal` runs every pattern), item and combo and set hooks, the damage pipeline (crit, affinity, mark, armor, Shred, Wet, statuses, burn and poison ticks driven here every step, reactions), kill coins (`killCoins`, `giftcardCoins`, `killCoinMult`, the 0.4 drop chance), `build.regen`, bread, honey healing (`healTargets`), the Sanitizer's cleanse (`cleanseAura`), Weaken on enemy damage (`weakenedDamage`), the player hit path (`FakeCtx.hurt`: i-frames, `onPlayerHit` hooks such as Bubble Wrap), the damage breakdown (`systems/damageStats`, including reaction counts). The effects a hook spawns run too: `playAisle` gives its `FakeArsenal` to the `FakeCtx` (`fake.arsenal`), which routes `spawnShot`, `spawnPool`, `sweep`, `explode` and `beam` to it as `PhaserCtx` routes them to the scene's arsenal (Ray Gun bolts, Shrapnel fragments, Kettle Corn kernels, the Reheat / Pressure Point / Sizzling Skillet fire pools, Power Surge's aftershock). The Punch Card runs on the functions `ArenaScene` calls (`rollPunchCard` at the aisle start, `punchKill` on credited kills, `punchHit` on landed hits, `punchTick` on the aisle clock, `payPunchCard` on a met goal); the free reroll then comes from `openShop`. The Tough affix regenerates from `lastHitT`, which every hit that is not damage over time sets, as in the arena.
+
+Changed after the October hillclimb. Before, `FakeCtx` only logged the effects a hook spawns: with Ray Gun the Nail Gun dealt 0, and fire pools, fragments, kernels and aftershocks did nothing. The Punch Card never rolled, and a burn or poison tick reset the Tough regen timer. With these fixes and the partial combo credit in greedy placement (see "The greedy policy"), 1200 greedy Day runs (seed 1, 100 per character and starting weapon) went from 25.8% to 28.4% wins, mostly from Nail Gun starts (13.8% to 21.3%). The hillclimb's metric (toaster start, 800 runs, seed 1) barely moved, 26.0% to 26.1%: toaster runs build Toast Mode and rarely own an affected combo.
 
 Modelled (the part that is a guess):
 
@@ -115,7 +117,7 @@ A port of `tools/botrun.mjs`'s shop block, with the cart size read from the stat
 1. Repair when `hp < maxHp - 9`. Buy the next Loyalty level when money > 45.
 2. Buy every affordable offer (slot order; shelf room and coins are tracked).
 3. Merge identical pairs (same type and tier, the shelf copy into the cart copy).
-4. For each shelf item, find the best spot in the WHOLE cart (all distinct rotations, every cell), scored `active combos x 10 + module buffs on weapons`; the first best wins. It is placed even when it scores 0.
+4. For each shelf item, find the best spot in the WHOLE cart (all distinct rotations, every cell), scored by `scoreBuild`; the first best wins. It is placed even when it scores 0. Per combo anchor in the cart (the weapon, or a cart combo's first part): 10 for a combo whose parts all touch it, a replaced one included (so Ray Gun scores above the Nailstorm it grows from), and `10 x 0.5 x` the share of parts in place for a combo not formed yet; plus 1 per module buff on a weapon. The partial credit puts a passive part such as the Magnet next to its weapon before the last part arrives. In `npm run buildlab -- --runs 100 --seed 1 --starter all --weapon all` (1200 runs), about 400 runs end with all three Nailstorm parts in the cart, nearly all of them Nail Gun starts. Nailstorm or Ray Gun had formed in 2 of 403 such runs without the partial credit, and in 401 of 404 with it.
 5. Cart upgrade when money > 30, shelf upgrade when money > 25.
 6. Merge and place again (the new space and the new tiers).
 7. Door: random, but never `rush` when hp < 60% or the aisle just fought is <= 3.
@@ -187,11 +189,11 @@ Skipped in `flow.ts`: the profile (unlock recording, loyalty, daily seed, the +2
 
 Skipped in the arena:
 
-- No player movement or dodging at all (the exposure constants stand in for it), no dash. Items that only act through the dash or shove (Running Boot, Sugar Rush, Express Checkout, Tailwind ...), the move-speed items and the pickup radius do nothing here: expect them to look dead. The goblin stays at `PLAYER_START`.
+- No player movement or dodging at all (the exposure constants stand in for it), no dash. Items that only act through the dash or shove (Running Boot, Sugar Rush, Express Checkout, Tailwind ...), the move-speed items and the pickup radius do nothing here: expect them to look dead. The Punch Card's dash goal can be drawn but never completes. The goblin stays at `PLAYER_START`.
 - Enemy movement is a straight walk: no separation between enemies, no obstacles, no knockback from hits (a hit's `kb` is not applied; only knockback a hook writes to `kx / ky`), no gum puddles, no teleports (Expired Milk is a plain walker), Bananas do not lunge (they are walkers), Gift Cards flee and escape as in the game, eggs explode at the cart (and hurt their neighbours for 12) without credit.
 - Hazards (ice, vents, cables, conveyor), aisle events (Wet Floor, Outage, Happy Hour ...), obstacles and props, zones' hazards: none. Zone enemy tilts and the department mix, hp / count / coin multipliers, bread healing and the Electronics electric rate do apply.
 - Boss special moves are plain volleys; boss summons spawn through the same group director (real types and counts). The Manager's other kits (Walk-In Freezer slush, Industrial Oven ring ...) are not told apart.
-- Pickpocket elites do not absorb coins; the Tough affix regenerates after 2 s without damage (HP delta based, not `lastHitT`).
+- Pickpocket elites do not absorb coins.
 - Enemies arrive fully formed (no 0.3 s spawn grow-in; the boss does not drop in over 1.2 s).
 - Coins are all collected (no pickup radius, no sweep loss); coins fall where the player cannot lose them.
 - The fixed 0.05 s step differs from the arena's frame step; burn and poison tick on the fake clock exactly as in the game, weapon cooldowns can land up to one step late.
@@ -201,6 +203,8 @@ Skipped in the arena:
 ## Balance hillclimb (difficulty curve)
 
 Goal: greedy bot, Day Shift, win rate 25-35%, no aisle above 35% deaths among the runs that reached it (aisle 4 at most 25%), later shifts harder. Metric: `npm run buildlab -- --runs 200 --seed S --starter all --shift N` (800 runs per cell), seeds 1 and 2 on Day, seed 1 on Evening and Late. The proxy was not touched. Every step, with its hypothesis and measurements, is in `balance-hillclimb.tsv`.
+
+These numbers, and every row of `balance-hillclimb.tsv`, were measured on the proxy before the fixes in "The combat proxy" (hook-spawned effects, Punch Card, Tough regen) and before the partial combo credit in greedy placement.
 
 Choice: counts and hpScale both fell, because both were growing every aisle. Most of the gain came from dmgScale (what lands on the cart; the proxy's exposure model makes contact damage the main killer) and from counts (more bodies means more contact rolls). The mini-boss lost HP, not damage: its contact hit follows dmgScale. Elite chance was flattened. A bigger tier damage multiplier (1 + 0.75 per tier) was tried twice and reverted: it moved the Day win rate by under one point because the greedy bot rarely tiers weapons. Tiering value is still weak; fix it in the shop or the bot, not here.
 

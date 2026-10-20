@@ -5,6 +5,7 @@ import { cellsFor } from '../data/items';
 import type { Build, Inventory, ItemInstance, ItemTypeId, Rotation, RunState, ShopOffer } from '../types';
 import { footprint, normalizeRotation, rotateCells } from '../systems/inventory';
 import { computeBuild } from '../systems/synergies';
+import { RECIPES } from '../data/recipes';
 import { cartUpgradeCost, mergeTargetFor, shelfUpgradeCost, shopUpgradeCost, type MoveTarget } from '../state/run';
 import { repairCost } from '../systems/shop';
 import type { Rng } from '../systems/rng';
@@ -60,11 +61,37 @@ export type PolicyFactory = () => Policy;
 
 // ───────────────────────────── scoring and placement ─────────────────────────────
 
-export interface ScoreWeights { recipe: number; buff: number }
-export const DEFAULT_SCORE: ScoreWeights = { recipe: 10, buff: 1 };
+export interface ScoreWeights {
+  recipe: number;
+  buff: number;
+  /** A combo not formed yet scores `recipe x partial x` the share of its parts already touching its anchor. */
+  partial: number;
+}
+export const DEFAULT_SCORE: ScoreWeights = { recipe: 10, buff: 1, partial: 0.5 };
 
-/** botrun's cart score: active combos x10 + module buffs on weapons x1. */
-export const scoreBuild = (b: Build, w: ScoreWeights = DEFAULT_SCORE): number => b.recipes.length * w.recipe + b.weapons.reduce((n, x) => n + x.buffs.length, 0) * w.buff;
+/** Each combo as `computeBuild` matches it: the anchor (its weapon, or a cart combo's first part) and the parts that must touch the anchor. */
+const COMBOS_BY_ANCHOR = new Map<ItemTypeId, ItemTypeId[][]>();
+for (const r of Object.values(RECIPES)) {
+  const anchor = r.weapon ?? r.supports[0], parts = r.weapon ? r.supports : r.supports.slice(1);
+  COMBOS_BY_ANCHOR.set(anchor, [...(COMBOS_BY_ANCHOR.get(anchor) ?? []), parts]);
+}
+
+/**
+ * botrun's cart score with credit for unfinished combos: per anchor in the cart, a combo whose parts all touch it scores `recipe` (one that
+ * another replaces too, so Ray Gun is worth more than the Nailstorm it grows from), one with k of n parts touching `recipe x partial x k/n`;
+ * plus `buff` per module buff on a weapon. The partial credit is what draws a passive combo part next to its weapon before the last part arrives.
+ */
+export function scoreBuild(b: Build, placed: readonly ItemInstance[], w: ScoreWeights = DEFAULT_SCORE): number {
+  const typeOf = new Map(placed.map((p) => [p.uid, p.type]));
+  const near = new Map(placed.map((p) => [p.uid, new Set<ItemTypeId>()]));
+  for (const [a, c] of b.adjacency) { near.get(a)!.add(typeOf.get(c)!); near.get(c)!.add(typeOf.get(a)!); }
+  let combos = 0;
+  for (const p of placed) for (const parts of COMBOS_BY_ANCHOR.get(p.type) ?? []) {
+    const k = parts.filter((t) => near.get(p.uid)!.has(t)).length;
+    combos += k === parts.length ? 1 : (w.partial * k) / parts.length;
+  }
+  return combos * w.recipe + b.weapons.reduce((n, x) => n + x.buffs.length, 0) * w.buff;
+}
 
 export interface Placement { x: number; y: number; rot: Rotation; score: number }
 /** What `bestPlacement` needs of an item: an owned instance, or just a type and tier (a crate option). */
@@ -78,11 +105,11 @@ const perkOf = (state: RunState) => PLAYER.starters[state.starter ?? 'toaster'].
  */
 export type Scorer = (b: Build) => number;
 export function bestPlacement(state: RunState, probe: Probe, weights: ScoreWeights | Scorer = DEFAULT_SCORE): Placement | null {
-  const score: Scorer = typeof weights === 'function' ? weights : (b) => scoreBuild(b, weights);
   const inv = state.inventory, tier = probe.tier ?? 1;
   const occ = new Set<number>();
   for (const p of inv.placed) for (const c of footprint(p)) occ.add(c.y * 64 + c.x);
   const work: Inventory = { cols: inv.cols, rows: inv.rows, placed: [...inv.placed], shelf: [] };
+  const score: Scorer = typeof weights === 'function' ? weights : (b) => scoreBuild(b, work.placed, weights);
   const inst: ItemInstance = { uid: probe.uid ?? '__probe', type: probe.type, x: 0, y: 0, rot: 0, tier, ...(probe.double ? { double: true } : {}), ...(probe.flavor ? { flavor: probe.flavor } : {}) };
   work.placed.push(inst);
   const base = cellsFor(probe.type, tier);

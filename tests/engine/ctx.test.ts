@@ -104,6 +104,18 @@ describe('FakeCtx recording', () => {
     expect(c.callsOf('hurt')).toHaveLength(2); // the request is recorded either way
   });
 
+  it('stamps the last direct hit for the Tough regen, as the arena does: burn and poison ticks do not count', () => {
+    const c = new FakeCtx();
+    const e = c.spawnEnemy({ hp: 100 });
+    c.advance(1);
+    c.hit(e, 3, null, { isDot: true });
+    c.hit(e, 3, null, { isDot: true, poison: true });
+    expect(e.lastHitT, 'after the ticks').toBeUndefined();
+    c.advance(1);
+    c.hit(e, 3, null);
+    expect(e.lastHitT, 'after a direct hit').toBe(2);
+  });
+
   it('delay and tween callbacks run in due order when the clock reaches them', () => {
     const c = new FakeCtx();
     const log: string[] = [];
