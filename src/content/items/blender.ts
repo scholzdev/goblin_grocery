@@ -1,7 +1,7 @@
 import { defineItem, weaponBase, weaponTiers, WEAPON_ROWS } from '../../engine/define';
 import { Item, Set, Tag } from '../../engine/ids';
 
-// Pattern `aura` (engine/patterns/aura.ts): everything within `range` takes a tick of damage and a small push out, from ★3 a pull in (`tune.pullIn`); the blade ring spins while fighting. Smoothie Shield hooks `pattern:aura`,
+// Pattern `aura` (engine/patterns/aura.ts): everything within `range` takes a tick of damage and a small push out; the blade ring spins while fighting. Smoothie Shield hooks `pattern:aura`,
 // Brain Freeze's pale, slower blades are its `pattern:look`.
 const W = weaponBase({ pattern: 'aura', damage: 2, cooldown: 0.3, range: 85 });
 

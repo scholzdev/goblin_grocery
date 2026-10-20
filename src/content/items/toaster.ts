@@ -1,8 +1,8 @@
 import { defineItem, weaponBase, weaponTiers, WEAPON_ROWS } from '../../engine/define';
 import { Item, Set } from '../../engine/ids';
 
-// Pattern `toast` (engine/patterns/toast.ts): a volley of `count` toasts toward the nearest enemy, and from ★3 (`secondToast`) one more toast at the nearest
-// other enemy. Toast Mode's flames and lower pop are that combo's `pattern:look`; Fan, Duct Tape and Multipack reshape the volley through the build.
+// Pattern `toast` (engine/patterns/toast.ts): a volley of `count` toasts toward the nearest enemy.
+// Toast Mode's flames and lower pop are that combo's `pattern:look`; Fan, Duct Tape and Multipack reshape the volley through the build.
 const W = weaponBase({ pattern: 'toast', damage: 9, cooldown: 1.0, range: 455, projectileSpeed: 540 });
 
 export default defineItem({

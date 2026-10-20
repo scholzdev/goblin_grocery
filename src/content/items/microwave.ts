@@ -1,8 +1,8 @@
 import { cells, defineItem, weaponBase, weaponTiers, WEAPON_ROWS } from '../../engine/define';
 import { Item, Set } from '../../engine/ids';
 
-// Pattern `zap` (engine/patterns/zap.ts): the toughest enemy in `range`, `aoe` splash, then `chain` more links. From ★3 (`killRecharge`) knocking out a struck
-// enemy charges the next zap in `rechargeMult` of the cooldown. TV Dinner, Sparks Fly and Reheat hook `pattern:zap`.
+// Pattern `zap` (engine/patterns/zap.ts): the toughest enemy in `range`, `aoe` splash, then `chain` more links.
+// TV Dinner, Sparks Fly and Reheat hook `pattern:zap`.
 const W = weaponBase({ pattern: 'zap', damage: 24, cooldown: 2.4, range: 380, aoe: 70 });
 
 export default defineItem({

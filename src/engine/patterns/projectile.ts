@@ -9,9 +9,8 @@ import type { PatternHost, Shot } from './types';
 const SHIELD = ENEMIES.cereal.tune;
 
 /**
- * Flight and impact of every player projectile (toast, nails, caps, kernels, Ray Gun bolts), shared by the projectile patterns: life (a ★3 kernel
- * that lands without a hit pops once more), bounds, the Cereal Box cardboard front, damage, `pattern:shotHit`, piercing and the ricochet bounce
- * (one more for a ★3 cap's first knockout). Cosmetic trails come from the weapon's look.
+ * Flight and impact of every player projectile (toast, nails, caps, kernels, Ray Gun bolts), shared by the projectile patterns: life, bounds, the
+ * Cereal Box cardboard front, damage, `pattern:shotHit`, piercing and the ricochet bounce. Cosmetic trails come from the weapon's look.
  */
 export function updateShots(h: PatternHost, dt: number): void {
   const sc = h.sc;

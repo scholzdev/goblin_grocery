@@ -18,7 +18,6 @@ export interface Snap {
   /** A weapon touches another item in the cart. */
   supported: boolean;
   mergePair: boolean;
-  /** A set is at level 1 or more in the cart. */
   setActive: boolean;
   boss: boolean;
   flags: string[];
@@ -51,7 +50,6 @@ const tutPhase = (p: Phase): TutPhase | null => (p === 'checkout' ? 'combat' : p
 const OWN = new Set([...STEPS, ...TIPS].map((e) => e.id));
 /** Replay: steps and tips start over. Ids in `seen` the tutorial does not own (the systems a profile has met, state/disclosure.ts) are kept. */
 export const freshProgress = (seen: string[] = []): Progress => ({ done: false, seen: seen.filter((id) => !OWN.has(id)) });
-/** Skip: every step and tip counts as seen, other ids in `seen` are kept. */
 export const skipAll = (seen: string[] = []): Progress => ({ done: true, seen: [...freshProgress(seen).seen, ...OWN] });
 
 /** The callout to show right now (a step if its phase matches, else a triggered tip), or null. Never in the Test Lab. */

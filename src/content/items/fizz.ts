@@ -1,8 +1,8 @@
 import { defineItem, weaponBase, weaponTiers, WEAPON_ROWS } from '../../engine/define';
 import { Item, Set } from '../../engine/ids';
 
-// Pattern `ricochet` (engine/patterns/ricochet.ts): caps that bounce to `bounces` more enemies (the bounce is in engine/patterns/projectile.ts), and from ★3
-// (`killBounce`) once more after a cap's first knockout. Confetti Cannon and Clearance Sale hook `pattern:bounce`.
+// Pattern `ricochet` (engine/patterns/ricochet.ts): caps that bounce to `bounces` more enemies (the bounce is in engine/patterns/projectile.ts).
+// Confetti Cannon and Clearance Sale hook `pattern:bounce`.
 const W = weaponBase({ pattern: 'ricochet', damage: 6, cooldown: 1.0, range: 420, projectileSpeed: 620, bounces: 2 });
 
 export default defineItem({

@@ -12,10 +12,7 @@ export function boltFx(h: PatternHost, x: number, y: number, small: boolean): vo
   sc.fx.spark(x, y - 20, small ? 3 : 6, 0xf5bd45);
 }
 
-/**
- * Microwave: strike the toughest enemy in range, splash around it, then chain on to `chain` more. With `killRecharge` (★3) a zap that knocks out
- * an enemy it struck (the first target or a link's, not one only splashed) charges the next zap in `rechargeMult` of the cooldown.
- */
+/** Microwave: strike the toughest enemy in range, splash around it, then chain on to `chain` more. */
 export const zap: Pattern = {
   id: 'zap',
   fire(h, w) {

@@ -70,7 +70,7 @@ export function recordReaction(sink: Pick<DamageSink, 'damage'>, id: ReactionId)
 /** All damage dealt (the sum of the types). */
 export const totalDamage = (d: DamageStats): number => DAMAGE_TYPES.reduce((a, t) => a + d.byType[t], 0);
 
-/** The `RunStats.taken` key of a source, and back (without the affix: the totals do not split by it). */
+/** Without the affix: the totals do not split by it. */
 export const hitKey = (src: HitSource): string => `${src.how}:${src.by}`;
 export const hitOfKey = (key: string): HitSource => {
   const i = key.indexOf(':');

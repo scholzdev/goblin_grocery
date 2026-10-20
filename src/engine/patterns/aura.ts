@@ -1,10 +1,7 @@
 import { hasStar3 } from '../define';
 import type { Pattern } from './types';
 
-/**
- * Blender: every tick, each enemy inside the radius is hit once and pushed out a little; from ★3 (`tune.pullIn`) pulled in instead. The blade
- * ring (drawn by the arsenal) spins while fighting.
- */
+/** Blender: every tick, each enemy inside the radius is hit once. The blade ring (drawn by the arsenal) spins while fighting. */
 export const aura: Pattern = {
   id: 'aura',
   tick(h, w, dt, firing) {

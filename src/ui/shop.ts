@@ -213,7 +213,6 @@ export function combosHtml(build: Build, preview?: Build | null, relevant: ItemT
   }).join('');
 }
 
-/** The combos the run's stock was built around (src/systems/stock.ts). */
 function featuredHtml(s: RunState): string {
   if (!s.featured?.length) return '';
   const names = s.featured.map((id) => (discovered(id, s.build) ? esc(recipeT(id).name) : t('featuredMystery', { n: recipeParts(RECIPES[id]).length })));
@@ -223,7 +222,7 @@ function featuredHtml(s: RunState): string {
 /** Bonus text for one set level, rendered from the set's content file (src/content/sets/<id>.ts: tune arrays are L1/L2/L3). */
 export const setBonus = setBonusT;
 
-/** `n` points filled, the ones up to `to` ghosted (what a hovered offer would add). */
+/** Pips from `n` up to `to` are ghosted: what a hovered offer would add. */
 const setPips = (id: SetId, n: number, to = n): string => `<span class="pips set-${id}">${Array.from({ length: SET_THRESHOLDS[2] }, (_, k) => `<i class="${k < n ? 'on' : k < to ? 'ghost' : ''}"></i>`).join('')}</span>`;
 const setTiers = (id: SetId, lv: number, fresh = 0, all = true): string => ([1, 2, 3] as const).filter((l) => all || l <= lv + 1).map((l) => `<div class="tier ${l <= lv ? '' : 'locked'} ${l === fresh ? 'new' : ''}"><em>${SET_THRESHOLDS[l - 1]}</em><span>${esc(setBonus(id, l))}</span></div>`).join('');
 const setCount = (id: SetId): number => setCountOf(store.state.inventory.placed, id);
@@ -275,7 +274,6 @@ function setBadges(placed: ItemInstance[], offer: SetCandidate): string {
   }).join('');
 }
 
-/** Receipt line under the wallet: what the next aisle's end pays as interest at the current money (`interestPreview`). */
 export function interestLineHtml(s: RunState): string {
   const { amount, cap } = interestPreview(s);
   return `<div class="interest-next"><span>${t('interestNext')}</span><span>${t('interestNextAmount', { n: amount, max: cap })}</span></div>`;
@@ -449,7 +447,7 @@ export function inspectorHtml(type: ItemTypeId, uid: string | null, offer?: Shop
     ? `<div class="callout">${icons.crate(30)}<div><b>${t('shelfTitle')}</b><span>${t('shelfText')}</span></div></div>` : '';
 
   const teaser = star3Teaser(type, tier);
-  body += `<p class="rules">${esc(itemRules(type, tier))}${teaser ? `<span class="s3">${esc(teaser)}</span>` : ''}</p>`; // numbers follow the item's level
+  body += `<p class="rules">${esc(itemRules(type, tier))}${teaser ? `<span class="s3">${esc(teaser)}</span>` : ''}</p>`;
 
   // Level comparison: each level column tinted in its rarity colour, the current one stronger and labelled.
   const scale = tierScaling(type);
@@ -911,7 +909,6 @@ function commitDrop(d: Drag): void {
   store.changed();
 }
 
-/** One line under the cart with what the last drop or combine changed (none when nothing did); it goes after a few seconds or at the next one. */
 function noteChange(before: Build): void {
   clearTimeout(changeTimer);
   change = changeLine(before, store.state.build, setsShown());

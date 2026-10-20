@@ -1,7 +1,6 @@
 import { defineSim } from './_sim';
 import { Enemy, Item } from '../engine/ids';
 
-// Snacks L3 (lunchbox, ★2 energy drink, expired milk, ★2 fortune cookie: 6 points) + bubble wrap, with a pan to fight. Not in god mode: the armor and heals matter.
 export default defineSim({
   id: 'snacks-defense',
   notes: 'Defensive items, god mode OFF. Let the milk hit you.',

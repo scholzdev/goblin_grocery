@@ -389,7 +389,7 @@ export function payPunchCard(state: RunState): void {
 const waveClearCoins = (state: RunState): number =>
   Math.round(ECONOMY.waveClearBonus * DEPARTMENTS[state.department].coinMult * MODIFIERS[state.modifier].coinMult * SHIFTS[state.shift].coinMult);
 
-/** The interest the next `finishWave` pays at the current money and build. It counts that aisle's clear bonus, which is paid first. */
+/** Counts the aisle's clear bonus, which `finishWave` pays before the interest. */
 export function interestPreview(state: RunState): { amount: number; cap: number } {
   const cap = Math.max(ECONOMY.interestCap, contentSetTune('checkout', state.build.sets.checkout).interestCap);
   return { amount: Math.min(cap, Math.floor((state.money + waveClearCoins(state)) / ECONOMY.interestPer)), cap };

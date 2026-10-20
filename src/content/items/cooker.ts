@@ -1,8 +1,8 @@
 import { cells, defineItem, weaponBase, weaponTiers, WEAPON_ROWS } from '../../engine/define';
 import { Item, Set } from '../../engine/ids';
 
-// Pattern `mortar` (engine/patterns/mortar.ts): a pot lobbed at the densest cluster in `range`, exploding for `aoe`; from ★3 (`secondPot`) a smaller pot
-// goes to the densest cluster outside that blast. Pressure Point and Shrapnel hook `pattern:explode`; Pot Slam calls the same explosion from a dash.
+// Pattern `mortar` (engine/patterns/mortar.ts): a pot lobbed at the densest cluster in `range`, exploding for `aoe`. Pressure Point and Shrapnel hook
+// `pattern:explode`; Pot Slam calls the same explosion from a dash.
 const W = weaponBase({ pattern: 'mortar', damage: 16, cooldown: 2.6, range: 420, aoe: 90, projectileSpeed: 380 });
 
 export default defineItem({

@@ -19,7 +19,6 @@ export const itemT = (id: ItemTypeId) => {
   const c = contentItem(id)!, { name, blurb } = c.text[lang()];
   return { name, blurb: renderText(blurb, c.tune, 1, lang()) };
 };
-/** Item rules text with the numbers of `tier` filled in from the content tune (★1 for the per-tier values by default), plus a weapon's ★3 line from ★3 on. */
 export const itemRules = (id: ItemTypeId, tier = 1): string => {
   const c = contentItem(id)!, t = c.text[lang()];
   const rules = renderText(t.rules, c.tune, tier, lang());

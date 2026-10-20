@@ -1,7 +1,6 @@
 import { emitFire, origin } from './common';
 import type { Pattern, PatternEnemy, PatternHost, WeaponRt } from './types';
 
-/** `spreadNails` (★3): the enemies the running burst has aimed at, so each nail seeks one it has not. */
 const aimed = new WeakMap<WeaponRt, Set<number>>();
 
 function nailTarget(h: PatternHost, w: WeaponRt): PatternEnemy | null {
@@ -20,10 +19,7 @@ function fireNail(h: PatternHost, w: WeaponRt, target: PatternEnemy): void {
   if (w.burstLeft === st.count) h.sound('nail_burst');
 }
 
-/**
- * Nail Gun: the cooldown starts a burst of `count` nails, one every `burstInterval` s, each aimed at the nearest enemy at that moment.
- * With `spreadNails` (★3) each nail aims at the nearest enemy the burst has not aimed at yet, and at the nearest again once none is left.
- */
+/** Nail Gun: the cooldown starts a burst of `count` nails, one every `burstInterval` s, each aimed at the nearest enemy at that moment. */
 export const burst: Pattern = {
   id: 'burst',
   tick(h, w, dt) {

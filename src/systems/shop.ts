@@ -33,7 +33,6 @@ const ENHANCES: Partial<Record<ItemTypeId, (own: Set<ItemTypeId>) => boolean>> =
   coupon: (o) => o.has('fizz'),
 };
 
-/** `mergeable`: owned types with a copy below ★3, which another copy can still merge into. */
 function weight(t: ItemTypeId, own: Set<ItemTypeId>, mergeable: Set<ItemTypeId>): number {
   if (mergeable.has(t)) return ECONOMY.ownedWeight;
   if (ITEMS[t].kind === 'weapon') return own.has(t) ? 1.6 : 1.3;
@@ -63,7 +62,6 @@ export function rollOffers(state: RunState, rng: Rng, shopIndex: number, guarant
   // Checkout set discount is baked in at roll time: offers already on the table keep their price until the next reroll.
   const add = (type: ItemTypeId, tier: number) => offers.push({ slot: offers.length, type, tier, price: Math.max(1, Math.round(TIER.value(ITEMS[type].price, tier) * (PLAYER.starters[state.starter ?? 'toaster'].perk?.priceMult ?? 1) * (state.build?.priceMult ?? 1) * inflation(state, shopIndex))), sold: false });
   if (guarantee) for (const t of state.openers ?? []) add(t, 1);
-  // Items outside the run's pool never show up.
   const allowed = (t: ItemTypeId) => !state.pool || state.pool.includes(t);
   const regular = ITEM_IDS.filter((t) => allowed(t) && !ITEMS[t].legendary && !ITEMS[t].noShop && !offers.some((o) => o.type === t));
   const legends = ITEM_IDS.filter((t) => allowed(t) && ITEMS[t].legendary);
@@ -74,7 +72,6 @@ export function rollOffers(state: RunState, rng: Rng, shopIndex: number, guarant
     let r = rng() * ws.reduce((a, b) => a + b, 0), i = 0;
     while (i < regular.length - 1 && (r -= ws[i]) >= 0) i++;
     add(regular.splice(i, 1)[0], rng() < lv.tier3 ? 3 : rng() < lv.tier2 ? 2 : 1);
-    // Double pack: +1 set point in each of its sets, costs x1.5 (never legendary, never an opener).
     if (shopIndex >= 2 && rng() < ECONOMY.doublePackChance) { const o = offers[offers.length - 1]; o.double = true; o.price = Math.round(o.price * ECONOMY.doublePackPriceMult); }
   }
   if (!opts.keep) return offers;
@@ -119,7 +116,6 @@ export function rollMiniCrates(state: RunState, rng: Rng): ShopOffer[] {
 /** Any door but Staff Only, which skips an aisle instead of leading into one. */
 export type AisleDoor = Exclude<DoorId, 'shortcut'>;
 
-/** The department, modifier and zone of the aisle behind a door; `chooseDoor` applies them. */
 export function doorAisle(state: RunState, id: AisleDoor): Pick<RunState, 'department' | 'modifier' | 'zone'> {
   const boss = id === 'boss';
   return { department: boss ? 'boss' : state.theme, modifier: boss ? 'none' : id, zone: state.doorZones?.[state.doors?.indexOf(id) ?? -1] ?? null };
@@ -137,11 +133,9 @@ export function rollZones(state: RunState, rng: Rng, doors: DoorId[]): (ZoneId |
   });
 }
 
-/** What decides an aisle: the run state while it is played, or the aisle behind a door (`previewAisle`). */
 export type AisleSpec = Pick<RunState, 'wave' | 'department' | 'modifier' | 'zone' | 'theme' | 'shift'>;
 export interface SpawnPlan { total: number; mix: Partial<Record<EnemyId, number>>; hpScale: number; speedScale: number; dmgScale: number }
 
-/** Zones only shape the theme's own aisles. */
 const aisleZone = (a: AisleSpec) => (a.zone && a.department === a.theme ? ZONES[a.zone] : null);
 
 export function waveSpawnPlan(state: AisleSpec): SpawnPlan {
@@ -153,7 +147,6 @@ export function waveSpawnPlan(state: AisleSpec): SpawnPlan {
   return { total: Math.round(w.total * d.countMult * m.countMult * sh.countMult), mix, hpScale: w.hpScale * d.hpMult * m.hpMult * sh.hpMult, speedScale: w.speedScale * d.speedMult * sh.speedMult, dmgScale: w.dmgScale * sh.dmgMult };
 }
 
-/** Elites behind a door: none can spawn, some may, the modifier raises the chance, or every eligible grocery is Elite. */
 export type EliteOdds = 'none' | 'some' | 'more' | 'all';
 export interface AislePreview { plan: SpawnPlan; top: EnemyId[]; elites: EliteOdds; hazard: HazardLayout }
 
@@ -171,10 +164,7 @@ export function previewAisle(state: RunState, id: AisleDoor): AislePreview {
 
 export interface HazardLayout { kind: HazardKind; spots: number; beltSpeed: number }
 
-/**
- * An aisle's floor hazard: the department's (none in the Stockroom). Aisles 1..7 ramp it, +1 spot per 3 aisles and belts 4% faster per aisle
- * (overtime keeps the aisle-7 values); the zone's `hazardExtra` shifts the spots within 1..available. Both belts always run.
- */
+/** Overtime keeps the aisle-7 values; both belts always run. */
 export function aisleHazard(a: AisleSpec): HazardLayout {
   const T = DEPT_TUNING, kind: HazardKind = a.modifier === 'stockroom' ? 'none' : DEPARTMENTS[a.department].hazard;
   const ramp = Math.min(Math.max(a.wave, 1), 7) - 1, extra = Math.floor(ramp / 3) + (aisleZone(a)?.hazardExtra ?? 0);

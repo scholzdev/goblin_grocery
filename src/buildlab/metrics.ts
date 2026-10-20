@@ -1,18 +1,14 @@
 import { reached, type AisleRecord, type FinalBuild, type ReportMeta, type RunRecord, type ShopLogEntry } from './report';
 
-// The structural numbers the mechanics review compared (docs/buildlab.md, "Mechanics metrics"), computed from a build-lab report.
-
 type MetricsRun = Pick<RunRecord, 'result' | 'diedAt' | 'aislesPlayed' | 'merges' | 'rerolls' | 'sells'> & {
   aisles: Pick<AisleRecord, 'aisle' | 'kind' | 'damageTaken' | 'weapons'>[];
   finalBuild: Pick<FinalBuild, 'combos' | 'sets'> & { items: { tier: number }[]; shelf: { tier: number }[] };
   shopLog: Pick<ShopLogEntry, 'shop' | 'moneyIn'>[];
 };
 
-/** The parts of a build-lab report the metrics read. A whole `Report` fits. */
 export interface MetricsInput { runs: MetricsRun[] }
 
 export interface AisleMetrics {
-  /** Runs that played the aisle. */
   reached: number;
   deaths: number;
   /** This aisle's share of all deaths. */
@@ -26,17 +22,15 @@ export interface AisleMetrics {
 export interface Metrics {
   runs: number;
   winRate: number;
-  /** Standard error of the win rate, sqrt(p (1 - p) / runs). */
   winRateSE: number;
   avgAisleReached: number;
   mergesPerRun: number;
-  /** ★2 / ★3 items at run end, cart and shelf. */
+  /** Shelf included. */
   star2: number;
   star2PerRun: number;
   star3: number;
   star3PerRun: number;
   combosPerRun: number;
-  /** Combos active at the end of at least one run: the keys of `comboRate`. */
   distinctCombos: number;
   /** Weapons in the cart for the final aisle. No shop follows it, so this is the run-end cart. */
   weaponsPerRun: number;
@@ -45,7 +39,6 @@ export interface Metrics {
   byAisle: Record<string, AisleMetrics>;
   /** Mean coins on entering shop k, over the runs that got there. */
   coinsAtShop: Record<string, number>;
-  /** Share of runs with the combo active at run end. */
   comboRate: Record<string, number>;
   /** Share of runs whose final build has the set at level 2 or more, and at level 3. */
   setRate: Record<string, { lv2: number; lv3: number }>;
@@ -166,7 +159,6 @@ export interface MetricsColumn { name: string; file: string; meta: ReportMeta; m
 
 const COMPARABLE = ['starter', 'weapon', 'shift', 'theme', 'pool', 'policy', 'proxy'] as const;
 
-/** The markdown report of one input, or of two side by side with the delta B - A. */
 export function formatMetrics(cols: MetricsColumn[]): string {
   const two = cols.length === 2;
   const head = (key: string) => [key, ...cols.map((c) => c.name), ...(two ? [`${cols[1].name} - ${cols[0].name}`] : [])];

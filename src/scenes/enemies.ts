@@ -46,7 +46,6 @@ export interface Enemy {
   /** Leaf Blower: blown until this time (s); stopped by a wall/prop while marked = slam for blownDmg. */
   blownUntil?: number;
   blownDmg?: number;
-  /** Leaf Blower ★3: the slam also stuns for this long (s). */
   blownStun?: number;
   /** Ice Sheet: slides (no steering, little friction) until this time (s); the slam uses `blownDmg` like the Leaf Blower's, and also fires on another enemy. */
   slideUntil?: number;
@@ -95,7 +94,6 @@ const frameKey = (id: EnemyId, f: 0 | 1) => enemyFrame(id, f ? 'b' : 'a');
 
 let nextId = 1;
 
-/** `e`'s attack as the source of a hit on the goblin, its Elite affix included. */
 export const attackBy = (e: Enemy, how: EnemyHitHow): HitSource => ({ how, by: e.def.id, affix: e.affix });
 
 export function createEnemy(scene: ArenaScene, id: EnemyId, x: number, y: number, hpScale: number, speedScale: number, elite = false, dmgScale = 1, small = 0, mini: MiniVariant | null = null, forceAffix?: EliteAffix): Enemy {

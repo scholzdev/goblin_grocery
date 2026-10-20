@@ -1,7 +1,7 @@
 import { defineItem, weaponBase, weaponTiers, WEAPON_ROWS } from '../../engine/define';
 import { Item, Set } from '../../engine/ids';
 
-// Pattern `sweep` (engine/patterns/sweep.ts): a 150° arc toward the nearest enemy, `range` reach; from ★3 the arc is `tune.fullArc`, all the way around. Sweep
+// Pattern `sweep` (engine/patterns/sweep.ts): a 150° arc toward the nearest enemy, `range` reach. Sweep
 // combos (Chicken Dinner, Sizzling Skillet, Smash the Bank, Express Checkout) hook `pattern:sweep`.
 const W = weaponBase({ pattern: 'sweep', damage: 9, cooldown: 1.15, range: 150, arcDeg: 150 });
 

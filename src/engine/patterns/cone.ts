@@ -7,7 +7,7 @@ import type { Pattern, PatternEnemy, PatternHost, WeaponRt } from './types';
 
 /**
  * One cone toward the nearest enemy; every enemy inside is hit once per blast. Parameters from the weapon's content: `base.knockback`
- * (default 40), `base.fx` (the sprite, default the spray), `tune.blow` (Leaf Blower: slam damage at ★1, scaled by the weapon's tier), `tune.slamStun` (Leaf Blower ★3: the slam also stuns), `tune.wet` (Spray Bottle: seconds of Wet on every hit enemy).
+ * (default 40), `base.fx` (the sprite, default the spray), `tune.blow` (Leaf Blower: slam damage at ★1, scaled by the weapon's tier), `tune.wet` (Spray Bottle: seconds of Wet on every hit enemy).
  */
 function coneOnce(h: PatternHost, w: WeaponRt): void {
   const sc = h.sc;

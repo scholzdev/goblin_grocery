@@ -18,7 +18,7 @@ export function sweepOnce(h: PatternHost, w: WeaponRt, angle: number, bonus = fa
   const swing = sc.hooks['pattern:sweep'].length ? { stats: st, stage: 'before' as 'before' | 'after' | 'hit', x: p.x, y: p.y, angle, bonus, range, dmg, hits: [] as PatternEnemy[], enemy: undefined as PatternEnemy | undefined } : null;
   if (swing) { sc.hooks.emit('pattern:sweep', swing); range = swing.range; dmg = swing.dmg; }
   const tracker = newHitTracker(Infinity);
-  const half = degToRad((hasStar3(st.tier) && w.tune.fullArc ? w.tune.fullArc : st.arcDeg) / 2); // ★3 Frying Pan: all the way around
+  const half = degToRad((hasStar3(st.tier) && w.tune.fullArc ? w.tune.fullArc : st.arcDeg) / 2);
   const fx = sc.add.image(p.x, p.y - 22, 'fx_sweep').setRotation(angle + Math.PI).setDepth(DEPTH.fx - 2)
     .setScale(range / 70 * 0.55).setAlpha(0.95);
   if (bonus) fx.setTint(0xfff2d5);

@@ -2,7 +2,6 @@ import { defineItem, hasStar3, weaponBase, weaponTiers, wrapAngle, WEAPON_ROWS, 
 import { Item, Set } from '../../engine/ids';
 
 // Pattern `cone` (engine/patterns/cone.ts) with the default spray sprite and the default knockback 40. Sour Mist and Tailwind hook `pattern:cone`. `tune.wet` (the spray only, the Leaf Blower has none) soaks every enemy the cone hits for that many seconds, before the hit.
-// From ★3 its own `pattern:cone` hook washes the enemy shots inside the cone away.
 const W = weaponBase({ pattern: 'cone', damage: 3, cooldown: 0.55, range: 170, arcDeg: 70 });
 
 export default defineItem({

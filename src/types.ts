@@ -79,7 +79,6 @@ export interface ItemInstance {
   rot: Rotation;
   /** 1..MAX_TIER. Missing = 1. Raised by merging duplicates or buying an upgrade. */
   tier?: number;
-  /** Bought as a double pack: +1 set point in each of its sets. */
   double?: boolean;
   /** Jelly Beans only: current flavor (= which element set it counts for). Missing = heat. */
   flavor?: ElementTag;
@@ -187,7 +186,6 @@ export interface Build {
   regen: number;           // HP per second during combat (snack bag)
   killCoinMult: number;    // piggy bank: multiplier on regular kill coins
   recipes: ActiveRecipe[];
-  /** Set-bonus level per set (0..3), from the set points of the placed items (data/sets.ts). */
   sets: Record<SetId, 0 | 1 | 2 | 3>;
   priceMult: number;       // checkout L1: shop price multiplier
   sellRate: number;        // share of an item's value a sale pays (0.5; Barter Stamp raises it)
@@ -320,7 +318,6 @@ export interface DepartmentDef {
 
 export interface CoinLogEntry { label: string; amount: number }
 
-/** What hurt the goblin: an enemy's attack (with its Elite affix), a floor hazard, an aisle event or one of its own items. */
 export type HitSource =
   | { how: EnemyHitHow; by: EnemyId; affix?: EliteAffix }
   | { how: 'hazard'; by: Extract<HazardKind, 'vents' | 'cables'> }
@@ -337,7 +334,7 @@ export interface RunStats {
   removedByWeapon?: Record<string, number>;
   /** The rest of the run's damage breakdown (`systems/damageStats`). */
   damage: DamageStats;
-  /** HP the goblin lost per source, keyed `how:by` (`hitKey`). */
+  /** Keyed `how:by` (`hitKey`). */
   taken: Record<string, number>;
   /** The last hit that took HP: on a defeat, the one that ended the run. */
   lastHit?: HitSource;
@@ -360,9 +357,7 @@ export interface RunState {
   shopLevel: number;
   /** Item types this run may offer (shops, stockroom, crates). Undefined = every item. */
   pool?: ItemTypeId[];
-  /** Combos the run's stock was built around (src/systems/stock.ts), for the shop's combo panel. */
   featured?: RecipeId[];
-  /** Shop 1's first offers: parts of different combos with the starting weapon (src/systems/stock.ts). */
   openers?: ItemTypeId[];
   /** Character chosen on the title screen. */
   starter: StarterId;

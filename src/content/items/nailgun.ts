@@ -1,8 +1,8 @@
 import { defineItem, weaponBase, weaponTiers, WEAPON_ROWS } from '../../engine/define';
 import { Item, Set } from '../../engine/ids';
 
-// Pattern `burst` (engine/patterns/burst.ts): `count` nails, `burstInterval` apart, each with a little spread (one rng draw per nail); from ★3 (`spreadNails`)
-// each nail seeks an enemy the burst has not aimed at yet. Nailstorm and Ray Gun reshape the nails through `pattern:fire` / `pattern:shotHit` / `pattern:shotMove`.
+// Pattern `burst` (engine/patterns/burst.ts): `count` nails, `burstInterval` apart, each with a little spread (one rng draw per nail).
+// Nailstorm and Ray Gun reshape the nails through `pattern:fire` / `pattern:shotHit` / `pattern:shotMove`.
 const W = weaponBase({ pattern: 'burst', damage: 3, cooldown: 1.1, range: 480, projectileSpeed: 760, count: 3, burstInterval: 0.08 });
 
 export default defineItem({

@@ -1,7 +1,6 @@
 import { defineSim } from './_sim';
 import { Enemy, Item } from '../engine/ids';
 
-// Kitchen L3 + Heat L3: toaster, pan, a ★3 hot sauce and microwave all count for both sets (6 points each).
 export default defineSim({
   id: 'kitchen-heat',
   notes: 'Kitchen L3 + Heat L3. The hot sauce touches the toaster, the pan and the microwave. The dummies are mortal so kill effects trigger; the Dummies panel or F9 respawns them. Starts at 5 HP with god mode off, so the Kitchen kill-heal is visible.',

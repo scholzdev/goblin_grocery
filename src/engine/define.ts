@@ -82,7 +82,7 @@ export const weaponCooldownMult = (t: number): number => 1 - 0.1 * (t - 1);
 /** From ★3 on (Gold Star's ★4 included) a weapon has its ★3 behavior (`text.star3`). Its numbers are scalar tune keys: a per-tier array would double them at ★4. */
 export const hasStar3 = (tier: number): boolean => tier >= 3;
 
-/** Set points for set level 1/2/3 (the same for every set; each level includes the lower ones). Points: data/sets.ts `setWeight`. */
+/** Set points for set level 1/2/3 (the same for every set; each level includes the lower ones). */
 export const SET_THRESHOLDS: readonly [number, number, number] = [2, 4, 6];
 
 /** The flavors a Jelly Beans instance can take (rerolled every shop visit). */
@@ -169,7 +169,7 @@ export interface BuildCtx<T extends Tune = Tune> {
    * Jelly Beans reads the Fuel Can / Ice Pack / Party Popper numbers this way.
    */
   tuneOf(id: ItemTypeId, tier: number): Readonly<Record<string, number>>;
-  /** Set points in a set: per item type its best copy's tier (Gold Star lift included), +1 for a double pack. */
+  /** Set points in a set (`setWeight`), not a count of items. */
   count(set: SetId): number;
   /** Level (0..3) of a set. */
   level(set: SetId): 0 | 1 | 2 | 3;
@@ -219,7 +219,6 @@ export type RuntimeHooks<T extends Tune = Tune> = RuntimeHookMap<T> & { order?: 
 /** Text may use `{key}` / `{key|fmt}` placeholders for any `tune` key (see engine/text.ts). */
 export interface ItemText {
   name: string; blurb: string; rules: string;
-  /** A weapon's ★3 behavior: one line `itemRules` appends to the rules from ★3 on (★1/★2 text stays without it). */
   star3?: string;
 }
 export interface ComboText { name: string; short: string; summary: string; detail: string }

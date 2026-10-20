@@ -1,7 +1,6 @@
 import { defineSim } from './_sim';
 import { Enemy, Item } from '../engine/ids';
 
-// Electric L3 (four electrical items, the ★2 battery and ★2 vacuum make 6 points). The battery touches the nail gun and the laser.
 export default defineSim({
   id: 'electric-l3',
   notes: 'Electric L3: nail gun, ★2 vacuum, ★2 battery, laser.',

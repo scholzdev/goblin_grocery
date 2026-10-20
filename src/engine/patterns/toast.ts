@@ -3,14 +3,11 @@ import { degToRad, emitFire, origin } from './common';
 import type { Pattern, PatternHost } from './types';
 
 function throwToast(h: PatternHost, st: WeaponStats, o: { x: number; y: number }, a: number, first: boolean): void {
-  if (emitFire(h, st, o.x, o.y, a, first)) return; // a hook fired its own shot
+  if (emitFire(h, st, o.x, o.y, a, first)) return;
   h.spawn('proj_toast', o.x, o.y, a, st.projectileSpeed, st.range / st.projectileSpeed, st.damage, st, 1 + st.pierce);
 }
 
-/**
- * Toaster: a volley of `count` toasts toward the nearest enemy, fanned out `spreadDeg` apart (12° when a recipe set none). With
- * `secondToast` (★3) one more toast goes to the nearest other enemy in range. Projectile flight is `projectile.ts`.
- */
+/** Toaster: `spreadDeg` defaults to 12° when a recipe set none. */
 export const toast: Pattern = {
   id: 'toast',
   fire(h, w, target) {

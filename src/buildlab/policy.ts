@@ -64,23 +64,17 @@ export type PolicyFactory = () => Policy;
 export interface ScoreWeights {
   recipe: number;
   buff: number;
-  /** A combo not formed yet scores `recipe x partial x` the share of its parts already touching its anchor. */
   partial: number;
 }
 export const DEFAULT_SCORE: ScoreWeights = { recipe: 10, buff: 1, partial: 0.5 };
 
-/** Each combo as `computeBuild` matches it: the anchor (its weapon, or a cart combo's first part) and the parts that must touch the anchor. */
 const COMBOS_BY_ANCHOR = new Map<ItemTypeId, { id: RecipeId; parts: ItemTypeId[] }[]>();
 for (const [id, r] of Object.entries(RECIPES) as [RecipeId, (typeof RECIPES)[RecipeId]][]) {
   const anchor = r.weapon ?? r.supports[0], parts = r.weapon ? r.supports : r.supports.slice(1);
   COMBOS_BY_ANCHOR.set(anchor, [...(COMBOS_BY_ANCHOR.get(anchor) ?? []), { id, parts }]);
 }
 
-/**
- * Per anchor in the cart, in cart order, each of its combos: credit 1 when all its parts touch it (a replaced combo too, so Ray Gun is worth
- * more than the Nailstorm it grows from), `partial x k/n` when k of n parts do. The partial credit is what draws a passive combo part next to
- * its weapon before the last part arrives.
- */
+/** Credit for unformed combos, so Ray Gun outranks the Nailstorm it grows from and a passive part is drawn to its weapon early. */
 export function comboCredits(b: Build, placed: readonly ItemInstance[], partial: number): { id: RecipeId; credit: number }[] {
   const typeOf = new Map(placed.map((p) => [p.uid, p.type]));
   const near = new Map(placed.map((p) => [p.uid, new Set<ItemTypeId>()]));
@@ -93,7 +87,6 @@ export function comboCredits(b: Build, placed: readonly ItemInstance[], partial:
   return out;
 }
 
-/** botrun's cart score with credit for unfinished combos: `recipe` per combo credit (`comboCredits`), plus `buff` per module buff on a weapon. */
 export function scoreBuild(b: Build, placed: readonly ItemInstance[], w: ScoreWeights = DEFAULT_SCORE): number {
   const combos = comboCredits(b, placed, w.partial).reduce((n, c) => n + c.credit, 0);
   return combos * w.recipe + b.weapons.reduce((n, x) => n + x.buffs.length, 0) * w.buff;

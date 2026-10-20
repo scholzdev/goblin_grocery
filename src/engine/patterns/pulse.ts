@@ -28,7 +28,7 @@ function suction(h: PatternHost, w: WeaponRt, dt: number): void {
   sc.fx.suck(p.x, p.y, range, pulling && Math.random() < dt * 22, st.frostRing ? 0xcff3ff : undefined);
 }
 
-/** Vacuum: constant suction (`tick`), and every cooldown a damage pulse on everything inside the radius; from ★3 it knocks the groceries within `tune.nozzle` of the cart's edge back out (`tune.blowback`). */
+/** Vacuum: constant suction (`tick`), and every cooldown a damage pulse on everything inside the radius. */
 export const pulse: Pattern = {
   id: 'pulse',
   tick(h, w, dt, firing) {

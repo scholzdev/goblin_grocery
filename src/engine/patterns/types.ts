@@ -73,9 +73,7 @@ export interface Shot {
   ricochet: boolean;
   /** A hook's splash on impact (Ray Gun sets it, its `pattern:shotHit` hook applies it). */
   splash: { r: number; m: number } | null;
-  /** Fizz ★3 (`killBounce`): the cap's first knockout earns it one more bounce; cleared once used. */
   killBounce?: boolean;
-  /** Popcorn ★3 (`repop`): a kernel that lands without a hit pops once more for this damage (0 = it does not). */
   repop?: number;
 }
 

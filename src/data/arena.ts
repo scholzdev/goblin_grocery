@@ -10,7 +10,7 @@ export const ENTRIES = [
   { x: 430, y: 752 }, { x: 850, y: 752 },   // front
 ];
 
-// Hazard footprints per department (shared with src/scenes/hazards.ts); the first N are used, `aisleHazard` (systems/shop.ts) sets N per aisle.
+// Hazard footprints per department (shared with src/scenes/hazards.ts); the first N are used, N grows with the aisle.
 export const ICE_SPOTS = [{ x: 330, y: 330 }, { x: 960, y: 340 }, { x: 420, y: 640 }, { x: 900, y: 640 }, { x: 640, y: 290 }, { x: 190, y: 520 }];
 export const ICE_RADII = { rx: 104, ry: 54 };
 export const VENT_SPOTS = [{ x: 300, y: 470 }, { x: 980, y: 470 }, { x: 640, y: 690 }, { x: 640, y: 330 }, { x: 180, y: 660 }];

@@ -74,7 +74,7 @@ export const SIGNATURE = {
 /** The signature of the run's goblin. */
 export const signatureOf = (starter: StarterId | undefined): SignatureId => PLAYER.starters[starter ?? 'toaster'].signature;
 
-/** Starting weapons the player can pick for any character, and where each starts in the cart. Shop 1's openers: src/systems/stock.ts. */
+/** Starting weapons the player can pick for any character, and where each starts in the cart. */
 export const STARTER_WEAPONS: Record<StarterWeapon, { x: number; y: number; rot: 0 }> = {
   toaster: { x: 1, y: 1, rot: 0 },
   pan: { x: 2, y: 0, rot: 0 },

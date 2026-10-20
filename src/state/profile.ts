@@ -20,7 +20,6 @@ export interface Profile {
   stamps: number;        // loyalty card progress 0-9
   coupons: number;       // pending +20 coin vouchers
   daily: { date: string; best: number; tries: number };
-  /** Best single-run `measure` per goal unlock id. */
   goalBest: Record<string, number>;
 }
 
@@ -82,7 +81,6 @@ export function unlockedItems(): ItemTypeId[] {
   const extra = UNLOCKS.flatMap((u) => (u.kind === 'item' && isUnlocked(u) ? [u.item] : []));
   return [...new Set([...STARTING_ITEMS, ...extra])];
 }
-/** Unlocked items not yet viewed in the Catalog (the next run's stock puts some in). Starting items are never fresh. */
 export const unseenUnlocks = (): ItemTypeId[] =>
   UNLOCKS.flatMap((u) => (u.kind === 'item' && isUnlocked(u) && !profile.seen.includes(`item:${u.item}`) ? [u.item] : []));
 
@@ -113,12 +111,10 @@ export function noteEnemy(s: RunState, id: EnemyId, kill?: { elite: boolean }): 
   saveProfile();
 }
 
-/** [current, needed] toward an unlock, from the lifetime stats for a milestone and from the best run so far for a goal. */
 export const unlockProgress = (u: Unlock): [number, number] =>
   u.type === 'goal' ? [Math.min(profile.goalBest[u.id] ?? 0, u.target), u.target] : u.progress(profile.stats);
 const isMet = (u: Unlock): boolean => (u.type === 'goal' ? (profile.goalBest[u.id] ?? 0) >= u.target : u.check(profile.stats));
 
-/** Keeps `run`'s goal measures where they beat the best so far, then checks every unlock; returns the ones newly earned. */
 export function evaluateUnlocks(run: RunSummary): Unlock[] {
   for (const u of UNLOCKS) if (u.type === 'goal') profile.goalBest[u.id] = Math.max(profile.goalBest[u.id] ?? 0, u.measure(run));
   const fresh = UNLOCKS.filter((u) => !isUnlocked(u) && isMet(u));
@@ -127,7 +123,6 @@ export function evaluateUnlocks(run: RunSummary): Unlock[] {
   return fresh;
 }
 
-/** A finished run as goal unlocks measure it. */
 export function runSummary(s: RunState): RunSummary {
   const { stats, build } = s;
   return {
@@ -173,7 +168,7 @@ export function recordOvertime(s: RunState): Unlock[] {
   const st = profile.stats, since = s.counted!;
   st.kills += s.stats.kills - since.kills;
   st.coins += s.stats.coinsEarned - since.coins;
-  // Aisles BOSS_WAVE + 1 .. wave - 1 were cleared, since overtime offers neither the boss door nor Staff Only.
+  // Overtime offers neither the boss door nor Staff Only, so every aisle after the boss up to the current one was cleared.
   for (let i = BOSS_WAVE; i < s.wave - 1; i++) countClear(s.route[i], s.mods[i]);
   st.bestOvertime = Math.max(st.bestOvertime, s.wave - BOSS_WAVE - 1);
   return evaluateUnlocks(runSummary(s));

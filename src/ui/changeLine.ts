@@ -2,10 +2,7 @@ import { fmtNum, t } from '../i18n';
 import { itemT, recipeT, tagT } from '../i18n/data';
 import type { Build, SetId } from '../types';
 
-/**
- * What a cart edit changed, one phrase each, from the builds before and after it: weapon damage and interval, combos formed or lost, and set
- * levels while sets are shown. Numbers are compared as displayed, so float noise never adds a phrase. Empty when nothing changed.
- */
+/** Numbers compared as displayed so float noise adds no phrase. Empty when nothing changed. */
 export function changeLine(before: Build, after: Build, sets: boolean): string[] {
   const out: string[] = [];
   const dmg = (n: number) => fmtNum(+n.toFixed(1)), cd = (n: number) => fmtNum(n.toFixed(2));

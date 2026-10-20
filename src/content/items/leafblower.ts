@@ -2,7 +2,7 @@ import { defineItem, weaponBase, weaponTiers, WEAPON_ROWS } from '../../engine/d
 import { Item, Set } from '../../engine/ids';
 
 // Pattern `cone` (engine/patterns/cone.ts) with the gust sprite (`weapon.fx`), a heavy push (`weapon.knockback`) and slam damage for groceries blown into a wall
-// (`tune.blow`, ★1 value: the pattern scales it by the weapon's damage tier). From ★3 the slam also stuns for `tune.slamStun` s.
+// (`tune.blow`, ★1 value: the pattern scales it by the weapon's damage tier).
 const W = weaponBase({ pattern: 'cone', damage: 3, cooldown: 0.9, range: 220, arcDeg: 50, knockback: 300, fx: 'fx_gust' });
 
 export default defineItem({

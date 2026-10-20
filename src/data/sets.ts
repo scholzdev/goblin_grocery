@@ -17,7 +17,6 @@ export function setsOf(type: ItemTypeId, flavor?: ElementTag): SetId[] {
 
 export const lvOf = (n: number): 0 | 1 | 2 | 3 => (n >= SET_THRESHOLDS[2] ? 3 : n >= SET_THRESHOLDS[1] ? 2 : n >= SET_THRESHOLDS[0] ? 1 : 0);
 
-/** What `setGains` previews: a shop offer (or any not-yet-placed copy). */
 export type SetCandidate = Pick<ItemInstance, 'type' | 'tier' | 'double'>;
 
 /** Set points one copy adds to each of its sets: its tier plus `lift` (Gold Star, placed copies only), +1 for a double pack. */
@@ -36,10 +35,8 @@ function pointsByType(placed: ItemInstance[]): Record<SetId, Map<ItemTypeId, num
 
 const sum = (m: Map<ItemTypeId, number>): number => [...m.values()].reduce((a, b) => a + b, 0);
 
-/** Set points in one set. */
 export const setCount = (placed: ItemInstance[], id: SetId): number => sum(pointsByType(placed)[id]);
 
-/** Level of every set, from its set points via the thresholds. */
 export function setLevels(placed: ItemInstance[]): Record<SetId, 0 | 1 | 2 | 3> {
   const by = pointsByType(placed);
   return Object.fromEntries(SET_ORDER.map((id) => [id, lvOf(sum(by[id]))])) as Record<SetId, 0 | 1 | 2 | 3>;

@@ -113,7 +113,6 @@ export class FakeCtx implements RuntimeCtx {
   readonly dmgLog: DamageSink = { damageByWeapon: {}, damage: newDamageStats() };
   /** The element reactions (engine/reactions.ts), the same rules the arena runs; their counts land in `dmgLog.damage.reactions`. */
   readonly reactor = new Reactor(this, () => this.dmgLog);
-  /** The hit that killed each enemy, as the arena hands it to `killEnemy` (the build lab's kill credit reads it). */
   readonly killingHit = new WeakMap<CombatEnemy, HitEvent>();
   readonly seed: number;
   private readonly rand: Rng;

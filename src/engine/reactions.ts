@@ -22,7 +22,6 @@ import { isWet } from './wet';
 // The rules live here once; `PhaserCtx` and `FakeCtx` each own a `Reactor` and call it from the same three places (a status application, the start and the end of a
 // hit), so the arena, the sims and the tests run the same code. No rng: a reaction is always the same for the same state. Pure over the `RuntimeCtx` (damage, fx, clock).
 
-/** The label pop, the breakdown name and the one-line description (first-time banner) of each reaction (`i18n/ui.ts`). */
 export const REACTION_TEXT: Readonly<Record<ReactionId, { label: UIKey; name: UIKey; desc: UIKey }>> = {
   shatter: { label: 'reactShatter', name: 'rnShatter', desc: 'rdShatter' },
   fumes: { label: 'reactFumes', name: 'rnFumes', desc: 'rdFumes' },

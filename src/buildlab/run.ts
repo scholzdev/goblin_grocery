@@ -39,7 +39,7 @@ export interface RunOptions {
   /** Difficulty index (0 = Day Shift). */
   shift?: number;
   theme?: DepartmentId;
-  /** See POOLS. Default `all`. */
+  /** Default `all`. */
   pool?: PoolMode;
   /** Default: the greedy policy. */
   policy?: PolicyFactory;

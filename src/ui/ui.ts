@@ -135,7 +135,6 @@ export function initUi(_game: Phaser.Game): void {
     }
     setBase = now;
   });
-  // Records the systems the run meets (state/disclosure.ts); a reaction is named and explained the first time it fires for this profile.
   setInterval(() => {
     if (store.state) for (const id of disclose(store.state)) if (id !== 'sets') celebrate(t('newReaction'), t(REACTION_TEXT[id].name), null, t(REACTION_TEXT[id].desc));
   }, 250);
@@ -460,7 +459,7 @@ function starterHtml(): string {
       <button class="btn coral start" data-act="start-run" ${reason ? 'disabled' : ''}>${t('startRun')} <kbd>Enter</kbd></button></div></div>`;
 }
 
-/** A door card's look at its aisle: the 3 most common groceries, the elite odds and the floor hazard ('' for the Stockroom, which has no groceries). */
+/** '' for the Stockroom, which has no groceries. */
 const aislePreviewHtml = ({ top, elites, hazard }: AislePreview): string => !top.length ? '' : `<span class="foes">${top.map((e) => `<span class="foe"><img src="${svg(enemyFrame(e))}" alt="">${enemyT(e).name}</span>`).join('')}</span>
       <span class="ln"><b>${t('elites')}</b> ${t(`elites_${elites}`)}</span>
       <span class="ln"><b>${t('hazard')}</b> ${hazard.kind === 'none' ? t('hazardNone') : t('hazardSpots', { name: t(`hazard_${hazard.kind}`), n: hazard.spots })}</span>`;

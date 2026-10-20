@@ -27,7 +27,6 @@ export function explodeAt(h: PatternHost, x: number, y: number, st: WeaponStats)
   if (hits) sc.hooks.emit('pattern:explode', { stats: st, x, y, hits }); // Pressure Point's fire pool, Shrapnel's fragments
 }
 
-/** The first enemy with the most others within `aoe` of it. */
 function densest(es: readonly PatternEnemy[], aoe: number): PatternEnemy {
   let best = es[0], bestN = -1;
   for (const e of es) {
@@ -37,7 +36,6 @@ function densest(es: readonly PatternEnemy[], aoe: number): PatternEnemy {
   return best;
 }
 
-/** A pot of `st` (sprite drawn at `size`) flying from the nose of the cart to `to`; `update` explodes it on landing. */
 function lob(h: PatternHost, st: WeaponStats, to: PatternEnemy, size: number): void {
   const sc = h.sc, o = origin(h);
   const dist = Math.hypot(to.x - o.x, to.y - o.y);
@@ -48,10 +46,6 @@ function lob(h: PatternHost, st: WeaponStats, to: PatternEnemy, size: number): v
   h.sound('whistle', { volume: 0.35 });
 }
 
-/**
- * Lob a pot at the densest cluster in range; it explodes on landing. With `secondPot` (★3) a pot `secondPotScale` the damage and size
- * goes to the densest cluster of the enemies the first blast will not reach.
- */
 function lobPot(h: PatternHost, w: WeaponRt): void {
   const st = w.stats, p = h.sc.player;
   const inRange = h.sc.enemies.filter((e) => e.alive && e.state !== 'spawn' && (e.x - p.x) ** 2 + (e.y - p.y) ** 2 < st.range * st.range);

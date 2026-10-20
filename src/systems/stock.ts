@@ -7,15 +7,12 @@ import type { DepartmentId, ItemTypeId, RecipeDef, RecipeId, RunState, StarterWe
 import { stockRng, type Rng } from './rng';
 
 export interface StockInput {
-  /** Items the run may offer; noShop items are dropped. */
   source: readonly ItemTypeId[];
   weapon: StarterWeapon;
   theme: DepartmentId;
-  /** Unlocked items the player has not viewed in the Catalog yet. */
   fresh: readonly ItemTypeId[];
 }
 
-/** `pool` becomes `RunState.pool`; `featured`: the combos put in whole; `openers`: shop 1's combo parts for the starting weapon. */
 export interface Stock { pool: ItemTypeId[]; featured: RecipeId[]; openers: ItemTypeId[] }
 
 const legendary = (t: ItemTypeId): boolean => !!ITEMS[t].legendary;
@@ -44,7 +41,6 @@ function drawOpeners(weapon: StarterWeapon, regular: ReadonlySet<ItemTypeId>, rn
   return openers;
 }
 
-/** The run's stock: the starting weapon's combos, the theme's bias items, fresh unlocks, staples and a few whole combos, filled at random to STOCK.size, plus one legendary. */
 export function drawStock(input: StockInput, rng: Rng): Stock {
   const given = new Set(input.source);
   const source = ITEM_IDS.filter((t) => given.has(t) && !ITEMS[t].noShop);
@@ -81,7 +77,6 @@ export function drawStock(input: StockInput, rng: Rng): Stock {
   return { pool: source.filter((t) => pool.has(t) || t === legend), featured, openers };
 }
 
-/** Draws the run's stock with the run's own stream (never `flow.rng`) and stores it on the run. */
 export function applyStock(state: RunState, source: readonly ItemTypeId[], fresh: readonly ItemTypeId[]): void {
   Object.assign(state, drawStock({ source, weapon: state.weapon, theme: state.theme, fresh }, stockRng(state.seed)));
 }

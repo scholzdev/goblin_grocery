@@ -1,8 +1,7 @@
 import { defineSet } from '../../engine/define';
 import { Set } from '../../engine/ids';
 
-// Checkout set: cheaper new offers (L1), a higher interest cap (L2, L3). Arrays are L1/L2/L3; an `interestCap` of 0 keeps the base cap.
-// Interest itself is paid by state/run.ts (`finishWave`): the base rule lives in ECONOMY (data/waves.ts), this tune only raises the cap.
+// An `interestCap` of 0 keeps the base cap (`ECONOMY.interestCap`).
 export default defineSet({
   id: Set.checkout,
   tune: { priceMult: [0.92, 0.92, 0.85], interestCap: [0, 6, 10] },

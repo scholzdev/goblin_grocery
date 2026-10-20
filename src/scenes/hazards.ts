@@ -27,7 +27,6 @@ export class Hazards {
   readonly kind: HazardKind;
   private speed: number;
 
-  /** `aisleHazard` lays the aisle out: the kind, how many spots and the belt speed. */
   constructor(private scene: ArenaScene, { kind, spots, beltSpeed }: HazardLayout) {
     this.kind = kind;
     this.speed = beltSpeed;

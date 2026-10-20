@@ -65,7 +65,6 @@ const hitName = (src: HitSource): string => {
   }
 };
 
-/** "Baguette Bruiser (swipe, Elite, Swift)": the source's name, how it hit and its Elite affix. */
 const hitLabel = (src: HitSource): string => {
   const tags = [t(`how_${src.how}`)];
   if ('affix' in src && src.affix) tags.push(t('lbElite'), t(`affix_${src.affix}`));

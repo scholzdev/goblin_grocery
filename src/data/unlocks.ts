@@ -41,7 +41,6 @@ export interface ProfileStats {
   deptClears: Partial<Record<DepartmentId | 'clearance', number>>; // 'clearance' = cleared Clearance Sale aisles (the door modifier, not a department)
 }
 
-/** One finished run, as goal unlocks measure it (`runSummary` in state/profile). The cart fields describe the cart at run end. */
 export interface RunSummary {
   won: boolean;
   wave: number;
@@ -53,11 +52,8 @@ export interface RunSummary {
   kills: number;
   coins: number;
   sets: Record<SetId, 0 | 1 | 2 | 3>;
-  /** Distinct combos active. */
   combos: RecipeId[];
-  /** Weapons in the cart. */
   weapons: number;
-  /** Highest tier among the cart's items. */
   maxTier: number;
   reactions: Record<ReactionId, number>;
   damageByType: Record<DamageType, number>;

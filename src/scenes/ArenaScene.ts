@@ -543,7 +543,7 @@ export class ArenaScene extends Phaser.Scene {
   /** Stun from hazards. The boss shrugs it off to keep its patterns readable. */
   private regenFxT = 0;
 
-  /** Leaf Blower slam: a blown grocery stopped by the arena edge or a prop takes impact damage once (and the ★3 blower's stun). */
+  /** Leaf Blower slam: a blown grocery stopped by the arena edge or a prop takes impact damage once. */
   slamEnemy(e: Enemy): void {
     const dmg = e.blownDmg ?? 0;
     e.blownUntil = 0; // the slam lands once; a slide goes on (no steering) until `slideUntil`

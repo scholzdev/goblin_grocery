@@ -1,7 +1,6 @@
 import { origin } from './common';
 import type { Pattern, PatternHost, Shot } from './types';
 
-/** Popcorn ★3: a kernel whose flight ran out without a hit pops once more for `damage`, from where it landed at the nearest enemy in range. */
 export function repopKernel(h: PatternHost, s: Shot, damage: number): void {
   const st = s.stats!, t = h.sc.nearestEnemyFrom(s.x, s.y, st.range);
   if (!t) return;
@@ -9,10 +8,7 @@ export function repopKernel(h: PatternHost, s: Shot, damage: number): void {
   h.sound('toast_pop', { rate: 1.4, volume: 0.5 });
 }
 
-/**
- * Popcorn Maker: `count` kernels per volley, each at a random living enemy in range (not the nearest) or, with none in range, at a random angle.
- * One rng draw per kernel. With `repop` (★3) each kernel carries `repopDamage` of its damage for `repopKernel`.
- */
+/** Popcorn Maker: each kernel aims at a random enemy in range, not the nearest, with one rng draw per kernel (replays depend on it). */
 export const popcorn: Pattern = {
   id: 'popcorn',
   fire(h, w) {
