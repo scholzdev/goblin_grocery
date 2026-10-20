@@ -1,9 +1,12 @@
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import type { ZoneId } from '../src/data/zones';
+import { setLang } from '../src/i18n';
+import { enemyT } from '../src/i18n/data';
 import { chooseDoor, createRun, finishWave, leaveShop, openShop, startNextWave } from '../src/state/run';
+import { store } from '../src/state/store';
 import { mulberry32 } from '../src/systems/rng';
 import { previewAisle, waveSpawnPlan, type AisleDoor } from '../src/systems/shop';
-import type { DepartmentId, RunState } from '../src/types';
+import type { DepartmentId, EnemyId, RunState } from '../src/types';
 
 // The route screen previews the aisle behind each door (docs/audit/mechanics.md proposal 9).
 
@@ -83,5 +86,34 @@ describe('door preview', () => {
       return { plan, offers: r.shop!.offers, next: rng() };
     };
     expect(play(true)).toEqual(play(false));
+  });
+});
+
+describe('route screen', () => {
+  let routeHtml: () => string;
+  beforeAll(async () => {
+    // ui.ts reads `window` and `location` at import time; there is no DOM in the node test env.
+    vi.stubGlobal('location', { search: '' });
+    vi.stubGlobal('window', {});
+    routeHtml = (await import('../src/ui/ui')).routeHtml;
+  });
+  afterAll(() => { setLang('en'); vi.unstubAllGlobals(); });
+
+  const cards = () => routeHtml().split('<button').slice(1);
+  const foes = (card: string) => [...card.matchAll(/class="foe"><img[^>]*>([^<]*)</g)].map((m) => m[1]);
+  const names = (ids: EnemyId[]) => ids.map((e) => enemyT(e).name);
+
+  it('names the most common groceries, the elite odds and the hazard on each regular door; the Stockroom shows none', () => {
+    store.state = atRoute('bakery', 4, ['quiet', 'none', 'stockroom'], [null, 'oven_line', null]);
+    const [quiet, none, stockroom] = cards();
+    expect(foes(quiet)).toEqual(names(['banana', 'baguette', 'milk']));
+    expect(foes(none)).toEqual(names(['baguette', 'banana', 'milk']));
+    expect(foes(stockroom)).toEqual([]);
+    expect(none).toMatch(/<b>Elites<\/b> Possible/);
+    expect(none).toMatch(/<b>Hazard<\/b> Oven vents ×5/);
+    expect(stockroom).not.toContain('Elites');
+    setLang('de');
+    expect(foes(cards()[1])).toEqual(names(['baguette', 'banana', 'milk']));
+    expect(cards()[1]).toMatch(/<b>Gefahr<\/b> Ofenschächte ×5/);
   });
 });

@@ -32,6 +32,7 @@ import { damageBreakdownHtml, sourceNames } from './damageBreakdown';
 import { t, fmtNum, lang, setLang, LANGS, type Lang, type UIKey } from '../i18n';
 import { newSetLevels } from '../data/sets';
 import { ZONES } from '../data/zones';
+import { previewAisle, type AislePreview } from '../systems/shop';
 import { cartSkinT, deptT, enemyT, goblinSkinT, itemT, recipeT, setBonusT, shiftT, starterT, tagT, unlockNeedT, zoneT } from '../i18n/data';
 
 // DOM controllers are created exactly once at boot and driven by store events,
@@ -452,7 +453,12 @@ function starterHtml(): string {
       <button class="btn coral start" data-act="start-run" ${reason ? 'disabled' : ''}>${t('startRun')} <kbd>Enter</kbd></button></div></div>`;
 }
 
-function routeHtml(): string {
+/** A door card's look at its aisle: the 3 most common groceries, the elite odds and the floor hazard ('' for the Stockroom, which has no groceries). */
+const aislePreviewHtml = ({ top, elites, hazard }: AislePreview): string => !top.length ? '' : `<span class="foes">${top.map((e) => `<span class="foe"><img src="${svg(enemyFrame(e))}" alt="">${enemyT(e).name}</span>`).join('')}</span>
+      <span class="ln"><b>${t('elites')}</b> ${t(`elites_${elites}`)}</span>
+      <span class="ln"><b>${t('hazard')}</b> ${hazard.kind === 'none' ? t('hazardNone') : t('hazardSpots', { name: t(`hazard_${hazard.kind}`), n: hazard.spots })}</span>`;
+
+export function routeHtml(): string {
   const s = store.state;
   const doors = s.doors ?? [];
   const steps = Array.from({ length: BOSS_WAVE }, (_, i) => {
@@ -493,6 +499,7 @@ function routeHtml(): string {
       <span class="dn">${mt.name}</span>
       <span class="danger" title="${t('danger')}">${'★'.repeat(risk) + '☆'.repeat(3 - risk)}</span>
       <span class="ln"><b>${t('enemies')}</b> ${mt.fx}</span>
+      ${aislePreviewHtml(previewAisle(s, id))}
       <span class="ln reward"><b>${t('reward')}</b> ${mt.rw}</span>
     </button>`;
   }).join('');
