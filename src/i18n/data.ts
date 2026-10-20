@@ -1,4 +1,5 @@
 import { lang } from './lang';
+import { t } from './index';
 import { DATA_DE } from './data-de';
 import { PLAYER } from '../data/items';
 import { DEPARTMENTS } from '../data/departments';
@@ -23,6 +24,11 @@ export const itemRules = (id: ItemTypeId, tier = 1): string => {
   const c = contentItem(id)!, t = c.text[lang()];
   const rules = renderText(t.rules, c.tune, tier, lang());
   return hasStar3(tier) && t.star3 ? `${rules} ${renderText(t.star3, c.tune, tier, lang())}` : rules;
+};
+/** Below ★3, a weapon's ★3 line as a teaser ("At ★3: …", numbers at ★3); '' from ★3 on and for items without one. */
+export const star3Teaser = (id: ItemTypeId, tier = 1): string => {
+  const c = contentItem(id)!, line = c.text[lang()].star3;
+  return line && !hasStar3(tier) ? t('star3At', { line: renderText(line, c.tune, 3, lang()).replace(/^★3:\s*/, '') }) : '';
 };
 /** A combo's name and texts in the current language, the placeholders filled from its tune. */
 export const recipeT = (id: RecipeId) => {

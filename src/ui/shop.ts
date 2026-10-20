@@ -13,13 +13,15 @@ import { flow } from '../flow';
 import { play } from '../audio/sfx';
 import { svg } from './hud';
 import { settings } from '../state/settings';
+import { setsShown } from '../state/disclosure';
+import { changeLine } from './changeLine';
 import { ACTIVE_KEYS, bindingLabel, keyLabel, matches } from '../state/keymap';
 import type { ShopPad } from '../input/gamepad';
 import { pickNext, type Dir } from '../input/pad-core';
 import { icons, setIcon } from './icons';
 import { strongVsHtml } from './affinity';
 import { t, fmtNum } from '../i18n';
-import { itemRules, itemT, recipeT, setBonusT, tagT } from '../i18n/data';
+import { itemRules, itemT, recipeT, setBonusT, star3Teaser, tagT } from '../i18n/data';
 import { lvOf, setCount as setCountOf, setGains, setWeight, setsOf, type SetCandidate } from '../data/sets';
 import { tierBoostOf } from '../engine/build';
 import { SET_ORDER, SET_THRESHOLDS, flavorOf } from '../engine/define';
@@ -33,6 +35,9 @@ const RECIPE_ORDER = Object.keys(RECIPES) as RecipeId[];
 let root: HTMLElement;
 let ledger: { label: string; amount: number }[] = [];
 let toastTimer = 0;
+const CHANGE_MS = 4000;
+let change: string[] = [];
+let changeTimer = 0;
 
 interface Drag {
   uid: string;
@@ -231,6 +236,7 @@ export const activeSets = (): { id: SetId; n: number; lv: number }[] =>
   SET_ORDER.map((id) => ({ id, n: setCount(id) })).filter((x) => x.n > 0).map((x) => ({ ...x, lv: setLv(x.n) })).sort((a, b) => b.lv - a.lv || b.n - a.n);
 
 export function setsHtml(preview?: SetCandidate): string {
+  if (!setsShown()) return '';
   const t1 = SET_THRESHOLDS[0];
   const gm = new Map((preview ? setGains(store.state.inventory.placed, preview) : []).map((g) => [g.id, g]));
   const have = activeSets();
@@ -285,6 +291,7 @@ function render(): void {
   const earned = s.coinLog.map((l) => `<div class="line"><span>${esc(l.label)}</span><span>+${l.amount}</span></div>`).join('');
   const spent = ledger.map((l) => `<div class="line ${l.amount < 0 ? 'neg' : ''}"><span>${esc(l.label)}</span><span>${l.amount > 0 ? '+' : ''}${l.amount}</span></div>`).join('');
   const infl = inflation(s, shop.shopIndex);
+  const sets = setsShown(s);
   const offers = shop.offers.map((o) => {
     const def = ITEMS[o.type];
     const lv = o.sold ? null : mergeTargetFor(s.inventory, o.type, o.tier);
@@ -297,15 +304,17 @@ function render(): void {
     const w = Math.max(...cells.map((c) => c.x)) + 1;
     const fp = cells.map((c) => `<i style="grid-column:${c.x + 1};grid-row:${c.y + 1}"></i>`).join('');
     const rar = def.legendary ? t('legendaryKind', { k: kindLabel(o.type) }) : o.tier === 3 ? t('epicKind', { k: kindLabel(o.type) }) : o.tier === 2 ? t('rareKind', { k: kindLabel(o.type) }) : kindLabel(o.type);
-    const stks = o.sold ? '' : setBadges(s.inventory.placed, o);
+    const stks = o.sold || !sets ? '' : setBadges(s.inventory.placed, o);
+    const s3 = o.sold ? '' : star3Teaser(o.type, o.tier);
     // Undiscounted price: struck through when a discount (Checkout, coupons, starter perk) baked a lower price in.
     const list = Math.max(1, Math.round(TIER.value(def.price, o.tier) * infl));
     const was = list > o.price ? list : Math.max(1, Math.round(o.price / infl));
     const struck = !o.sold && (list > o.price || infl > 1) ? was : undefined;
-    return `<div class="card ${rarityClass(o.type, o.tier)} ${o.sold ? 'sold' : ''} ${why || poor ? 'blocked' : ''} ${lv ? 'lvl' : ''}" data-offer="${o.slot}" data-type="${o.type}" ${poor ? `title="${t('needCoins', { n: o.price - s.money })}"` : ''} ${o.sold ? `data-sold="${t('soldStamp')}"` : ''} role="button" tabindex="0"
+    return `<div class="card ${rarityClass(o.type, o.tier)} ${s3 ? 'has-s3' : ''} ${o.sold ? 'sold' : ''} ${why || poor ? 'blocked' : ''} ${lv ? 'lvl' : ''}" data-offer="${o.slot}" data-type="${o.type}" ${poor ? `title="${t('needCoins', { n: o.price - s.money })}"` : ''} ${o.sold ? `data-sold="${t('soldStamp')}"` : ''} role="button" tabindex="0"
       aria-label="${t('buyAria', { rar, name: itemT(o.type).name, price: o.price })}">
       <img class="art" src="${svg(`icon_${o.type}`)}" alt="">
       <div class="nm">${itemT(o.type).name}</div><div class="fp" style="grid-template-columns:repeat(${w},10px)">${fp}</div>
+      ${s3 ? `<div class="s3" title="${esc(s3)}">${esc(s3)}</div>` : ''}
       <span class="price-tag">${costPill(o.price, s.money >= o.price, struck)}</span>
       ${lv ? `<span class="lvlup" title="${t('combinesTip', { name: itemT(o.type).name })}">${t('combinesTag', { n: (lv.tier ?? 1) + 1 })}</span>` : ''}
       ${o.double && !o.sold ? `<span class="dblpack" title="${esc(t('setDouble'))}">${t('packSticker')}</span>` : ''}
@@ -337,6 +346,7 @@ function render(): void {
       <div class="grid-wrap"><div class="grid" style="width:${s.inventory.cols * cellFor(s.inventory.cols, s.inventory.rows)}px;height:${s.inventory.rows * cellFor(s.inventory.cols, s.inventory.rows)}px;margin:0 auto">${gridHtml(s)}</div></div>
       <div class="combos">${combosHtml(s.build, null, relevantTypes())}</div>
       ${featuredHtml(s)}
+      ${change.length ? `<div class="change-line">${change.map((c) => `<span>${esc(c)}</span>`).join(' · ')}</div>` : ''}
     </div>
     <div class="col-right">
       <div class="offers-head"><h3>${t('todaysDeals')}</h3>${infl > 1 ? `<span class="inflation">${t('priceInflation', { n: Math.round((infl - 1) * 100) })}</span>` : ''}</div>
@@ -403,7 +413,7 @@ export function inspectorHtml(type: ItemTypeId, uid: string | null, offer?: Shop
   const flavor = type === 'jellybeans' ? (loc ? flavorOf(loc.inst) : null) : null;
   const binder = type === 'binder' && loc?.inst.binderFamily ? `<span class="chip">${esc(t('binderChip', { f: tagT(loc.inst.binderFamily), n: Math.min(20, (loc.inst.binderSold ?? 0) * 2) }))}</span>` : '';
   const points = setWeight({ type, tier, double: offer?.double || loc?.inst.double }, loc ? tierBoostOf(s.inventory.placed)(loc.inst) : 0);
-  const setChips = setsOf(type, flavor ?? undefined).map((id) => { const g = gains.find((x) => x.id === id); return `<span class="chip set-${id}${s?.build?.sets?.[id] ? ' act' : ''}">${setIcon(id, 14)}${tagT(id)}${points > 1 ? ` +${points}` : ''}${g ? ` <small>(${gainText(g)})</small>` : ''}</span>`; }).join('');
+  const setChips = !setsShown(s) ? '' : setsOf(type, flavor ?? undefined).map((id) => { const g = gains.find((x) => x.id === id); return `<span class="chip set-${id}${s?.build?.sets?.[id] ? ' act' : ''}">${setIcon(id, 14)}${tagT(id)}${points > 1 ? ` +${points}` : ''}${g ? ` <small>(${gainText(g)})</small>` : ''}</span>`; }).join('');
   const head = `<header><span class="ico-tile ${rc}"><img src="${svg(loc ? iconOf(loc.inst) : `icon_${type}`)}" alt=""></span>
     <div class="hd"><div class="nm"><span style="font-size:${fitName(itemT(type).name)}px">${itemT(type).name}</span><b class="lv ${def.legendary ? 'leg' : `t${tier}`}">★${def.legendary ? '' : tier}</b></div>
     <span class="sub ${rc}">${rarity} · ${kind}</span></div></header>
@@ -438,7 +448,8 @@ export function inspectorHtml(type: ItemTypeId, uid: string | null, offer?: Shop
   const callout = !ws && def.weapon && loc?.where === 'shelf'
     ? `<div class="callout">${icons.crate(30)}<div><b>${t('shelfTitle')}</b><span>${t('shelfText')}</span></div></div>` : '';
 
-  body += `<p class="rules">${esc(itemRules(type, tier))}</p>`; // numbers follow the item's level
+  const teaser = star3Teaser(type, tier);
+  body += `<p class="rules">${esc(itemRules(type, tier))}${teaser ? `<span class="s3">${esc(teaser)}</span>` : ''}</p>`; // numbers follow the item's level
 
   // Level comparison: each level column tinted in its rarity colour, the current one stronger and labelled.
   const scale = tierScaling(type);
@@ -617,7 +628,9 @@ function onClick(e: MouseEvent): void {
     const btn = el.closest<HTMLElement>('[data-act="combine"]')!;
     const uid = btn.dataset.uid!, partner = btn.dataset.partner!;
     const it = findItem(s.inventory, uid)?.inst;
+    const before = s.build;
     const r = mergeItems(s, partner, uid);
+    noteChange(before);
     if (r.ok && it) { ledger.push({ label: t('ledgerCombined', { name: itemT(it.type).name, n: it.tier ?? 1 }), amount: 0 }); play('upgrade'); selectedUid = uid; }
     else if (!r.ok) toast(r.reason);
     store.changed();
@@ -874,6 +887,7 @@ const dragWorth = (d: Drag): number => { const i = dragInst(d); const base = sel
 /** Applies a finished drag to the run (pointer release or gamepad drop). */
 function commitDrop(d: Drag): void {
   const s = store.state;
+  const before = s.build;
   const tg = d.target;
   let ok = false;
   if (tg && tg.where === 'sell') {
@@ -892,8 +906,16 @@ function commitDrop(d: Drag): void {
   }
   if (ok && tg?.where === 'merge') { selectedUid = tg.uid; hoverUid = tg.uid; }
   else hoverUid = ok && tg?.where !== 'sell' ? d.uid : null;
+  noteChange(before);
   render(); // invalid drop: re-render restores the original position, nothing else changed
   store.changed();
+}
+
+/** One line under the cart with what the last drop or combine changed (none when nothing did); it goes after a few seconds or at the next one. */
+function noteChange(before: Build): void {
+  clearTimeout(changeTimer);
+  change = changeLine(before, store.state.build, setsShown());
+  if (change.length) changeTimer = window.setTimeout(() => { change = []; root.querySelector('.change-line')?.remove(); }, CHANGE_MS);
 }
 
 const pct = (x: number) => `${Math.round(x * 100)}%`;

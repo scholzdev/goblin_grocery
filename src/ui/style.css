@@ -236,6 +236,8 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 #shop .combos { margin: 14px auto 0; width: 488px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
 #shop .featured { margin: 8px auto 0; width: 488px; text-align: center; font-size: 13px; font-weight: 700; line-height: 1.3; }
 #shop .featured b { font-weight: 800; }
+#shop .change-line { margin: 10px auto 0; width: fit-content; max-width: 488px; text-align: center; background: var(--plum); color: var(--cream); border-radius: 12px; padding: 5px 14px; font-size: 14px; font-weight: 800; line-height: 1.3; }
+#shop .change-line span { white-space: nowrap; }
 .combo { display: flex; gap: 8px; align-items: center; padding: 8px 10px; border: 2px dashed rgba(48, 32, 63, 0.45); border-radius: 10px; background: rgba(255, 250, 240, 0.65); font-size: 13px; font-weight: 700; line-height: 1.25; }
 .combo .icons { display: flex; align-items: center; gap: 1px; flex: none; }
 .combo .icons img { width: 26px; height: 26px; }
@@ -261,6 +263,9 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .card .price-tag { position: absolute; right: -8px; top: 10px; transform: rotate(6deg); display: flex; flex-direction: column; align-items: center; gap: 1px; background: none; padding: 0; clip-path: none; font-size: 20px; }
 .card.sold { opacity: 0.45; cursor: default; }
 .card.sold::after { content: attr(data-sold); position: absolute; inset: 60px 10px auto; font-family: var(--display); font-size: 40px; color: var(--coral); transform: rotate(-12deg); border: 4px solid var(--coral); border-radius: 8px; }
+.card.has-s3 .art { width: 72px; height: 72px; min-height: 36px; margin-top: 0; object-fit: contain; } /* shrinks for a two-line name or a tall footprint */
+.card .s3 { margin-top: 4px; font-size: 10.5px; font-weight: 700; line-height: 1.2; opacity: 0.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.inspector .rules .s3 { display: block; margin-top: 4px; opacity: 0.7; }
 .card .why { position: absolute; bottom: -2px; left: 6px; right: 6px; font-size: 11px; font-weight: 800; color: var(--coral-deep); }
 #shop .shelf-head { display: flex; justify-content: space-between; align-items: end; margin-top: 10px; }
 #shop .shelf-head h3 { font-family: var(--display); font-weight: 400; font-size: 22px; margin: 0; }

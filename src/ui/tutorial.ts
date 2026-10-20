@@ -2,6 +2,7 @@ import { store } from '../state/store';
 import { settings, saveSettings } from '../state/settings';
 import { flow } from '../flow';
 import { mergeTargetFor } from '../state/run';
+import { setActive } from '../state/disclosure';
 import { BOSS_WAVE } from '../data/waves';
 import { ITEMS } from '../data/items';
 import { t } from '../i18n';
@@ -22,6 +23,7 @@ const TARGET: Record<string, Target> = {
   buy: { anchor: '#shop .offers', avoid: ['#shop .offers-head', '#shop .grid-wrap'], prefer: ['below', 'above', 'left'] },
   place: SHOP_GRID,
   merge: SHOP_GRID,
+  sets: { anchor: '#shop .sets', avoid: ['#shop .grid-wrap'], prefer: ['above', 'right'] }, // above: the set level-up card appears below the receipt at the same moment
   combos: { anchor: '#shop .combos', avoid: ['#shop .grid-wrap'], prefer: ['below', 'above', 'left'] },
   door: { anchor: '.route .doors', avoid: ['.route .door', '.route h2', '.route .progress'], prefer: ['below', 'above'] },
 };
@@ -29,7 +31,6 @@ const TICK = 150;
 
 let ui: HTMLElement;
 let el: HTMLElement;
-let prog: Progress = { done: settings.tutorialDone, seen: settings.tutorialSeen };
 let shown: string | null = null;
 let shownMs = 0;
 let shownMoney = 0;
@@ -39,8 +40,9 @@ let dashes = 0;
 let padDashBase = 0;
 let flags: string[] = [];
 
+// Progress is read from the settings every time: other modules add their own ids to `tutorialSeen` (state/disclosure.ts).
+const progress = (): Progress => ({ done: settings.tutorialDone, seen: settings.tutorialSeen });
 const save = (p: Progress): void => {
-  prog = p;
   settings.tutorialDone = p.done;
   settings.tutorialSeen = p.seen;
   saveSettings();
@@ -48,7 +50,7 @@ const save = (p: Progress): void => {
 
 /** Settings → "Replay tutorial". */
 export function resetTutorial(): void {
-  save(freshProgress());
+  save(freshProgress(settings.tutorialSeen));
 }
 
 export function initTutorial(root: HTMLElement): void {
@@ -56,7 +58,7 @@ export function initTutorial(root: HTMLElement): void {
   el = document.createElement('div');
   el.id = 'tutorial';
   el.className = 'hidden';
-  el.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('.skip')) save(skipAll()); });
+  el.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('.skip')) save(skipAll(settings.tutorialSeen)); });
   ui.append(el);
   window.addEventListener('keydown', (e) => {
     if (matches(settings.keys, 'shove', e.code) && !e.repeat && !flow.paused && store.state.phase === 'combat') dashes++;
@@ -83,6 +85,7 @@ function snap(): Snap {
     bought: !!s.shop?.offers.some((o) => o.sold),
     supported: s.build.weapons.some((w) => s.build.adjacency.some((p) => p.includes(w.uid))),
     mergePair: all.some((i) => i && !ITEMS[i.type].legendary && mergeTargetFor(inv, i.type, i.tier ?? 1, i)),
+    setActive: setActive(s),
     boss: s.wave === BOSS_WAVE && !s.overtime && s.phase === 'combat',
     flags,
   };
@@ -93,9 +96,10 @@ function tick(): void {
   const paused = flow.paused;
   if (!paused && store.state.phase === 'combat' && (isDown('up') || isDown('down') || isDown('left') || isDown('right') || padMove().x !== 0 || padMove().y !== 0)) moveMs += TICK;
   const before = snap();
+  const prog = progress();
   const cur = advance(prog, before);
   if (cur !== prog) save(cur);
-  const pk = pick(prog, before);
+  const pk = pick(cur, before);
   const next = pk?.id ?? null;
   if (next !== shown) {
     shown = next;
