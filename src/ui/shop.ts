@@ -20,7 +20,8 @@ import { icons, setIcon } from './icons';
 import { strongVsHtml } from './affinity';
 import { t, fmtNum } from '../i18n';
 import { itemRules, itemT, recipeT, setBonusT, tagT } from '../i18n/data';
-import { lvOf, setCount as setCountOf, setGains, setsOf, type SetCandidate } from '../data/sets';
+import { lvOf, setCount as setCountOf, setGains, setWeight, setsOf, type SetCandidate } from '../data/sets';
+import { tierBoostOf } from '../engine/build';
 import { SET_ORDER, SET_THRESHOLDS, flavorOf } from '../engine/define';
 import type { Build, ItemInstance, ItemTypeId, RecipeId, Rotation, RunState, SetId, ShopOffer } from '../types';
 
@@ -155,7 +156,7 @@ function itemEl(it: ItemInstance, build: Build, extra = '', compact = false): st
   const canCombine = store.state.phase === 'shop' && !!mergePartner(it);
   const flavor = it.type === 'jellybeans' ? flavorOf(it) : null;
   return `<div class="item ${def.kind} ${rarityClass(it.type, it.tier)} ${flavor ? `flavor flavor-${flavor}` : ''} ${canCombine ? 'mergeable' : ''} ${inner.shaped ? 'shaped' : ''} ${on ? 'recipe-on' : ''} ${it.uid === selectedUid ? 'selected' : ''} ${extra}" data-uid="${it.uid}"
-    style="left:${it.x * CELL}px;top:${it.y * CELL}px;width:${inner.w * CELL - 4}px;height:${inner.h * CELL - 4}px">${inner.html}${flavor ? `<b class="flavor-tag" title="${esc(t('flavorLabel', { f: tagT(flavor) }))}">${esc(tagT(flavor))}</b>` : ''}${slotBadge(it.uid, compact)}${it.double ? `<b class="dbl-mark" title="${esc(t('setDouble', { set: tagT(def.family) }))}">${t('doubleSticker')}</b>` : ''}</div>`;
+    style="left:${it.x * CELL}px;top:${it.y * CELL}px;width:${inner.w * CELL - 4}px;height:${inner.h * CELL - 4}px">${inner.html}${flavor ? `<b class="flavor-tag" title="${esc(t('flavorLabel', { f: tagT(flavor) }))}">${esc(tagT(flavor))}</b>` : ''}${slotBadge(it.uid, compact)}${it.double ? `<b class="dbl-mark" title="${esc(t('setDouble'))}">${t('doubleSticker')}</b>` : ''}</div>`;
 }
 
 export function gridHtml(s: RunState): string {
@@ -290,7 +291,7 @@ function render(): void {
       <div class="nm">${itemT(o.type).name}</div><div class="fp" style="grid-template-columns:repeat(${w},10px)">${fp}</div>
       <span class="price-tag">${costPill(o.price, s.money >= o.price, struck)}</span>
       ${lv ? `<span class="lvlup" title="${t('combinesTip', { name: itemT(o.type).name })}">${t('combinesTag', { n: (lv.tier ?? 1) + 1 })}</span>` : ''}
-      ${o.double && !o.sold ? `<span class="dblpack" title="${esc(t('setDouble', { set: tagT(def.family) }))}">${t('packSticker')}</span>` : ''}
+      ${o.double && !o.sold ? `<span class="dblpack" title="${esc(t('setDouble'))}">${t('packSticker')}</span>` : ''}
       ${stks ? `<div class="seticons">${stks}</div>` : ''}
       <div class="why">${why}</div></div>`;
   }).join('');
@@ -379,10 +380,11 @@ export function inspectorHtml(type: ItemTypeId, uid: string | null, offer?: Shop
   const kind = def.kind === 'weapon' && weaponTag ? t(KIND_BY_TAG[weaponTag]) : kindLabel(type);
   const otherTags = (def.tags ?? []).filter((tg) => !(tg in KIND_BY_TAG));
   const gains = offer && !loc && s ? setGains(s.inventory.placed, offer) : [];
-  const dblNote = offer?.double || loc?.inst.double ? `<span class="chip dbl">${esc(t('setDouble', { set: tagT(def.family) }))}</span>` : '';
+  const dblNote = offer?.double || loc?.inst.double ? `<span class="chip dbl">${esc(t('setDouble'))}</span>` : '';
   const flavor = type === 'jellybeans' ? (loc ? flavorOf(loc.inst) : null) : null;
   const binder = type === 'binder' && loc?.inst.binderFamily ? `<span class="chip">${esc(t('binderChip', { f: tagT(loc.inst.binderFamily), n: Math.min(20, (loc.inst.binderSold ?? 0) * 2) }))}</span>` : '';
-  const setChips = setsOf(type, flavor ?? undefined).map((id) => { const g = gains.find((x) => x.id === id); return `<span class="chip set-${id}${s?.build?.sets?.[id] ? ' act' : ''}">${setIcon(id, 14)}${tagT(id)}${g ? ` <small>(${gainText(g)})</small>` : ''}</span>`; }).join('');
+  const points = setWeight({ type, tier, double: offer?.double || loc?.inst.double }, loc ? tierBoostOf(s.inventory.placed)(loc.inst) : 0);
+  const setChips = setsOf(type, flavor ?? undefined).map((id) => { const g = gains.find((x) => x.id === id); return `<span class="chip set-${id}${s?.build?.sets?.[id] ? ' act' : ''}">${setIcon(id, 14)}${tagT(id)}${points > 1 ? ` +${points}` : ''}${g ? ` <small>(${gainText(g)})</small>` : ''}</span>`; }).join('');
   const head = `<header><span class="ico-tile ${rc}"><img src="${svg(loc ? iconOf(loc.inst) : `icon_${type}`)}" alt=""></span>
     <div class="hd"><div class="nm"><span style="font-size:${fitName(itemT(type).name)}px">${itemT(type).name}</span><b class="lv ${def.legendary ? 'leg' : `t${tier}`}">★${def.legendary ? '' : tier}</b></div>
     <span class="sub ${rc}">${rarity} · ${kind}</span></div></header>
