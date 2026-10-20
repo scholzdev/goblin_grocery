@@ -56,7 +56,7 @@ export const flow = {
     if (opts.daily) { store.state.daily = true; noteDailyStart(); }
     else if (!BOT && useCoupon()) { store.state.money += COUPON_COINS; store.state.voucher = true; }
     if (BOT) store.state.bot = true;
-    store.state.unlocked = unlockedItems();
+    store.state.pool = unlockedItems();
     runSnap = snapProfile();
     rng = mulberry32(seed);
     store.state.phase = 'combat';

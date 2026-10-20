@@ -49,7 +49,7 @@ describe('greedy policy', () => {
 
   it('a shop visit: every move it asks for is valid, and it ends by leaving', () => {
     const s = createRun(7, 'toaster', 0, 'toaster', 'main');
-    s.unlocked = [...ITEM_IDS];
+    s.pool = [...ITEM_IDS];
     s.money = 80;
     const rng = mulberry32(7);
     s.wave = 2;
@@ -93,7 +93,7 @@ describe('greedy policy', () => {
 
   it('crate and stockroom picks resolve to a valid option, the one that builds the best cart', () => {
     const s = stateWith([{ type: Item.toaster }], { cols: 7, rows: 5 });
-    s.unlocked = [...ITEM_IDS];
+    s.pool = [...ITEM_IDS];
     const pol = createGreedyPolicy();
     const crates = rollMiniCrates(s, mulberry32(3));
     const ci = pol.pickCrate(crates, s, view());

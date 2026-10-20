@@ -99,7 +99,7 @@ describe('Shortcut Key', () => {
     expect(sellPrice('spentkey')).toBe(contentTune('spentkey', 1).sell);
     expect(sellPrice('spentkey')).toBe(1);
     const s = shopWithKey(1);
-    s.unlocked = undefined;
+    s.pool = undefined;
     for (let seed = 0; seed < 300; seed++) expect(rollOffers(s, mulberry32(seed), 2 + (seed % 6)).map((o) => o.type)).not.toContain('spentkey');
     const spent = createRun(1);
     spent.phase = 'shop';

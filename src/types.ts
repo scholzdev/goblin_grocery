@@ -344,8 +344,8 @@ export interface RunState {
   shopLock?: ShopOffer[];
   /** Loyalty Card level 1..4 — better offers; persists for the run. */
   shopLevel: number;
-  /** Items allowed in this run's shops (meta-progression). Undefined = everything. */
-  unlocked?: ItemTypeId[];
+  /** Item types this run may offer (shops, stockroom, crates). Undefined = every item. */
+  pool?: ItemTypeId[];
   /** Character chosen on the title screen. */
   starter: StarterId;
   weapon: StarterWeapon;

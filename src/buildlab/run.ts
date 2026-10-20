@@ -138,7 +138,7 @@ function take(state: RunState, offers: ShopOffer[], idx: number, acquired: RunRe
 export function playRun(o: RunOptions): RunRecord {
   const starter = o.starter ?? 'toaster', weapon = o.weapon ?? 'toaster', shift = o.shift ?? 0, theme = o.theme ?? 'main';
   const state = createRun(o.seed, starter, shift, weapon, theme);
-  state.unlocked = (o.pool ?? 'all') === 'all' ? [...ITEM_IDS] : [...STARTING_ITEMS];
+  state.pool = (o.pool ?? 'all') === 'all' ? [...ITEM_IDS] : [...STARTING_ITEMS];
   state.phase = 'combat';
   const flow = mulberry32(o.seed); // flow.rng: shop rolls, doors, spawns, kill coins
   const policy = (o.policy ?? (() => createGreedyPolicy()))();

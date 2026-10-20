@@ -1087,7 +1087,7 @@ describe('meta-progression gating', () => {
     const allowed = ['toaster', 'pan', 'fan', 'fuel', 'battery', 'bell', 'hotsauce', 'magnet'] as ItemTypeId[];
     for (let seed = 1; seed <= 200; seed++) {
       const s = createRun(seed);
-      s.unlocked = allowed;
+      s.pool = allowed;
       s.shopLevel = 4;
       for (const idx of [1, 3, 6]) for (const o of rollOffers(s, mulberry32(seed * 7 + idx), idx)) expect(allowed).toContain(o.type);
     }
@@ -1167,7 +1167,7 @@ describe('Test Lab', () => {
     expect(s.inventory.shelf).toHaveLength(opts.shelf);
     expect(s.inventory.placed).toEqual([]);
     expect([s.money, s.shift, s.shopLevel, s.lab, s.labGod]).toEqual([opts.money, opts.shift, opts.shopLevel, true, true]);
-    expect(s.unlocked).toHaveLength(Object.keys(ITEMS).length);
+    expect(s.pool).toHaveLength(Object.keys(ITEMS).length);
     expect(s.overtime).toBeFalsy();
     expect(labDoor(s)).toBe('rush');
     expect([s.theme, s.department]).toEqual(['frozen', 'frozen']);

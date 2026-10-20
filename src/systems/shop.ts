@@ -59,8 +59,8 @@ export function rollOffers(state: RunState, rng: Rng, shopIndex: number, guarant
   // Checkout set discount is baked in at roll time: offers already on the table keep their price until the next reroll.
   const add = (type: ItemTypeId, tier: number) => offers.push({ slot: offers.length, type, tier, price: Math.max(1, Math.round(TIER.value(ITEMS[type].price, tier) * (PLAYER.starters[state.starter ?? 'toaster'].perk?.priceMult ?? 1) * (state.build?.priceMult ?? 1) * inflation(state, shopIndex))), sold: false });
   if (guarantee) for (const t of STARTER_WEAPONS[state.weapon ?? 'toaster'].guarantee) add(t, 1);
-  // Locked items (meta-progression) never show up.
-  const allowed = (t: ItemTypeId) => !state.unlocked || state.unlocked.includes(t);
+  // Items outside the run's pool never show up.
+  const allowed = (t: ItemTypeId) => !state.pool || state.pool.includes(t);
   const pool = ITEM_IDS.filter((t) => allowed(t) && !ITEMS[t].legendary && !ITEMS[t].noShop && !offers.some((o) => o.type === t));
   const legends = ITEM_IDS.filter((t) => allowed(t) && ITEMS[t].legendary);
   while (offers.length < ECONOMY.offerCount) {
@@ -102,7 +102,7 @@ export function rollStockroom(state: RunState, rng: Rng): ShopOffer[] {
 
 /** Mid-shift boss loot: one unlocked legendary you don't own yet (if any), the rest distinct weapons at MINI_BOSS.weaponTier. Pick one. */
 export function rollMiniCrates(state: RunState, rng: Rng): ShopOffer[] {
-  const allowed = (t: ItemTypeId) => !state.unlocked || state.unlocked.includes(t);
+  const allowed = (t: ItemTypeId) => !state.pool || state.pool.includes(t);
   const owned = new Set([...state.inventory.placed, ...state.inventory.shelf].filter((i) => !!i).map((i) => i!.type));
   const take = (pool: ItemTypeId[]) => pool.splice(Math.floor(rng() * pool.length), 1)[0];
   const legends = ITEM_IDS.filter((t) => allowed(t) && ITEMS[t].legendary && !owned.has(t));
