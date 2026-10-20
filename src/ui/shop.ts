@@ -167,6 +167,9 @@ export function gridHtml(s: RunState): string {
   return cells + s.inventory.placed.map((it) => itemEl(it, s.build)).join('');
 }
 
+/** A combo the player knows: in the Catalog or active right now. Others show as a mystery. */
+const discovered = (id: RecipeId, build: Build): boolean => profile.recipes.includes(id) || build.recipes.some((r) => r.id === id);
+
 export function combosHtml(build: Build, preview?: Build | null, relevant: ItemTypeId[] = []): string {
   const now = new Set(build.recipes.map((r) => r.id));
   const next = preview ? new Set(preview.recipes.map((r) => r.id)) : null;
@@ -178,7 +181,7 @@ export function combosHtml(build: Build, preview?: Build | null, relevant: ItemT
   const score = (id: RecipeId) => (now.has(id) ? 100 : 0) + (next?.has(id) ? 50 : 0) +
     recipeParts(RECIPES[id]).filter((t) => have.has(t)).length * 10 + (have.has(recipeIcon(RECIPES[id])) ? 5 : 0);
   // Only combos already in the Catalog are shown; an undiscovered one only appears as a mystery while a drop would trigger it.
-  const known = (id: RecipeId) => profile.recipes.includes(id) || now.has(id);
+  const known = (id: RecipeId) => discovered(id, build);
   // ...and only if every component item is unlocked (or the combo is live / about to trigger).
   const shown = (id: RecipeId) => now.has(id) || next?.has(id) || (known(id) && recipeParts(RECIPES[id]).every((ty) => open.has(ty)));
   const ids = [...RECIPE_ORDER].filter(shown).sort((a, b) => score(b) - score(a)).slice(0, 4);
@@ -203,6 +206,13 @@ export function combosHtml(build: Build, preview?: Build | null, relevant: ItemT
       <div class="icons">${icons}</div>
       <div class="eff">${esc(recipeT(id).short)}</div></div>`;
   }).join('');
+}
+
+/** The combos the run's stock was built around (src/systems/stock.ts). */
+function featuredHtml(s: RunState): string {
+  if (!s.featured?.length) return '';
+  const names = s.featured.map((id) => (discovered(id, s.build) ? esc(recipeT(id).name) : t('featuredMystery', { n: recipeParts(RECIPES[id]).length })));
+  return `<div class="featured"><b>${t('featuredRun')}:</b> ${names.join(' · ')}</div>`;
 }
 
 /** Bonus text for one set level, rendered from the set's content file (src/content/sets/<id>.ts: tune arrays are L1/L2/L3). */
@@ -318,6 +328,7 @@ function render(): void {
       <div class="cart-title sticker">${t('cartLoadout')}</div>
       <div class="grid-wrap"><div class="grid" style="width:${s.inventory.cols * cellFor(s.inventory.cols, s.inventory.rows)}px;height:${s.inventory.rows * cellFor(s.inventory.cols, s.inventory.rows)}px;margin:0 auto">${gridHtml(s)}</div></div>
       <div class="combos">${combosHtml(s.build, null, relevantTypes())}</div>
+      ${featuredHtml(s)}
     </div>
     <div class="col-right">
       <div class="offers-head"><h3>${t('todaysDeals')}</h3>${infl > 1 ? `<span class="inflation">${t('priceInflation', { n: Math.round((infl - 1) * 100) })}</span>` : ''}</div>
