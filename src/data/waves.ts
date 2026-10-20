@@ -70,6 +70,8 @@ export const ECONOMY = {
   inflationPerShop: 0.1,
   repairHp: 10,
   offerCount: 4,
+  /** Shop weight of an owned type with a copy below ★3 (a merge target), weapons included. */
+  ownedWeight: 2.5,
   /** Chance (from shop 2) that a rolled offer is a double pack, and its price multiplier. */
   doublePackChance: 0.08,
   doublePackPriceMult: 1.5,

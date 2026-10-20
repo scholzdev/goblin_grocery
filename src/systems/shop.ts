@@ -32,7 +32,9 @@ const ENHANCES: Partial<Record<ItemTypeId, (own: Set<ItemTypeId>) => boolean>> =
   coupon: (o) => o.has('fizz'),
 };
 
-function weight(t: ItemTypeId, own: Set<ItemTypeId>): number {
+/** `mergeable`: owned types with a copy below ★3, which another copy can still merge into. */
+function weight(t: ItemTypeId, own: Set<ItemTypeId>, mergeable: Set<ItemTypeId>): number {
+  if (mergeable.has(t)) return ECONOMY.ownedWeight;
   if (ITEMS[t].kind === 'weapon') return own.has(t) ? 1.6 : 1.3;
   if (Object.values(RECIPES).some((r) => (r.weapon ? own.has(r.weapon) : r.supports.some((s) => s !== t && own.has(s))) && r.supports.includes(t))) return 2.2;
   return ENHANCES[t]?.(own) ? 1.8 : 1;
@@ -51,8 +53,9 @@ export interface RollOpts { bias?: ItemTypeId[]; legendaryBonus?: number; forceL
 
 export function rollOffers(state: RunState, rng: Rng, shopIndex: number, guarantee = shopIndex === 1, opts: RollOpts = {}): ShopOffer[] {
   const bias = opts.bias ?? [], bonus = opts.legendaryBonus ?? 0;
-  const { placed, shelf } = state.inventory;
-  const own = new Set<ItemTypeId>([...placed.map((p) => p.type), ...shelf.filter((s) => !!s).map((s) => s!.type)]);
+  const owned = [...state.inventory.placed, ...state.inventory.shelf.filter((s) => !!s)];
+  const own = new Set(owned.map((i) => i.type));
+  const mergeable = new Set(owned.filter((i) => (i.tier ?? 1) < TIER.max).map((i) => i.type));
   const lv = SHOP_LEVELS[Math.max(0, Math.min(SHOP_LEVELS.length, state.shopLevel) - 1)];
   const kept = (opts.keep ?? []).filter((o) => !o.sold);
   const offers: ShopOffer[] = kept.map((o) => ({ ...o }));
@@ -66,7 +69,7 @@ export function rollOffers(state: RunState, rng: Rng, shopIndex: number, guarant
   while (offers.length < ECONOMY.offerCount) {
     const needLegend = !!opts.forceLegendary && offers.length === ECONOMY.offerCount - 1 && !offers.some((o) => ITEMS[o.type].legendary);
     if (legends.length && (needLegend || (shopIndex >= 2 && rng() < lv.legendary + bonus))) { add(legends.splice(Math.floor(rng() * legends.length), 1)[0], 1); continue; }
-    const ws = regular.map((t) => (guarantee ? 1 : weight(t, own)) * (bias.includes(t) ? DEPT_TUNING.biasWeight : 1));
+    const ws = regular.map((t) => (guarantee ? 1 : weight(t, own, mergeable)) * (bias.includes(t) ? DEPT_TUNING.biasWeight : 1));
     let r = rng() * ws.reduce((a, b) => a + b, 0), i = 0;
     while (i < regular.length - 1 && (r -= ws[i]) >= 0) i++;
     add(regular.splice(i, 1)[0], rng() < lv.tier3 ? 3 : rng() < lv.tier2 ? 2 : 1);
