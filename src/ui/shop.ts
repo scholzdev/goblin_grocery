@@ -208,7 +208,8 @@ export function combosHtml(build: Build, preview?: Build | null, relevant: ItemT
 /** Bonus text for one set level, rendered from the set's content file (src/content/sets/<id>.ts: tune arrays are L1/L2/L3). */
 export const setBonus = setBonusT;
 
-const setPips = (id: SetId, n: number, ghost = false): string => `<span class="pips set-${id}">${Array.from({ length: SET_THRESHOLDS[2] }, (_, k) => `<i class="${k < n ? 'on' : ghost && k === n ? 'ghost' : ''}"></i>`).join('')}</span>`;
+/** `n` points filled, the ones up to `to` ghosted (what a hovered offer would add). */
+const setPips = (id: SetId, n: number, to = n): string => `<span class="pips set-${id}">${Array.from({ length: SET_THRESHOLDS[2] }, (_, k) => `<i class="${k < n ? 'on' : k < to ? 'ghost' : ''}"></i>`).join('')}</span>`;
 const setTiers = (id: SetId, lv: number, fresh = 0, all = true): string => ([1, 2, 3] as const).filter((l) => all || l <= lv + 1).map((l) => `<div class="tier ${l <= lv ? '' : 'locked'} ${l === fresh ? 'new' : ''}"><em>${SET_THRESHOLDS[l - 1]}</em><span>${esc(setBonus(id, l))}</span></div>`).join('');
 const setCount = (id: SetId): number => setCountOf(store.state.inventory.placed, id);
 const setLv = (n: number): number => lvOf(n);
@@ -229,12 +230,12 @@ export function setsHtml(preview?: SetCandidate): string {
     const g = gm.get(id);
     if (g) {
       const nlv = setLv(g.to);
-      const hd = `<div class="hd">${chipHtml(id)}<span class="arrow">${g.from}→${g.to}</span>${!nlv ? `<span class="need">${t('setNeed', { n: t1 - g.to })}</span>` : ''}${setPips(id, n, true)}</div>`;
+      const hd = `<div class="hd">${chipHtml(id)}<span class="arrow">${g.from}→${g.to}</span>${!nlv ? `<span class="need">${t('setNeed', { n: t1 - g.to })}</span>` : ''}${setPips(id, n, g.to)}</div>`;
       return `<div class="coupon set-${id} hot" data-set="${id}">${hd}${nlv ? setTiers(id, nlv, g.levelUp ? nlv : 0, false) : ''}</div>`;
     }
     const hd = `<div class="hd">${chipHtml(id)}${lv ? '' : `<span class="need">${t('setNeed', { n: t1 - n })}</span>`}${setPips(id, n)}</div>`;
     return `<div class="coupon set-${id} ${lv ? '' : 'dim'} ${preview ? 'faded' : ''}" data-set="${id}">${hd}${lv ? setTiers(id, lv, 0, false) : ''}</div>`;
-  }).join('') + ghosts.map((id) => `<div class="coupon set-${id} ghost" data-set="${id}"><div class="hd">${chipHtml(id)}<span class="arrow">${t('setNew')}</span>${setPips(id, 0, true)}</div></div>`).join('');
+  }).join('') + ghosts.map((id) => `<div class="coupon set-${id} ghost" data-set="${id}"><div class="hd">${chipHtml(id)}<span class="arrow">${t('setNew')}</span>${setPips(id, 0, gm.get(id)!.to)}</div></div>`).join('');
 }
 
 /** Hover card for one set: progress, all tiers, and every item type that counts toward it (owned ones in colour). */

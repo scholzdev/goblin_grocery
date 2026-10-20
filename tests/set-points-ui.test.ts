@@ -38,7 +38,10 @@ describe('shop UI: set points', () => {
 
   it('the receipt preview counts the offer\'s tier', () => {
     runWith(build([{ type: 'toaster' }, { type: 'sample', near: [] }]));
-    expect(text(shop.setsHtml(offer({ type: 'hotsauce', tier: 2 })))).toContain('Kitchen 2→4');
+    const html = shop.setsHtml(offer({ type: 'hotsauce', tier: 2 }));
+    expect(text(html)).toContain('Kitchen 2→4');
+    const pips = html.match(/<span class="pips set-kitchen">(.*?)<\/span>/)![1];
+    expect([pips.match(/"on"/g)?.length, pips.match(/"ghost"/g)?.length], 'two points held, two more ghosted').toEqual([2, 2]);
   });
 
   it('the double-pack note says what it adds, in EN and DE', () => {
