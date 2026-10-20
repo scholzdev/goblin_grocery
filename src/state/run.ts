@@ -9,7 +9,7 @@ import type { DepartmentId, ElementTag, FamilyTag, Build, Inventory, ItemInstanc
 import { canPlace, findItem, firstFit, normalizeRotation } from '../systems/inventory';
 import { mulberry32, type Rng } from '../systems/rng';
 import { zonesOf } from '../data/zones';
-import { currentRerollCost, repairCost, rollDoors, rollOffers, rollZones, sellPrice } from '../systems/shop';
+import { currentRerollCost, doorAisle, repairCost, rollDoors, rollOffers, rollZones, sellPrice } from '../systems/shop';
 import { computeBuild } from '../systems/synergies';
 import { newDamageStats } from '../systems/damageStats';
 import { contentItem, contentSetTune, contentTune, sellValue } from '../engine/registry';
@@ -447,13 +447,10 @@ export function chooseDoor(state: RunState, id: DoorId): OpResult {
   if (state.phase !== 'route' || !state.doors) return fail(t('rNoDoors'));
   if (!state.doors.includes(id)) return fail(t('rDoorUnavailable'));
   if (id === 'shortcut') return takeShortcut(state);
-  const zone = state.doorZones?.[state.doors.indexOf(id)] ?? null;
-  state.department = id === 'boss' ? 'boss' : state.theme;
-  state.modifier = id === 'boss' ? 'none' : id;
+  Object.assign(state, doorAisle(state, id));
   state.route.push(state.department);
   state.mods.push(state.modifier);
-  state.zone = zone;
-  state.zones.push(zone);
+  state.zones.push(state.zone);
   state.doors = null;
   state.doorZones = null;
   return OK;
