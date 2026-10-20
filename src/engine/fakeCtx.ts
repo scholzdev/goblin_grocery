@@ -416,6 +416,7 @@ export class FakeCtx implements RuntimeCtx {
     dmg = soaked; // armor and shred (systems/combat), direct hits only, like the scene
     hit.armored = dmg < hit.dmg * 0.5; hit.dmg = dmg;
     e.hp -= dmg;
+    if (!o.isDot) e.lastHitT = now;
     recordDamage(this.dmgLog, { source: key, dmg, type: damageType(tags, e.def, { isDot: o.isDot, poison: o.poison, reaction: rx }), isDot: !!o.isDot, weak: aff > 1, resisted: aff < 1, shred: shredBonus, mark: markBonus });
     hit.killed = e.hp <= 0;
     if (!rx) {

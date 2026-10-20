@@ -124,8 +124,6 @@ interface Foe {
   /** > 0 while winding up an attack (tell). */
   tellT: number;
   aux: number;
-  lastHp: number;
-  idle: number;
   bossStep: number;
   bossMove: BossMove;
   /** Removed without kill credit (escaped, exploded, aisle over). */
@@ -227,7 +225,7 @@ export function playAisle(state: RunState, flow: Rng, opts: AisleOpts = {}): Ais
       e, d, affix, small, mini: mini ?? undefined, kit: mini ? mini.kit : d.behavior === 'boss' ? BOSS_KITS[id] : undefined,
       speed: d.speed * speedScale * (affix === 'swift' ? AFFIX.swift.speedMult : 1), ang, stop,
       atkCd: d.behavior === 'boss' ? 1.8 : d.attackCooldown * (0.4 + fake.rng() * 0.6), tellT: 0,
-      aux: id === Enemy.honey ? 0.5 : id === Enemy.sanitizer ? SANI.cleanseInterval : 0, lastHp: hp, idle: 0, bossStep: 0, bossMove: 'volley', noCredit: false, done: false,
+      aux: id === Enemy.honey ? 0.5 : id === Enemy.sanitizer ? SANI.cleanseInterval : 0, bossStep: 0, bossMove: 'volley', noCredit: false, done: false,
     };
     foes.push(f);
     spawned++;
@@ -321,11 +319,7 @@ export function playAisle(state: RunState, flow: Rng, opts: AisleOpts = {}): Ais
     if (burn > 0) { fake.hit(e, burn, null, { isDot: true }); if (!e.alive) return; }
     const poison = tickPoison(e.status, now);
     if (poison > 0) { fake.hit(e, poison, null, { isDot: true, poison: true }); if (!e.alive) return; }
-    if (f.affix === 'tough') { // regen after `idle` s without taking damage
-      if (e.hp < f.lastHp) f.idle = 0; else f.idle += dt;
-      if (f.idle >= AFFIX.tough.idle) e.hp = Math.min(e.maxHp, e.hp + e.maxHp * AFFIX.tough.regenPct * dt);
-      f.lastHp = e.hp;
-    }
+    if (f.affix === 'tough' && e.hp < e.maxHp && now - (e.lastHitT ?? -Infinity) >= AFFIX.tough.idle) e.hp = Math.min(e.maxHp, e.hp + e.maxHp * AFFIX.tough.regenPct * dt); // enemies.ts affixTick
     f.atkCd -= dt;
     if (d.id === Enemy.sanitizer && (f.aux -= dt) <= 0) { f.aux += SANI.cleanseInterval; cleanseAura(e, fake.enemies, SANI.cleanseRadius, now); }
     if (d.behavior === 'healer' && (f.aux -= dt) <= 0) {
