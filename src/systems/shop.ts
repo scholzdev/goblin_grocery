@@ -1,11 +1,12 @@
-import { MINI_BOSS } from '../data/enemies';
+import { ELITE_EXCLUDED, MINI_BOSS } from '../data/enemies';
 import { DEPARTMENTS, DEPT_TUNING } from '../data/departments';
 import { DOOR_POOL, MODIFIERS, ROOMS, ROOM_DOORS, type DoorId } from '../data/modifiers';
-import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS, waveDef } from '../data/waves';
+import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS, eliteChance, waveDef } from '../data/waves';
 import { PLAYER, ITEMS, ITEM_IDS, STARTER_WEAPONS, TIER } from '../data/items';
 import { RECIPES } from '../data/recipes';
 import { ZONES, ZONE_TUNING, zonesOf, type ZoneId } from '../data/zones';
-import type { Build, EnemyId, ItemTypeId, RunState, ShopOffer } from '../types';
+import { BELTS, CABLE_ROWS, ICE_SPOTS, VENT_SPOTS } from '../data/arena';
+import type { Build, EnemyId, HazardKind, ItemTypeId, RunState, ShopOffer } from '../types';
 import type { Rng } from './rng';
 import { canShortcut } from './shortcut';
 
@@ -112,6 +113,15 @@ export function rollMiniCrates(state: RunState, rng: Rng): ShopOffer[] {
   return picks.map((p, slot) => ({ ...p, slot, price: 0, sold: false }));
 }
 
+/** Any door but Staff Only, which skips an aisle instead of leading into one. */
+export type AisleDoor = Exclude<DoorId, 'shortcut'>;
+
+/** The department, modifier and zone of the aisle behind a door; `chooseDoor` applies them. */
+export function doorAisle(state: RunState, id: AisleDoor): Pick<RunState, 'department' | 'modifier' | 'zone'> {
+  const boss = id === 'boss';
+  return { department: boss ? 'boss' : state.theme, modifier: boss ? 'none' : id, zone: state.doorZones?.[state.doors?.indexOf(id) ?? -1] ?? null };
+}
+
 /** Zone behind each door (parallel to `doors`): distinct per route screen, repeats get rarer; clearance / boss have none. */
 export function rollZones(state: RunState, rng: Rng, doors: DoorId[]): (ZoneId | null)[] {
   const pool = zonesOf(state.theme);
@@ -124,11 +134,48 @@ export function rollZones(state: RunState, rng: Rng, doors: DoorId[]): (ZoneId |
   });
 }
 
-export function waveSpawnPlan(state: RunState): { total: number; mix: Partial<Record<EnemyId, number>>; hpScale: number; speedScale: number; dmgScale: number } {
+/** What decides an aisle: the run state while it is played, or the aisle behind a door (`previewAisle`). */
+export type AisleSpec = Pick<RunState, 'wave' | 'department' | 'modifier' | 'zone' | 'theme' | 'shift'>;
+export interface SpawnPlan { total: number; mix: Partial<Record<EnemyId, number>>; hpScale: number; speedScale: number; dmgScale: number }
+
+/** Zones only shape the theme's own aisles. */
+const aisleZone = (a: AisleSpec) => (a.zone && a.department === a.theme ? ZONES[a.zone] : null);
+
+export function waveSpawnPlan(state: AisleSpec): SpawnPlan {
   const w = waveDef(state.wave), d = DEPARTMENTS[state.department], sh = SHIFTS[state.shift], m = MODIFIERS[state.modifier];
   if (state.department === 'boss' || w.boss) return { total: w.total, mix: { ...w.mix }, hpScale: w.hpScale, speedScale: w.speedScale, dmgScale: w.dmgScale * sh.dmgMult };
-  const T = DEPT_TUNING, mix: Partial<Record<EnemyId, number>> = {};
+  const T = DEPT_TUNING, mix: Partial<Record<EnemyId, number>> = {}, zone = aisleZone(state);
   for (const [k, v] of Object.entries(w.mix) as [EnemyId, number][]) mix[k] = v * (d.mix[k] ?? (T.basics.includes(k) ? 1 : T.offTheme));
-  if (state.zone && state.department === state.theme) for (const [k, m] of Object.entries(ZONES[state.zone].tilt) as [EnemyId, number][]) if (mix[k] !== undefined) mix[k] *= m;
+  if (zone) for (const [k, m] of Object.entries(zone.tilt) as [EnemyId, number][]) if (mix[k] !== undefined) mix[k] *= m;
   return { total: Math.round(w.total * d.countMult * m.countMult * sh.countMult), mix, hpScale: w.hpScale * d.hpMult * m.hpMult * sh.hpMult, speedScale: w.speedScale * d.speedMult * sh.speedMult, dmgScale: w.dmgScale * sh.dmgMult };
+}
+
+/** Elites behind a door: none can spawn, some may, the modifier raises the chance, or every eligible grocery is Elite. */
+export type EliteOdds = 'none' | 'some' | 'more' | 'all';
+export interface AislePreview { plan: SpawnPlan; top: EnemyId[]; elites: EliteOdds; hazard: HazardLayout }
+
+/**
+ * The aisle behind a door, read on the route screen without choosing it (no state change, no random draw): its spawn plan, the 3 most
+ * common groceries by expected count, the elite odds and the floor hazard. An elite's affix is rolled when it spawns, so it is never shown.
+ */
+export function previewAisle(state: RunState, id: AisleDoor): AislePreview {
+  const a: AisleSpec = { ...doorAisle(state, id), wave: state.wave + 1, theme: state.theme, shift: state.shift };
+  const plan = waveSpawnPlan(a), w = waveDef(a.wave), bonus = w.boss ? 0 : MODIFIERS[a.modifier].eliteBonus;
+  const common = plan.total > 0 ? (Object.entries(plan.mix) as [EnemyId, number][]).filter(([, v]) => v > 0).sort((x, y) => y[1] - x[1]).map(([k]) => k) : [];
+  const eligible = common.find((k) => !ELITE_EXCLUDED.includes(k)), chance = eligible ? eliteChance(eligible, w, a.shift) + bonus : 0;
+  return { plan, top: common.slice(0, 3), elites: chance <= 0 ? 'none' : chance >= 1 ? 'all' : bonus > 0 ? 'more' : 'some', hazard: aisleHazard(a) };
+}
+
+export interface HazardLayout { kind: HazardKind; spots: number; beltSpeed: number }
+
+/**
+ * An aisle's floor hazard: the department's (none in the Stockroom). Aisles 1..7 ramp it, +1 spot per 3 aisles and belts 4% faster per aisle
+ * (overtime keeps the aisle-7 values); the zone's `hazardExtra` shifts the spots within 1..available. Both belts always run.
+ */
+export function aisleHazard(a: AisleSpec): HazardLayout {
+  const T = DEPT_TUNING, kind: HazardKind = a.modifier === 'stockroom' ? 'none' : DEPARTMENTS[a.department].hazard;
+  const ramp = Math.min(Math.max(a.wave, 1), 7) - 1, extra = Math.floor(ramp / 3) + (aisleZone(a)?.hazardExtra ?? 0);
+  const n = (base: number, len: number) => Math.min(len, Math.max(1, base + extra));
+  const spots: Record<HazardKind, number> = { none: 0, ice: n(T.ice.patches, ICE_SPOTS.length), vents: n(T.vents.count, VENT_SPOTS.length), cables: n(T.cables.count, CABLE_ROWS.length), conveyor: BELTS.length };
+  return { kind, spots: spots[kind], beltSpeed: T.conveyor.speed * (1 + 0.04 * ramp) };
 }

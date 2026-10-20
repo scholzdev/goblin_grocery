@@ -49,7 +49,7 @@ const sk = (key: string): string =>
     : CART_PARTS.includes(key) && profile.cart !== 'chrome' ? `${key}__${profile.cart}` : key;
 import { DEPARTMENTS, DEPT_TUNING } from '../data/departments';
 import { MODIFIERS, ROOMS } from '../data/modifiers';
-import { waveSpawnPlan, rollStockroom, rollMiniCrates } from '../systems/shop';
+import { aisleHazard, waveSpawnPlan, rollStockroom, rollMiniCrates } from '../systems/shop';
 import { giftcardCoins, killCoinMult, killCoins } from '../systems/combat';
 import type { DepartmentDef } from '../types';
 import { CRATE, DASH_PROPS, OBSTACLES, OBSTACLE_KINDS, PROP_TUNING, crateSpots, type Obstacle } from '../data/obstacles';
@@ -167,7 +167,7 @@ export class ArenaScene extends Phaser.Scene {
     center();
     this.scale.on(Phaser.Scale.Events.RESIZE, center);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.scale.off(Phaser.Scale.Events.RESIZE, center));
-    this.hazards = new Hazards(this, s.phase === 'combat' && s.modifier !== 'stockroom' ? this.dept.hazard : 'none', s.wave, this.zone()?.hazardExtra ?? 0);
+    this.hazards = new Hazards(this, s.phase === 'combat' ? aisleHazard(s) : { kind: 'none', spots: 0, beltSpeed: 0 });
     const roll = s.phase === 'combat' ? rollEvent(this.dept.id, s.wave, s.shift, flow.rng, this.wave.boss, s.modifier === 'stockroom' ? 'none' : s.labEvent && s.labEvent !== 'random' ? s.labEvent : MODIFIERS[s.modifier].forceEvent ? (flow.rng() < 0.5 ? 'wetFloor' : 'outage') : 'random', s.build.sets) : null;
     this.aisleEvent = new AisleEvents(this, roll);
     if (roll) store.emit('tut:event');
