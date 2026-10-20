@@ -34,11 +34,11 @@ describe('Toaster: content', () => {
     expect([1, 2, 3].map((t) => itemRules('toaster', t))).toEqual([
       'Fires toast for 9 damage every 1 s. 455 range. Each toast hits one enemy.',
       'Fires toast for 13.5 damage every 0.9 s. 455 range. Each toast hits one enemy.',
-      'Fires toast for 18 damage every 0.8 s. 455 range. Each toast hits one enemy.',
+      'Fires toast for 18 damage every 0.8 s. 455 range. Each toast hits one enemy. ★3: Also fires a toast at a second enemy.',
     ]);
     expect(itemT('toaster')).toMatchObject({ name: 'Toaster', blurb: 'Lobs hot toast at the nearest grocery.' });
     setLang('de');
-    expect([1, 3].map((t) => itemRules('toaster', t))).toEqual(['Feuert alle 1 s Toast für 9 Schaden. 455 Reichweite. Jeder Toast trifft einen Gegner.', 'Feuert alle 0,8 s Toast für 18 Schaden. 455 Reichweite. Jeder Toast trifft einen Gegner.']);
+    expect([1, 3].map((t) => itemRules('toaster', t))).toEqual(['Feuert alle 1 s Toast für 9 Schaden. 455 Reichweite. Jeder Toast trifft einen Gegner.', 'Feuert alle 0,8 s Toast für 18 Schaden. 455 Reichweite. Jeder Toast trifft einen Gegner. ★3: Feuert zusätzlich einen Toast auf einen zweiten Gegner.']);
     expect(itemT('toaster')).toMatchObject({ name: 'Toaster', blurb: 'Schleudert heißen Toast auf den nächsten Gegner.' });
   });
 
@@ -84,7 +84,7 @@ describe('Toaster: pattern toast', () => {
     fake.spawnEnemy({ x: 400, y: 460, hp: 1000 });
     fake.spawnEnemy({ x: 500, y: 380, hp: 1000 });
     a.run(60, 0.02);
-    const [s1, s2] = a.spawned;
+    const [s1, , s2] = a.spawned; // the middle one is the ★3 toast at the second enemy
     expect(s1).toMatchObject({ key: 'proj_toast', x: 118, y: 400, speed: 540, damage: 18, maxHits: 1 });
     expect(s1.angle).toBe(Math.atan2(60, 300 - 18));
     expect(s1.life).toBe(455 / 540);
@@ -92,6 +92,30 @@ describe('Toaster: pattern toast', () => {
     expect(Math.abs(s2.at - s1.at - 0.8)).toBeLessThan(0.03);
     expect(a.sounds.slice(0, 2)).toEqual(['toast_pop@1', 'toast_pop@1']);
     expect(a.recoils[0]).toBe(b.weapons[0].uid);
+  });
+
+  it('from ★3 a volley also throws one toast at the nearest other enemy in range; ★2 throws only at the nearest', () => {
+    const volley = (tier: number) => {
+      const { a, fake } = arsenal([at('toaster', tier)], P);
+      fake.spawnEnemy({ x: 300, y: 400, hp: 1000 });
+      fake.spawnEnemy({ x: 500, y: 500, hp: 1000 });
+      fake.spawnEnemy({ x: 350, y: 250, hp: 1000 });
+      a.run(25, 0.02);
+      return a.spawned.filter((s) => s.at === a.spawned[0].at);
+    };
+    const toNearest = Math.atan2(0, 300 - 118), toSecond = Math.atan2(250 - 400, 350 - 118);
+    expect(volley(2).map((s) => s.angle)).toEqual([toNearest]);
+    expect(volley(3).map((s) => s.angle)).toEqual([toNearest, toSecond]);
+    expect(volley(3)[1]).toMatchObject({ key: 'proj_toast', damage: 18, maxHits: 1 });
+    expect(volley(4).map((s) => s.angle)).toEqual([toNearest, toSecond]);
+  });
+
+  it('the ★3 second toast needs a second enemy inside the range', () => {
+    const { a, fake } = arsenal([at('toaster', 3)], P);
+    fake.spawnEnemy({ x: 400, y: 400, hp: 1000 });
+    fake.spawnEnemy({ x: 580, y: 400, hp: 1000 });
+    a.run(25, 0.02);
+    expect(a.spawned).toHaveLength(1);
   });
 
   it('only shoots at what is inside the 455 range (measured from the goblin)', () => {
