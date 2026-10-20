@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { createGreedyPolicy, type Policy } from '../../src/buildlab/policy';
+import { createGreedyPolicy, type Policy, type PolicyFactory, type ShopAction } from '../../src/buildlab/policy';
 import { BOSS_WAVE } from '../../src/data/waves';
 import { PROXY } from '../../src/buildlab/combat';
 import { canPlace } from '../../src/systems/inventory';
 import { ITEMS } from '../../src/data/items';
 import { ALL_STARTERS, playRun, runBatch, runSeed } from '../../src/buildlab/run';
 import { summarize, type Report, type RunRecord } from '../../src/buildlab/report';
-import type { Inventory, ItemInstance } from '../../src/types';
+import { newUid } from '../../src/state/run';
+import type { Inventory, ItemInstance, RunState } from '../../src/types';
 
 const strip = (r: Report) => JSON.stringify({ ...r, meta: { ...r.meta, durationMs: 0, gitRev: undefined } });
 
@@ -107,6 +108,27 @@ describe('build-lab run', () => {
     expect(json.summary.itemPickRate.toaster).toBe(1);
     // summarize works on any set of records
     expect(summarize(json.runs).winRate).toBe(json.summary.winRate);
+  });
+
+  it('counts the merges, rerolls and sales the shop rules carried out', () => {
+    // Shop rolls cannot be steered, so the scripted policy puts the second copy on the shelf itself.
+    const once = (acts: (s: RunState) => ShopAction[]): PolicyFactory => () => ({ ...createGreedyPolicy(), decideShop: (s, v) => (s.wave === 1 && v.round === 0 ? acts(s) : []) });
+    const spareToaster = (s: RunState): string => {
+      const uid = newUid(s);
+      s.inventory.shelf[s.inventory.shelf.indexOf(null)] = { uid, type: 'toaster', x: 0, y: 0, rot: 0, tier: 1 };
+      return uid;
+    };
+    const cartToaster = (s: RunState): string => s.inventory.placed.find((i) => i.type === 'toaster')!.uid;
+
+    const merged = playRun({ seed: 7, policy: once((s) => [{ kind: 'merge', uid: spareToaster(s), targetUid: cartToaster(s) }]) });
+    expect(merged.finalBuild.items.filter((i) => i.id === 'toaster'), 'two ★1 toasters became one ★2').toMatchObject([{ tier: 2 }]);
+    expect(merged).toMatchObject({ merges: 1, rerolls: 0, sells: 0 });
+
+    const refused = playRun({ seed: 7, policy: once((s) => [{ kind: 'merge', uid: cartToaster(s), targetUid: cartToaster(s) }]) });
+    expect(refused.merges, 'an item cannot merge into itself').toBe(0);
+
+    const traded = playRun({ seed: 7, policy: once((s) => [{ kind: 'reroll' }, { kind: 'sell', uid: spareToaster(s) }]) });
+    expect(traded).toMatchObject({ merges: 0, rerolls: 1, sells: 1 });
   });
 
   it('every character can play, and shop items are real items', () => {

@@ -45,7 +45,7 @@ interface FakeOpts { items: string[]; combos?: string[]; sets?: Record<string, n
 function fake(o: FakeOpts): RunRecord {
   return {
     seed: 1, starter: o.starter ?? 'toaster', weapon: 'toaster', shift: 0, theme: 'main', result: o.result, ...(o.result === 'dead' ? { diedAt: o.diedAt ?? 4 } : {}),
-    aislesPlayed: o.result === 'win' ? 8 : o.diedAt ?? 4, kills: 0, coinsEarned: 0,
+    aislesPlayed: o.result === 'win' ? 8 : o.diedAt ?? 4, kills: 0, coinsEarned: 0, merges: 0, rerolls: 0, sells: 0,
     aisles: [{ aisle: 1, kind: 'fight', combos: [], sets: {}, weapons: 1, spawned: 10, kills: 5, hpAfter: 5, dealt: o.dealt ?? 100, damage: { bySource: o.by ?? {}, reactions: o.reactions ?? {}, byType: {} } }] as unknown as RunRecord['aisles'],
     acquired: (o.acquired ?? o.items).map((item) => ({ item, tier: 1, from: 'shop' as const })),
     finalBuild: { items: o.items.map((id, i) => ({ id, tier: 1, x: i, y: 0, rot: 0 })), shelf: [], combos: o.combos ?? [], sets: o.sets ?? {}, cartSize: [4, 3], maxHp: 10 },
