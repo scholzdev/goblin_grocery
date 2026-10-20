@@ -353,6 +353,8 @@ export interface RunState {
   shift: number;
   /** Set when the player keeps going after beating the boss (endless aisles). */
   overtime?: boolean;
+  /** Kills and coins already in the lifetime stats (`recordRun`), so the overtime finish adds only what came after. */
+  counted?: { kills: number; coins: number };
   /** Played by the dev autoplayer (src/bot): never touches the profile or the best receipts, like `lab`. */
   bot?: boolean;
   /** Daily run (date-seeded, no voucher). */
