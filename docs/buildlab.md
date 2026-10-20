@@ -232,6 +232,38 @@ Skipped in the arena:
 
 ## Balance hillclimb (difficulty curve)
 
+All numbers here are proxy numbers from the greedy bot, not human win rates. A human playtest is still needed to calibrate them.
+
+### Pass 2: the integrated game (stock pool)
+
+Run after the mechanics units (run stock, owned weight, shop-1 openers, tier-weighted sets, base interest, door previews, death recap, goal unlocks, weapon ★3 behaviors) were merged. Rows 13 to 22 of `balance-hillclimb.tsv`.
+
+Metric: `npm run buildlab -- --runs 50 --seed S --starter all --weapon all --pool stock --shift N --quiet` (600 runs: 4 characters x 3 weapons x 50), `--pool starting` for the new-player view, then `node tools/mechanics-metrics.mjs`. Day on seeds 1 and 2, Evening and Late on seed 1. Win rate has a standard error of about 2 points at 600 runs, so each knob was judged on seeds 1 and 2 pooled (1200 runs) and, run by run, on the same seeds before and after (a sign test over the runs that flipped).
+
+Targets on the stock pool, Day: merges per run at least 2.0, combos at run end at least 2.0, ★3 items at least 0.15, win rate 20% to 35%, aisle 4 below 28% of all deaths, some HP lost in aisle 2. On the starting pool: win rate at most 55%. Evening at least 12%, near 15%.
+
+What moved when the units landed (seed 1): the stock pool's openers and owned weight tripled merges (1.00 to 2.94 against the old pool-all baseline), tier-weighted sets put Kitchen and Tools at level 3 in over half the runs, and base interest raised the coins at every shop. Win rate went from 26% to 49% and aisle 4 held 40% of all deaths, because everything after it had become easy.
+
+| Metric (stock, Day, seed 1) | Integrated start (038fff7) | After this pass |
+| --- | ---: | ---: |
+| Win rate | 48.8% (seed 2: 48.3%) | 28.3% (seed 2: 28.5%) |
+| Aisle 4 share of all deaths | 39.7% | 23.3% |
+| HP lost in aisle 1 / aisle 2 | 2.24 / 0.23 | 4.07 / 1.11 |
+| Merges per run | 2.94 | 2.73 |
+| Combos at run end per run | 2.60 | 2.41 |
+| ★3 items per run | 0.28 | 0.22 |
+| Kitchen / Tools level 3 at run end | 53.7% / 52.5% | 18.5% / 22.2% |
+| Starting pool win rate | 60.5% | 39.0% |
+| Evening / Late win rate | 28.5% / 16.2% | 14.8% / 4.2% (Evening seeds 1 + 2: 15.7%) |
+
+Knobs, in the order they landed: `SET_THRESHOLDS` 2/3/4 to 2/4/6; aisles 1 and 2 last 38 s instead of 60 s with the same counts; Spitter and Expired Milk move into aisle 3 and Frozen Turkey and Cereal Killer out of aisle 4, so the mini-boss is aisle 4's only new thing; `MINI_BOSS.hp` 340 to 260 to 240; hpScale aisles 5 to 7 1.7/2.0/2.3 to 1.8/2.2/2.6; dmgScale aisles 5 to 7 1.6/1.7/1.8 to 1.7/1.85/2.0; the boss aisle's hpScale 2.0 to 2.6 and dmgScale 1.7 to 2.1; Evening hpMult 1.2 to 1.1. Aisle events start at least `EVENT_LEAD` (10 s) before an aisle ends, so the wet floor still matters in the short aisle 2.
+
+Tried and reverted. Before the mini-boss cut, on seed 1 against win 33.2% and an aisle 4 share of 38.2%: aisle 4 total 46 to 40 (37.4% share), aisle 4 hpScale 1.5 to 1.38 (36.4%), a mini-boss enrage at 60 s instead of 45 s (37.2%); the HP cut did far more (28.9%). After it, on seeds 1 + 2 pooled against win 36.8% and a share of 29.4%: aisle 3 hpScale 1.24 to 1.4 (36.9%) or total 42 to 48 (35.8%), since the bot clears aisle 3 either way; `inflationPerShop` 0.1 to 0.15 (34.4%, but the share rose to 31.1%); `interestCap` 3 to 2 (37.3%); `WAVE_RAMP.hp` 0.4 to 0.7 (35.2%); totals aisles 5 to 7 52/55/60 to 58/62/68 (31.8%), rejected because an earlier pass cut counts after players found the aisles too crowded.
+
+Not changed: the Restock offer (merges stayed above 2.0 throughout), `ECONOMY.ownedWeight`, `STOCK.size`, the Checkout interest caps, and the Pressure Cooker ★3 (a ★3 Cooker appeared in 1 of 70 runs that ended with a Cooker; its runs win no more often than those with the other late weapons). The Vacuum's ★3 changed from a doubled pickup radius to a pulse that knocks the groceries at the cart back out; the lab models neither. The Frying Pan is the strongest starting weapon (41% to 45% against 25% for the Toaster and 15% to 18% for the Nail Gun). That gap was there before the ★3 behaviors and holds in runs without a ★3 Pan, so it is the base weapon, which this pass did not tune.
+
+### Pass 1: the difficulty curve (pool all, before the mechanics units)
+
 Goal: greedy bot, Day Shift, win rate 25-35%, no aisle above 35% deaths among the runs that reached it (aisle 4 at most 25%), later shifts harder. Metric: `npm run buildlab -- --runs 200 --seed S --starter all --shift N` (800 runs per cell), seeds 1 and 2 on Day, seed 1 on Evening and Late. The proxy was not touched. Every step, with its hypothesis and measurements, is in `balance-hillclimb.tsv`.
 
 These numbers, and every row of `balance-hillclimb.tsv`, were measured on the proxy before the fixes in "The combat proxy" (hook-spawned effects, Punch Card, Tough regen) and before the partial combo credit in greedy placement.
