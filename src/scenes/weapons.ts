@@ -84,6 +84,8 @@ export class Arsenal implements PatternHost {
     s.tracker = newHitTracker(maxHits);
     s.homing = false;
     s.splash = null;
+    s.killBounce = false;
+    s.repop = 0;
     s.ricochet = key === 'proj_cap';
     s.spin = key === 'proj_toast' ? 9 : key === 'proj_receipt' ? 6 : key === 'proj_cap' ? 14 : 0;
     s.img.setTexture(key).setVisible(true).setAlpha(1).setScale(1).setRotation(key === 'proj_nail' || key.startsWith('proj_raybolt') ? a : 0).setPosition(x, y - 26);

@@ -12,7 +12,10 @@ export function boltFx(h: PatternHost, x: number, y: number, small: boolean): vo
   sc.fx.spark(x, y - 20, small ? 3 : 6, 0xf5bd45);
 }
 
-/** Microwave: strike the toughest enemy in range, splash around it, then chain on to `chain` more. */
+/**
+ * Microwave: strike the toughest enemy in range, splash around it, then chain on to `chain` more. With `killRecharge` (★3) a zap that knocks out
+ * an enemy it struck (the first target or a link's, not one only splashed) charges the next zap in `rechargeMult` of the cooldown.
+ */
 export const zap: Pattern = {
   id: 'zap',
   fire(h, w) {
@@ -26,6 +29,7 @@ export const zap: Pattern = {
     let target: PatternEnemy | null = pool.reduce((b, e) => (e.elite !== b.elite ? (e.elite ? e : b) : e.hp > b.hp ? e : b));
     const H = sc.hooks, hooked = H['pattern:zap'].length > 0;
     const links = st.chain + wetChainBonus(target.status, sc.time.now / 1000); // Wet: +1 link when the first target is wet (once per zap)
+    let knockedOut = false;
     for (let link = 0; target && link <= links; link++) {
       const t: PatternEnemy = target;
       boltFx(h, t.x, t.y, link > 0);
@@ -41,8 +45,10 @@ export const zap: Pattern = {
         if (zap) { zap.hits.push(e); zap.stage = 'hit'; zap.enemy = e; H.emit('pattern:zap', zap); zap.stage = 'before'; zap.enemy = undefined; } // Sparks Fly's stun roll
       }
       if (zap) { zap.stage = 'after'; H.emit('pattern:zap', zap); }
+      if (!t.alive) knockedOut = true;
       target = pickRicochetTarget(t, sc.enemies.filter((e) => e.alive && e.state !== 'spawn'), tracker.hits, 220);
     }
+    if (knockedOut && w.tune.killRecharge > 0) w.cd = st.cooldown * w.tune.rechargeMult; // the arsenal set the full cooldown before `fire`
     h.sound('zap');
   },
 };

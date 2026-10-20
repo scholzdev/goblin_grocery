@@ -1,7 +1,10 @@
 import { emitFire, origin } from './common';
 import type { Pattern } from './types';
 
-/** Fizz Cannon: bottle caps that bounce on to other enemies (the bounce itself is in `projectile.ts`). `count` caps fan out 0.2 rad apart. */
+/**
+ * Fizz Cannon: bottle caps that bounce on to other enemies (the bounce itself is in `projectile.ts`). `count` caps fan out 0.2 rad apart.
+ * With `killBounce` (★3) a cap's first knockout earns it one more bounce.
+ */
 export const ricochet: Pattern = {
   id: 'ricochet',
   fire(h, w, target) {
@@ -10,7 +13,8 @@ export const ricochet: Pattern = {
     for (let i = 0; i < st.count; i++) {
       const ai = a + (i - (st.count - 1) / 2) * 0.2;
       if (emitFire(h, st, o.x, o.y, ai, i === 0)) continue;
-      h.spawn('proj_cap', o.x, o.y, ai, st.projectileSpeed, st.range / st.projectileSpeed, st.damage, st, 1 + st.bounces + st.pierce);
+      const cap = h.spawn('proj_cap', o.x, o.y, ai, st.projectileSpeed, st.range / st.projectileSpeed, st.damage, st, 1 + st.bounces + st.pierce);
+      if (cap) cap.killBounce = w.tune.killBounce > 0;
     }
     h.sound('cap_ping', { rate: 0.8 });
   },

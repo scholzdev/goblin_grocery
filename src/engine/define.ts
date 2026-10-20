@@ -215,7 +215,11 @@ export type RuntimeHooks<T extends Tune = Tune> = RuntimeHookMap<T> & { order?: 
 // ---- text and rows ----------------------------------------------------------------------------------------------------
 
 /** Text may use `{key}` / `{key|fmt}` placeholders for any `tune` key (see engine/text.ts). */
-export interface ItemText { name: string; blurb: string; rules: string }
+export interface ItemText {
+  name: string; blurb: string; rules: string;
+  /** A weapon's ★3 behavior: one line `itemRules` appends to the rules from ★3 on (★1/★2 text stays without it). */
+  star3?: string;
+}
 export interface ComboText { name: string; short: string; summary: string; detail: string }
 /** `bonus[0..2]` = the L1/L2/L3 bonus line; placeholders resolve at that level. */
 export interface SetText { name: string; bonus: readonly [string, string, string] }

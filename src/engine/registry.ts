@@ -98,7 +98,8 @@ export function validateContent(files: Partial<ContentFiles>, opts: ValidateOpti
     if (c.sets?.[1] !== undefined && !(ELEMENTS as readonly string[]).includes(c.sets[1])) err(path, `sets[1] must be an element (${ELEMENTS.join(', ')})`);
     if ((c.kind === 'weapon') !== !!c.weapon) err(path, c.kind === 'weapon' ? 'a weapon needs a weapon definition' : 'only weapons have a weapon definition');
     checkTune(path, c.tune, !c.legendary);
-    checkTexts(path, c.text, ['name', 'blurb', 'rules'], c.tune);
+    const star3 = c.text?.en?.star3 !== undefined || c.text?.de?.star3 !== undefined;
+    checkTexts(path, c.text, star3 ? ['name', 'blurb', 'rules', 'star3'] : ['name', 'blurb', 'rules'], c.tune);
     try {
       for (const tier of [1, 2, 3]) {
         const shape = typeof c.shape === 'function' ? c.shape(tier) : c.shape;
