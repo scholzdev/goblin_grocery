@@ -70,7 +70,7 @@ type Reward =
   | { kind: 'starter'; starter: StarterId }
   | { kind: 'cart'; skin: CartSkin };
 
-/** A milestone reads the lifetime stats. A goal asks for something within one run: the best `measure` of any run (`Profile.goalBest`) has to reach `target`. */
+/** A milestone reads the lifetime stats. A goal asks for something within one run, and the best `measure` of any run (`Profile.goalBest`) has to reach `target`. */
 type Condition =
   | { type?: 'milestone'; check: (s: ProfileStats) => boolean; progress: (s: ProfileStats) => [number, number] }
   | { type: 'goal'; measure: (r: RunSummary) => number; target: number };

@@ -235,7 +235,7 @@ export const flow = {
       store.emit('run-end');
       return;
     }
-    // An overtime run was submitted and recorded at victory: only what came after it is added.
+    // An overtime run was submitted and recorded at victory, so only what came after it is added.
     const newBest = !s.overtime && submitRun({ score, wave: s.wave, won, date: new Date().toISOString().slice(0, 10) });
     const got = (s.overtime ? recordOvertime(s) : recordRun(s, won)).map((u) => u.id);
     const fresh = runSnap ? freshSince(runSnap) : emptyFresh();

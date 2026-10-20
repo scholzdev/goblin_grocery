@@ -110,7 +110,7 @@ export function noteEnemy(s: RunState, id: EnemyId, kill?: { elite: boolean }): 
   saveProfile();
 }
 
-/** [current, needed] toward an unlock: the lifetime stats for a milestone, the best run so far for a goal. */
+/** [current, needed] toward an unlock, from the lifetime stats for a milestone and from the best run so far for a goal. */
 export const unlockProgress = (u: Unlock): [number, number] =>
   u.type === 'goal' ? [Math.min(profile.goalBest[u.id] ?? 0, u.target), u.target] : u.progress(profile.stats);
 const isMet = (u: Unlock): boolean => (u.type === 'goal' ? (profile.goalBest[u.id] ?? 0) >= u.target : u.check(profile.stats));
@@ -152,7 +152,7 @@ export function recordRun(s: RunState, won: boolean): Unlock[] {
   s.counted = { kills: s.stats.kills, coins: s.stats.coinsEarned };
   st.bestWave = Math.max(st.bestWave, won ? BOSS_WAVE : s.wave);
   // route[i] is the department of aisle i+1; the first `wavesCleared` aisles that were played (not skipped by a Staff Only door) were cleared.
-  // The boss aisle is counted from `won` below: victory sets wavesCleared to BOSS_WAVE - 1 even when a skip left fewer aisles before it.
+  // The boss aisle is counted from `won` below. Victory sets wavesCleared to BOSS_WAVE - 1 even when a skip left fewer aisles before it.
   s.route.map((d, i) => ({ d, m: s.mods[i], aisle: i + 1 })).filter((a) => a.d !== 'boss' && !s.skippedAisles?.includes(a.aisle)).slice(0, s.stats.wavesCleared)
     .forEach(({ d, m }) => countClear(d, m));
   if (won) {
@@ -165,12 +165,12 @@ export function recordRun(s: RunState, won: boolean): Unlock[] {
 /** Shift `n` (0-based) is open for a starter once the previous shift was won with it. */
 export const shiftUnlocked = (starter: string, n: number): boolean => n <= 0 || n < SHIFTS.length && (profile.stats.bestShift[starter] ?? -1) >= n - 1;
 
-/** Overtime defeat: the run was recorded at victory, so this adds only the kills, coins and aisle clears since, plus the overtime best. */
+/** Overtime defeat. The run was recorded at victory, so this adds only the kills, coins and aisle clears since, plus the overtime best. */
 export function recordOvertime(s: RunState): Unlock[] {
   const st = profile.stats, since = s.counted!;
   st.kills += s.stats.kills - since.kills;
   st.coins += s.stats.coinsEarned - since.coins;
-  // Aisles BOSS_WAVE + 1 .. wave - 1 were cleared: overtime offers neither the boss door nor Staff Only.
+  // Aisles BOSS_WAVE + 1 .. wave - 1 were cleared, since overtime offers neither the boss door nor Staff Only.
   for (let i = BOSS_WAVE; i < s.wave - 1; i++) countClear(s.route[i], s.mods[i]);
   st.bestOvertime = Math.max(st.bestOvertime, s.wave - BOSS_WAVE - 1);
   return evaluateUnlocks(runSummary(s));
