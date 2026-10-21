@@ -161,11 +161,15 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 #title .info h4 { font-family: var(--display); font-weight: 400; font-size: 22px; margin: 0 0 6px; }
 #title .info .best { font-family: var(--display); font-size: 18px; color: var(--coral-deep); }
 
-.endcard { width: 460px; padding: 26px 28px 22px; font-size: 16px; }
+.endcard { width: 460px; padding: 26px 28px 22px; font-size: 16px; display: flex; flex-direction: column; max-height: calc(var(--uh, 800px) - 48px); }
 .endcard h2 { text-align: center; }
+.endcard .endbody { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--lavender) transparent; margin-right: -12px; padding: 0 12px 14px 0;
+  -webkit-mask-image: linear-gradient(#000 calc(100% - 14px), transparent); mask-image: linear-gradient(#000 calc(100% - 14px), transparent); }
+.endcard .endscore { display: flex; align-items: center; justify-content: center; gap: 16px; }
 .endcard.cols { width: 860px; padding-top: 20px; padding-bottom: 16px; }
 .endcard.cols .endbody { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; align-items: start; }
 .endcard.cols .endr .cut { margin-top: 0; }
+.endcard .endr > .dash:first-child { display: none; }
 .endcard.cols .icons img { width: 34px; height: 34px; }
 .endcard .line { display: flex; justify-content: space-between; font-weight: 800; padding: 2px 0; }
 .endcard .line span:last-child { font-family: var(--display); }
@@ -190,17 +194,18 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .endcard .dlines .line { padding: 0; }
 .endcard .killer span:last-child { color: var(--coral); text-align: right; margin-left: 8px; }
 .endcard .score { font-family: var(--display); font-size: 40px; text-align: center; }
-.endcard .newbest { display: block; width: max-content; margin: 0 auto; font-size: 18px; padding: 4px 14px 1px; transform: rotate(-3deg); }
+.endcard .newbest { display: block; width: max-content; font-size: 18px; padding: 4px 14px 1px; transform: rotate(-3deg); }
 
 /* ───────────── shop ───────────── */
 #shop { position: absolute; inset: 0; background: var(--mint); display: block;
   background-image: linear-gradient(45deg, rgba(255, 242, 213, 0.45) 25%, transparent 25%, transparent 75%, rgba(255, 242, 213, 0.45) 75%),
     linear-gradient(45deg, rgba(255, 242, 213, 0.45) 25%, transparent 25%, transparent 75%, rgba(255, 242, 213, 0.45) 75%);
   background-size: 96px 96px; background-position: 0 0, 48px 48px; user-select: none; }
-#shop .col-left { position: absolute; left: 24px; top: 30px; max-height: calc(100% - 66px); width: 290px; padding: 18px 18px 14px; display: flex; flex-direction: column; }
+#shop .col-left { position: absolute; left: 24px; top: 30px; max-height: calc(100% - 66px - var(--setbonus-h, 0px)); width: 290px; padding: 18px 18px 14px; display: flex; flex-direction: column; }
 #shop .col-left h3 { font-family: var(--display); font-weight: 400; font-size: 28px; margin: 0; text-align: center; }
 #shop .col-left .sub { text-align: center; font-weight: 800; font-size: 13px; letter-spacing: 0.1em; opacity: 0.7; }
-#shop .lines { flex: 0 1 auto; min-height: 48px; overflow: hidden; margin-bottom: 10px; font-size: 15px; font-weight: 700; }
+/* The ledger keeps whole rows: the set coupons below give up the height first, and a very long ledger scrolls. */
+#shop .lines { flex: none; max-height: 150px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: rgba(48, 32, 63, 0.35) transparent; margin-bottom: 10px; font-size: 15px; font-weight: 700; }
 #shop .lines .line { display: flex; justify-content: space-between; gap: 8px; padding: 1px 0; }
 #shop .lines .line.neg span:last-child { color: var(--coral-deep); }
 #shop .lines .line span:last-child { font-family: var(--display); font-weight: 400; }
@@ -509,7 +514,8 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .codex-card .nm { font: 400 22px var(--display); margin-top: 4px; }
 .codex-card .eff { font-weight: 800; color: var(--coral-deep); }
 .codex-card .det { font-size: 13px; font-weight: 700; opacity: 0.8; margin-top: 2px; line-height: 1.3; }
-.codex-items { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; overflow-y: auto; padding: 2px; }
+/* max-content rows: in this height-capped scroller an auto row stops at the tile's min-height and squeezes two-line goal tiles */
+.codex-items { display: grid; grid-template-columns: repeat(5, 1fr); grid-auto-rows: max-content; gap: 8px; overflow-y: auto; padding: 2px; }
 .codex-item { border: 3px solid var(--plum); border-radius: 10px; padding: 6px; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 12px; font-weight: 800; text-align: center; background: var(--cream); min-height: 112px; }
 .codex-item img { width: 56px; height: 56px; }
 .codex-item.legendary { border-color: var(--gold-deep); background: #ffe7a8; }
@@ -564,18 +570,18 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 @keyframes pop-in { 0% { opacity: 0; transform: translateX(-50%) scale(0.6); } 10% { opacity: 1; transform: translateX(-50%) scale(1.06); } 18% { transform: translateX(-50%) scale(1); } 85% { opacity: 1; } 100% { opacity: 0; transform: translateX(-50%) translateY(-16px); } }
 
 /* set bonus card: one compact slip under the receipt, rows are added while it shows */
-.setcard { position: absolute; left: 24px; top: 520px; width: 290px; z-index: 60; background: var(--gold); border: 3px solid var(--plum); border-radius: 12px; padding: 6px 10px 8px;
-  box-shadow: 0 4px 0 var(--plum); animation: setcard-in 0.35s ease both; pointer-events: none; transform-origin: 50% 0; }
-.setcard.out { animation: setcard-out 0.35s ease forwards; }
-.setcard small { display: block; font-weight: 800; letter-spacing: 0.08em; font-size: 11px; opacity: 0.75; }
-.setcard .srow { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
-.setcard .srow > svg, .setcard .srow > img { flex: none; }
-.setcard .srow b { display: block; font: 400 17px var(--display); line-height: 1.05; }
-.setcard .srow span { display: block; font-size: 11px; font-weight: 800; line-height: 1.2; opacity: 0.8; }
-@keyframes setcard-in { 0% { opacity: 0; transform: scale(0.6); } 60% { opacity: 1; transform: scale(1.06); } 100% { opacity: 1; transform: scale(1); } }
-@keyframes setcard-out { to { opacity: 0; transform: translateY(-10px); } }
-@media (prefers-reduced-motion: reduce) { .setcard { animation: none; } }
-:root.reduced-motion .setcard { animation: none; }
+.setbonus { position: absolute; left: 24px; top: 520px; width: 290px; z-index: 60; background: var(--gold); border: 3px solid var(--plum); border-radius: 12px; padding: 6px 10px 8px;
+  box-shadow: 0 4px 0 var(--plum); animation: setbonus-in 0.35s ease both; pointer-events: none; transform-origin: 50% 0; }
+.setbonus.out { animation: setbonus-out 0.35s ease forwards; }
+.setbonus small { display: block; font-weight: 800; letter-spacing: 0.08em; font-size: 11px; opacity: 0.75; }
+.setbonus .srow { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
+.setbonus .srow > svg, .setbonus .srow > img { flex: none; }
+.setbonus .srow b { display: block; font: 400 17px var(--display); line-height: 1.05; }
+.setbonus .srow span { display: block; font-size: 11px; font-weight: 800; line-height: 1.2; opacity: 0.8; }
+@keyframes setbonus-in { 0% { opacity: 0; transform: scale(0.6); } 60% { opacity: 1; transform: scale(1.06); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes setbonus-out { to { opacity: 0; transform: translateY(-10px); } }
+@media (prefers-reduced-motion: reduce) { .setbonus { animation: none; } }
+:root.reduced-motion .setbonus { animation: none; }
 
 .combo.empty, .combo.empty > div { height: auto; overflow: visible; -webkit-line-clamp: unset; white-space: normal; text-overflow: clip; }
 .combo.empty { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; gap: 1px; text-align: center; padding: 6px 10px; font-size: 13px; border-style: dashed; }
@@ -625,9 +631,11 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .inspector .chips .tags { display: contents; }
 .inspector .chips .tagchip { font-size: 11px; padding: 2px 8px; }
 
-/* Victory: Overtime gets its own full-width row above Shop again / Title */
+/* Victory: Overtime gets its own full-width line above Shop again / Title, and shares the line on the wide two-column receipt */
 .endcard .row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
-.endcard .btn.overtime { flex: 1; max-width: 420px; }
+.endcard .btn.overtime { flex: 1 1 100%; max-width: 420px; }
+.endcard.cols .btn.overtime { flex: 1 1 auto; }
+.endcard.cols .row .btn { padding-left: 14px; padding-right: 14px; }
 
 /* Test Lab */
 .settings select, .settings input[type='number'] { grid-column: span 2; font: inherit; padding: 4px 6px; border: 2px solid var(--plum); border-radius: 8px; background: var(--paper); color: var(--plum); }
@@ -926,7 +934,7 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .stockroom h2 { font-size: 40px; margin: 0; color: var(--gold); font-weight: 400; }
 .stockroom p { margin: 2px 0 14px; font-weight: 800; }
 .stockroom .stock-cards { display: flex; gap: 22px; justify-content: center; }
-.stockroom .card { width: 170px; color: var(--plum); }
+.stockroom .card { width: 170px; height: auto; min-height: 180px; color: var(--plum); }
 .stockroom .card .key { position: absolute; left: 8px; top: 6px; font: 400 18px var(--display); opacity: 0.6; }
 .stockroom .card .kind { font-size: 12px; font-weight: 800; opacity: 0.75; margin-top: 4px; }
 .stockroom .card .free { margin-top: auto; font: 400 20px var(--display); color: var(--green-deep); }

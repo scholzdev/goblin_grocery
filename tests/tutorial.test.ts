@@ -3,7 +3,7 @@ import { advance, freshProgress, pick, skipAll, STEPS, type Progress, type Snap 
 
 const snap = (o: Partial<Snap> = {}): Snap => ({
   lab: false, phase: 'combat', shown: null, ms: 0, kills: 0, moved: false, dashed: false, moneyUp: false,
-  bought: false, supported: false, mergePair: false, setActive: false, boss: false, flags: [], ...o,
+  bought: false, supported: false, mergePair: false, setActive: false, boss: false, flags: [], dialog: false, ...o,
 });
 const show = (p: Progress, s: Snap) => pick(p, s)?.id;
 
@@ -68,6 +68,14 @@ describe('tutorial step machine', () => {
     expect(pick(p, snap({ lab: true }))).toBeNull();
     expect(advance(p, snap({ lab: true, moved: true, phase: 'shop' }))).toBe(p);
     expect(pick(p, snap({ phase: 'title' }))).toBeNull();
+  });
+
+  it('a dialog over the arena hides the callout and holds its step until the dialog closes', () => {
+    const p = { done: false, seen: ['move', 'weapons', 'dash'] };
+    expect(pick(p, snap({ dialog: true, phase: 'checkout' })), 'no bubble over the Boss Loot crates').toBeNull();
+    expect(pick({ done: true, seen: [...STEPS.map((e) => e.id)] }, snap({ dialog: true, boss: true })), 'no tip either').toBeNull();
+    expect(advance(p, snap({ dialog: true, shown: 'coins', ms: 9000, moneyUp: true })), 'a hidden step is not used up').toBe(p);
+    expect(show(p, snap()), 'the same step is back once the dialog closes').toBe('coins');
   });
 
   it('skip hides everything; replay (fresh) starts over', () => {
