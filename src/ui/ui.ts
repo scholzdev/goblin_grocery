@@ -207,7 +207,7 @@ function setBonusCard(ups: { id: SetId; lv: number }[]): void {
     card.el.append(row);
   }
   card.el.classList.remove('out');
-  // Sits under the receipt column, clear of the cart grid. A long receipt gives up the room (its set coupons scroll), so the card never covers it.
+  // Sits under the receipt column, clear of the cart grid; a long receipt shrinks to make room (its set coupons scroll).
   ui.style.setProperty('--setbonus-h', `${card.el.offsetHeight + 12}px`);
   const rcpt = document.querySelector('#shop .col-left')?.getBoundingClientRect();
   const k = ui.getBoundingClientRect(), sc = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--s')) || 1;
@@ -560,8 +560,7 @@ export function endHtml(): string {
   const dmg = damageBreakdownHtml(s.stats, sourceNames(s.inventory), settings.damageColors), taken = damageTakenHtml(s.stats, won);
   const mins = Math.floor(s.stats.timeSeconds / 60), secs = Math.floor(s.stats.timeSeconds % 60);
   const fresh = res ? freshHtml(res) : '';
-  // The side column leads with what the outcome is about (the unlocks on a win, the hits that ended the run on a defeat).
-  // The damage breakdown joins it unless unlocks fill it, so neither column runs much longer than the other.
+  // The side column leads with the outcome (unlocks on a win, the hits that ended the run on a defeat) and takes the damage breakdown when no unlocks fill it.
   const side = (won ? fresh + taken : taken + fresh) + (fresh ? '' : dmg);
   const buttons = s.lab
     ? `<button class="btn coral" data-act="lab-back" data-focus>${t('backToLab')}</button><button class="btn" data-act="quit">${t('titleBtn')}</button>`

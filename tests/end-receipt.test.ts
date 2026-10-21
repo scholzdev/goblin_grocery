@@ -51,8 +51,8 @@ describe('the run-end receipt', () => {
   it('a defeat leads the side column with the hit that ended the run, a win with the unlocks', () => {
     run('defeat');
     const lost = parts(endHtml()).body;
+    expect(lost.indexOf('class="endr"'), 'a defeat has a side column').toBeGreaterThan(-1);
     expect(lost.indexOf('Wiped out by'), 'the killing hit is in the side column').toBeGreaterThan(lost.indexOf('class="endr"'));
-    expect(lost.indexOf('class="endr"')).toBeGreaterThan(-1);
     run('victory');
     const won = parts(endHtml()).body;
     const side = won.slice(won.indexOf('class="endr"'));

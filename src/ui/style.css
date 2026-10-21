@@ -514,7 +514,7 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .codex-card .nm { font: 400 22px var(--display); margin-top: 4px; }
 .codex-card .eff { font-weight: 800; color: var(--coral-deep); }
 .codex-card .det { font-size: 13px; font-weight: 700; opacity: 0.8; margin-top: 2px; line-height: 1.3; }
-/* max-content rows: in the height-capped scroller an auto row stops at the tile's min-height and squeezes a two-line goal tile's bar and count */
+/* max-content rows: in this height-capped scroller an auto row stops at the tile's min-height and squeezes two-line goal tiles */
 .codex-items { display: grid; grid-template-columns: repeat(5, 1fr); grid-auto-rows: max-content; gap: 8px; overflow-y: auto; padding: 2px; }
 .codex-item { border: 3px solid var(--plum); border-radius: 10px; padding: 6px; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 12px; font-weight: 800; text-align: center; background: var(--cream); min-height: 112px; }
 .codex-item img { width: 56px; height: 56px; }
