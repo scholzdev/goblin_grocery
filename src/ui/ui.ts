@@ -209,7 +209,7 @@ function setBonusCard(ups: { id: SetId; lv: number }[]): void {
     card.el.append(row);
   }
   card.el.classList.remove('out');
-  // Sits under the receipt column, clear of the cart grid; a long receipt shrinks to make room (its set coupons scroll).
+  // Sits under the receipt column, clear of the cart grid; the receipt folds its ledger and footer to make room (the coupons scroll).
   ui.style.setProperty('--setbonus-h', `${card.el.offsetHeight + 12}px`);
   const rcpt = document.querySelector('#shop .col-left')?.getBoundingClientRect();
   const k = ui.getBoundingClientRect(), sc = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--s')) || 1;

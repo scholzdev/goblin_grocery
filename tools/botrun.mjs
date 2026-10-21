@@ -1,5 +1,6 @@
 // DEV bot that kites enemies like a cautious human, auto-shops with a simple recipe-aware layout.
 // Usage: node tools/botrun.mjs [url] [runs=1] [build=default|toast]  (toast: follow Toast Stack target list; default: buy everything)
+// BOT_SMOKE=1 keeps the cart alive so runs reach the mini-boss loot, the boss and the end screens (crash smoke only; default deaths are the balance signal).
 import { chromium } from 'playwright';
 import { devUrl } from './lib/dev.mjs';
 const url = await devUrl(process.argv[2]);
@@ -7,6 +8,8 @@ const runs = Number(process.argv[3] ?? 1);
 const build = process.argv[4] ?? 'default';
 const BUILDS = { toast: ['toaster', 'fuel', 'fan', 'hotsauce', 'battery', 'multipack', 'doublebag'] };
 const targets = BUILDS[build] ?? null;
+const smoke = process.env.BOT_SMOKE === '1';
+if (smoke) console.log('smoke: cart HP held full; crash smoke only, not balance numbers');
 const browser = await chromium.launch({ channel: 'chrome' });
 for (let r = 0; r < runs; r++) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
@@ -16,10 +19,17 @@ for (let r = 0; r < runs; r++) {
   await page.goto(url);
   await page.waitForSelector('#title:not(.hidden)');
   await page.click('[data-act="play"]'); await page.click('[data-starter="toaster"]'); await page.click('[data-act="start-run"]');
-  await page.evaluate(() => {
+  await page.evaluate((smoke) => {
     setInterval(() => {
       const a = window.__arena; const s = window.__gg.store.state;
       if (!a || s.phase !== 'combat' || !a.player) return;
+      if (smoke) {
+        if (!a.__smoked) { // hurtPlayer is the single damage entry; clamped so no hit can reach 0 HP
+          a.__smoked = true; const hurt = a.hurtPlayer;
+          a.hurtPlayer = function (dmg, src) { return hurt.call(this, Math.max(0, Math.min(dmg, window.__gg.store.state.hp - 1)), src); };
+        }
+        s.hp = s.build.maxHp;
+      }
       const p = a.player; let vx = 0, vy = 0;
       for (const e of a.enemies) {
         if (!e.alive) continue;
@@ -37,13 +47,19 @@ for (let r = 0; r < runs; r++) {
       const near = a.enemies.some((e) => e.alive && a.playerNear(e.x, e.y).d < 70);
       a.devInput = l > 0.05 ? { x: vx / l, y: vy / l, shove: near } : { x: 0, y: 0, shove: near };
     }, 80);
-  });
+  }, smoke);
   const st = () => page.evaluate(() => { const s = window.__gg.store.state; return { phase: s.phase, wave: s.wave, hp: Math.round(s.hp), maxHp: s.build.maxHp, money: s.money, kills: s.stats.kills, rec: s.build.recipes.map((x) => x.id).join('+'), cells: s.inventory.placed.reduce((n, i) => n + (i.type==='pan'||i.type==='vacuum'?(i.type==='pan'?3:4):(['toaster','nailgun','fan','fuel','ice','lunchbox'].includes(i.type)?2:1)), 0), shelf: s.inventory.shelf.filter(Boolean).length, lv: s.shopLevel, tiers: s.inventory.placed.map((i) => i.type + (i.tier > 1 ? '*' + i.tier : '')).join(' ') }; });
   const t0 = Date.now();
   let last = '', finished = false;
   while (Date.now() - t0 < 15 * 60_000) {
     const s = await st();
     if (s.phase === 'victory' || s.phase === 'defeat') { console.log(`run ${r}: ${s.phase} wave=${s.wave} hp=${s.hp} kills=${s.kills} ${s.rec} [${s.tiers}] time=${Math.round((Date.now() - t0) / 1000)}s`); finished = true; break; }
+    const card = page.locator('.stockroom [data-i="0"]'); // pick-one dialog (stockroom aisle, boss crates); the phase stays 'combat' until a pick
+    if (await card.isVisible()) {
+      console.log('  crate:', await card.locator('.nm').textContent());
+      await card.click();
+      continue;
+    }
     if (s.phase === 'route') {
       const doors = await page.$$('[data-act="door"]');
       let pick = doors[Math.floor(Math.random() * doors.length)];

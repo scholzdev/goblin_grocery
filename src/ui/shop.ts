@@ -336,7 +336,7 @@ function render(): void {
       <button class="btn small gold" data-act="repair" style="margin-top:10px" ${shop.repairUsed || s.hp >= s.build.maxHp || s.money < rcost ? 'disabled' : ''}>
         ${shop.repairUsed ? t('repaired') : t('repairBtn', { hp: ECONOMY.repairHp }) + costPill(rcost, s.money >= rcost)}</button>
       <div class="sets">${setsHtml()}</div>
-      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:12px"><div class="barcode"></div><small style="font-weight:800;text-align:center">${t('thanks')}</small></div>
+      <div class="rcpt-foot"><div class="barcode"></div><small style="font-weight:800;text-align:center">${t('thanks')}</small></div>
       <div class="shop-hint">${t('idleHover')}</div>
     </div>
     <div class="col-mid">

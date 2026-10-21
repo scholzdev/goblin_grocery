@@ -171,7 +171,7 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .endcard.cols .endr .cut { margin-top: 0; }
 .endcard .endr > .dash:first-child { display: none; }
 .endcard.cols .icons img { width: 34px; height: 34px; }
-.endcard .line { display: flex; justify-content: space-between; font-weight: 800; padding: 2px 0; }
+.endcard .line { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-weight: 800; padding: 2px 0; }
 .endcard .line span:last-child { font-family: var(--display); }
 .endcard .icons { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin: 6px 0; }
 .endcard .icons img { width: 40px; height: 40px; }
@@ -192,6 +192,8 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .endcard .dleg i { display: inline-block; width: 10px; height: 10px; border: 2px solid var(--plum); border-radius: 50%; margin-right: 4px; vertical-align: -1px; box-sizing: content-box; }
 .endcard .dlines { margin-top: 2px; font-size: 13px; }
 .endcard .dlines .line { padding: 0; }
+.endcard .dlines .line.rx { display: block; margin-top: 3px; }
+.endcard .dlines .line.rx span:last-child { display: block; margin-top: 2px; font: 700 13px/1.35 var(--ui); opacity: 0.85; }
 .endcard .killer span:last-child { color: var(--coral); text-align: right; margin-left: 8px; }
 .endcard .score { font-family: var(--display); font-size: 40px; text-align: center; }
 .endcard .newbest { display: block; width: max-content; font-size: 18px; padding: 4px 14px 1px; transform: rotate(-3deg); }
@@ -204,13 +206,15 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 #shop .col-left { position: absolute; left: 24px; top: 30px; max-height: calc(100% - 66px - var(--setbonus-h, 0px)); width: 290px; padding: 18px 18px 14px; display: flex; flex-direction: column; }
 #shop .col-left h3 { font-family: var(--display); font-weight: 400; font-size: 28px; margin: 0; text-align: center; }
 #shop .col-left .sub { text-align: center; font-weight: 800; font-size: 13px; letter-spacing: 0.1em; opacity: 0.7; }
-/* The ledger keeps whole rows: the set coupons below give up the height first, and a very long ledger scrolls. */
+#shop .rcpt-foot { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 12px; }
+/* The ledger keeps whole rows and a long ledger scrolls; while the set bonus card is docked under the receipt, the ledger and the footer fold away so the set coupons keep their room. */
 #shop .lines { flex: none; max-height: 150px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: rgba(48, 32, 63, 0.35) transparent; margin-bottom: 10px; font-size: 15px; font-weight: 700; }
-#shop .lines .line { display: flex; justify-content: space-between; gap: 8px; padding: 1px 0; }
+#ui-root:has(> .setbonus) #shop :is(.lines, .lines + .dash, .rcpt-foot, .shop-hint) { display: none; }
+#shop .lines .line { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 1px 0; }
 #shop .lines .line.neg span:last-child { color: var(--coral-deep); }
 #shop .lines .line span:last-child { font-family: var(--display); font-weight: 400; }
 #shop .total { display: flex; justify-content: space-between; align-items: center; font-family: var(--display); font-size: 30px; }
-#shop .interest-next { display: flex; justify-content: space-between; gap: 8px; font-size: 15px; font-weight: 700; }
+#shop .interest-next { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 15px; font-weight: 700; }
 #shop .interest-next span:last-child { font-family: var(--display); font-weight: 400; }
 #shop .hpbox { display: flex; align-items: center; gap: 10px; font-weight: 800; margin-top: 8px; }
 #shop .hpbox .hpbar { flex: 1; height: 16px; border: 3px solid var(--plum); border-radius: 8px; background: #e9d9f1; overflow: hidden; }
@@ -936,7 +940,7 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .stockroom .stock-cards { display: flex; gap: 22px; justify-content: center; }
 .stockroom .card { width: 170px; height: auto; min-height: 180px; color: var(--plum); }
 .stockroom .card .key { position: absolute; left: 8px; top: 6px; font: 400 18px var(--display); opacity: 0.6; }
-.stockroom .card .kind { font-size: 12px; font-weight: 800; opacity: 0.75; margin-top: 4px; }
+.stockroom .card .kind { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; font-weight: 800; opacity: 0.75; margin: 4px 0 8px; }
 .stockroom .card .free { margin-top: auto; font: 400 20px var(--display); color: var(--green-deep); }
 .door.mod.stockroom { border-top-color: var(--gold); } .door.mod.coldRoom { border-top-color: #4aa8d8; }
 .door.mod.vipAisle { border-color: var(--gold-deep); background: linear-gradient(#ffe9a8, var(--paper) 45%); }
