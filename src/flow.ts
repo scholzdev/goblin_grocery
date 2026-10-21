@@ -69,6 +69,11 @@ export const flow = {
     store.changed();
   },
 
+  /** Pause menu Restart and the end card's Again: the same loadout from aisle 1. A daily stays the daily (its seed, no coupon spent). */
+  restartRun(): void {
+    this.startRun(undefined, undefined, undefined, undefined, { daily: !!store.state.daily });
+  },
+
   /** Test Lab: park the run in the shop before the chosen aisle; `restore` brings back the loadout of the last attempt (Reset starts clean). */
   startLab(o: LabOpts, restore = false): void {
     const seed = (Date.now() ^ (Math.random() * 1e9)) >>> 0;
@@ -206,11 +211,7 @@ export const flow = {
   },
 
   victory(): void {
-    const s = store.state;
-    s.phase = 'victory';
-    s.stats.bossDefeated = true;
-    s.stats.wavesCleared = BOSS_WAVE - 1;
-    this.finish(s, true);
+    this.finish(store.state, true);
   },
 
   /** Victory card → keep the same run going; the boss aisle's checkout/shop flow runs as after any wave. */
@@ -223,12 +224,18 @@ export const flow = {
   },
 
   defeat(): void {
-    const s = store.state;
-    s.phase = 'defeat';
-    this.finish(s, false);
+    this.finish(store.state, false);
   },
 
+  /** Ends the run once: `lastResult` is set here and cleared when a run or its overtime starts, so a boss that dies to a burn tick after the goblin fell adds no second, winning result.
+   * Not keyed on `phase`, which `damagePlayer` already set to 'defeat'. */
   finish(s: RunState, won: boolean): void {
+    if (this.lastResult) return;
+    s.phase = won ? 'victory' : 'defeat';
+    if (won) {
+      s.stats.bossDefeated = true;
+      s.stats.wavesCleared = BOSS_WAVE - 1;
+    }
     stopLoops();
     const score = scoreOf(s, won);
     if (s.lab || s.bot) { // lab and bot runs never touch the profile or the best receipts

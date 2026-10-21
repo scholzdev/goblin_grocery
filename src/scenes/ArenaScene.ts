@@ -828,7 +828,7 @@ export class ArenaScene extends Phaser.Scene {
       onComplete: () => { e.sprite.destroy(); e.shadow.destroy(); this.enemies = this.enemies.filter((x) => x !== e); },
     });
     this.tweens.add({ targets: e.shadow, alpha: 0, duration: 240 });
-    if (!credit) return;
+    if (!credit) { this.dropLoot(e); return; } // checkout and boss ends kill without credit; stolen coins still come back
     play('enemy_death', { rate: 0.9 + Math.random() * 0.25 });
     const s = store.state;
     s.stats.kills++;
@@ -851,8 +851,7 @@ export class ArenaScene extends Phaser.Scene {
     }
     // onKill hooks (Coupon Book ...): after the regular coins and bread, before the Pickpocket loot, so a hook that rolls keeps its rng draw position.
     if (this.hooks.onKill.length) this.hooks.emit('onKill', { enemy: e, hit });
-    // Pickpocket Elites cough up everything they absorbed.
-    for (let i = 0; i < e.loot; i++) this.dropCoin(e.x, e.y, t('coinStolen'));
+    this.dropLoot(e);
     // Splitter Elites leave two small non-elite copies.
     if (e.affix === 'splitter' && !this.ending) {
       for (let i = 0; i < AFFIX.splitter.count; i++) {
@@ -889,6 +888,11 @@ export class ArenaScene extends Phaser.Scene {
   /** Dev bot: the coins and bread crumbs on the floor (including the ones already flying to the player). */
   pickups(): { x: number; y: number; bread: boolean; pull: boolean }[] {
     return this.coins.filter((c) => c.active);
+  }
+
+  /** Pickpocket Elites cough up everything they absorbed. */
+  private dropLoot(e: Enemy): void {
+    for (let i = 0; i < e.loot; i++) this.dropCoin(e.x, e.y, t('coinStolen'));
   }
 
   /** Removes one loose floor coin within `r` of the point; true if one was taken. */
@@ -1391,6 +1395,7 @@ export class ArenaScene extends Phaser.Scene {
   }
 
   private bossDefeated(): void {
+    if (this.ending) return; // the goblin fell first and a burn tick finished the boss: defeat wins
     this.hazards.stop();
     this.gum.clear();
     this.ending = 'victory';
@@ -1421,6 +1426,7 @@ export class ArenaScene extends Phaser.Scene {
     this.hazards.stop();
     this.aisleEvent.stop();
     this.gum.clear();
+    this.arsenal.clearAll(true); // shots, fire pools and pots in flight would keep hitting
     const p = this.player;
     p.dead = true;
     this.ending = 'defeat';

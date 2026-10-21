@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEADZONE, clampLength, dpadVector, makeRepeater, mergeVectors, pickNext, pressedEdges, stickDir, stickVector } from '../src/input/pad-core';
+import { DEADZONE, clampLength, dpadVector, makeRepeater, mergeVectors, padMode, pickNext, pressedEdges, stickDir, stickVector } from '../src/input/pad-core';
 
 describe('gamepad stick mapping', () => {
   it('ignores drift inside the deadzone', () => {
@@ -79,5 +79,19 @@ describe('gamepad menu helpers', () => {
     expect(pickNext(wide, 0, 'down')).toBe(1);
     expect(pickNext(wide, 0, 'right')).toBe(1); // outside the cone but the only thing to the right
     expect(pickNext(wide, 0, 'left')).toBe(-1);
+  });
+});
+
+describe('what the pad drives', () => {
+  it('a pick dialog over the fight (stockroom, mini-boss crates) takes the pad like a menu', () => {
+    expect(padMode('combat', false, false)).toBe('combat');
+    expect(padMode('combat', false, true)).toBe('menu');
+  });
+
+  it('the shop keeps its cursor and a pause is a menu, dialog or not', () => {
+    expect(padMode('shop', false, false)).toBe('shop');
+    expect(padMode('combat', true, false)).toBe('menu');
+    expect(padMode('combat', true, true)).toBe('menu');
+    expect(padMode('checkout', false, false)).toBe('combat');
   });
 });

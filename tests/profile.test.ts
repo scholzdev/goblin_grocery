@@ -5,7 +5,7 @@ vi.hoisted(() => { (globalThis as { location?: unknown }).location = { search: '
 
 import { flow } from '../src/flow';
 import { store } from '../src/state/store';
-import { nearUnlocks, profile, unlockProgress, unlockedItems } from '../src/state/profile';
+import { dailySeed, nearUnlocks, profile, unlockProgress, unlockedItems } from '../src/state/profile';
 import { newUid, recomputeBuild } from '../src/state/run';
 import { BOSS_WAVE } from '../src/data/waves';
 import { UNLOCKS } from '../src/data/unlocks';
@@ -86,6 +86,42 @@ describe('overtime reaches the lifetime stats', () => {
     expect(profile.stats.bestOvertime).toBe(1);
     expect(profile.unlocked).toContain('spray');
     expect(flow.lastResult!.fresh.unlocks).toContain('spray');
+  });
+});
+
+describe('a run ends once', () => {
+  it('a boss that dies after the goblin (a burn tick, a shot in flight) does not turn the loss into a second, winning run', () => {
+    const s = atBoss();
+    s.stats.kills = 40;
+    flow.defeat();
+    const lost = flow.lastResult;
+    flow.victory();
+
+    expect([profile.stats.runs, profile.stats.wins, profile.stats.losses]).toEqual([1, 0, 1]);
+    expect(profile.stats.kills, 'kills counted once').toBe(40);
+    expect(profile.stats.deptClears.boss, 'no boss clear').toBeUndefined();
+    expect(profile.stats.bestShift.toaster, 'no shift progress').toBeUndefined();
+    expect([s.phase, !!s.stats.bossDefeated], 'the end card stays a defeat').toEqual(['defeat', false]);
+    expect(flow.lastResult).toBe(lost);
+  });
+});
+
+describe('restarting a run (pause menu Restart, end card Again)', () => {
+  it('keeps a daily run the daily: its seed, its flag, and no coupon spent', () => {
+    flow.init(fakeGame as never);
+    profile.coupons = 1;
+    flow.startRun(undefined, undefined, undefined, undefined, { daily: true });
+    flow.restartRun();
+    expect([store.state.daily, store.state.seed]).toEqual([true, dailySeed()]);
+    expect([profile.coupons, !!store.state.voucher]).toEqual([1, false]);
+  });
+
+  it('keeps a normal run normal, with the same loadout', () => {
+    flow.init(fakeGame as never);
+    flow.startRun('pan', 0, 'nailgun', 'bakery');
+    flow.restartRun();
+    const s = store.state;
+    expect([!!s.daily, s.starter, s.weapon, s.theme]).toEqual([false, 'pan', 'nailgun', 'bakery']);
   });
 });
 
