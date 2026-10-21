@@ -191,7 +191,7 @@ function setBonusCard(ups: { id: SetId; lv: number }[]): void {
   if (document.querySelector('#labbench.in-shop:not(.hidden)')) { play('upgrade'); return; } // the lab bench lists the sets itself, and sits where this card would
   if (!setCard) {
     const el = document.createElement('div');
-    el.className = 'setcard';
+    el.className = 'setbonus';
     el.innerHTML = `<small>${t('setUp')}</small>`;
     ui.append(el);
     setCard = { el, timer: 0 };
