@@ -1391,6 +1391,7 @@ export class ArenaScene extends Phaser.Scene {
   }
 
   private bossDefeated(): void {
+    if (this.ending) return; // the goblin fell first and a burn tick finished the boss: defeat wins
     this.hazards.stop();
     this.gum.clear();
     this.ending = 'victory';
@@ -1421,6 +1422,7 @@ export class ArenaScene extends Phaser.Scene {
     this.hazards.stop();
     this.aisleEvent.stop();
     this.gum.clear();
+    this.arsenal.clearAll(true); // shots, fire pools and pots in flight would keep hitting
     const p = this.player;
     p.dead = true;
     this.ending = 'defeat';

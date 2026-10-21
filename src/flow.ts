@@ -206,11 +206,7 @@ export const flow = {
   },
 
   victory(): void {
-    const s = store.state;
-    s.phase = 'victory';
-    s.stats.bossDefeated = true;
-    s.stats.wavesCleared = BOSS_WAVE - 1;
-    this.finish(s, true);
+    this.finish(store.state, true);
   },
 
   /** Victory card → keep the same run going; the boss aisle's checkout/shop flow runs as after any wave. */
@@ -223,12 +219,18 @@ export const flow = {
   },
 
   defeat(): void {
-    const s = store.state;
-    s.phase = 'defeat';
-    this.finish(s, false);
+    this.finish(store.state, false);
   },
 
+  /** Ends the run once: `lastResult` is set here and cleared when a run or its overtime starts, so a boss that dies to a burn tick after the goblin fell adds no second, winning result.
+   * Not keyed on `phase`, which `damagePlayer` already set to 'defeat'. */
   finish(s: RunState, won: boolean): void {
+    if (this.lastResult) return;
+    s.phase = won ? 'victory' : 'defeat';
+    if (won) {
+      s.stats.bossDefeated = true;
+      s.stats.wavesCleared = BOSS_WAVE - 1;
+    }
     stopLoops();
     const score = scoreOf(s, won);
     if (s.lab || s.bot) { // lab and bot runs never touch the profile or the best receipts

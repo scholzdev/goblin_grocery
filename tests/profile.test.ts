@@ -89,6 +89,23 @@ describe('overtime reaches the lifetime stats', () => {
   });
 });
 
+describe('a run ends once', () => {
+  it('a boss that dies after the goblin (a burn tick, a shot in flight) does not turn the loss into a second, winning run', () => {
+    const s = atBoss();
+    s.stats.kills = 40;
+    flow.defeat();
+    const lost = flow.lastResult;
+    flow.victory();
+
+    expect([profile.stats.runs, profile.stats.wins, profile.stats.losses]).toEqual([1, 0, 1]);
+    expect(profile.stats.kills, 'kills counted once').toBe(40);
+    expect(profile.stats.deptClears.boss, 'no boss clear').toBeUndefined();
+    expect(profile.stats.bestShift.toaster, 'no shift progress').toBeUndefined();
+    expect([s.phase, !!s.stats.bossDefeated], 'the end card stays a defeat').toEqual(['defeat', false]);
+    expect(flow.lastResult).toBe(lost);
+  });
+});
+
 describe('goal unlocks', () => {
   it('a run that meets a goal unlocks it and the end screen reports it', () => {
     loseWith(target('energy'));
