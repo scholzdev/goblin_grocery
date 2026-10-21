@@ -60,6 +60,7 @@ import { ACTIVE_KEYS } from '../state/keymap';
 import { isDown, resetKeyboard, takePressed } from '../input/keyboard';
 import { padMove, takePadActive, takePadShove } from '../input/gamepad';
 import { activeSlots, fireActive } from '../engine/actives';
+import { floorSpeed, healPlayer } from '../engine/playerHealth';
 import { ARENA, ENTRIES, SIDE_UNITS, DECO_SPOTS, edgeSolids } from '../data/arena';
 import { labDummies, type LabDummy } from '../lab';
 export { ARENA };
@@ -946,7 +947,7 @@ export class ArenaScene extends Phaser.Scene {
         c.img.setVisible(false);
         if (c.bread) {
           const s = store.state;
-          s.hp = Math.min(s.build.maxHp, s.hp + DEPT_TUNING.bread.heal);
+          healPlayer(s, s.build, DEPT_TUNING.bread.heal);
           this.fx.number(this.player.x, this.player.y - 90, DEPT_TUNING.bread.heal, '#8FCB57', 20);
           play('buy', { rate: 1.4 });
           store.changed();
@@ -970,10 +971,12 @@ export class ArenaScene extends Phaser.Scene {
     if (p.invulnT > 0 || p.protectT > 0 || store.state.labGod) return true;
     // Hooks may lower `dmg` and change the i-frames (Bubble Wrap: armor and +0.25 s).
     let invuln = PLAYER.invuln;
-    if (this.hooks.onPlayerHit.length) { const ev = { dmg, invuln }; this.hooks.emit('onPlayerHit', ev); dmg = ev.dmg; invuln = ev.invuln; }
+    const ev = { dmg, invuln, source };
+    if (this.hooks.onPlayerHit.length) { this.hooks.emit('onPlayerHit', ev); dmg = Math.max(0, ev.dmg); invuln = ev.invuln; }
     const dead = damagePlayer(store.state, dmg, source);
     if (store.state.punch) punchHit(store.state.punch);
     p.invulnT = invuln;
+    if (dmg > 0 && this.hooks.afterPlayerHit.length) this.hooks.emit('afterPlayerHit', ev);
     p.hurtT = 0.45;
     play('hurt');
     this.fx.spark(p.x, p.y - 50, 6, 0xf45f52);
@@ -1020,8 +1023,8 @@ export class ArenaScene extends Phaser.Scene {
       s.stats.timeSeconds += dt;
       this.updatePlayer(dt);
       const regen = s.build.regen + this.aisleEvent.regenBonus();
-      if (regen > 0 && s.hp < s.build.maxHp && !this.player.dead) {
-        s.hp = Math.min(s.build.maxHp, s.hp + regen * dt);
+      if (regen > 0 && (s.hp < s.build.maxHp || (s.shield ?? 0) < (s.build.overhealShieldCap ?? 0)) && !this.player.dead) {
+        healPlayer(s, s.build, regen * dt);
         if ((this.regenFxT -= dt) <= 0) { this.regenFxT = 1.5; this.fx.spark(this.player.x, this.player.y - 70, 1, 0x8fcb57); }
         if (Math.floor(this.waveTime * 2) !== Math.floor((this.waveTime - dt) * 2)) store.changed();
       }
@@ -1179,8 +1182,8 @@ export class ArenaScene extends Phaser.Scene {
     } else {
       let speed = PLAYER.speed * s.build.moveSpeedMult;
       for (const k in p.speedMods) speed *= p.speedMods[k](this.time.now / 1000); // Sugar Rush, Tailwind: registered by their hooks
-      speed *= this.aisleEvent.playerSlow();
-      speed *= this.gum.slow();
+      speed *= floorSpeed(this.aisleEvent.playerSlow(), s.build.floorSlowResist);
+      speed *= floorSpeed(this.gum.slow(), s.build.floorSlowResist);
       const slip = this.aisleEvent.slipAccel(p.x, p.y);
       if (slip > 0) { // ice: velocity eases toward the input instead of snapping
         const k = Math.min(1, slip * dt);

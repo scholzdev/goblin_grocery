@@ -15,6 +15,7 @@ import type { ArenaScene } from './ArenaScene';
 import type { Enemy } from './enemies';
 import { beamOnce, boltFx, explodeAt, spawnFirePool, sweepOnce } from '../engine/patterns';
 import type { Shot } from './weapons';
+import { absorbShield, healPlayer, useRunOnce } from '../engine/playerHealth';
 
 type AudioName = Parameters<typeof play>[0];
 
@@ -34,7 +35,7 @@ export class PhaserCtx implements RuntimeCtx {
   get build() { return store.state.build; }
   get run() {
     const s = store.state, sc = this.sc;
-    return { hp: s.hp, maxHp: s.build.maxHp, money: s.money, aisle: s.wave, boss: sc.wave.boss };
+    return { hp: s.hp, maxHp: s.build.maxHp, money: s.money, aisle: s.wave, boss: sc.wave.boss, shield: s.shield };
   }
   readonly aisle = {
     burn: (b: BurnEffect): BurnEffect => this.sc.aisleEvent.burn(b),
@@ -86,9 +87,11 @@ export class PhaserCtx implements RuntimeCtx {
   hurt(dmg: number, source: HitSource): void { this.sc.hurtPlayer(dmg, source); }
   heal(hp: number): void {
     const s = store.state;
-    s.hp = Math.min(s.build.maxHp, s.hp + hp);
+    healPlayer(s, s.build, hp);
     store.changed();
   }
+  absorbShield(damage: number): number { return absorbShield(store.state, damage); }
+  useRunOnce(id: ItemTypeId): boolean { return useRunOnce(store.state, id); }
   drain(hp: number, by: ItemTypeId): void {
     const s = store.state;
     if (s.labGod) return;

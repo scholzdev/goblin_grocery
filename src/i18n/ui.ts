@@ -1,6 +1,10 @@
 // UI strings (menus, HUD, shop, banners, rule messages). Flat key -> text with {var} placeholders.
 // `de` is typed against `en`, so a missing German string is a compile error. Item/enemy/recipe texts live in data.ts.
 const en = {
+  tankChilled: 'CHILLED: DAMAGE REDUCED',
+  tankSandwich: 'EMERGENCY SANDWICH READY',
+  tankShield: 'SHIELD {hp}',
+  tankInsured: 'CLAIM APPROVED!',
   // boot / celebrate
   loading: 'Stocking shelves…',
   newCombo: 'New combo discovered!',
@@ -125,7 +129,7 @@ const en = {
   modShort_event: 'EVENT',
   modShort_quiet: 'QUIET',
   modFx_none: 'Nothing special',
-  modFx_rush: '+40% groceries',
+  modFx_rush: '+25% groceries',
   modFx_clearance: '+15% HP, more Elites',
   modFx_event: 'A wet floor or power outage hits the aisle',
   modFx_quiet: '-30% groceries',
@@ -696,6 +700,10 @@ const en = {
 };
 
 const de: Record<keyof typeof en, string> = {
+  tankChilled: 'GEKÜHLT: WENIGER SCHADEN',
+  tankSandwich: 'NOTFALL-SANDWICH BEREIT',
+  tankShield: 'SCHILD {hp}',
+  tankInsured: 'ANTRAG GENEHMIGT!',
   tutSkip: 'Tutorial überspringen',
   tutReplay: 'Tutorial wiederholen',
   tutMove: '{move} schieben den Wagen. Vorsicht, das Rad quietscht!',
@@ -830,7 +838,7 @@ const de: Record<keyof typeof en, string> = {
   modShort_event: 'EREIGNIS',
   modShort_quiet: 'RUHIG',
   modFx_none: 'Nichts Besonderes',
-  modFx_rush: '+40 % Gegner',
+  modFx_rush: '+25 % Gegner',
   modFx_clearance: '+15 % LP, mehr Elite-Gegner',
   modFx_event: 'Nasser Boden oder Stromausfall im Gang',
   modFx_quiet: '-30 % Gegner',

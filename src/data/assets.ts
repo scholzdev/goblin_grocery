@@ -21,7 +21,8 @@ export const ICON_IDS = [
   'avocado', 'fish', 'basil', 'scoby', 'snowcone', 'moldybread',
   'avocado_rotten', 'fish_rotten',
   'bowlingball', 'balloon', 'ghostpepper', 'scratchticket',
-  'punchcard', 'shortcut', 'spentkey',
+  'punchcard', 'shortcut', 'spentkey', 'tomato',
+  'ovenmitts', 'soup', 'helmet', 'peas', 'sandwich', 'blanket', 'rubberboots', 'thermos', 'insurance',
 ] as const;
 
 export interface SvgAsset { key: string; w: number; h: number; ax?: number; ay?: number }
@@ -120,6 +121,7 @@ export const SVG_ASSETS: SvgAsset[] = [
 
   // Effects / projectiles.
   { key: 'proj_toast', w: 36, h: 32 },
+  { key: 'proj_tomato', w: 30, h: 30 },
   { key: 'proj_nail', w: 28, h: 10 },
   { key: 'proj_kernel', w: 18, h: 18 },
   { key: 'proj_raybolt', w: 34, h: 14 },

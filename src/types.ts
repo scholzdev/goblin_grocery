@@ -10,7 +10,7 @@ import type { AffinityMap, AffinityTag, BUFF_ORDER, ELEMENTS, ENEMY_BEHAVIORS, E
 /** The id unions are derived from the order lists of engine/define.ts (which the registry checks against the content files). */
 export type ItemTypeId = (typeof ITEM_ORDER)[number];
 
-export type WeaponPattern = 'toast' | 'sweep' | 'burst' | 'pulse' | 'zap' | 'aura' | 'ricochet' | 'puddle' | 'laser' | 'mortar' | 'cone' | 'popcorn';
+export type WeaponPattern = 'toast' | 'sweep' | 'burst' | 'pulse' | 'zap' | 'aura' | 'ricochet' | 'puddle' | 'laser' | 'mortar' | 'cone' | 'popcorn' | 'tomato';
 export type ItemKind = 'weapon' | 'module' | 'passive';
 export type Rotation = 0 | 1 | 2 | 3;
 export type RecipeId = (typeof RECIPE_ORDER)[number];
@@ -159,7 +159,7 @@ export type StarterId = (typeof STARTER_ORDER)[number];
 /** A goblin's passive signature (data/items `SIGNATURE`). */
 export type SignatureId = 'firstCrit' | 'mergeHeal' | 'freeReroll' | 'dashCooldown';
 /** Starting weapons selectable independently of the character. */
-export type StarterWeapon = 'toaster' | 'pan' | 'nailgun';
+export type StarterWeapon = 'toaster' | 'pan' | 'nailgun' | 'tomato';
 
 /** Run-wide modifiers a starter goblin brings (all optional; see PLAYER.starters). */
 export interface Perk {
@@ -182,6 +182,9 @@ export interface Build {
   shoveDamage: number;     // dash hit damage (running boot adds)
   shoveKnockMult: number;  // bowling ball: dash knockback multiplier
   moveSpeedMult: number;   // energy drink
+  floorSlowResist?: number; // share of floor slowdown ignored
+  overhealShieldCap?: number; // Thermos: excess healing becomes a shield
+  clearHeal?: { every: number; hp: number }; // Canned Soup: recovery on every nth clear
   stinkDps: number;        // expired milk: poison dps of the toxic aura around the cart (0 = off)
   regen: number;           // HP per second during combat (snack bag)
   killCoinMult: number;    // piggy bank: multiplier on regular kill coins
@@ -319,7 +322,7 @@ export interface DepartmentDef {
 export interface CoinLogEntry { label: string; amount: number }
 
 export type HitSource =
-  | { how: EnemyHitHow; by: EnemyId; affix?: EliteAffix }
+  | { how: EnemyHitHow; by: EnemyId; affix?: EliteAffix; origin?: { x: number; y: number } }
   | { how: 'hazard'; by: Extract<HazardKind, 'vents' | 'cables'> }
   | { how: 'event'; by: Extract<SetEventKind, 'powerSurge'> }
   | { how: 'self'; by: ItemTypeId };
@@ -346,6 +349,9 @@ export interface RunState {
   phase: Phase;
   wave: number;            // current/last wave (1-based)
   hp: number;
+  /** Thermos shield and one-use item charges persist between aisles, including unequip/re-equip. */
+  shield?: number;
+  itemUses?: Partial<Record<ItemTypeId, boolean>>;
   money: number;
   inventory: Inventory;
   build: Build;

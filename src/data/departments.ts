@@ -58,7 +58,7 @@ export const DEPT_TUNING = {
   /** Off-theme enemies spawn at this weight; basics stay at 1. */
   offTheme: 0.35,
   basics: BASICS,
-  biasWeight: 2.5,
+  biasWeight: 1.25,
   clearanceFromShop: 3,
   clearanceChance: 0.25,
   threeDoorsAtLoyalty: 3,

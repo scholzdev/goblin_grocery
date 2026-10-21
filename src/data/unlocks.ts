@@ -7,7 +7,7 @@ import type { ReactionId } from '../engine/define';
 /** Items available from the very first run. Everything else unlocks via UNLOCKS below. */
 export const STARTING_ITEMS: ItemTypeId[] = [
   'toaster', 'pan', 'nailgun', 'vacuum', 'fan', 'fuel', 'battery', 'magnet', 'ice', 'hotsauce', 'lunchbox', 'bell', 'fortune', 'sample', 'piggy',
-  'popcorn', 'sparklers', 'expiredcoupon',
+  'popcorn', 'sparklers', 'expiredcoupon', 'tomato',
   'spentkey', // never offered (noShop), listed so every item is reachable for the catalog
 ];
 
@@ -79,6 +79,15 @@ const dept = (s: ProfileStats, d: DepartmentId | 'clearance') => s.deptClears[d]
 
 /** Ordered roughly by how soon a typical player earns them. */
 export const UNLOCKS: Unlock[] = [
+  { id: 'ovenmitts', kind: 'item', item: 'ovenmitts', need: 'Reach aisle 2', check: (s) => s.bestWave >= 2, progress: (s) => at(2)(s.bestWave) },
+  { id: 'soup', kind: 'item', item: 'soup', need: 'Reach aisle 2', check: (s) => s.bestWave >= 2, progress: (s) => at(2)(s.bestWave) },
+  { id: 'helmet', kind: 'item', item: 'helmet', need: 'Reach aisle 3', check: (s) => s.bestWave >= 3, progress: (s) => at(3)(s.bestWave) },
+  { id: 'peas', kind: 'item', item: 'peas', need: 'Reach aisle 3', check: (s) => s.bestWave >= 3, progress: (s) => at(3)(s.bestWave) },
+  { id: 'sandwich', kind: 'item', item: 'sandwich', need: 'Finish a run', check: (s) => s.runs >= 1, progress: (s) => at(1)(s.runs) },
+  { id: 'blanket', kind: 'item', item: 'blanket', need: 'Reach aisle 4', check: (s) => s.bestWave >= 4, progress: (s) => at(4)(s.bestWave) },
+  { id: 'rubberboots', kind: 'item', item: 'rubberboots', need: 'Reach aisle 2', check: (s) => s.bestWave >= 2, progress: (s) => at(2)(s.bestWave) },
+  { id: 'thermos', kind: 'item', item: 'thermos', need: 'Reach aisle 4', check: (s) => s.bestWave >= 4, progress: (s) => at(4)(s.bestWave) },
+  { id: 'insurance', kind: 'item', item: 'insurance', need: 'Reach the Store Manager', check: (s) => s.bestWave >= 8, progress: (s) => at(8)(s.bestWave) },
   { id: 'microwave', kind: 'item', item: 'microwave', need: 'Reach aisle 4', check: (s) => s.bestWave >= 4, progress: (s) => at(4)(s.bestWave) },
   { id: 'spray', kind: 'item', item: 'spray', need: 'Return 150 groceries (lifetime)', check: (s) => s.kills >= 150, progress: (s) => at(150)(s.kills) },
   { id: 'fizz', kind: 'item', item: 'fizz', need: 'Discover 2 combos', check: (s) => s.combos >= 2, progress: (s) => at(2)(s.combos) },

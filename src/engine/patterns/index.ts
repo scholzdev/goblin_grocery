@@ -11,13 +11,14 @@ import { updateShots } from './projectile';
 import { ricochet } from './ricochet';
 import { sweep } from './sweep';
 import { toast } from './toast';
+import { tomato } from './tomato';
 import { zap } from './zap';
 import type { Pattern, PatternHost } from './types';
 
 // The weapon patterns (docs/item-hooks-refactor.md). A weapon's content file names one in `weapon.pattern`; the arsenal asks the
 // table below what to do each frame. Combos change a pattern through its `pattern:*` events (engine/hooks.ts), never by editing it.
 
-export const PATTERNS: Readonly<Record<WeaponPattern, Pattern>> = { toast, burst, sweep, pulse, aura, zap, ricochet, puddle, laser, mortar, cone, popcorn };
+export const PATTERNS: Readonly<Record<WeaponPattern, Pattern>> = { toast, burst, sweep, pulse, aura, zap, ricochet, puddle, laser, mortar, cone, popcorn, tomato };
 
 /** What lives on in the world between attacks, in the order it updates: floor patches before lobbed pots (puddles update before pots). */
 const WORLD: readonly Pattern[] = [puddle, mortar];

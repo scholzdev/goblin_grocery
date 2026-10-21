@@ -31,6 +31,7 @@ describe('Frozen Foods shop bias', () => {
       for (let seed = 0; seed < 300; seed++) n += rollOffers(s, mulberry32(seed), 2, false, { bias }).filter((o) => DEPARTMENTS.frozen.shopBias.includes(o.type)).length;
       return n;
     };
-    expect(seen(DEPARTMENTS.frozen.shopBias)).toBeGreaterThan(seen([]) * 1.3);
+    expect(seen(DEPARTMENTS.frozen.shopBias)).toBeGreaterThan(seen([]) * 1.05);
+    expect(seen(DEPARTMENTS.frozen.shopBias)).toBeLessThan(seen([]) * 1.5);
   });
 });

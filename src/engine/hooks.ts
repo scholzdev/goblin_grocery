@@ -2,7 +2,7 @@ import { tierBoostOf } from './build';
 import { contentComboTune, contentCombos, contentItems, contentSets, contentSetTune, contentTune } from './registry';
 import { neighbors } from '../systems/inventory';
 import { ITEMS } from '../data/items';
-import type { ActiveRecipe, Inventory, ItemDef, ItemInstance, ItemTypeId, RecipeId, SetId, SlowEffect, WeaponStats } from '../types';
+import type { ActiveRecipe, HitSource, Inventory, ItemDef, ItemInstance, ItemTypeId, RecipeId, SetId, SlowEffect, WeaponStats } from '../types';
 import { HOOK_NAMES, resolveTune, type AffinityTag, type ReactionId, type ComboContent, type ItemContent, type Resolved, type RuntimeHooks, type SetContent, type Tune } from './define';
 import type { CombatEnemy, CombatShot, FxApi, RuntimeCtx } from './ctx';
 
@@ -92,7 +92,7 @@ export interface DashEndEvent { x: number; y: number; dx: number; dy: number; hi
 /** An enemy projectile touches the goblin. A handler that deals with it (reflect, kill) sets `handled`; the shot then does not hurt. */
 export interface ShotTouchEvent { shot: CombatShot; damage: number; handled: boolean }
 /** The goblin is about to take `dmg`. Handlers may lower it (armor) and change the post-hit i-frames. Past the iframe/guard checks only. */
-export interface PlayerHitEvent { dmg: number; invuln: number }
+export interface PlayerHitEvent { dmg: number; invuln: number; source?: HitSource }
 export interface CoinPickupEvent { label: string; streak: number }
 
 export interface PatternBase { stats: WeaponStats }
@@ -176,6 +176,8 @@ export interface HookEvents {
   onDashEnd: DashEndEvent;
   onEnemyShotTouch: ShotTouchEvent;
   onPlayerHit: PlayerHitEvent;
+  /** Damage has been applied. Recovery cannot revive a lethal hit. Fully shielded hits do not emit this. */
+  afterPlayerHit: PlayerHitEvent;
   onCoinPickup: CoinPickupEvent;
   'pattern:sweep': SweepEvent;
   'pattern:explode': ExplodeEvent;

@@ -99,7 +99,8 @@ describe('run stock: what flow.startRun puts in the run', () => {
       const openers = s.openers!;
       expect(s.shop!.offers.slice(0, openers.length).map((o) => [o.type, o.tier])).toEqual(openers.map((t) => [t, 1]));
       expect(distinctRecipes(openers, weapon), `${weapon}: ${openers}`).toBe(openers.length);
-      expect(openers.length).toBeGreaterThanOrEqual(2);
+      if (weapon === 'tomato') expect(openers).toEqual([]);
+      else expect(openers.length).toBeGreaterThanOrEqual(2);
       for (const t of openers) expect(s.pool).toContain(t);
     }
   });
@@ -157,7 +158,7 @@ describe('drawStock with every item in the source', () => {
 describe('shops offer only the run\'s pool', () => {
   it('offers, rerolls, stockroom and mini-boss crates stay inside a drawn stock', () => {
     for (let seed = 0; seed < 60; seed++) {
-      const s = createRun(seed, 'toaster', 0, WEAPONS[seed % 3], THEMES[seed % THEMES.length]);
+      const s = createRun(seed, 'toaster', 0, WEAPONS[seed % WEAPONS.length], THEMES[seed % THEMES.length]);
       applyStock(s, ALL, []);
       const pool = new Set(s.pool);
       const seen: ItemTypeId[] = [];
@@ -203,12 +204,14 @@ describe('owned items come back more often (merge targets)', () => {
   };
 
   it('an owned non-weapon below ★3 beats an unowned one of equal base weight; at ★3 it does not', () => {
-    expect(rate({ type: 'fortune', tier: 1 }, 'fortune', 'sample')).toBeGreaterThan(1.6);
-    expect(rate({ type: 'fortune', tier: 2 }, 'fortune', 'sample')).toBeGreaterThan(1.6);
+    expect(rate({ type: 'fortune', tier: 1 }, 'fortune', 'sample')).toBeGreaterThan(1.1);
+    expect(rate({ type: 'fortune', tier: 1 }, 'fortune', 'sample')).toBeLessThan(1.7);
+    expect(rate({ type: 'fortune', tier: 2 }, 'fortune', 'sample')).toBeGreaterThan(1.1);
     expect(rate({ type: 'fortune', tier: 3 }, 'fortune', 'sample')).toBeLessThan(1.3);
   }, 20_000);
 
   it('an owned weapon below ★3 gets the same pull', () => {
-    expect(rate({ type: 'nailgun', tier: 1 }, 'nailgun', 'vacuum')).toBeGreaterThan(1.6);
+    expect(rate({ type: 'nailgun', tier: 1 }, 'nailgun', 'vacuum')).toBeGreaterThan(1.1);
+    expect(rate({ type: 'nailgun', tier: 1 }, 'nailgun', 'vacuum')).toBeLessThan(1.7);
   }, 20_000);
 });

@@ -16,6 +16,7 @@ import { contentItem, contentSetTune, contentTune, sellValue } from '../engine/r
 import { FAMILIES, FLAVORS } from '../engine/define';
 import { PUNCH_REROLLS } from '../systems/contracts';
 import { canShortcut, spendKey } from '../systems/shortcut';
+import { healPlayer } from '../engine/playerHealth';
 
 const fail = (reason: string): OpResult => ({ ok: false, reason });
 const OK: OpResult = { ok: true };
@@ -148,6 +149,7 @@ const perkOf = (state: RunState) => PLAYER.starters[state.starter ?? 'toaster'].
 export function recomputeBuild(state: RunState): void {
   state.build = computeBuild(state.inventory, perkOf(state));
   state.hp = Math.min(state.hp, state.build.maxHp);
+  if (state.shield !== undefined) state.shield = Math.min(state.shield, state.build.overhealShieldCap ?? 0);
 }
 
 export const ownedTypes = (state: RunState): ItemTypeId[] =>
@@ -226,7 +228,7 @@ export function mergeItems(state: RunState, uid: string, targetUid: string): OpR
   const r = applyMerge(state.inventory, uid, targetUid);
   if (r.ok) {
     recomputeBuild(state);
-    if (signatureOf(state.starter) === 'mergeHeal') state.hp = Math.min(state.build.maxHp, state.hp + SIGNATURE.mergeHeal.hp); // Line Cook
+    if (signatureOf(state.starter) === 'mergeHeal') healPlayer(state, state.build, SIGNATURE.mergeHeal.hp); // Line Cook
   }
   return r;
 }
@@ -318,7 +320,7 @@ export function repair(state: RunState): OpResult {
   const cost = repairCost(state);
   if (state.money < cost) return fail(t('needCoins', { n: cost - state.money }));
   state.money -= cost;
-  state.hp = Math.min(state.build.maxHp, state.hp + ECONOMY.repairHp);
+  healPlayer(state, state.build, ECONOMY.repairHp);
   state.shop.repairUsed = true;
   return OK;
 }
@@ -400,7 +402,9 @@ export function finishWave(state: RunState): void {
   addCoins(state, waveClearCoins(state), t('coinWaveClear'));
   if (interest > 0) addCoins(state, interest, t('coinInterest'));
   state.stats.wavesCleared++;
-  state.hp = Math.min(state.build.maxHp, state.hp + PLAYER.repairBetweenWaves);
+  healPlayer(state, state.build, PLAYER.repairBetweenWaves);
+  const soup = state.build.clearHeal;
+  if (soup && state.stats.wavesCleared % soup.every === 0) healPlayer(state, state.build, soup.hp);
   state.phase = 'checkout';
 }
 

@@ -787,7 +787,7 @@ describe('departments and routes', () => {
       for (let seed = 0; seed < 1500; seed++) n += rollOffers(s, mulberry32(seed), 3, false, { bias }).filter((o) => o.type === 'ice').length;
       return n;
     };
-    expect(count(['ice'])).toBeGreaterThan(count([]) * 1.3);
+    expect(count(['ice'])).toBeGreaterThan(count([]) * 1.1);
   });
   it('killCoins mean ≈ base*mult', () => {
     for (const [base, mult] of [[1, 1.2], [2, 1.4], [1, 1.5], [2, 1]]) {
@@ -841,7 +841,7 @@ describe('departments and routes', () => {
     s.wave = 4;
     const base = waveSpawnPlan(s);
     s.modifier = 'rush';
-    expect(waveSpawnPlan(s).total).toBe(Math.round(WAVES[3].total * 1.4));
+    expect(waveSpawnPlan(s).total).toBe(Math.round(WAVES[3].total * 1.25));
     s.modifier = 'quiet';
     expect(waveSpawnPlan(s).total).toBe(Math.round(WAVES[3].total * 0.7));
     s.modifier = 'clearance';

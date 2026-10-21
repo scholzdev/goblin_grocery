@@ -18,7 +18,7 @@ const n = { countMult: 1, coinMult: 1, hpMult: 1, eliteBonus: 0, forceLegendary:
 
 export const MODIFIERS: Record<ModifierId, ModifierDef> = {
   none: { ...n, risk: 0 },
-  rush: { ...n, countMult: 1.4, coinMult: 1.25, risk: 2 },
+  rush: { ...n, countMult: 1.25, coinMult: 1.25, risk: 2 },
   clearance: { ...n, hpMult: 1.15, eliteBonus: 0.15, forceLegendary: true, risk: 3 },
   event: { ...n, forceEvent: true, freeRerolls: 1, risk: 2 },
   quiet: { ...n, countMult: 0.7, coinMult: 0.75, risk: 1 },

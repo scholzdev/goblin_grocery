@@ -37,7 +37,8 @@ export const ITEM_ORDER = [
   'avocado', 'fish', 'basil', 'scoby',
   'snowcone', 'moldybread',
   'bowlingball', 'balloon', 'ghostpepper', 'scratchticket',
-  'punchcard', 'shortcut', 'spentkey',
+  'punchcard', 'shortcut', 'spentkey', 'tomato',
+  'ovenmitts', 'soup', 'helmet', 'peas', 'sandwich', 'blanket', 'rubberboots', 'thermos', 'insurance',
 ] as const;
 
 /** Every combo, in the order `computeBuild` applies the matching ones (it decides which combo hook runs first on a weapon) and the codex lists them. */
@@ -147,7 +148,7 @@ export const weaponTiers = (w: Pick<WeaponBase, 'damage' | 'cooldown'>): { damag
  * per touching buff, with the highest effective tier of that buff. Player hooks (`player`) always run at the very end.
  */
 /** Weapon patterns that fire projectiles (Desk Fan speed, Duct Tape pierce, Multipack extra shots). */
-export const PROJECTILE_PATTERNS: ReadonlySet<string> = new Set(['toast', 'burst', 'ricochet']);
+export const PROJECTILE_PATTERNS: ReadonlySet<string> = new Set(['toast', 'burst', 'ricochet', 'tomato']);
 
 export type BuildPhase = 'base' | 'module' | 'flavor' | 'global-mod' | 'set' | 'combo' | 'post-combo' | 'final';
 export const BUILD_PHASES: readonly BuildPhase[] = ['base', 'module', 'flavor', 'global-mod', 'set', 'combo', 'post-combo', 'final'];
@@ -202,7 +203,7 @@ export interface BuildSpec<T extends Tune = Tune> {
 
 /** Every combat hook, in the order a table lists them (the typed payloads are in engine/hooks.ts, the API in engine/ctx.ts). */
 export const HOOK_NAMES: readonly HookName[] = [
-  'onAisleStart', 'onTick', 'modifyDamage', 'onHit', 'afterHit', 'onCrit', 'onKill', 'afterKill', 'onDashStart', 'onDashHit', 'onDashEnd', 'onEnemyShotTouch', 'onPlayerHit', 'onCoinPickup',
+  'onAisleStart', 'onTick', 'modifyDamage', 'onHit', 'afterHit', 'onCrit', 'onKill', 'afterKill', 'onDashStart', 'onDashHit', 'onDashEnd', 'onEnemyShotTouch', 'onPlayerHit', 'afterPlayerHit', 'onCoinPickup',
   'pattern:sweep', 'pattern:explode', 'pattern:zap', 'pattern:bounce', 'pattern:shotHit', 'pattern:shotMove', 'pattern:beam', 'pattern:fire', 'pattern:pulse', 'pattern:cone', 'pattern:puddleEnter', 'pattern:aura', 'pattern:look',
 ];
 

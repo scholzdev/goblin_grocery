@@ -119,7 +119,7 @@ export interface RuntimeCtx {
   // ---- run state
   /** The computed build of the running cart (`store.state.build`). */
   readonly build: Build;
-  readonly run: { readonly hp: number; readonly maxHp: number; readonly money: number; readonly aisle: number; readonly boss: boolean };
+  readonly run: { readonly hp: number; readonly maxHp: number; readonly money: number; readonly aisle: number; readonly boss: boolean; readonly shield?: number };
   readonly aisle: AisleView;
   /** True while weapons should keep acting (use it in delayed callbacks). */
   combatActive(): boolean;
@@ -184,6 +184,10 @@ export interface RuntimeCtx {
   /** `ArenaScene.hurtPlayer`: i-frames, `onPlayerHit` hooks (Bubble Wrap armor), death. `source` is booked in the run's damage taken. */
   hurt(dmg: number, source: HitSource): void;
   heal(hp: number): void;
+  /** Spend the current shield and return the damage left. */
+  absorbShield(damage: number): number;
+  /** Claim an item's single use for this run. False after it has already been spent. */
+  useRunOnce(id: ItemTypeId): boolean;
   /**
    * Damage with no hurt reaction, no i-frames and no `onPlayerHit` hooks (Ghost Pepper's burn, Scratch Ticket's loss): the HP never drops below 1, so it never
    * kills. Ignored in god mode.

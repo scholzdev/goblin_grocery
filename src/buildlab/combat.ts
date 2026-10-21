@@ -17,7 +17,7 @@ import { combatRng, type Rng } from '../systems/rng';
 import { waveSpawnPlan } from '../systems/shop';
 import { punchHit, punchKill, punchTick, rollPunchCard } from '../systems/contracts';
 import { addCoins, payPunchCard } from '../state/run';
-import type { EnemyDef, EnemyId, RunState } from '../types';
+import type { EnemyDef, EnemyId, EnemyHitHow, HitSource, RunState } from '../types';
 
 // The build-lab combat proxy (docs/buildlab.md). One aisle played headless: the real weapon patterns, statuses, reactions, armor, affinity and
 // item hooks run on a FakeCtx; the real wave plan, elites, affixes, mini-boss and boss are spawned; enemy AI is replaced by a small model
@@ -147,7 +147,7 @@ export function playAisle(state: RunState, flow: Rng, opts: AisleOpts = {}): Ais
   const wave = waveDef(state.wave), dept = DEPARTMENTS[state.department], plan = waveSpawnPlan(state);
   const mod = MODIFIERS[state.modifier], shift = SHIFTS[state.shift], boss = wave.boss;
   const build = state.build;
-  const fake = new FakeCtx({ seed: state.seed, aisle: state.wave, build, hp: state.hp, maxHp: build.maxHp, boss, player: { x: PLAYER_START.x, y: PLAYER_START.y } });
+  const fake = new FakeCtx({ seed: state.seed, aisle: state.wave, build, hp: state.hp, maxHp: build.maxHp, shield: state.shield, itemUses: state.itemUses, boss, player: { x: PLAYER_START.x, y: PLAYER_START.y } });
   fake.attach(buildHooks(state.inventory, build.recipes, build.sets, fake));
   const arsenal = new FakeArsenal(fake, build);
   fake.arsenal = arsenal;
@@ -274,12 +274,13 @@ export function playAisle(state: RunState, flow: Rng, opts: AisleOpts = {}): Ais
   };
 
   // ── damage to the player ──
-  const hurt = (dmg: number): void => {
-    const before = fake.run.hp;
-    if (fake.hurt(dmg) && state.punch) punchHit(state.punch);
-    damageTaken += Math.max(0, before - fake.run.hp);
+  const sourceOf = (f: Foe, how: EnemyHitHow): HitSource => ({ how, by: f.d.id, origin: { x: f.e.x, y: f.e.y } });
+  const hurt = (dmg: number, source?: HitSource): void => {
+    if (fake.hurt(dmg, source) && state.punch) punchHit(state.punch);
+    damageTaken += fake.lastHurtDamage;
   };
   const bossShots = new WeakSet<object>();
+  const shotSources = new WeakMap<object, HitSource>();
   const exposureOf = (f: Foe): number => PROXY.exposure * (isBoss(f) ? PROXY.bossExposureMult : 1);
   const attackExposureOf = (f: Foe): number => PROXY.attackExposure * (isBoss(f) ? PROXY.bossExposureMult : 1);
   const halfHp = (f: Foe): boolean => f.e.hp <= f.e.maxHp / 2;
@@ -288,6 +289,7 @@ export function playAisle(state: RunState, flow: Rng, opts: AisleOpts = {}): Ais
     for (let i = 0; i < n; i++) {
       const a = n > 1 ? base + (i / (n - 1) - 0.5) * spread : base;
       const s = fake.spawnHostileShot({ x: f.e.x, y: f.e.y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed, life, damage });
+      shotSources.set(s, sourceOf(f, 'shot'));
       if (isBoss(f)) bossShots.add(s);
     }
   };
@@ -304,7 +306,7 @@ export function playAisle(state: RunState, flow: Rng, opts: AisleOpts = {}): Ais
     else if (f.bossMove === 'special') fireShots(f, PROXY.specialShots, 360, weakenedDamage(f.e, d.attackDamage, now), d.projectileSpeed, d.projectileLife);
     else if (f.bossMove === 'summon') summon(T.summonCount + (halfHp(f) ? 2 : 0), T.summonTypes);
     else { // charge: one lunge; the boss is then stunned (a damage window)
-      if (lab() < attackExposureOf(f)) hurt(weakenedDamage(f.e, d.contactDamage + 3, now));
+      if (lab() < attackExposureOf(f)) hurt(weakenedDamage(f.e, d.contactDamage + 3, now), sourceOf(f, 'charge'));
       f.e.state = 'stun'; f.e.stateT = halfHp(f) ? 0.75 : PROXY.chargeStun;
     }
   };
@@ -337,9 +339,9 @@ export function playAisle(state: RunState, flow: Rng, opts: AisleOpts = {}): Ais
         if (f.tellT <= 0) {
           if (isBoss(f)) executeBossMove(f, now);
           else if (d.behavior === 'spitter') { f.atkCd = d.attackCooldown; fireShots(f, SPIT.shots, SPIT.spreadDeg * (SPIT.shots - 1), weakenedDamage(e, d.attackDamage, now), d.projectileSpeed, d.projectileLife); }
-          else if (d.behavior === 'swiper') { f.atkCd = d.attackCooldown; if (dist < d.attackRange + PLAYER.radius + 10 && lab() < attackExposureOf(f)) hurt(weakenedDamage(e, d.attackDamage, now)); }
+          else if (d.behavior === 'swiper') { f.atkCd = d.attackCooldown; if (dist < d.attackRange + PLAYER.radius + 10 && lab() < attackExposureOf(f)) hurt(weakenedDamage(e, d.attackDamage, now), sourceOf(f, 'swipe')); }
           else if (d.behavior === 'exploder') {
-            if (dist < EGG.radius + PLAYER.radius * 0.6 && lab() < attackExposureOf(f)) hurt(weakenedDamage(e, d.attackDamage, now));
+            if (dist < EGG.radius + PLAYER.radius * 0.6 && lab() < attackExposureOf(f)) hurt(weakenedDamage(e, d.attackDamage, now), sourceOf(f, 'blast'));
             for (const o of foes) if (o !== f && o.e.alive && !isBoss(o) && Math.hypot(o.e.x - e.x, o.e.y - e.y) < EGG.radius + o.d.radius) fake.hit(o.e, EGG.enemyDamage, null, { label: 'Egg Carton', tags: ['blast'] });
             f.noCredit = true; e.alive = false; e.state = 'dying';
             return;
@@ -392,7 +394,7 @@ export function playAisle(state: RunState, flow: Rng, opts: AisleOpts = {}): Ais
     const n = thief ? giftcardCoins(d.coins, GIFT.coinMult, mults) : f === ref.boss ? bossTuning(state.shift).coins : f.mini ? MINI_BOSS.coins : killCoins(d.coins * (f.e.elite ? ELITE.coinMult : 1), killCoinMult(mults), flow);
     for (let i = 0; i < n; i++) if (thief || d.behavior === 'boss' || flow() < ECONOMY.killCoinChance) award(1);
     const B = DEPT_TUNING.bread;
-    if (dept.breadHeal && breadDropped + B.heal <= B.capPerAisle && flow() < B.chance) { breadDropped += B.heal; fake.run.hp = Math.min(fake.run.maxHp, fake.run.hp + B.heal); }
+    if (dept.breadHeal && breadDropped + B.heal <= B.capPerAisle && flow() < B.chance) { breadDropped += B.heal; fake.heal(B.heal); }
     if (f.affix === 'splitter') {
       for (let i = 0; i < AFFIX.splitter.count; i++) {
         const a = (i / AFFIX.splitter.count) * Math.PI * 2 + fake.rng();
@@ -433,7 +435,7 @@ export function playAisle(state: RunState, flow: Rng, opts: AisleOpts = {}): Ais
   for (;;) {
     const now = fake.time;
     waveTime += dt;
-    if (build.regen > 0 && fake.run.hp < build.maxHp) fake.run.hp = Math.min(build.maxHp, fake.run.hp + build.regen * dt);
+    if (build.regen > 0 && (fake.run.hp < build.maxHp || (fake.run.shield ?? 0) < (build.overhealShieldCap ?? 0))) fake.heal(build.regen * dt);
     if (state.punch && punchTick(state.punch, dt, timeLeft()) === 'done') payPunchCard(state);
     if (!only) updateDirector();
     if (!enraged && ((ref.boss && waveTime > bossTuning(state.shift).enrageAfter + 1.6) || (ref.mini && waveTime > MINI_BOSS.at + MINI_BOSS.enrageAfter))) enraged = true;
@@ -444,11 +446,11 @@ export function playAisle(state: RunState, flow: Rng, opts: AisleOpts = {}): Ais
       if (!s.active) continue;
       s.x += s.vx * dt; s.y += s.vy * dt; s.life -= dt;
       if (s.life <= 0) { s.active = false; continue; }
-      if (Math.hypot(s.x - px, s.y - py) <= 12 + PLAYER.radius * 0.6 + PROXY.contactReach) { s.active = false; if (lab() < PROXY.shotExposure * (bossShots.has(s) ? PROXY.bossExposureMult : 1)) hurt(s.damage); }
+      if (Math.hypot(s.x - px, s.y - py) <= 12 + PLAYER.radius * 0.6 + PROXY.contactReach) { s.active = false; if (lab() < PROXY.shotExposure * (bossShots.has(s) ? PROXY.bossExposureMult : 1)) hurt(s.damage, shotSources.get(s)); }
     }
     if ((contactT -= dt) <= 0 && contactors.length) { // one attempt per i-frame window
       contactT = PROXY.contactInterval;
-      for (const f of contactors) if (lab() < exposureOf(f)) { hurt(weakenedDamage(f.e, f.d.contactDamage, now)); break; }
+      for (const f of contactors) if (lab() < exposureOf(f)) { hurt(weakenedDamage(f.e, f.d.contactDamage, now), sourceOf(f, 'contact')); break; }
     }
     p.invulnT = Math.max(0, p.invulnT - dt); p.protectT = Math.max(0, p.protectT - dt); p.hurtT = Math.max(0, p.hurtT - dt);
     arsenal.step(dt, !p.dead);
@@ -481,6 +483,8 @@ export function playAisle(state: RunState, flow: Rng, opts: AisleOpts = {}): Ais
   addCoins(state, coins, 'kills');
   state.stats.kills += kills;
   state.hp = died ? 0 : fake.run.hp;
+  if (fake.run.shield !== undefined) state.shield = fake.run.shield;
+  if (fake.run.itemUses) state.itemUses = fake.run.itemUses;
   if (died) state.phase = 'defeat';
 
   // damage book-keeping

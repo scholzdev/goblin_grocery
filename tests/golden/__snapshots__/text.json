@@ -2277,6 +2277,24 @@
       "weapon": "toaster"
     }
   ],
+  "buffs.item.battery.t1.on.tomato.de": [
+    {
+      "lines": [
+        "+12 % Angriffstempo (Batterie)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "tomato"
+    }
+  ],
+  "buffs.item.battery.t1.on.tomato.en": [
+    {
+      "lines": [
+        "+12% attack rate (Battery)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "tomato"
+    }
+  ],
   "buffs.item.battery.t1.on.vacuum.de": [
     {
       "lines": [
@@ -2390,6 +2408,38 @@
     }
   ],
   "buffs.item.binder.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.blanket.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.blanket.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.blanket.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.blanket.t3.on.toaster.en": [
     {
       "lines": [
         "Bundle Deal: 1 item → +6% damage"
@@ -2849,6 +2899,24 @@
       "weapon": "toaster"
     }
   ],
+  "buffs.item.doublebag.t1.on.tomato.de": [
+    {
+      "lines": [
+        "Treffer wiederholen sich mit 50 % Schaden (Doppeltüte)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "tomato"
+    }
+  ],
+  "buffs.item.doublebag.t1.on.tomato.en": [
+    {
+      "lines": [
+        "Hits repeat for 50% damage (Double Bag)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "tomato"
+    }
+  ],
   "buffs.item.doublebag.t1.on.vacuum.de": [
     {
       "lines": [
@@ -3231,6 +3299,24 @@
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "toaster"
+    }
+  ],
+  "buffs.item.fan.t1.on.tomato.de": [
+    {
+      "lines": [
+        "+30 % Tempo & Distanz (Tischventilator)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "tomato"
+    }
+  ],
+  "buffs.item.fan.t1.on.tomato.en": [
+    {
+      "lines": [
+        "+30% speed & range (Desk Fan)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "tomato"
     }
   ],
   "buffs.item.fan.t1.on.vacuum.de": [
@@ -3657,6 +3743,24 @@
       "weapon": "toaster"
     }
   ],
+  "buffs.item.fuel.t1.on.tomato.de": [
+    {
+      "lines": [
+        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "tomato"
+    }
+  ],
+  "buffs.item.fuel.t1.on.tomato.en": [
+    {
+      "lines": [
+        "Burn 2.5/s for 2s (Fuel Can)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "tomato"
+    }
+  ],
   "buffs.item.fuel.t1.on.vacuum.de": [
     {
       "lines": [
@@ -3773,6 +3877,38 @@
     {
       "lines": [
         "Bundle Deal: 2 items → +12% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.helmet.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.helmet.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.helmet.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.helmet.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "toaster"
     }
@@ -4009,6 +4145,24 @@
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "toaster"
+    }
+  ],
+  "buffs.item.hotsauce.t1.on.tomato.de": [
+    {
+      "lines": [
+        "+25 % Schaden (Scharfe Soße)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "tomato"
+    }
+  ],
+  "buffs.item.hotsauce.t1.on.tomato.en": [
+    {
+      "lines": [
+        "+25% damage (Hot Sauce)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "tomato"
     }
   ],
   "buffs.item.hotsauce.t1.on.vacuum.de": [
@@ -4307,6 +4461,24 @@
       "weapon": "toaster"
     }
   ],
+  "buffs.item.ice.t1.on.tomato.de": [
+    {
+      "lines": [
+        "Verlangsamung 25 % für 1 s (Kühlakku)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "tomato"
+    }
+  ],
+  "buffs.item.ice.t1.on.tomato.en": [
+    {
+      "lines": [
+        "Slow 25% for 1s (Ice Pack)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "tomato"
+    }
+  ],
   "buffs.item.ice.t1.on.vacuum.de": [
     {
       "lines": [
@@ -4358,6 +4530,38 @@
     {
       "lines": [
         "Slow 50% for 1s (Ice Pack ★3)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.insurance.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.insurance.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.insurance.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.insurance.t3.on.toaster.en": [
+    {
+      "lines": [
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "toaster"
@@ -4725,6 +4929,24 @@
       "weapon": "toaster"
     }
   ],
+  "buffs.item.multipack.t1.on.tomato.de": [
+    {
+      "lines": [
+        "+1 Projektil(e) (Multipack)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "tomato"
+    }
+  ],
+  "buffs.item.multipack.t1.on.tomato.en": [
+    {
+      "lines": [
+        "+1 projectile(s) (Multipack)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "tomato"
+    }
+  ],
   "buffs.item.multipack.t1.on.vacuum.de": [
     {
       "lines": [
@@ -4774,6 +4996,70 @@
     {
       "lines": [
         "+2 projectile(s) (Multipack ★3)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.ovenmitts.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.ovenmitts.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.ovenmitts.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.ovenmitts.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.peas.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.peas.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.peas.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.peas.t3.on.toaster.en": [
+    {
+      "lines": [
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "toaster"
@@ -5047,6 +5333,24 @@
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "toaster"
+    }
+  ],
+  "buffs.item.popper.t1.on.tomato.de": [
+    {
+      "lines": [
+        "Kills explodieren: 6 Schaden, Radius 70 (Partyknaller)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "tomato"
+    }
+  ],
+  "buffs.item.popper.t1.on.tomato.en": [
+    {
+      "lines": [
+        "Kills explode: 6 dmg, 70 radius (Party Popper)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "tomato"
     }
   ],
   "buffs.item.popper.t1.on.vacuum.de": [
@@ -5371,6 +5675,24 @@
       "weapon": "toaster"
     }
   ],
+  "buffs.item.pricegun.t1.on.tomato.de": [
+    {
+      "lines": [
+        "15 % Kritchance (Preisauszeichner)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "tomato"
+    }
+  ],
+  "buffs.item.pricegun.t1.on.tomato.en": [
+    {
+      "lines": [
+        "15% crit chance (Price Gun)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "tomato"
+    }
+  ],
   "buffs.item.pricegun.t1.on.vacuum.de": [
     {
       "lines": [
@@ -5457,6 +5779,38 @@
       "weapon": "toaster"
     }
   ],
+  "buffs.item.rubberboots.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.rubberboots.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.rubberboots.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.rubberboots.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
   "buffs.item.sample.t1.on.toaster.de": [
     {
       "lines": [
@@ -5482,6 +5836,38 @@
     }
   ],
   "buffs.item.sample.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.sandwich.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.sandwich.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.sandwich.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.sandwich.t3.on.toaster.en": [
     {
       "lines": [
         "Bundle Deal: 1 item → +6% damage"
@@ -5610,6 +5996,38 @@
     }
   ],
   "buffs.item.snackbag.t3.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.soup.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.soup.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.soup.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.soup.t3.on.toaster.en": [
     {
       "lines": [
         "Bundle Deal: 1 item → +6% damage"
@@ -5985,6 +6403,24 @@
       "weapon": "toaster"
     }
   ],
+  "buffs.item.tape.t1.on.tomato.de": [
+    {
+      "lines": [
+        "Mehr Reichweite / extra Durchschlag (Panzertape)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "tomato"
+    }
+  ],
+  "buffs.item.tape.t1.on.tomato.en": [
+    {
+      "lines": [
+        "Bigger reach / extra pierce (Duct Tape)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "tomato"
+    }
+  ],
   "buffs.item.tape.t1.on.vacuum.de": [
     {
       "lines": [
@@ -6034,6 +6470,38 @@
     {
       "lines": [
         "Bigger reach / extra pierce (Duct Tape ★3)",
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.thermos.t1.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.thermos.t1.on.toaster.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.thermos.t3.on.toaster.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "toaster"
+    }
+  ],
+  "buffs.item.thermos.t3.on.toaster.en": [
+    {
+      "lines": [
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "toaster"
@@ -7287,6 +7755,42 @@
       "weapon": "toaster"
     }
   ],
+  "buffs.weapon.tomato.t1.de": [
+    {
+      "lines": [],
+      "weapon": "tomato"
+    }
+  ],
+  "buffs.weapon.tomato.t1.en": [
+    {
+      "lines": [],
+      "weapon": "tomato"
+    }
+  ],
+  "buffs.weapon.tomato.t2.de": [
+    {
+      "lines": [],
+      "weapon": "tomato"
+    }
+  ],
+  "buffs.weapon.tomato.t2.en": [
+    {
+      "lines": [],
+      "weapon": "tomato"
+    }
+  ],
+  "buffs.weapon.tomato.t3.de": [
+    {
+      "lines": [],
+      "weapon": "tomato"
+    }
+  ],
+  "buffs.weapon.tomato.t3.en": [
+    {
+      "lines": [],
+      "weapon": "tomato"
+    }
+  ],
   "buffs.weapon.vacuum.t1.de": [
     {
       "lines": [],
@@ -8127,6 +8631,62 @@
           "2%",
           "2%",
           "2%"
+        ]
+      }
+    ]
+  },
+  "items.blanket.de": {
+    "blurb": "Eine beruhigende Verpflichtung.",
+    "name": "Gewichtsdecke",
+    "rules": "{0} max. LP und {1} weniger Trefferschaden, aber 10% langsameres Bewegungstempo. Heilt beim Ausrüsten nicht. Stapelt sich nicht.",
+    "rulesByTier": {
+      "1": "+30 max. LP und 10% weniger Trefferschaden, aber 10% langsameres Bewegungstempo. Heilt beim Ausrüsten nicht. Stapelt sich nicht.",
+      "2": "+45 max. LP und 15% weniger Trefferschaden, aber 10% langsameres Bewegungstempo. Heilt beim Ausrüsten nicht. Stapelt sich nicht.",
+      "3": "+60 max. LP und 20% weniger Trefferschaden, aber 10% langsameres Bewegungstempo. Heilt beim Ausrüsten nicht. Stapelt sich nicht."
+    },
+    "tierScaling": [
+      {
+        "label": "Max. LP",
+        "values": [
+          "+30",
+          "+45",
+          "+60"
+        ]
+      },
+      {
+        "label": "Schadensreduktion",
+        "values": [
+          "10%",
+          "15%",
+          "20%"
+        ]
+      }
+    ]
+  },
+  "items.blanket.en": {
+    "blurb": "A comforting commitment.",
+    "name": "Weighted Blanket",
+    "rules": "{0} max HP and {1} less damage from hits, but 10% slower movement. Does not heal on equip. Does not stack.",
+    "rulesByTier": {
+      "1": "+30 max HP and 10% less damage from hits, but 10% slower movement. Does not heal on equip. Does not stack.",
+      "2": "+45 max HP and 15% less damage from hits, but 10% slower movement. Does not heal on equip. Does not stack.",
+      "3": "+60 max HP and 20% less damage from hits, but 10% slower movement. Does not heal on equip. Does not stack."
+    },
+    "tierScaling": [
+      {
+        "label": "Max HP",
+        "values": [
+          "+30",
+          "+45",
+          "+60"
+        ]
+      },
+      {
+        "label": "Damage reduction",
+        "values": [
+          "10%",
+          "15%",
+          "20%"
         ]
       }
     ]
@@ -9071,6 +9631,46 @@
     },
     "tierScaling": []
   },
+  "items.helmet.de": {
+    "blurb": "Sicherheit zuerst. Einkauf danach.",
+    "name": "Einkaufswagenhelm",
+    "rules": "Nimm {0} Schaden weniger pro Treffer, mindestens 1. Stapelt sich nicht. Rüstung wirkt nach prozentualer Reduktion und vor Schilden.",
+    "rulesByTier": {
+      "1": "Nimm 2 Schaden weniger pro Treffer, mindestens 1. Stapelt sich nicht. Rüstung wirkt nach prozentualer Reduktion und vor Schilden.",
+      "2": "Nimm 3 Schaden weniger pro Treffer, mindestens 1. Stapelt sich nicht. Rüstung wirkt nach prozentualer Reduktion und vor Schilden.",
+      "3": "Nimm 4 Schaden weniger pro Treffer, mindestens 1. Stapelt sich nicht. Rüstung wirkt nach prozentualer Reduktion und vor Schilden."
+    },
+    "tierScaling": [
+      {
+        "label": "Rüstung",
+        "values": [
+          "2",
+          "3",
+          "4"
+        ]
+      }
+    ]
+  },
+  "items.helmet.en": {
+    "blurb": "Safety first. Shopping second.",
+    "name": "Shopping Cart Helmet",
+    "rules": "Take {0} less damage from each hit, minimum 1. Does not stack. Flat armor applies after percentage reductions and before shields.",
+    "rulesByTier": {
+      "1": "Take 2 less damage from each hit, minimum 1. Does not stack. Flat armor applies after percentage reductions and before shields.",
+      "2": "Take 3 less damage from each hit, minimum 1. Does not stack. Flat armor applies after percentage reductions and before shields.",
+      "3": "Take 4 less damage from each hit, minimum 1. Does not stack. Flat armor applies after percentage reductions and before shields."
+    },
+    "tierScaling": [
+      {
+        "label": "Armor",
+        "values": [
+          "2",
+          "3",
+          "4"
+        ]
+      }
+    ]
+  },
   "items.hotsauce.de": {
     "blurb": "Extra scharfer Schaden.",
     "name": "Scharfe Soße",
@@ -9150,6 +9750,28 @@
         ]
       }
     ]
+  },
+  "items.insurance.de": {
+    "blurb": "Dein weiterer Einkauf liegt uns am Herzen.",
+    "name": "Treue-Lebensversicherung",
+    "rules": "Einmal pro Run: Überlebe einen tödlichen Treffer mit 1 LP und werde für 3 s unverwundbar. Alle Kopien teilen die Nutzung; Kaufen oder erneutes Ausrüsten erneuert sie nicht.",
+    "rulesByTier": {
+      "1": "Einmal pro Run: Überlebe einen tödlichen Treffer mit 1 LP und werde für 3 s unverwundbar. Alle Kopien teilen die Nutzung; Kaufen oder erneutes Ausrüsten erneuert sie nicht.",
+      "2": "Einmal pro Run: Überlebe einen tödlichen Treffer mit 1 LP und werde für 3 s unverwundbar. Alle Kopien teilen die Nutzung; Kaufen oder erneutes Ausrüsten erneuert sie nicht.",
+      "3": "Einmal pro Run: Überlebe einen tödlichen Treffer mit 1 LP und werde für 3 s unverwundbar. Alle Kopien teilen die Nutzung; Kaufen oder erneutes Ausrüsten erneuert sie nicht."
+    },
+    "tierScaling": []
+  },
+  "items.insurance.en": {
+    "blurb": "Your continued shopping matters to us.",
+    "name": "Loyalty Life Insurance",
+    "rules": "Once per run, survive a fatal hit at 1 HP and become invulnerable for 3 s. Shared by all copies; buying or re-equipping cannot renew it.",
+    "rulesByTier": {
+      "1": "Once per run, survive a fatal hit at 1 HP and become invulnerable for 3 s. Shared by all copies; buying or re-equipping cannot renew it.",
+      "2": "Once per run, survive a fatal hit at 1 HP and become invulnerable for 3 s. Shared by all copies; buying or re-equipping cannot renew it.",
+      "3": "Once per run, survive a fatal hit at 1 HP and become invulnerable for 3 s. Shared by all copies; buying or re-equipping cannot renew it."
+    },
+    "tierScaling": []
   },
   "items.jellybeans.de": {
     "blurb": "Bei jedem Einkauf eine neue Sorte.",
@@ -9613,6 +10235,46 @@
       }
     ]
   },
+  "items.ovenmitts.de": {
+    "blurb": "Wütende Lebensmittel vorsichtig anfassen.",
+    "name": "Ofenhandschuhe",
+    "rules": "Nimm {0} weniger Schaden von Gegnern, die im Umkreis von 120 um den Wagen angreifen. Stapelt sich nicht.",
+    "rulesByTier": {
+      "1": "Nimm 20% weniger Schaden von Gegnern, die im Umkreis von 120 um den Wagen angreifen. Stapelt sich nicht.",
+      "2": "Nimm 25% weniger Schaden von Gegnern, die im Umkreis von 120 um den Wagen angreifen. Stapelt sich nicht.",
+      "3": "Nimm 30% weniger Schaden von Gegnern, die im Umkreis von 120 um den Wagen angreifen. Stapelt sich nicht."
+    },
+    "tierScaling": [
+      {
+        "label": "Nahschadensreduktion",
+        "values": [
+          "20%",
+          "25%",
+          "30%"
+        ]
+      }
+    ]
+  },
+  "items.ovenmitts.en": {
+    "blurb": "Handle angry groceries with care.",
+    "name": "Oven Mitts",
+    "rules": "Take {0} less damage from enemies attacking within 120 of the cart. Does not stack.",
+    "rulesByTier": {
+      "1": "Take 20% less damage from enemies attacking within 120 of the cart. Does not stack.",
+      "2": "Take 25% less damage from enemies attacking within 120 of the cart. Does not stack.",
+      "3": "Take 30% less damage from enemies attacking within 120 of the cart. Does not stack."
+    },
+    "tierScaling": [
+      {
+        "label": "Close damage reduction",
+        "values": [
+          "20%",
+          "25%",
+          "30%"
+        ]
+      }
+    ]
+  },
   "items.pan.de": {
     "blurb": "Großer, scheppernder Schwung um den Wagen.",
     "name": "Bratpfanne",
@@ -9665,6 +10327,46 @@
           "1.15 s",
           "1.03 s",
           "0.92 s"
+        ]
+      }
+    ]
+  },
+  "items.peas.de": {
+    "blurb": "Für Beulen, blaue Flecken und schlechte Ideen.",
+    "name": "Tiefkühlerbsen",
+    "rules": "Nach LP-Verlust durch einen Treffer nimmst du für 2 s {0} weniger Schaden. Weitere Treffer erneuern den Schutz. Stapelt sich nicht.",
+    "rulesByTier": {
+      "1": "Nach LP-Verlust durch einen Treffer nimmst du für 2 s 30% weniger Schaden. Weitere Treffer erneuern den Schutz. Stapelt sich nicht.",
+      "2": "Nach LP-Verlust durch einen Treffer nimmst du für 2 s 35% weniger Schaden. Weitere Treffer erneuern den Schutz. Stapelt sich nicht.",
+      "3": "Nach LP-Verlust durch einen Treffer nimmst du für 2 s 40% weniger Schaden. Weitere Treffer erneuern den Schutz. Stapelt sich nicht."
+    },
+    "tierScaling": [
+      {
+        "label": "Schadensreduktion",
+        "values": [
+          "30%",
+          "35%",
+          "40%"
+        ]
+      }
+    ]
+  },
+  "items.peas.en": {
+    "blurb": "For bumps, bruises and bad decisions.",
+    "name": "Frozen Peas",
+    "rules": "After losing HP to a hit, take {0} less damage for 2 s. Further hits refresh the protection. Does not stack.",
+    "rulesByTier": {
+      "1": "After losing HP to a hit, take 30% less damage for 2 s. Further hits refresh the protection. Does not stack.",
+      "2": "After losing HP to a hit, take 35% less damage for 2 s. Further hits refresh the protection. Does not stack.",
+      "3": "After losing HP to a hit, take 40% less damage for 2 s. Further hits refresh the protection. Does not stack."
+    },
+    "tierScaling": [
+      {
+        "label": "Damage reduction",
+        "values": [
+          "30%",
+          "35%",
+          "40%"
         ]
       }
     ]
@@ -9907,6 +10609,62 @@
       }
     ]
   },
+  "items.rubberboots.de": {
+    "blurb": "Für fragwürdige Pfützen zugelassen.",
+    "name": "Gummistiefel",
+    "rules": "Nimm {0} weniger Schaden durch Bodengefahren. Verlangsamungen durch Kaugummi, Matsch und nasse Böden sind {1} schwächer. Stapelt sich nicht.",
+    "rulesByTier": {
+      "1": "Nimm 50% weniger Schaden durch Bodengefahren. Verlangsamungen durch Kaugummi, Matsch und nasse Böden sind 50% schwächer. Stapelt sich nicht.",
+      "2": "Nimm 60% weniger Schaden durch Bodengefahren. Verlangsamungen durch Kaugummi, Matsch und nasse Böden sind 65% schwächer. Stapelt sich nicht.",
+      "3": "Nimm 70% weniger Schaden durch Bodengefahren. Verlangsamungen durch Kaugummi, Matsch und nasse Böden sind 80% schwächer. Stapelt sich nicht."
+    },
+    "tierScaling": [
+      {
+        "label": "Bodenschutz",
+        "values": [
+          "50%",
+          "60%",
+          "70%"
+        ]
+      },
+      {
+        "label": "Verlangsamungsresistenz",
+        "values": [
+          "50%",
+          "65%",
+          "80%"
+        ]
+      }
+    ]
+  },
+  "items.rubberboots.en": {
+    "blurb": "Approved for questionable puddles.",
+    "name": "Rubber Boots",
+    "rules": "Take {0} less damage from floor hazards. Floor slows from gum, slush and wet floors are {1} weaker. Does not stack.",
+    "rulesByTier": {
+      "1": "Take 50% less damage from floor hazards. Floor slows from gum, slush and wet floors are 50% weaker. Does not stack.",
+      "2": "Take 60% less damage from floor hazards. Floor slows from gum, slush and wet floors are 65% weaker. Does not stack.",
+      "3": "Take 70% less damage from floor hazards. Floor slows from gum, slush and wet floors are 80% weaker. Does not stack."
+    },
+    "tierScaling": [
+      {
+        "label": "Hazard protection",
+        "values": [
+          "50%",
+          "60%",
+          "70%"
+        ]
+      },
+      {
+        "label": "Slow resistance",
+        "values": [
+          "50%",
+          "65%",
+          "80%"
+        ]
+      }
+    ]
+  },
   "items.sample.de": {
     "blurb": "Nur zum Probieren. Jeder Krit ist ein Häppchen.",
     "name": "Kostprobe",
@@ -9943,6 +10701,46 @@
           "+1",
           "+1.5",
           "+2"
+        ]
+      }
+    ]
+  },
+  "items.sandwich.de": {
+    "blurb": "Im Notfall Brot brechen.",
+    "name": "Notfall-Sandwich",
+    "rules": "Einmal pro Gang: Überlebst du einen Treffer mit weniger als 25% LP, heilst du automatisch {0} LP. Rettet nicht vor tödlichen Treffern. Stapelt sich nicht.",
+    "rulesByTier": {
+      "1": "Einmal pro Gang: Überlebst du einen Treffer mit weniger als 25% LP, heilst du automatisch 20 LP. Rettet nicht vor tödlichen Treffern. Stapelt sich nicht.",
+      "2": "Einmal pro Gang: Überlebst du einen Treffer mit weniger als 25% LP, heilst du automatisch 30 LP. Rettet nicht vor tödlichen Treffern. Stapelt sich nicht.",
+      "3": "Einmal pro Gang: Überlebst du einen Treffer mit weniger als 25% LP, heilst du automatisch 40 LP. Rettet nicht vor tödlichen Treffern. Stapelt sich nicht."
+    },
+    "tierScaling": [
+      {
+        "label": "Notfallheilung",
+        "values": [
+          "20",
+          "30",
+          "40"
+        ]
+      }
+    ]
+  },
+  "items.sandwich.en": {
+    "blurb": "Break bread in case of emergency.",
+    "name": "Emergency Sandwich",
+    "rules": "Once per aisle, surviving a hit below 25% HP restores {0} HP automatically. Cannot save a fatal hit. Does not stack.",
+    "rulesByTier": {
+      "1": "Once per aisle, surviving a hit below 25% HP restores 20 HP automatically. Cannot save a fatal hit. Does not stack.",
+      "2": "Once per aisle, surviving a hit below 25% HP restores 30 HP automatically. Cannot save a fatal hit. Does not stack.",
+      "3": "Once per aisle, surviving a hit below 25% HP restores 40 HP automatically. Cannot save a fatal hit. Does not stack."
+    },
+    "tierScaling": [
+      {
+        "label": "Emergency healing",
+        "values": [
+          "20",
+          "30",
+          "40"
         ]
       }
     ]
@@ -10123,6 +10921,62 @@
           "2 s",
           "1.8 s",
           "1.6 s"
+        ]
+      }
+    ]
+  },
+  "items.soup.de": {
+    "blurb": "Wohlfühlessen. Verstärkte Verpackung.",
+    "name": "Dosensuppe",
+    "rules": "{0} max. LP (heilt beim Ausrüsten nicht). Jeder 3. geräumte Gang stellt {1} LP wieder her, solange ausgerüstet. Stapelt sich nicht.",
+    "rulesByTier": {
+      "1": "+20 max. LP (heilt beim Ausrüsten nicht). Jeder 3. geräumte Gang stellt 15 LP wieder her, solange ausgerüstet. Stapelt sich nicht.",
+      "2": "+30 max. LP (heilt beim Ausrüsten nicht). Jeder 3. geräumte Gang stellt 23 LP wieder her, solange ausgerüstet. Stapelt sich nicht.",
+      "3": "+40 max. LP (heilt beim Ausrüsten nicht). Jeder 3. geräumte Gang stellt 30 LP wieder her, solange ausgerüstet. Stapelt sich nicht."
+    },
+    "tierScaling": [
+      {
+        "label": "Max. LP",
+        "values": [
+          "+20",
+          "+30",
+          "+40"
+        ]
+      },
+      {
+        "label": "Heilung nach Gang",
+        "values": [
+          "15",
+          "23",
+          "30"
+        ]
+      }
+    ]
+  },
+  "items.soup.en": {
+    "blurb": "Comfort food. Reinforced packaging.",
+    "name": "Canned Soup",
+    "rules": "{0} max HP (does not heal on equip). Heal {1} HP every 3 aisle clears while equipped. Does not stack.",
+    "rulesByTier": {
+      "1": "+20 max HP (does not heal on equip). Heal 15 HP every 3 aisle clears while equipped. Does not stack.",
+      "2": "+30 max HP (does not heal on equip). Heal 23 HP every 3 aisle clears while equipped. Does not stack.",
+      "3": "+40 max HP (does not heal on equip). Heal 30 HP every 3 aisle clears while equipped. Does not stack."
+    },
+    "tierScaling": [
+      {
+        "label": "Max HP",
+        "values": [
+          "+20",
+          "+30",
+          "+40"
+        ]
+      },
+      {
+        "label": "Clear healing",
+        "values": [
+          "15",
+          "23",
+          "30"
         ]
       }
     ]
@@ -10397,6 +11251,46 @@
       }
     ]
   },
+  "items.thermos.de": {
+    "blurb": "Bewahrt das Gute für später.",
+    "name": "Thermoskanne",
+    "rules": "Überschüssige Heilung wird zu einem Schild mit bis zu {0} LP. Fängt Schaden nach der Rüstung ab. Bleibt zwischen Gängen erhalten, geht beim Ablegen verloren. Stapelt sich nicht.",
+    "rulesByTier": {
+      "1": "Überschüssige Heilung wird zu einem Schild mit bis zu 15 LP. Fängt Schaden nach der Rüstung ab. Bleibt zwischen Gängen erhalten, geht beim Ablegen verloren. Stapelt sich nicht.",
+      "2": "Überschüssige Heilung wird zu einem Schild mit bis zu 23 LP. Fängt Schaden nach der Rüstung ab. Bleibt zwischen Gängen erhalten, geht beim Ablegen verloren. Stapelt sich nicht.",
+      "3": "Überschüssige Heilung wird zu einem Schild mit bis zu 30 LP. Fängt Schaden nach der Rüstung ab. Bleibt zwischen Gängen erhalten, geht beim Ablegen verloren. Stapelt sich nicht."
+    },
+    "tierScaling": [
+      {
+        "label": "Schildkapazität",
+        "values": [
+          "15",
+          "23",
+          "30"
+        ]
+      }
+    ]
+  },
+  "items.thermos.en": {
+    "blurb": "Keeps the good stuff for later.",
+    "name": "Thermos",
+    "rules": "Excess healing becomes a shield, up to {0} HP. Absorbs damage after armor. Shield lasts between aisles but is lost when unequipped. Does not stack.",
+    "rulesByTier": {
+      "1": "Excess healing becomes a shield, up to 15 HP. Absorbs damage after armor. Shield lasts between aisles but is lost when unequipped. Does not stack.",
+      "2": "Excess healing becomes a shield, up to 23 HP. Absorbs damage after armor. Shield lasts between aisles but is lost when unequipped. Does not stack.",
+      "3": "Excess healing becomes a shield, up to 30 HP. Absorbs damage after armor. Shield lasts between aisles but is lost when unequipped. Does not stack."
+    },
+    "tierScaling": [
+      {
+        "label": "Shield capacity",
+        "values": [
+          "15",
+          "23",
+          "30"
+        ]
+      }
+    ]
+  },
   "items.tinfoilhat.de": {
     "blurb": "Blockt das Signal. Und die Limo.",
     "name": "Aluhut",
@@ -10529,6 +11423,78 @@
           "1 s",
           "0.9 s",
           "0.8 s"
+        ]
+      }
+    ]
+  },
+  "items.tomato.de": {
+    "blurb": "Ihre besten Tage sind vorbei. Deine bald auch.",
+    "name": "Faule Tomate",
+    "rules": "Wirft alle {1} eine Tomate (400 Reichweite): {0} Trefferschaden und {2} Gift für 4 s. Bevorzugt unvergiftete Gegner. Gift erneuert sich, stapelt sich nie.",
+    "rulesByTier": {
+      "1": "Wirft alle 1,4 s eine Tomate (400 Reichweite): 2 Trefferschaden und 4/s Gift für 4 s. Bevorzugt unvergiftete Gegner. Gift erneuert sich, stapelt sich nie.",
+      "2": "Wirft alle 1,26 s eine Tomate (400 Reichweite): 3 Trefferschaden und 6/s Gift für 4 s. Bevorzugt unvergiftete Gegner. Gift erneuert sich, stapelt sich nie.",
+      "3": "Wirft alle 1,12 s eine Tomate (400 Reichweite): 4 Trefferschaden und 8/s Gift für 4 s. Bevorzugt unvergiftete Gegner. Gift erneuert sich, stapelt sich nie. ★3: Stirbt ein vergifteter Gegner, breitet sich sein verbleibendes Tomatengift im Umkreis von 75 aus. Verbreitetes Gift breitet sich nicht erneut aus."
+    },
+    "tierScaling": [
+      {
+        "label": "Schaden",
+        "values": [
+          "2",
+          "3",
+          "4"
+        ]
+      },
+      {
+        "label": "Intervall",
+        "values": [
+          "1,4 s",
+          "1,26 s",
+          "1,12 s"
+        ]
+      },
+      {
+        "label": "Gift",
+        "values": [
+          "4/s",
+          "6/s",
+          "8/s"
+        ]
+      }
+    ]
+  },
+  "items.tomato.en": {
+    "blurb": "Past its best. Coming for yours.",
+    "name": "Rotten Tomato",
+    "rules": "Throws a tomato every {1} (400 range): {0} impact damage and {2} poison for 4 s. Prefers unpoisoned groceries. Poison refreshes, never stacks.",
+    "rulesByTier": {
+      "1": "Throws a tomato every 1.4 s (400 range): 2 impact damage and 4/s poison for 4 s. Prefers unpoisoned groceries. Poison refreshes, never stacks.",
+      "2": "Throws a tomato every 1.26 s (400 range): 3 impact damage and 6/s poison for 4 s. Prefers unpoisoned groceries. Poison refreshes, never stacks.",
+      "3": "Throws a tomato every 1.12 s (400 range): 4 impact damage and 8/s poison for 4 s. Prefers unpoisoned groceries. Poison refreshes, never stacks. ★3: When a poisoned grocery dies, its remaining tomato poison spreads within 75. Spread poison cannot spread again."
+    },
+    "tierScaling": [
+      {
+        "label": "Damage",
+        "values": [
+          "2",
+          "3",
+          "4"
+        ]
+      },
+      {
+        "label": "Interval",
+        "values": [
+          "1.4 s",
+          "1.26 s",
+          "1.12 s"
+        ]
+      },
+      {
+        "label": "Poison",
+        "values": [
+          "4/s",
+          "6/s",
+          "8/s"
         ]
       }
     ]

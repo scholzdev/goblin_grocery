@@ -94,7 +94,7 @@ const frameKey = (id: EnemyId, f: 0 | 1) => enemyFrame(id, f ? 'b' : 'a');
 
 let nextId = 1;
 
-export const attackBy = (e: Enemy, how: EnemyHitHow): HitSource => ({ how, by: e.def.id, affix: e.affix });
+export const attackBy = (e: Enemy, how: EnemyHitHow): HitSource => ({ how, by: e.def.id, affix: e.affix, origin: { x: e.x, y: e.y } });
 
 export function createEnemy(scene: ArenaScene, id: EnemyId, x: number, y: number, hpScale: number, speedScale: number, elite = false, dmgScale = 1, small = 0, mini: MiniVariant | null = null, forceAffix?: EliteAffix): Enemy {
   const base = ENEMIES[id];

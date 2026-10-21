@@ -35,9 +35,9 @@ const ENHANCES: Partial<Record<ItemTypeId, (own: Set<ItemTypeId>) => boolean>> =
 
 function weight(t: ItemTypeId, own: Set<ItemTypeId>, mergeable: Set<ItemTypeId>): number {
   if (mergeable.has(t)) return ECONOMY.ownedWeight;
-  if (ITEMS[t].kind === 'weapon') return own.has(t) ? 1.6 : 1.3;
-  if (Object.values(RECIPES).some((r) => (r.weapon ? own.has(r.weapon) : r.supports.some((s) => s !== t && own.has(s))) && r.supports.includes(t))) return 2.2;
-  return ENHANCES[t]?.(own) ? 1.8 : 1;
+  if (ITEMS[t].kind === 'weapon') return 1.1;
+  if (Object.values(RECIPES).some((r) => (r.weapon ? own.has(r.weapon) : r.supports.some((s) => s !== t && own.has(s))) && r.supports.includes(t))) return 1.2;
+  return ENHANCES[t]?.(own) ? 1.1 : 1;
 }
 
 export function currentRerollCost(state: RunState): number {

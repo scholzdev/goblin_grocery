@@ -14,6 +14,7 @@ import { Reactor, markFrostStun } from './reactions';
 import { affinityMult, burnFor, markMult, poisonTimeFor, slowFor, statusDurationMult, tryStagger } from './affinity';
 import { AFFINITY, SHRED, WET_STATUS, type AffinityTag } from './define';
 import { hitTags } from './hitTags';
+import { absorbShield, healPlayer, useRunOnce } from './playerHealth';
 import { damageType } from './damageType';
 import { applyHitStatuses, scheduleEcho } from './onHitStatuses';
 import { applyKillEffects } from './onKillEffects';
@@ -74,6 +75,8 @@ export interface FakeOptions {
   aisle?: number;
   build?: Build;
   hp?: number; maxHp?: number; money?: number; boss?: boolean;
+  shield?: number;
+  itemUses?: Partial<Record<ItemTypeId, boolean>>;
   player?: Partial<PlayerView>;
   /** Multiplies every burn passed to `ignite` (department / event burn modifiers). Default 1. */
   burnMult?: number;
@@ -84,6 +87,8 @@ export interface FakeOptions {
 const defaultPlayer = (): PlayerView => ({ x: 0, y: 0, radius: 20, facing: 1, vx: 0, vy: 0, invulnT: 0, protectT: 0, hurtT: 0, reflectT: 0, shoveT: 0, shoveCd: 0, chainT: 0, shoveDX: 1, shoveDY: 0, dead: false, speedMods: {} });
 
 export class FakeCtx implements RuntimeCtx {
+  /** HP lost by the last hurt call, before recovery hooks (used by Build Lab's damage-taken meter). */
+  lastHurtDamage = 0;
   /** Scene clock in seconds. */
   time = 0;
   readonly calls: Call[] = [];
@@ -97,7 +102,7 @@ export class FakeCtx implements RuntimeCtx {
   readonly lines = new Map<string, { text: string; order: number } | null>();
   readonly player: PlayerView;
   build: Build;
-  run: { hp: number; maxHp: number; money: number; aisle: number; boss: boolean };
+  run: { hp: number; maxHp: number; money: number; aisle: number; boss: boolean; shield?: number; itemUses?: Partial<Record<ItemTypeId, boolean>> };
   readonly aisle: AisleView;
   /** `combatActive()`: set false to test the "aisle is over" guard in delayed callbacks. */
   active = true;
@@ -125,6 +130,8 @@ export class FakeCtx implements RuntimeCtx {
     this.rand = combatRng(this.seed, opts.aisle ?? 0);
     this.build = opts.build ?? ({ maxHp: opts.maxHp ?? 100, weapons: [], recipes: [], sets: {} } as unknown as Build);
     this.run = { hp: opts.hp ?? opts.maxHp ?? 100, maxHp: opts.maxHp ?? this.build.maxHp ?? 100, money: opts.money ?? 0, aisle: opts.aisle ?? 0, boss: opts.boss ?? false };
+    if (opts.shield !== undefined) this.run.shield = opts.shield;
+    if (opts.itemUses) this.run.itemUses = opts.itemUses;
     this.player = { ...defaultPlayer(), ...opts.player };
     const burnMult = opts.burnMult ?? 1, onIce = opts.onIce ?? (() => false);
     this.aisle = {
@@ -306,20 +313,26 @@ export class FakeCtx implements RuntimeCtx {
   }
   /** Mirrors `ArenaScene.hurtPlayer`: i-frames block it, `onPlayerHit` hooks may lower the damage / change the i-frames. True when the hit landed. `source` is optional: the lab and the tests keep no damage-taken book. */
   hurt(dmg: number, source?: HitSource): boolean {
+    this.lastHurtDamage = 0;
     this.log({ kind: 'hurt', dmg, source });
     const p = this.player;
     if (p.dead || p.invulnT > 0 || p.protectT > 0) return false;
     let invuln = PLAYER.invuln;
-    if (this.hooks.onPlayerHit.length) { const ev = { dmg, invuln }; this.hooks.emit('onPlayerHit', ev); dmg = ev.dmg; invuln = ev.invuln; }
+    const ev = { dmg, invuln, source };
+    if (this.hooks.onPlayerHit.length) { this.hooks.emit('onPlayerHit', ev); dmg = Math.max(0, ev.dmg); invuln = ev.invuln; }
+    this.lastHurtDamage = Math.min(this.run.hp, dmg);
     this.run.hp = Math.max(0, this.run.hp - dmg);
     p.invulnT = invuln;
+    if (dmg > 0 && this.hooks.afterPlayerHit.length) this.hooks.emit('afterPlayerHit', ev);
     if (this.run.hp <= 0) p.dead = true;
     return true;
   }
   heal(hp: number): void {
     this.log({ kind: 'heal', hp });
-    this.run.hp = Math.min(this.run.maxHp, this.run.hp + hp);
+    healPlayer(this.run, { maxHp: this.run.maxHp, overhealShieldCap: this.build.overhealShieldCap }, hp);
   }
+  absorbShield(damage: number): number { return absorbShield(this.run, damage); }
+  useRunOnce(id: ItemTypeId): boolean { return useRunOnce(this.run, id); }
   drain(hp: number, by: ItemTypeId): void {
     this.log({ kind: 'drain', hp, by });
     this.run.hp = Math.min(this.run.hp, Math.max(1, this.run.hp - hp));

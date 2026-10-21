@@ -218,6 +218,10 @@ Element reactions (docs/item-hooks-refactor.md "Reactions"). A teal name pops ov
 
 ## Item sims
 
+`?sim=tank-items` is the durability test bench: god mode off, Helmet, Frozen Peas, Emergency Sandwich and Thermos equipped beside a Rotten Tomato; Oven Mitts, Canned Soup, Weighted Blanket, Rubber Boots and Life Insurance on the shelf. F8 edits the cart, F9 resets. See [durability.md](durability.md) for tuning and interactions.
+
+`?sim=rotten-tomato` tests Rotten Tomato's poison with mortal targets. The cart starts with a ★3 tomato; a ★1 copy is on the shelf for comparison (F8 opens the cart, F9 resets the scenario). Poison deals 4 / 6 / 8 damage per second for 4 seconds before build bonuses. At ★3, a direct-hit target's death spreads its remaining poison within 75 range, once. `?sim=weapon-tomato` uses immortal targets for sustained damage testing. Tuning lives in `src/content/items/tomato.ts`.
+
 Sandboxes for items with a mechanic you have to see, `src/sims/item-<id>.ts`:
 
 | Sim | Cart | Look for |

@@ -9838,6 +9838,76 @@
       }
     ]
   },
+  "item.battery.t1.on.tomato": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [
+          "battery"
+        ],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1.25,
+        "count": 1,
+        "critChance": 0,
+        "damage": 2.12,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "tomato",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 430,
+        "pull": 0,
+        "range": 400,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "tomato",
+        "uid": "u0"
+      }
+    ]
+  },
   "item.battery.t1.on.vacuum": {
     "adjacency": [
       [
@@ -10287,6 +10357,142 @@
       "heat": 0,
       "kitchen": 0,
       "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 9.54,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "toast",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 540,
+        "pull": 0,
+        "range": 455,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
+  "item.blanket.t1.on.toaster": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 70,
+    "moveSpeedMult": 0.9,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 9.54,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "toast",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 540,
+        "pull": 0,
+        "range": 455,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
+  "item.blanket.t3.on.toaster": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 110,
+    "moveSpeedMult": 0.9,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 1,
       "tools": 0
     },
     "shoveCooldown": 3,
@@ -12186,6 +12392,76 @@
       }
     ]
   },
+  "item.doublebag.t1.on.tomato": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [
+          "echo"
+        ],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1.4,
+        "count": 1,
+        "critChance": 0,
+        "damage": 2.12,
+        "duration": 0,
+        "echo": 0.5,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "tomato",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 430,
+        "pull": 0,
+        "range": 400,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "tomato",
+        "uid": "u0"
+      }
+    ]
+  },
   "item.doublebag.t1.on.vacuum": {
     "adjacency": [
       [
@@ -13718,6 +13994,76 @@
         "tick": 0,
         "tier": 1,
         "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
+  "item.fan.t1.on.tomato": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [
+          "fan"
+        ],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1.4,
+        "count": 1,
+        "critChance": 0,
+        "damage": 2.12,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "tomato",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 559,
+        "pull": 0,
+        "range": 520,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "tomato",
         "uid": "u0"
       }
     ]
@@ -15478,6 +15824,80 @@
       }
     ]
   },
+  "item.fuel.t1.on.tomato": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [
+          "fuel"
+        ],
+        "bundle": 1,
+        "burn": {
+          "dps": 2.5,
+          "duration": 2,
+          "tick": 0.5
+        },
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1.4,
+        "count": 1,
+        "critChance": 0,
+        "damage": 2.12,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "tomato",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 430,
+        "pull": 0,
+        "range": 400,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "tomato",
+        "uid": "u0"
+      }
+    ]
+  },
   "item.fuel.t1.on.vacuum": {
     "adjacency": [
       [
@@ -15969,6 +16389,142 @@
         "count": 1,
         "critChance": 0,
         "damage": 10.08,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "toast",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 540,
+        "pull": 0,
+        "range": 455,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
+  "item.helmet.t1.on.toaster": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 9.54,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "toast",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 540,
+        "pull": 0,
+        "range": 455,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
+  "item.helmet.t3.on.toaster": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 1
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 0.925926,
+        "count": 1,
+        "critChance": 0,
+        "damage": 9.54,
         "duration": 0,
         "echo": 0,
         "frostRing": false,
@@ -16895,6 +17451,76 @@
         "tick": 0,
         "tier": 1,
         "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
+  "item.hotsauce.t1.on.tomato": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [
+          "hotsauce"
+        ],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1.4,
+        "count": 1,
+        "critChance": 0,
+        "damage": 2.65,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "tomato",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 430,
+        "pull": 0,
+        "range": 400,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "tomato",
         "uid": "u0"
       }
     ]
@@ -18112,6 +18738,79 @@
       }
     ]
   },
+  "item.ice.t1.on.tomato": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [
+          "ice"
+        ],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1.4,
+        "count": 1,
+        "critChance": 0,
+        "damage": 2.12,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "tomato",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 430,
+        "pull": 0,
+        "range": 400,
+        "recipes": [],
+        "slow": {
+          "duration": 1,
+          "pct": 0.25
+        },
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "tomato",
+        "uid": "u0"
+      }
+    ]
+  },
   "item.ice.t1.on.vacuum": {
     "adjacency": [
       [
@@ -18333,6 +19032,142 @@
           "duration": 1,
           "pct": 0.6
         },
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
+  "item.insurance.t1.on.toaster": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 9.54,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "toast",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 540,
+        "pull": 0,
+        "range": 455,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
+  "item.insurance.t3.on.toaster": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 0.92,
+    "recipes": [],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 1,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 9.54,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "toast",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 540,
+        "pull": 0,
+        "range": 455,
+        "recipes": [],
+        "slow": null,
         "spreadDeg": 0,
         "tick": 0,
         "tier": 1,
@@ -19803,6 +20638,76 @@
       }
     ]
   },
+  "item.multipack.t1.on.tomato": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 50,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 1,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [
+          "multipack"
+        ],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1.4,
+        "count": 2,
+        "critChance": 0,
+        "damage": 2.12,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "tomato",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 430,
+        "pull": 0,
+        "range": 400,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "tomato",
+        "uid": "u0"
+      }
+    ]
+  },
   "item.multipack.t1.on.vacuum": {
     "adjacency": [
       [
@@ -19991,6 +20896,278 @@
         "chainJumps": 0,
         "cooldown": 1,
         "count": 3,
+        "critChance": 0,
+        "damage": 9.54,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "toast",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 540,
+        "pull": 0,
+        "range": 455,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
+  "item.ovenmitts.t1.on.toaster": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 1,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 10.494,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "toast",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 540,
+        "pull": 0,
+        "range": 455,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
+  "item.ovenmitts.t3.on.toaster": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 2,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 10.494,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "toast",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 540,
+        "pull": 0,
+        "range": 455,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
+  "item.peas.t1.on.toaster": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 9.54,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "toast",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 540,
+        "pull": 0,
+        "range": 455,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
+  "item.peas.t3.on.toaster": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 50,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 1,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 1,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
         "critChance": 0,
         "damage": 9.54,
         "duration": 0,
@@ -21114,6 +22291,79 @@
         "tick": 0,
         "tier": 1,
         "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
+  "item.popper.t1.on.tomato": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 50,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 1,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [
+          "popper"
+        ],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1.4,
+        "count": 1,
+        "critChance": 0,
+        "damage": 2.12,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "tomato",
+        "pierce": 0,
+        "popper": {
+          "damage": 6,
+          "radius": 70
+        },
+        "projectileSpeed": 430,
+        "pull": 0,
+        "range": 400,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "tomato",
         "uid": "u0"
       }
     ]
@@ -22393,6 +23643,76 @@
       }
     ]
   },
+  "item.pricegun.t1.on.tomato": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [
+          "pricegun"
+        ],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1.4,
+        "count": 1,
+        "critChance": 0.15,
+        "damage": 2.12,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "tomato",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 430,
+        "pull": 0,
+        "range": 400,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "tomato",
+        "uid": "u0"
+      }
+    ]
+  },
   "item.pricegun.t1.on.vacuum": {
     "adjacency": [
       [
@@ -22739,6 +24059,144 @@
       }
     ]
   },
+  "item.rubberboots.t1.on.toaster": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "floorSlowResist": 0.5,
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 9.54,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "toast",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 540,
+        "pull": 0,
+        "range": 455,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
+  "item.rubberboots.t3.on.toaster": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "floorSlowResist": 0.8,
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 1,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 9.54,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "toast",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 540,
+        "pull": 0,
+        "range": 455,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
   "item.sample.t1.on.toaster": {
     "adjacency": [
       [
@@ -22855,6 +24313,142 @@
         "count": 1,
         "critChance": 0,
         "damage": 10.494,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "toast",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 540,
+        "pull": 0,
+        "range": 455,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
+  "item.sandwich.t1.on.toaster": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 9.54,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "toast",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 540,
+        "pull": 0,
+        "range": 455,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
+  "item.sandwich.t3.on.toaster": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 50,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 1,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 9.54,
         "duration": 0,
         "echo": 0,
         "frostRing": false,
@@ -23365,6 +24959,150 @@
     "priceMult": 1,
     "recipes": [],
     "regen": 0.25,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 1,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 9.54,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "toast",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 540,
+        "pull": 0,
+        "range": 455,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
+  "item.soup.t1.on.toaster": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "clearHeal": {
+      "every": 3,
+      "hp": 15
+    },
+    "killCoinMult": 1,
+    "maxHp": 60,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 9.54,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "toast",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 540,
+        "pull": 0,
+        "range": 455,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
+  "item.soup.t3.on.toaster": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "clearHeal": {
+      "every": 3,
+      "hp": 30
+    },
+    "killCoinMult": 1,
+    "maxHp": 90,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
     "sets": {
@@ -24903,6 +26641,76 @@
       }
     ]
   },
+  "item.tape.t1.on.tomato": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [
+          "tape"
+        ],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1.4,
+        "count": 1,
+        "critChance": 0,
+        "damage": 2.12,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "tomato",
+        "pierce": 1,
+        "popper": null,
+        "projectileSpeed": 430,
+        "pull": 0,
+        "range": 400,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "tomato",
+        "uid": "u0"
+      }
+    ]
+  },
   "item.tape.t1.on.vacuum": {
     "adjacency": [
       [
@@ -25099,6 +26907,144 @@
         "ignite": null,
         "pattern": "toast",
         "pierce": 2,
+        "popper": null,
+        "projectileSpeed": 540,
+        "pull": 0,
+        "range": 455,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
+  "item.thermos.t1.on.toaster": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "overhealShieldCap": 15,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 1,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 10.494,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "toast",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 540,
+        "pull": 0,
+        "range": 455,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
+  "item.thermos.t3.on.toaster": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "overhealShieldCap": 30,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 2,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 10.494,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "toast",
+        "pierce": 0,
         "popper": null,
         "projectileSpeed": 540,
         "pull": 0,
@@ -30771,6 +32717,195 @@
         "tick": 0,
         "tier": 3,
         "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
+  "weapon.tomato.t1": {
+    "adjacency": [],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 0,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1.4,
+        "count": 1,
+        "critChance": 0,
+        "damage": 2,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "tomato",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 430,
+        "pull": 0,
+        "range": 400,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "tomato",
+        "uid": "u0"
+      }
+    ]
+  },
+  "weapon.tomato.t2": {
+    "adjacency": [],
+    "killCoinMult": 1,
+    "maxHp": 50,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 1,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 0,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1.26,
+        "count": 1,
+        "critChance": 0,
+        "damage": 3,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "tomato",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 430,
+        "pull": 0,
+        "range": 400,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 2,
+        "type": "tomato",
+        "uid": "u0"
+      }
+    ]
+  },
+  "weapon.tomato.t3": {
+    "adjacency": [],
+    "killCoinMult": 1,
+    "maxHp": 50,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 1,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 0,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1.12,
+        "count": 1,
+        "critChance": 0,
+        "damage": 4,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "tomato",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 430,
+        "pull": 0,
+        "range": 400,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 3,
+        "type": "tomato",
         "uid": "u0"
       }
     ]

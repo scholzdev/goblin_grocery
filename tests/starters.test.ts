@@ -18,8 +18,8 @@ const touching = (a: { type: ItemTypeId; x: number; y: number }, b: { type: Item
   cellsOf(a).some(([ax, ay]) => cellsOf(b).some(([bx, by]) => Math.abs(ax - bx) + Math.abs(ay - by) === 1));
 
 describe('starter weapons x characters', () => {
-  it('offers toaster, pan and nailgun', () => {
-    expect(weapons).toEqual(['toaster', 'pan', 'nailgun']);
+  it('offers toaster, pan, nailgun and tomato', () => {
+    expect(weapons).toEqual(['toaster', 'pan', 'nailgun', 'tomato']);
   });
   for (const weapon of weapons) {
     for (const ch of chars) {
@@ -34,7 +34,9 @@ describe('starter weapons x characters', () => {
         expect(s.hp).toBe(s.build.maxHp);
         applyStock(s, STARTING_ITEMS, []);
         const types = rollOffers(s, mulberry32(3), 1).map((o) => o.type);
-        expect(s.openers!.length).toBeGreaterThanOrEqual(2);
+        // Tomato has no dedicated recipes yet; its first shop rolls freely.
+        if (weapon === 'tomato') expect(s.openers).toEqual([]);
+        else expect(s.openers!.length).toBeGreaterThanOrEqual(2);
         for (const t of s.openers!) expect(types).toContain(t);
       });
     }

@@ -79,6 +79,7 @@ export const STARTER_WEAPONS: Record<StarterWeapon, { x: number; y: number; rot:
   toaster: { x: 1, y: 1, rot: 0 },
   pan: { x: 2, y: 0, rot: 0 },
   nailgun: { x: 1, y: 1, rot: 0 },
+  tomato: { x: 1, y: 1, rot: 0 },
 };
 
 /** Accessory layers drawn over the goblin head/torso per starter (SVG keys). */

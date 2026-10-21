@@ -12,7 +12,7 @@ import { arsenal, at } from '../content/helpers';
 // The pattern module (src/engine/patterns), run headless through the FakeArsenal: the weapon loop, the pools the patterns share, the
 // projectile flight, the looks and the entry points combos call. Per-pattern behaviour of each weapon is in tests/content/items/<weapon>.test.ts.
 
-const ALL: WeaponPattern[] = ['toast', 'burst', 'sweep', 'pulse', 'aura', 'zap', 'ricochet', 'puddle', 'laser', 'mortar', 'cone', 'popcorn'];
+const ALL: WeaponPattern[] = ['toast', 'burst', 'sweep', 'pulse', 'aura', 'zap', 'ricochet', 'puddle', 'laser', 'mortar', 'cone', 'popcorn', 'tomato'];
 
 describe('the pattern table', () => {
   it('has exactly one pattern per WeaponPattern, keyed by its id', () => {
@@ -24,7 +24,7 @@ describe('the pattern table', () => {
     const used = WEAPON_IDS.map((id) => ITEMS[id].weapon!.pattern);
     for (const p of used) expect(PATTERNS[p], p).toBeDefined();
     expect([...new Set(used)].sort()).toEqual([...ALL].sort());
-    expect(WEAPON_IDS).toHaveLength(14);
+    expect(WEAPON_IDS).toHaveLength(15);
   });
 
   it('only the puddle is blind, burst/pulse/aura tick every frame, puddle and mortar keep things in the world', () => {
@@ -395,8 +395,8 @@ describe('guards on the module\'s source', () => {
   const entries = Object.entries(files).map(([f, src]) => [f.split('/').pop()!, src] as const);
   const real = entries.filter(([f]) => f !== 'fakeHost.ts');
 
-  it('has the 12 pattern files plus the shared ones', () => {
-    expect(entries.map(([f]) => f).sort()).toEqual(['aura.ts', 'burst.ts', 'common.ts', 'cone.ts', 'fakeHost.ts', 'index.ts', 'laser.ts', 'mortar.ts', 'popcorn.ts', 'projectile.ts', 'puddle.ts', 'pulse.ts', 'ricochet.ts', 'sweep.ts', 'toast.ts', 'types.ts', 'zap.ts']);
+  it('has the 13 pattern files plus the shared ones', () => {
+    expect(entries.map(([f]) => f).sort()).toEqual(['aura.ts', 'burst.ts', 'common.ts', 'cone.ts', 'fakeHost.ts', 'index.ts', 'laser.ts', 'mortar.ts', 'popcorn.ts', 'projectile.ts', 'puddle.ts', 'pulse.ts', 'ricochet.ts', 'sweep.ts', 'toast.ts', 'tomato.ts', 'types.ts', 'zap.ts']);
   });
 
   it('imports Phaser as a type only (the patterns run headless)', () => {
