@@ -551,7 +551,7 @@ function freshHtml(res: NonNullable<typeof flow.lastResult>): string {
 }
 
 
-function endHtml(): string {
+export function endHtml(): string {
   const s = store.state;
   const won = s.phase === 'victory';
   const res = flow.lastResult;
@@ -559,7 +559,14 @@ function endHtml(): string {
   const dmg = damageBreakdownHtml(s.stats, sourceNames(s.inventory), settings.damageColors), taken = damageTakenHtml(s.stats, won);
   const mins = Math.floor(s.stats.timeSeconds / 60), secs = Math.floor(s.stats.timeSeconds % 60);
   const fresh = res ? freshHtml(res) : '';
-  return `<div class="endcard receipt ${fresh ? 'cols' : ''}">
+  // The side column leads with what the outcome is about (the unlocks on a win, the hits that ended the run on a defeat).
+  // The damage breakdown joins it unless unlocks fill it, so neither column runs much longer than the other.
+  const side = (won ? fresh + taken : taken + fresh) + (fresh ? '' : dmg);
+  const buttons = s.lab
+    ? `<button class="btn coral" data-act="lab-back" data-focus>${t('backToLab')}</button><button class="btn" data-act="quit">${t('titleBtn')}</button>`
+    : `${won ? `<button class="btn coral overtime" data-act="overtime" data-focus>${t('keepGoing')}</button>` : ''}<button class="btn ${won ? '' : 'coral'}" data-act="again" ${won ? '' : 'data-focus'}>${t('shopAgain')}</button><button class="btn" data-act="end-catalog">${t('catalog')}</button><button class="btn" data-act="quit">${t('titleBtn')}</button>`;
+  // The body scrolls when a long run outgrows the screen; the score and the buttons stay in the foot.
+  return `<div class="endcard receipt ${side ? 'cols' : ''}">
     <h2 class="display" style="font-size:46px;margin:0;color:${won ? 'var(--green-deep)' : 'var(--coral)'}">${won ? t('paidInFull') : s.overtime ? t('overtimeOver') : t('wipedOut')}</h2>
     <div style="text-align:center;font-weight:800">${won ? t('managerReturned') : t('cartStopped', { where: s.wave === BOSS_WAVE ? t('theFinalAisle') : t('aisleLc', { n: s.wave }) })}</div>
     <div style="text-align:center;font-weight:800">${t('shiftN', { n: s.shift + 1, name: shiftT(s.shift).name })}</div>
@@ -574,16 +581,16 @@ function endHtml(): string {
     <div style="font-weight:800;text-align:center">${t('finalCart')}</div>
     <div class="icons">${icons || '—'}</div>
     ${s.build.recipes.length ? `<div style="text-align:center">${s.build.recipes.map((r) => `<span class="badge">${recipeT(r.id).name}</span>`).join(' ')}</div>` : ''}
-    ${taken}
-    ${dmg}
+    ${fresh ? dmg : ''}
+    </div>${side ? `<div class="endr">${side}</div>` : ''}</div>
+    <div class="endfoot">
     <hr class="dash">
-    <div class="score">${t('pts', { n: res?.score ?? 0 })}</div>
-    ${res?.newBest ? `<span class="newbest sticker">${t('newBest')}</span>` : ''}
+    <div class="endscore"><div class="score">${t('pts', { n: res?.score ?? 0 })}</div>${res?.newBest ? `<span class="newbest sticker">${t('newBest')}</span>` : ''}</div>
     ${res?.daily ? `<div style="text-align:center;font-weight:800">${res.daily.newBest ? t('dailyNewBest') + ' · ' : ''}${t('dailyEndBest', { n: res.daily.best })}</div>` : ''}
-    </div>${fresh ? `<div class="endr">${fresh}</div>` : ''}</div>
     ${res ? stampsHtml(res) : ''}
-    ${s.lab ? `<div class="row"><button class="btn coral" data-act="lab-back" data-focus>${t('backToLab')}</button><button class="btn" data-act="quit">${t('titleBtn')}</button></div>` : `${won ? `<div class="row"><button class="btn coral overtime" data-act="overtime" data-focus>${t('keepGoing')}</button></div>` : ''}<div class="row"><button class="btn ${won ? '' : 'coral'}" data-act="again" ${won ? '' : 'data-focus'}>${t('shopAgain')}</button><button class="btn" data-act="end-catalog">${t('catalog')}</button><button class="btn" data-act="quit">${t('titleBtn')}</button></div>`}
+    <div class="row">${buttons}</div>
     <div style="display:flex;justify-content:center;margin-top:12px"><div class="barcode" style="width:180px"></div></div>
+    </div>
   </div>`;
 }
 
