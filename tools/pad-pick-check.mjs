@@ -14,6 +14,8 @@ await page.addInitScript(() => { // connected from the first frame, so src/input
   const pad = { id: 'fake pad', index: 0, connected: true, mapping: 'standard', timestamp: 0, axes: [0, 0, 0, 0], buttons: Array.from({ length: 17 }, () => ({ pressed: false, touched: false, value: 0 })) };
   window.__pad = pad;
   Object.defineProperty(Navigator.prototype, 'getGamepads', { configurable: true, value: () => [pad] });
+  // The game's own gamepad module: after a hot update the app loads it as `gamepad.ts?t=…`, and a plain import would be a second instance.
+  window.__padModule = () => import(performance.getEntriesByType('resource').map((e) => e.name).find((n) => n.includes('/src/input/gamepad.ts')) ?? '/src/input/gamepad.ts');
 });
 
 /** Down for a few frames, then up for a few: the pad loop acts on press edges. */
@@ -35,7 +37,7 @@ const focused = () => page.evaluate(() => {
 const offered = () => page.$$eval('.stockroom .card img.art', (imgs) => imgs.map((i) => /icon_(\w+)\.svg/.exec(i.getAttribute('src'))?.[1]));
 const shelf = () => page.evaluate(() => window.__gg.store.state.inventory.shelf.map((it) => it?.type ?? null));
 const closed = () => page.waitForSelector('.stockroom', { state: 'detached', timeout: 3000 }).then(() => true, () => false);
-const goblin = () => page.evaluate(async () => ({ x: Math.round(window.__arena.player.x), y: Math.round(window.__arena.player.y), shoves: (await import('/src/input/gamepad.ts')).padShoves() }));
+const goblin = () => page.evaluate(async () => ({ x: Math.round(window.__arena.player.x), y: Math.round(window.__arena.player.y), shoves: (await window.__padModule()).padShoves() }));
 /** Arms a mash for the next pick dialog, in the page so no round trip delays it: A (also the shove) on the frame the dialog opens, then
  * the d-pad while the grace still runs. Resolves to the goblin as the dialog opened. */
 async function mashIntoDialog(where, open) {
@@ -44,7 +46,7 @@ async function mashIntoDialog(where, open) {
     const hold = (i, at) => setTimeout(() => { pad.buttons[i].pressed = true; setTimeout(() => { pad.buttons[i].pressed = false; }, 80); }, at);
     const focus = () => { const el = document.activeElement; return el?.closest('.stockroom') ? `card ${el.dataset.i}` : el?.tagName; };
     window.__mash = null;
-    import('/src/input/gamepad.ts').then((gp) => {
+    window.__padModule().then((gp) => {
       const obs = new MutationObserver(() => {
         if (!document.querySelector('.stockroom .card')) return;
         obs.disconnect();
