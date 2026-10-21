@@ -10,9 +10,25 @@ export const DEADZONE = 0.25;
 /** Standard-mapping button indices. */
 export const BTN = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, SELECT: 8, START: 9, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 } as const;
 
+export type PadMode = 'combat' | 'shop' | 'menu';
+
 /** What the pad drives: the goblin, the shop cursor, or DOM focus in menus. A pick `dialog` over the fight (stockroom, mini-boss crates) is a menu. */
-export function padMode(phase: Phase, paused: boolean, dialog: boolean): 'combat' | 'shop' | 'menu' {
+export function padMode(phase: Phase, paused: boolean, dialog: boolean): PadMode {
   return phase === 'shop' ? 'shop' : (phase === 'combat' || phase === 'checkout') && !paused && !dialog ? 'combat' : 'menu';
+}
+
+/**
+ * Whether A may confirm this frame; called every frame with the pad's mode. A is also the shove, so for `grace` ms after the pad leaves
+ * the fight (a pick dialog, the shop, a pause) it confirms nothing: a player still mashing shove does not take whatever has focus.
+ */
+export function makeConfirmGate(grace = 400): (mode: PadMode, now: number) => boolean {
+  let prev: PadMode | null = null;
+  let until = -Infinity;
+  return (mode, now) => {
+    if (prev === 'combat' && mode !== 'combat') until = now + grace;
+    prev = mode;
+    return now >= until;
+  };
 }
 
 const len = (v: Vec): number => Math.hypot(v.x, v.y);

@@ -1,7 +1,7 @@
 // Gamepad support on the browser Gamepad API (standard mapping). Nothing runs until a pad reports in:
 // no listeners besides connect/disconnect and no polling loop while no controller is attached.
 // Combat feeds padMove()/takePadShove() to the arena; menus get DOM focus navigation; the shop gets a cursor (ShopPad in shop.ts).
-import { BTN, makeRepeater, mergeVectors, pickNext, pressedEdges, stickDir, stickVector, dpadVector, type Dir, type Vec } from './pad-core';
+import { BTN, makeConfirmGate, makeRepeater, mergeVectors, pickNext, pressedEdges, stickDir, stickVector, dpadVector, type Dir, type PadMode, type Vec } from './pad-core';
 
 export interface ShopPad {
   /** Moves the cursor one target in `dir`. */
@@ -19,7 +19,7 @@ export interface ShopPad {
 }
 
 export interface PadHooks {
-  mode(): 'combat' | 'shop' | 'menu';
+  mode(): PadMode;
   /** The element menu focus is confined to (topmost modal or visible screen), or null. */
   scope(): HTMLElement | null;
   /** Start: pause / resume. */
@@ -43,8 +43,9 @@ let shoveQueued = false;
 let shoveCount = 0;
 const activeQueued = [false, false, false];
 let prev: boolean[] = [];
-let prevMode: ReturnType<PadHooks['mode']> | '' = '';
+let prevMode: PadMode | '' = '';
 const repeat = makeRepeater();
+const confirmGate = makeConfirmGate();
 
 /** Current analog movement for combat: left stick + d-pad, deadzoned, length at most 1. Zero when no pad is in play. */
 export const padMove = (): Vec => move;
@@ -114,6 +115,7 @@ function frame(now: number): void {
   const mode = h.mode();
   const changed = mode !== prevMode;
   prevMode = mode;
+  const canConfirm = confirmGate(mode, now);
 
   const ax = pad.axes[0] ?? 0, ay = pad.axes[1] ?? 0;
   const dp = dpadVector(down[BTN.UP], down[BTN.DOWN], down[BTN.LEFT], down[BTN.RIGHT]);
@@ -132,7 +134,7 @@ function frame(now: number): void {
     if (changed) h.shop.enter();
     if (dir) h.shop.move(dir);
     for (const e of edges) {
-      if (e === BTN.A) h.shop.confirm();
+      if (e === BTN.A) { if (canConfirm) h.shop.confirm(); }
       else if (e === BTN.B) h.shop.cancel();
       else if (e === BTN.X || e === BTN.LB || e === BTN.RB) h.shop.rotate();
       else if (e === BTN.Y) h.shop.inspect();
@@ -141,7 +143,7 @@ function frame(now: number): void {
   }
   if (dir) navigate(dir);
   for (const e of edges) {
-    if (e === BTN.A) activate();
+    if (e === BTN.A) { if (canConfirm) activate(); }
     else if (e === BTN.B) h.back();
     else if (e === BTN.Y) h.loadout();
   }
