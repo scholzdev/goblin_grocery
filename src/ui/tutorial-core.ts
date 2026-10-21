@@ -21,6 +21,8 @@ export interface Snap {
   setActive: boolean;
   boss: boolean;
   flags: string[];
+  /** A dialog over the arena (the stockroom or the Boss Loot crates): nothing shows or advances until it closes. */
+  dialog: boolean;
 }
 interface Entry { id: string; at: TutPhase; done: (s: Snap) => boolean; on?: (s: Snap) => boolean }
 
@@ -52,10 +54,10 @@ const OWN = new Set([...STEPS, ...TIPS].map((e) => e.id));
 export const freshProgress = (seen: string[] = []): Progress => ({ done: false, seen: seen.filter((id) => !OWN.has(id)) });
 export const skipAll = (seen: string[] = []): Progress => ({ done: true, seen: [...freshProgress(seen).seen, ...OWN] });
 
-/** The callout to show right now (a step if its phase matches, else a triggered tip), or null. Never in the Test Lab. */
+/** The callout to show right now (a step if its phase matches, else a triggered tip), or null. Never in the Test Lab or under a dialog. */
 export function pick(p: Progress, s: Snap): { id: string; tip: boolean } | null {
   const ph = tutPhase(s.phase);
-  if (s.lab || !ph) return null;
+  if (s.lab || !ph || s.dialog) return null;
   const step = p.done ? undefined : STEPS.find((e) => !p.seen.includes(e.id));
   if (step?.at === ph) return { id: step.id, tip: false };
   const tip = TIPS.find((e) => e.at === ph && !p.seen.includes(e.id) && e.on!(s));
@@ -65,7 +67,7 @@ export function pick(p: Progress, s: Snap): { id: string; tip: boolean } | null 
 /** Marks the shown entry seen once its condition holds; steps the player has outrun (e.g. combat steps once in the shop) are skipped. */
 export function advance(p: Progress, s: Snap): Progress {
   const ph = tutPhase(s.phase);
-  if (s.lab || !ph) return p;
+  if (s.lab || !ph || s.dialog) return p;
   let seen = p.seen;
   for (const e of STEPS) if (!seen.includes(e.id) && RANK[e.at] < RANK[ph]) seen = [...seen, e.id];
   // judge what is on screen and what was shown a tick ago (the door step ends when the route screen closes)

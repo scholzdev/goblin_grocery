@@ -11,6 +11,7 @@ import { isDown } from '../input/keyboard';
 import { padMove, padShoves } from '../input/gamepad';
 import { keyVars } from './keys';
 import { placeBubble, type Rect, type Side } from './tutorial-place';
+import { stockroomOpen } from './stockroom';
 import { advance, freshProgress, pick, skipAll, type Progress, type Snap } from './tutorial-core';
 
 // First-run tutorial: speech-bubble callouts that never block the game. The bubble ignores the pointer (only "Skip" takes clicks),
@@ -88,6 +89,7 @@ function snap(): Snap {
     setActive: setActive(s),
     boss: s.wave === BOSS_WAVE && !s.overtime && s.phase === 'combat',
     flags,
+    dialog: stockroomOpen(),
   };
 }
 

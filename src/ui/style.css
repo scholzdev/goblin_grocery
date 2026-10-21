@@ -933,7 +933,7 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .stockroom h2 { font-size: 40px; margin: 0; color: var(--gold); font-weight: 400; }
 .stockroom p { margin: 2px 0 14px; font-weight: 800; }
 .stockroom .stock-cards { display: flex; gap: 22px; justify-content: center; }
-.stockroom .card { width: 170px; color: var(--plum); }
+.stockroom .card { width: 170px; height: auto; min-height: 180px; color: var(--plum); }
 .stockroom .card .key { position: absolute; left: 8px; top: 6px; font: 400 18px var(--display); opacity: 0.6; }
 .stockroom .card .kind { font-size: 12px; font-weight: 800; opacity: 0.75; margin-top: 4px; }
 .stockroom .card .free { margin-top: auto; font: 400 20px var(--display); color: var(--green-deep); }
