@@ -201,10 +201,11 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
   background-image: linear-gradient(45deg, rgba(255, 242, 213, 0.45) 25%, transparent 25%, transparent 75%, rgba(255, 242, 213, 0.45) 75%),
     linear-gradient(45deg, rgba(255, 242, 213, 0.45) 25%, transparent 25%, transparent 75%, rgba(255, 242, 213, 0.45) 75%);
   background-size: 96px 96px; background-position: 0 0, 48px 48px; user-select: none; }
-#shop .col-left { position: absolute; left: 24px; top: 30px; max-height: calc(100% - 66px); width: 290px; padding: 18px 18px 14px; display: flex; flex-direction: column; }
+#shop .col-left { position: absolute; left: 24px; top: 30px; max-height: calc(100% - 66px - var(--setbonus-h, 0px)); width: 290px; padding: 18px 18px 14px; display: flex; flex-direction: column; }
 #shop .col-left h3 { font-family: var(--display); font-weight: 400; font-size: 28px; margin: 0; text-align: center; }
 #shop .col-left .sub { text-align: center; font-weight: 800; font-size: 13px; letter-spacing: 0.1em; opacity: 0.7; }
-#shop .lines { flex: 0 1 auto; min-height: 48px; overflow: hidden; margin-bottom: 10px; font-size: 15px; font-weight: 700; }
+/* The ledger keeps whole rows: the set coupons below give up the height first, and a very long ledger scrolls. */
+#shop .lines { flex: none; max-height: 150px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: rgba(48, 32, 63, 0.35) transparent; margin-bottom: 10px; font-size: 15px; font-weight: 700; }
 #shop .lines .line { display: flex; justify-content: space-between; gap: 8px; padding: 1px 0; }
 #shop .lines .line.neg span:last-child { color: var(--coral-deep); }
 #shop .lines .line span:last-child { font-family: var(--display); font-weight: 400; }

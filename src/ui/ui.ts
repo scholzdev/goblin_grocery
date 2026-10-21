@@ -185,6 +185,7 @@ function closeSetCard(): void {
   clearTimeout(setCard.timer);
   setCard.el.remove();
   setCard = null;
+  ui.style.removeProperty('--setbonus-h');
 }
 
 function setBonusCard(ups: { id: SetId; lv: number }[]): void {
@@ -206,11 +207,11 @@ function setBonusCard(ups: { id: SetId; lv: number }[]): void {
     card.el.append(row);
   }
   card.el.classList.remove('out');
-  // Sits under the receipt column, clear of the cart grid (the receipt grows with the ledger).
+  // Sits under the receipt column, clear of the cart grid. A long receipt gives up the room (its set coupons scroll), so the card never covers it.
+  ui.style.setProperty('--setbonus-h', `${card.el.offsetHeight + 12}px`);
   const rcpt = document.querySelector('#shop .col-left')?.getBoundingClientRect();
   const k = ui.getBoundingClientRect(), sc = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--s')) || 1;
-  const below = rcpt ? (rcpt.bottom - k.top) / sc + 12 : 520;
-  card.el.style.top = `${Math.min(below, ui.clientHeight - card.el.offsetHeight - 8)}px`;
+  card.el.style.top = `${rcpt ? (rcpt.bottom - k.top) / sc + 12 : 520}px`;
   play('upgrade');
   clearTimeout(card.timer);
   card.timer = window.setTimeout(() => {
