@@ -69,6 +69,11 @@ export const flow = {
     store.changed();
   },
 
+  /** Pause menu Restart and the end card's Again: the same loadout from aisle 1. A daily stays the daily (its seed, no coupon spent). */
+  restartRun(): void {
+    this.startRun(undefined, undefined, undefined, undefined, { daily: !!store.state.daily });
+  },
+
   /** Test Lab: park the run in the shop before the chosen aisle; `restore` brings back the loadout of the last attempt (Reset starts clean). */
   startLab(o: LabOpts, restore = false): void {
     const seed = (Date.now() ^ (Math.random() * 1e9)) >>> 0;

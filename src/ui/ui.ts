@@ -603,7 +603,7 @@ function onClick(e: MouseEvent): void {
   play('click');
   switch (act) {
     case 'play': choosingStarter = true; render(); break;
-    case 'again': startMusic(); if (store.state.daily) { flow.startRun(undefined, undefined, undefined, undefined, { daily: true }); break; } flow.startRun(store.state.starter, store.state.shift, store.state.weapon, store.state.theme); break;
+    case 'again': startMusic(); flow.restartRun(); break;
     case 'overtime': flow.overtime(); break;
     case 'shift': pickedShift = Number((e.target as HTMLElement).closest<HTMLElement>('[data-shift]')!.dataset.shift); screens.starter.innerHTML = starterHtml(); screens.starter.querySelector<HTMLElement>('[data-focus]')?.focus(); break;
     case 'weapon': pickWeapon((e.target as HTMLElement).closest<HTMLElement>('[data-weapon]')!.dataset.weapon as StarterWeapon); screens.starter.innerHTML = starterHtml(); screens.starter.querySelector<HTMLElement>('[data-focus]')?.focus(); break;
@@ -612,7 +612,7 @@ function onClick(e: MouseEvent): void {
     case 'start-run': startPicked(); break;
     case 'close-starter': choosingStarter = false; render(); break;
     case 'resume': flow.resume(); break;
-    case 'restart': flow.startRun(); break;
+    case 'restart': flow.restartRun(); break;
     case 'quit': flow.toTitle(); break;
     case 'end-catalog': flow.toTitle(); openTitleModal(codexHtml(newCount('item:') && !newCount('recipe:') ? 'items' : !newCount('recipe:') && newCount('enemy:') ? 'enemies' : 'combos')); break;
     case 'exit': desktop?.quit(); break;
