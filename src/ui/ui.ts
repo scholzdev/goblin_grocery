@@ -17,6 +17,8 @@ import { initTutorial, resetTutorial } from './tutorial';
 import { KEY_ACTIONS, clearSlot, defaultKeys, keyLabel, matches, rebind, type KeyAction } from '../state/keymap';
 import { initKeyboard } from '../input/keyboard';
 import { initGamepad } from '../input/gamepad';
+import { padMode } from '../input/pad-core';
+import { stockroomDialog, stockroomOpen } from './stockroom';
 import { kbdHtml, keyText, moveHtml } from './keys';
 import { initShop, shopKey, shopPad, gridHtml, combosHtml, starsHtml, rarityClass, inspectorHtml, showItemCard, hideItemCard } from './shop';
 import { DEPARTMENTS, THEMES } from '../data/departments';
@@ -885,10 +887,12 @@ function toggleLoadout(): void {
 
 // ───────────────────────────── keyboard / gamepad glue ─────────────────────────────
 
-/** Menu focus stays inside the topmost modal, else the visible screen. */
+/** Menu focus stays inside the topmost modal, else the pick dialog over the fight (under the pause menu and the loadout), else the visible screen. */
 function padScope(): HTMLElement | null {
   const modal = screens.title.querySelector<HTMLElement>('.settings-modal');
   if (modal && !screens.title.classList.contains('hidden')) return modal;
+  const pick = stockroomDialog();
+  if (pick && !flow.paused) return pick;
   for (const k of ['starter', 'pause', 'loadout', 'end', 'route', 'title'] as const) if (!screens[k].classList.contains('hidden')) return screens[k];
   return null;
 }
@@ -904,10 +908,7 @@ function padBack(): void {
 function initPad(): void {
   initKeyboard(() => store.state.phase === 'combat' && !flow.paused);
   initGamepad({
-    mode: () => {
-      const ph = store.state.phase;
-      return ph === 'shop' ? 'shop' : (ph === 'combat' || ph === 'checkout') && !flow.paused ? 'combat' : 'menu';
-    },
+    mode: () => padMode(store.state.phase, flow.paused, stockroomOpen()),
     scope: padScope,
     pause: togglePause,
     loadout: toggleLoadout,

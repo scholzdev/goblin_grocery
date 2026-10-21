@@ -1,4 +1,5 @@
 // Gamepad maths with no DOM or Gamepad API access, so it can be unit-tested (see tests/gamepad.test.ts).
+import type { Phase } from '../types';
 
 export interface Vec { x: number; y: number }
 export type Dir = 'up' | 'down' | 'left' | 'right';
@@ -8,6 +9,11 @@ export const DEADZONE = 0.25;
 
 /** Standard-mapping button indices. */
 export const BTN = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, SELECT: 8, START: 9, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 } as const;
+
+/** What the pad drives: the goblin, the shop cursor, or DOM focus in menus. A pick `dialog` over the fight (stockroom, mini-boss crates) is a menu. */
+export function padMode(phase: Phase, paused: boolean, dialog: boolean): 'combat' | 'shop' | 'menu' {
+  return phase === 'shop' ? 'shop' : (phase === 'combat' || phase === 'checkout') && !paused && !dialog ? 'combat' : 'menu';
+}
 
 const len = (v: Vec): number => Math.hypot(v.x, v.y);
 

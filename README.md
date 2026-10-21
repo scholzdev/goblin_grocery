@@ -43,6 +43,7 @@ Every `tools/*-shot*.mjs`, `playtest`, `botrun`, `botwatch`, `fullrun`, `trailer
 node tools/playtest.mjs [url] [width] [height]   # scripted smoke test with screenshots
 node tools/botrun.mjs [url] [runs]               # kiting bot through full runs, per-wave stats for balance checks
 node tools/victory-check.mjs [url]               # boss victory path
+node tools/pad-pick-check.mjs [url]             # controller-only picks: stockroom and mini-boss crates via a fake gamepad
 ```
 
 ## Controls

@@ -10,6 +10,8 @@ let el: HTMLElement | null = null;
 let onKey: ((e: KeyboardEvent) => void) | null = null;
 
 export const stockroomOpen = (): boolean => el !== null;
+/** The open pick dialog, for gamepad focus. */
+export const stockroomDialog = (): HTMLElement | null => el;
 
 export function hideStockroom(): void {
   if (onKey) window.removeEventListener('keydown', onKey);
