@@ -5,13 +5,13 @@ import { DEPARTMENTS } from '../data/departments';
 import { MODIFIERS, type DoorId } from '../data/modifiers';
 import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS } from '../data/waves';
 import type { ZoneId } from '../data/zones';
-import type { DepartmentId, ElementTag, FamilyTag, Build, Inventory, ItemInstance, ItemTypeId, LabOpts, OpResult, Rotation, RunState, StarterId, StarterWeapon } from '../types';
+import type { DepartmentId, ElementTag, FamilyTag, Build, HitSource, Inventory, ItemInstance, ItemTypeId, LabOpts, OpResult, Rotation, RunState, StarterId, StarterWeapon } from '../types';
 import { canPlace, findItem, firstFit, normalizeRotation } from '../systems/inventory';
 import { mulberry32, type Rng } from '../systems/rng';
 import { zonesOf } from '../data/zones';
-import { currentRerollCost, repairCost, rollDoors, rollOffers, rollZones, sellPrice } from '../systems/shop';
+import { currentRerollCost, doorAisle, repairCost, rollDoors, rollOffers, rollZones, sellPrice } from '../systems/shop';
 import { computeBuild } from '../systems/synergies';
-import { newDamageStats } from '../systems/damageStats';
+import { newDamageStats, recordHit } from '../systems/damageStats';
 import { contentItem, contentSetTune, contentTune, sellValue } from '../engine/registry';
 import { FAMILIES, FLAVORS } from '../engine/define';
 import { PUNCH_REROLLS } from '../systems/contracts';
@@ -59,7 +59,7 @@ export function createRun(seed: number, starter: StarterId = 'toaster', shift = 
   const state: RunState = {
     phase: 'title', wave: 1, hp: PLAYER.maxHp, money: PLAYER.startMoney + (PLAYER.starters[starter].perk?.startMoney ?? 0), inventory,
     build: undefined as unknown as Build, shop: null, shopLevel: 1, starter, weapon, shift, theme, department: theme, modifier: 'none', route: [theme], mods: ['none'], doors: null, zone, zones: [zone], doorZones: null, coinLog: [], nextUid: 1, seed,
-    stats: { kills: 0, coinsEarned: 0, damageByWeapon: {}, damage: newDamageStats(), wavesCleared: 0, timeSeconds: 0, bossDefeated: false },
+    stats: { kills: 0, coinsEarned: 0, damageByWeapon: {}, damage: newDamageStats(), taken: {}, wavesCleared: 0, timeSeconds: 0, bossDefeated: false },
   };
   const w = STARTER_WEAPONS[weapon];
   inventory.placed.push({ uid: newUid(state), type: weapon, x: w.x, y: w.y, rot: w.rot });
@@ -72,7 +72,7 @@ export function createRun(seed: number, starter: StarterId = 'toaster', shift = 
 export function createLabRun(seed: number, o: LabOpts): RunState {
   const s = createRun(seed, o.starter, o.shift, o.weapon, o.dept === 'boss' ? 'main' : o.dept);
   s.inventory = { cols: o.cart[0], rows: o.cart[1], placed: [], shelf: Array(o.shelf).fill(null) };
-  s.unlocked = [...ITEM_IDS];
+  s.pool = [...ITEM_IDS];
   s.lab = true;
   labApply(s, o);
   return s;
@@ -386,10 +386,18 @@ export function payPunchCard(state: RunState): void {
   if (state.punch?.status === 'done') addCoins(state, state.punch.coins, t('coinPunchCard'));
 }
 
+const waveClearCoins = (state: RunState): number =>
+  Math.round(ECONOMY.waveClearBonus * DEPARTMENTS[state.department].coinMult * MODIFIERS[state.modifier].coinMult * SHIFTS[state.shift].coinMult);
+
+/** Counts the aisle's clear bonus, which `finishWave` pays before the interest. */
+export function interestPreview(state: RunState): { amount: number; cap: number } {
+  const cap = Math.max(ECONOMY.interestCap, contentSetTune('checkout', state.build.sets.checkout).interestCap);
+  return { amount: Math.min(cap, Math.floor((state.money + waveClearCoins(state)) / ECONOMY.interestPer)), cap };
+}
+
 export function finishWave(state: RunState): void {
-  addCoins(state, Math.round(ECONOMY.waveClearBonus * DEPARTMENTS[state.department].coinMult * MODIFIERS[state.modifier].coinMult * SHIFTS[state.shift].coinMult), t('coinWaveClear'));
-  const ck = contentSetTune('checkout', state.build.sets.checkout);
-  const interest = state.build.sets.checkout >= 2 ? Math.min(ck.interestCap, Math.floor(state.money / ck.interestPer)) : 0;
+  const interest = interestPreview(state).amount;
+  addCoins(state, waveClearCoins(state), t('coinWaveClear'));
   if (interest > 0) addCoins(state, interest, t('coinInterest'));
   state.stats.wavesCleared++;
   state.hp = Math.min(state.build.maxHp, state.hp + PLAYER.repairBetweenWaves);
@@ -405,11 +413,20 @@ export function startNextWave(state: RunState): void {
   state.coinLog = [];
 }
 
-export function damagePlayer(state: RunState, amount: number): boolean {
+export function damagePlayer(state: RunState, amount: number, source: HitSource): boolean {
+  const before = state.hp;
   state.hp = Math.max(0, state.hp - amount); // armor (Bubble Wrap) is an onPlayerHit hook: ArenaScene.hurtPlayer lowers `amount` first
+  recordHit(state.stats, source, before - state.hp);
   if (state.hp > 0) return false;
   state.phase = 'defeat';
   return true;
+}
+
+/** Self-damage of an item (`ctx.drain`): never below 1 HP, so it never kills. */
+export function drainPlayer(state: RunState, hp: number, by: ItemTypeId): void {
+  const before = state.hp;
+  state.hp = Math.min(state.hp, Math.max(1, state.hp - hp));
+  recordHit(state.stats, { how: 'self', by }, before - state.hp);
 }
 
 export function leaveShop(state: RunState, rng: Rng): OpResult {
@@ -447,13 +464,10 @@ export function chooseDoor(state: RunState, id: DoorId): OpResult {
   if (state.phase !== 'route' || !state.doors) return fail(t('rNoDoors'));
   if (!state.doors.includes(id)) return fail(t('rDoorUnavailable'));
   if (id === 'shortcut') return takeShortcut(state);
-  const zone = state.doorZones?.[state.doors.indexOf(id)] ?? null;
-  state.department = id === 'boss' ? 'boss' : state.theme;
-  state.modifier = id === 'boss' ? 'none' : id;
+  Object.assign(state, doorAisle(state, id));
   state.route.push(state.department);
   state.mods.push(state.modifier);
-  state.zone = zone;
-  state.zones.push(zone);
+  state.zones.push(state.zone);
   state.doors = null;
   state.doorZones = null;
   return OK;

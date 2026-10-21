@@ -1,11 +1,12 @@
 import { lang } from './lang';
+import { t } from './index';
 import { DATA_DE } from './data-de';
 import { PLAYER } from '../data/items';
 import { DEPARTMENTS } from '../data/departments';
 import { ZONES, type ZoneId } from '../data/zones';
 import { SHIFTS } from '../data/waves';
 import { CART_SKINS, GOBLIN_SKINS, UNLOCKS } from '../data/unlocks';
-import { enemyTextTune } from '../engine/define';
+import { enemyTextTune, hasStar3 } from '../engine/define';
 import { contentCombo, contentEnemy, contentItem, contentSet } from '../engine/registry';
 import { renderAll, renderText } from '../engine/text';
 import type { CartSkin, GoblinSkin } from '../data/unlocks';
@@ -18,10 +19,15 @@ export const itemT = (id: ItemTypeId) => {
   const c = contentItem(id)!, { name, blurb } = c.text[lang()];
   return { name, blurb: renderText(blurb, c.tune, 1, lang()) };
 };
-/** Item rules text with the numbers of `tier` filled in from the content tune (★1 for the per-tier values by default). */
 export const itemRules = (id: ItemTypeId, tier = 1): string => {
-  const c = contentItem(id)!;
-  return renderText(c.text[lang()].rules, c.tune, tier, lang());
+  const c = contentItem(id)!, t = c.text[lang()];
+  const rules = renderText(t.rules, c.tune, tier, lang());
+  return hasStar3(tier) && t.star3 ? `${rules} ${renderText(t.star3, c.tune, tier, lang())}` : rules;
+};
+/** Below ★3, a weapon's ★3 line as a teaser ("At ★3: …", numbers at ★3); '' from ★3 on and for items without one. */
+export const star3Teaser = (id: ItemTypeId, tier = 1): string => {
+  const c = contentItem(id)!, line = c.text[lang()].star3;
+  return line && !hasStar3(tier) ? t('star3At', { line: renderText(line, c.tune, 3, lang()).replace(/^★3:\s*/, '') }) : '';
 };
 /** A combo's name and texts in the current language, the placeholders filled from its tune. */
 export const recipeT = (id: RecipeId) => {

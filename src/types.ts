@@ -1,7 +1,8 @@
 // Shared contracts. Pure data shapes only — no Phaser, no DOM.
 import type { DoorId, ModifierId } from './data/modifiers';
 import type { PunchCard } from './systems/contracts';
-import type { EventKind } from './data/events';
+import type { EventKind, SetEventKind } from './data/events';
+import type { EliteAffix } from './data/enemies';
 import type { ZoneId } from './data/zones';
 import type { DamageStats } from './systems/damageStats';
 import type { AffinityMap, AffinityTag, BUFF_ORDER, ELEMENTS, ENEMY_BEHAVIORS, ENEMY_ORDER, FAMILIES, ITEM_ORDER, RECIPE_ORDER, SET_ORDER, STARTER_ORDER, THEME_ORDER } from './engine/define';
@@ -78,7 +79,6 @@ export interface ItemInstance {
   rot: Rotation;
   /** 1..MAX_TIER. Missing = 1. Raised by merging duplicates or buying an upgrade. */
   tier?: number;
-  /** Bought as a double pack: counts as 2 distinct types toward its family set. */
   double?: boolean;
   /** Jelly Beans only: current flavor (= which element set it counts for). Missing = heat. */
   flavor?: ElementTag;
@@ -186,7 +186,6 @@ export interface Build {
   regen: number;           // HP per second during combat (snack bag)
   killCoinMult: number;    // piggy bank: multiplier on regular kill coins
   recipes: ActiveRecipe[];
-  /** Set-bonus level per set (0/1/2), counted over distinct placed types. */
   sets: Record<SetId, 0 | 1 | 2 | 3>;
   priceMult: number;       // checkout L1: shop price multiplier
   sellRate: number;        // share of an item's value a sale pays (0.5; Barter Stamp raises it)
@@ -319,6 +318,13 @@ export interface DepartmentDef {
 
 export interface CoinLogEntry { label: string; amount: number }
 
+export type HitSource =
+  | { how: EnemyHitHow; by: EnemyId; affix?: EliteAffix }
+  | { how: 'hazard'; by: Extract<HazardKind, 'vents' | 'cables'> }
+  | { how: 'event'; by: Extract<SetEventKind, 'powerSurge'> }
+  | { how: 'self'; by: ItemTypeId };
+export type EnemyHitHow = 'contact' | 'charge' | 'swipe' | 'shot' | 'blast' | 'boss';
+
 export interface RunStats {
   kills: number;
   coinsEarned: number;
@@ -327,6 +333,10 @@ export interface RunStats {
   removedByWeapon?: Record<string, number>;
   /** The rest of the run's damage breakdown (`systems/damageStats`). */
   damage: DamageStats;
+  /** Keyed `how:by` (`hitKey`). */
+  taken: Record<string, number>;
+  /** The last hit that took HP: on a defeat, the one that ended the run. */
+  lastHit?: HitSource;
   wavesCleared: number;
   timeSeconds: number;
   bossDefeated: boolean;
@@ -344,8 +354,10 @@ export interface RunState {
   shopLock?: ShopOffer[];
   /** Loyalty Card level 1..4 — better offers; persists for the run. */
   shopLevel: number;
-  /** Items allowed in this run's shops (meta-progression). Undefined = everything. */
-  unlocked?: ItemTypeId[];
+  /** Item types this run may offer (shops, stockroom, crates). Undefined = every item. */
+  pool?: ItemTypeId[];
+  featured?: RecipeId[];
+  openers?: ItemTypeId[];
   /** Character chosen on the title screen. */
   starter: StarterId;
   weapon: StarterWeapon;
@@ -353,6 +365,8 @@ export interface RunState {
   shift: number;
   /** Set when the player keeps going after beating the boss (endless aisles). */
   overtime?: boolean;
+  /** Kills and coins already in the lifetime stats (`recordRun`), so the overtime finish adds only what came after. */
+  counted?: { kills: number; coins: number };
   /** Played by the dev autoplayer (src/bot): never touches the profile or the best receipts, like `lab`. */
   bot?: boolean;
   /** Daily run (date-seeded, no voucher). */

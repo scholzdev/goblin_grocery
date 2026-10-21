@@ -6,7 +6,7 @@ import { contentItem } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { tierScaling } from '../../../src/systems/synergies';
-import { around, arsenal, at, stats } from '../helpers';
+import { around, arsenal, at, setTuneAt, stats } from '../helpers';
 
 afterEach(() => setLang('en'));
 
@@ -33,11 +33,11 @@ describe('Microwave: content', () => {
     expect([1, 2, 3].map((t) => itemRules('microwave', t))).toEqual([
       'Every 2.4 s zaps the toughest enemy within 380 (Elites first, then most HP) for 24 damage, splashing everything within 70. Electrical.',
       'Every 2.16 s zaps the toughest enemy within 380 (Elites first, then most HP) for 36 damage, splashing everything within 70. Electrical.',
-      'Every 1.92 s zaps the toughest enemy within 380 (Elites first, then most HP) for 48 damage, splashing everything within 70. Electrical.',
+      'Every 1.92 s zaps the toughest enemy within 380 (Elites first, then most HP) for 48 damage, splashing everything within 70. Electrical. ★3: When a zap knocks out its target, the next one charges in 50% of the time.',
     ]);
     expect(itemT('microwave')).toMatchObject({ name: 'Microwave', blurb: 'Ding! Nukes a grocery from across the aisle.' });
     setLang('de');
-    expect([1, 3].map((t) => itemRules('microwave', t))).toEqual(['Zappt alle 2,4 s den zähsten Gegner im Umkreis von 380 (zuerst Elite, dann meiste LP) für 24 Schaden, mit Flächenschaden im Umkreis von 70. Elektrisch.', 'Zappt alle 1,92 s den zähsten Gegner im Umkreis von 380 (zuerst Elite, dann meiste LP) für 48 Schaden, mit Flächenschaden im Umkreis von 70. Elektrisch.']);
+    expect([1, 3].map((t) => itemRules('microwave', t))).toEqual(['Zappt alle 2,4 s den zähsten Gegner im Umkreis von 380 (zuerst Elite, dann meiste LP) für 24 Schaden, mit Flächenschaden im Umkreis von 70. Elektrisch.', 'Zappt alle 1,92 s den zähsten Gegner im Umkreis von 380 (zuerst Elite, dann meiste LP) für 48 Schaden, mit Flächenschaden im Umkreis von 70. Elektrisch. ★3: Schaltet ein Zap sein Ziel aus, lädt der nächste in 50% der Zeit.']);
     expect(itemT('microwave')).toMatchObject({ name: 'Mikrowelle', blurb: 'Kling! Beamt einen Gegner quer durch den Gang.' });
   });
 
@@ -55,18 +55,19 @@ describe('Microwave: content', () => {
 });
 
 describe('Microwave: build', () => {
-  it('damage grows +50% and the interval shrinks -10% per ★ (to the bit), as the content tune says', () => {
+  it('damage grows +50% and the interval shrinks -10% per ★ (to the bit), as the content tune says, times the Kitchen bonus its own set points reach', () => {
     const base = ITEMS.microwave.weapon!;
     const tune = contentItem('microwave')!.tune as unknown as Record<string, readonly number[]>;
+    const kitchen = (t: number) => setTuneAt('kitchen', t)?.damageMult ?? 1;
     for (const t of [1, 2, 3]) {
       const w = stats([at('microwave', t)]);
       expect(w.tier).toBe(t);
-      expect(w.damage).toBe(base.damage * weaponDamageMult(t));
+      expect(w.damage).toBe(base.damage * weaponDamageMult(t) * kitchen(t));
       expect(w.cooldown).toBe(base.cooldown * weaponCooldownMult(t));
-      expect(w.damage).toBe(tune.damage[t - 1]);
+      expect(w.damage).toBe(tune.damage[t - 1] * kitchen(t));
       expect(w.cooldown).toBe(tune.cooldown[t - 1]);
     }
-    expect([1, 2, 3].map((t) => stats([at('microwave', t)]).damage)).toEqual([24.0, 36.0, 48.0]);
+    expect([1, 2, 3].map((t) => stats([at('microwave', t)]).damage)).toEqual([24.0, 36.0, 48.0].map((d, i) => d * kitchen(i + 1)));
   });
 
   it('carries the base shape of the pattern into the build', () => {
@@ -84,10 +85,32 @@ describe('Microwave: pattern zap', () => {
     a.step(0.5);
     const hits = fake.callsOf('damage');
     expect(hits.map((c) => c.enemy)).toEqual([tank.id, next.id]);
-    expect(hits.every((c) => c.dmg === 48 && c.source === 'u0')).toBe(true);
+    expect(hits.every((c) => c.dmg === 48 * setTuneAt('kitchen', 3)!.damageMult && c.source === 'u0')).toBe(true); // its 3 set points: Kitchen L2
     expect(hits.map((c) => c.opts)).toEqual([{ kb: 80, kbX: 0, kbY: 0 }, { kb: 80, kbX: 1, kbY: 0 }]);
     expect([weak, outside].some((e) => hits.some((c) => c.enemy === e.id))).toBe(false);
     expect(a.sounds).toEqual(['zap']);
+  });
+
+  // Seconds between the first two zaps. A is the toughest (the first target); B stands 150 px from it, outside the splash.
+  const zapGap = (tier: number, a: { hp: number; x?: number }, b: { hp: number; x?: number; y?: number }) => {
+    const r = arsenal([at('microwave', tier)]);
+    r.fake.spawnEnemy({ x: a.x ?? 200, y: 0, hp: a.hp });
+    r.fake.spawnEnemy({ x: b.x ?? 200, y: b.y ?? 150, hp: b.hp });
+    const zaps: number[] = [];
+    for (let i = 0; i < 500 && zaps.length < 2; i++) {
+      const n = r.a.sounds.length;
+      r.a.step(0.01);
+      if (r.a.sounds.length > n) zaps.push(r.fake.time);
+    }
+    return zaps[1] - zaps[0];
+  };
+
+  it('from ★3 knocking out the zapped target (not one only splashed) charges the next zap in half the cooldown; ★2 waits the full cooldown', () => {
+    expect(zapGap(2, { hp: 30 }, { hp: 20 })).toBeCloseTo(2.4 * 0.9, 1);
+    expect(zapGap(3, { hp: 30 }, { hp: 20 })).toBeCloseTo(2.4 * 0.8 * 0.5, 1);
+    expect(zapGap(4, { hp: 30 }, { hp: 20 })).toBeCloseTo(2.4 * 0.7 * 0.5, 1);
+    expect(zapGap(3, { hp: 1000 }, { hp: 20 })).toBeCloseTo(2.4 * 0.8, 1);
+    expect(zapGap(3, { hp: 1000 }, { hp: 1, x: 240, y: 0 }), 'B dies in the splash only').toBeCloseTo(2.4 * 0.8, 1);
   });
 
   it('an Elite comes first, whatever the HP of the others', () => {

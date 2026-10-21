@@ -19,7 +19,7 @@ export default defineItem({
         ctx.fx.number(ctx.player.x, ctx.player.y - 90, t.coins, '#F5BD45', 22);
         ctx.sound('coin');
       } else {
-        ctx.drain(Math.round(ctx.run.maxHp * t.lose));
+        ctx.drain(Math.round(ctx.run.maxHp * t.lose), Item.scratchticket);
         ctx.sound('hurt', { volume: 0.5 });
       }
     },

@@ -8,7 +8,7 @@ import { FakeCtx } from '../../src/engine/fakeCtx';
 import { hitTags, weaponTags } from '../../src/engine/hitTags';
 import { MARK_MULT, markedDamage } from '../../src/engine/marks';
 import type { ItemTypeId } from '../../src/types';
-import { arena, arsenal, at, far } from '../content/helpers';
+import { arena, arsenal, at, far, setTuneAt } from '../content/helpers';
 
 // The element soft counters: the pure rules (engine/affinity), the hit tags (engine/hitTags), and the damage / status / stagger pipeline through FakeCtx,
 // which mirrors ArenaScene.damageEnemy. The enemy table itself is pinned in tests/content/enemies/registry.test.ts.
@@ -241,7 +241,7 @@ describe('damage through the pipeline, per tag source', () => {
 
   it('a real Electric-set arc is the electric hit: the toaster hits a soda for x1, its arc to the next enemy is half damage x1.3 (soda) or x1 (banana)', () => {
     const seed = (() => { for (let s = 1; s < 500; s++) { const f = new FakeCtx({ seed: s }); if (f.rng() < 0.3) return s; } throw new Error('seed'); })();
-    const a = arena([at('toaster'), at('battery'), far('vacuum'), far('laser')], { seed }); // toaster + battery + vacuum + laser: Electric L3
+    const a = arena([at('toaster'), at('battery'), far('vacuum', 2), far('laser', 2)], { seed }); // toaster + battery + ★2 vacuum + ★2 laser = 6 points: Electric L3
     expect(a.b.sets.electric).toBe(3);
     const hit = a.fake.spawnReal('soda', { x: 0, hp: 1000 }), next = a.fake.spawnReal('soda', { x: 60, hp: 1000 }), plain = a.fake.spawnReal('banana', { x: 110, hp: 1000 });
     a.fake.hit(hit, 10, a.stats);
@@ -271,8 +271,9 @@ describe('damage through the pipeline, per tag source', () => {
     const milk = fake.spawnReal('milk', { x: 300, y: 100, hp: 1000 }), plain = fake.spawnEnemy({ x: 330, y: 100, hp: 1000 });
     a.step(0.5);
     a.run(40, 0.05);
-    expect(1000 - plain.hp).toBe(32);
-    expect(1000 - milk.hp).toBeCloseTo(32 * 1.3, 10);
+    const pot = 32 * setTuneAt('kitchen', 3)!.damageMult; // the lone ★3 cooker is 3 Kitchen points: L1
+    expect(1000 - plain.hp).toBeCloseTo(pot, 10);
+    expect(1000 - milk.hp).toBeCloseTo(pot * 1.3, 10);
   });
 
   it('labelled hits carry their tags: the Leaf Blower slam is cleaning (expired x1.3), a live cable electric, an oven vent heat', () => {
@@ -339,7 +340,7 @@ describe('status durations through the ctx', () => {
     // a lucky roll of the freeze hook: find a seed whose first combat draw is below the L2 chance (the other freeze tests do the same)
     const seed = (() => { for (let s = 1; s < 500; s++) { const f = new FakeCtx({ seed: s }); if (f.rng() < 0.1) return s; } throw new Error('seed'); })();
     const run = (id: keyof typeof ENEMIES) => {
-      const a = arena([at('fizz'), at('ice'), far('mop')], { seed });
+      const a = arena([at('fizz'), at('ice'), far('mop', 2)], { seed });
       const e = a.fake.spawnReal(id, { hp: 1000 });
       a.fake.hit(e, 3, a.stats);
       return e;
@@ -358,7 +359,8 @@ describe('status durations in the pattern code', () => {
     a.run(15, 0.05);
     const last = (id: number) => fake.callsOf('damage').filter((c) => c.enemy === id).at(-1)!.at;
     expect(es.map((e) => +(e.status.slowUntil - last(e.id)).toFixed(6))).toEqual([0.25, 0.5, 0.75]);
-    expect(es.map((e) => e.status.slowPct)).toEqual([0.25, 0.25, 0.25]);
+    const pct = 0.25 + setTuneAt('frost', 3)!.slowBonus; // the lone ★3 mop is 3 Frost points: L1
+    expect(es.map((e) => e.status.slowPct)).toEqual([pct, pct, pct]);
   });
 });
 

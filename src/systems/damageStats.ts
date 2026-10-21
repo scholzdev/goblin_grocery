@@ -1,5 +1,6 @@
 import { DAMAGE_TYPES, type DamageType } from '../engine/damageType';
 import { REACTION_IDS, type ReactionId } from '../engine/define';
+import type { HitSource, RunStats } from '../types';
 
 // The run's damage breakdown (docs/item-hooks-refactor.md "Damage breakdown"). A small pure accumulator, fed by `ArenaScene.damageEnemy` and
 // `FakeCtx.runHit` at the one point where the final damage of a hit is known (what is subtracted from hp, overkill included, exactly like the old
@@ -68,3 +69,18 @@ export function recordReaction(sink: Pick<DamageSink, 'damage'>, id: ReactionId)
 
 /** All damage dealt (the sum of the types). */
 export const totalDamage = (d: DamageStats): number => DAMAGE_TYPES.reduce((a, t) => a + d.byType[t], 0);
+
+/** Without the affix: the totals do not split by it. */
+export const hitKey = (src: HitSource): string => `${src.how}:${src.by}`;
+export const hitOfKey = (key: string): HitSource => {
+  const i = key.indexOf(':');
+  return { how: key.slice(0, i), by: key.slice(i + 1) } as HitSource;
+};
+
+/** The goblin lost `dmg` HP to `src`. A hit that took no HP (at the drain floor, after death) changes nothing, so `lastHit` stays the real killer. */
+export function recordHit(stats: Pick<RunStats, 'taken' | 'lastHit'>, src: HitSource, dmg: number): void {
+  if (!(dmg > 0)) return;
+  const k = hitKey(src);
+  stats.taken[k] = (stats.taken[k] ?? 0) + dmg;
+  stats.lastHit = src;
+}

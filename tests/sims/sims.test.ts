@@ -2,8 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { createSimRegistry, simRegistry } from '../../src/sims/_registry';
 import { SIM_DEFAULTS, SimError, defineSim, layoutCart, simDummies, validateSim, type SimDef } from '../../src/sims/_sim';
 import { createSimRun } from '../../src/state/sim';
-import { setLevels } from '../../src/data/sets';
+import { setLevels, setsOf } from '../../src/data/sets';
 import { ITEMS, WEAPON_IDS } from '../../src/data/items';
+import { setTuneAt } from '../content/helpers';
 import { footprint } from '../../src/systems/inventory';
 import { BOSS_WAVE } from '../../src/data/waves';
 import { mulberry32 } from '../../src/systems/rng';
@@ -268,12 +269,14 @@ describe('weapon sims', () => {
       expect(simDummies(s).length, id).toBeGreaterThan(0);
     }
   });
-  it('the build is the weapon alone: its pattern, and base damage and interval scaled by the tier', () => {
+  it('the build is the weapon alone: its pattern, and base damage and interval scaled by the tier and by the Kitchen / Tools level its own set points reach', () => {
     for (const id of WEAPON_IDS) {
       const { build } = createSimRun(simOf(id)), base = ITEMS[id].weapon!, tier = ITEMS[id].legendary ? 1 : 3;
+      const kitchen = ITEMS[id].family === 'kitchen' ? setTuneAt('kitchen', tier)?.damageMult ?? 1 : 1;
+      const tools = setsOf(id).includes('tools') ? setTuneAt('tools', tier)?.cooldownDiv ?? 1 : 1;
       expect(build.weapons, id).toHaveLength(1);
       expect(build.recipes, id).toEqual([]);
-      expect(build.weapons[0], id).toMatchObject({ type: id, pattern: base.pattern, tier, damage: base.damage * (1 + 0.5 * (tier - 1)), cooldown: base.cooldown * (1 - 0.1 * (tier - 1)) });
+      expect(build.weapons[0], id).toMatchObject({ type: id, pattern: base.pattern, tier, damage: base.damage * (1 + 0.5 * (tier - 1)) * kitchen, cooldown: base.cooldown * (1 - 0.1 * (tier - 1)) / tools });
     }
   });
   it('the notes name the weapon\'s ★3 damage and interval', () => {
@@ -405,7 +408,8 @@ describe('affinity sims', () => {
       expect(sim(id).notes, id).toContain(`${near(dmg)}`);
       expect(sim(id).notes, id).toContain(`${near(dmg * (1 + AFFINITY.weak))}`);
     };
-    expectDamage('affinity-heat', 18);
+    const pan = 18 * setTuneAt('kitchen', 3)!.damageMult; // the lone ★3 pan is 3 Kitchen points: L1
+    expectDamage('affinity-heat', pan);
     expectDamage('affinity-frost', 12.72); // 12 plus the 6% bundle bonus of the Ice Pack touching it
     // the electric sim: the Laser's own (electric) beam, x1.3 on the weak groups, and the arc at half damage (also electric)
     const laser = createSimRun(sim('affinity-electric')).build.weapons[0];
@@ -417,7 +421,7 @@ describe('affinity sims', () => {
     expect(sim('affinity-electric').notes).toContain(`${near((laser.damage / 2) * (1 + AFFINITY.weak))}`);
     expectDamage('affinity-blast', 6);
     expectDamage('affinity-cleaning', 6);
-    expect(sim('affinity-heat').notes).toContain(`${near(18 * (1 - AFFINITY.resist))}`);
+    expect(sim('affinity-heat').notes).toContain(`${near(pan * (1 - AFFINITY.resist))}`);
     expect(sim('affinity-frost').notes).toContain(`${near(12.72 * (1 - AFFINITY.resist))}`);
   });
 

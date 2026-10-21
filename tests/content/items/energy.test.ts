@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { ITEMS, PLAYER, TIER } from '../../../src/data/items';
 import energy from '../../../src/content/items/energy';
-import { contentItem, contentTune } from '../../../src/engine/registry';
+import { contentItem, contentSetTune, contentTune } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { tierScaling } from '../../../src/systems/synergies';
@@ -20,10 +20,12 @@ describe('Energy Drink: build', () => {
     for (const t of [1, 2, 3]) expect(full([at('toaster'), far('energy', t)]).moveSpeedMult).toBeCloseTo(1 + 0.12 * TIER.mult(t), 12);
   });
 
-  it('changes nothing but the move speed', () => {
-    const plain = full([at('toaster')]), withDrink = full([at('toaster'), far('energy', 3)]);
+  it('changes nothing but the move speed, besides the Snacks L1 its 3 set points reach', () => {
+    const plain = full([at('toaster')]), withDrink = full([at('toaster'), far('energy', 3)]), snacks = contentSetTune('snacks', 1);
     expect(withDrink.weapons).toEqual(plain.weapons);
-    expect({ ...withDrink, moveSpeedMult: 0 }).toEqual({ ...plain, moveSpeedMult: 0 });
+    expect(withDrink.sets).toEqual({ ...plain.sets, snacks: 1 });
+    expect([withDrink.maxHp, withDrink.regen]).toEqual([plain.maxHp + snacks.maxHp, 0]); // L1 gives no regen
+    expect({ ...withDrink, moveSpeedMult: 0, sets: plain.sets, maxHp: plain.maxHp, regen: plain.regen }).toEqual({ ...plain, moveSpeedMult: 0 });
   });
 
   it('does not stack: the best copy in the whole cart counts once', () => {

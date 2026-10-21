@@ -33,6 +33,8 @@ export interface HitOpts {
   poison?: boolean;
   /** Leaf Blower slam damage. */
   blow?: number;
+  /** Leaf Blower ★3 slam stun (s). */
+  blowStun?: number;
   /** Extra affinity tags this hit carries besides its weapon's and its kind's (`engine/hitTags.ts`): explosions `blast`, the Leaf Blower slam `cleaning`, hazards. */
   tags?: readonly AffinityTag[];
   /**

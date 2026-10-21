@@ -101,8 +101,11 @@ export function goldenCarts(): GoldenCart[] {
   // 3. Every combo with exactly its required parts, each touching the first part (weapon, or the first support for cart combos).
   for (const r of Object.values(RECIPES)) add(`combo.${r.id}`, recipeParts(r).map((type, i) => S(type, i === 0 ? {} : { near: [0] })));
 
-  // 4. Set bonuses L1/L2/L3 (2/3/4 distinct types).
-  for (const id of SET_ORDER) for (const lv of [1, 2, 3]) add(`set.${id}.L${lv}`, SET_CARTS[id].slice(0, lv + 1 + (SET_LEAD[id] ?? 0)));
+  // 4. Set bonuses L1/L2/L3 (2/4/6 set points: the first two members at ★1, the third and fourth at ★2).
+  for (const id of SET_ORDER) for (const lv of [1, 2, 3]) {
+    const lead = SET_LEAD[id] ?? 0;
+    add(`set.${id}.L${lv}`, SET_CARTS[id].slice(0, lv + 1 + lead).map((s, i) => (i >= 2 + lead ? { ...s, tier: 2 } : s)));
+  }
 
   // 5. Edge cases.
   // Gold Star: boosts touching modules/passives by one star, never weapons/legendaries, no chaining; counts as +1 bundle on the weapon.

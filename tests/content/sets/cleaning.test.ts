@@ -9,15 +9,15 @@ import { expectSetText, hitOf } from './helpers';
 
 afterEach(() => setLang('en'));
 
-// Cleaning members that touch nothing: Desk Fan (module, not next to the weapon), Spray Bottle and Vacuum (weapons elsewhere in the cart).
+// Cleaning members that touch nothing: Desk Fan (module, not next to the weapon), a ★2 Spray Bottle and a ★2 Vacuum (weapons elsewhere in the cart).
 const MOP = at('mop'), LEAF = at('leafblower'); // a puddle weapon, a cone weapon
-const members = (n: number) => [far('fan'), far('spray'), far('vacuum')].slice(0, n);
+const members = (n: number) => [far('fan'), far('spray', 2), far('vacuum', 2)].slice(0, n);
 const cart = (weapon: ReturnType<typeof at>, n: number) => [weapon, ...members(n)];
 // An 8x6 cart: four rooms of weapons need the space.
 const stats = (c: Parameters<typeof full>[0]) => full(c).weapons[0], sets = (c: Parameters<typeof full>[0]) => full(c).sets;
 
 describe('Cleaning set: thresholds', () => {
-  it('2 / 3 / 4 distinct cleaning types give L1 / L2 / L3; the weapon alone is 1', () => {
+  it('2 / 4 / 6 set points give L1 / L2 / L3 (weapon 1, fan 1, each ★2 member 2); the weapon alone is 1', () => {
     expect([0, 1, 2, 3].map((n) => sets(cart(MOP, n)).cleaning)).toEqual([0, 1, 2, 3]);
   });
 
@@ -52,7 +52,7 @@ describe('Cleaning set: thresholds', () => {
   });
 
   it('only cleaning weapons: a kitchen weapon in a Cleaning L3 cart is untouched', () => {
-    const pan = at('pan'), withSet = [pan, ...members(3), far('mop')]; // four cleaning types, none of them the pan
+    const pan = at('pan'), withSet = [pan, ...members(3), far('mop')]; // four cleaning types (6 points), none of them the pan
     expect(sets(withSet).cleaning).toBe(3);
     const plain = stats([pan]), w = stats(withSet);
     expect(w.range).toBe(plain.range);

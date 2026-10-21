@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { ITEMS, TIER } from '../../../src/data/items';
 import piggy from '../../../src/content/items/piggy';
-import { contentItem, contentTune } from '../../../src/engine/registry';
+import { contentItem, contentSetTune, contentTune } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { tierScaling } from '../../../src/systems/synergies';
@@ -20,10 +20,12 @@ describe('Piggy Bank: build', () => {
     for (const t of [1, 2, 3]) expect(full([at('toaster'), far('piggy', t)]).killCoinMult).toBeCloseTo(1 + 0.15 * TIER.mult(t), 12);
   });
 
-  it('changes nothing but the kill coin multiplier', () => {
+  it('changes nothing but the kill coin multiplier, besides the Checkout L1 its 3 set points reach', () => {
     const plain = full([at('toaster')]), withPig = full([at('toaster'), far('piggy', 3)]);
     expect(withPig.weapons).toEqual(plain.weapons);
-    expect({ ...withPig, killCoinMult: 0 }).toEqual({ ...plain, killCoinMult: 0 });
+    expect(withPig.sets).toEqual({ ...plain.sets, checkout: 1 });
+    expect(withPig.priceMult).toBe(contentSetTune('checkout', 1).priceMult);
+    expect({ ...withPig, killCoinMult: 0, sets: plain.sets, priceMult: plain.priceMult }).toEqual({ ...plain, killCoinMult: 0 });
   });
 
   it('does not stack: the best copy in the whole cart counts once', () => {

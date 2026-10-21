@@ -19,7 +19,7 @@ npm run buildlab -- --runs 50 --seed 1 --starter all
 | `--weapon ID\|all` | `toaster` | Starting weapon: `toaster`, `pan`, `nailgun`. |
 | `--shift N` | 0 | Difficulty (0 = Day Shift). |
 | `--theme ID` | `main` | Run theme. Only the data-driven department effects apply (see deviations). |
-| `--pool all\|starting` | `all` | Which items may appear in shops: every item (like the Test Lab) or a fresh profile's unlocks. |
+| `--pool all\|starting\|stock` | `all` | Which items may appear in shops: every item (like the Test Lab), a fresh profile's unlocks, or `stock`: the stock a real run draws with every item unlocked (`src/systems/stock.ts`). Only `stock` has shop 1's openers; `all` and `starting` roll shop 1 like any other shop at flat weights. |
 | `--policy NAME` | `greedy` | Registered in `tools/buildlab.ts`. |
 | `--out FILE` | `buildlab-out/run.json` | Pretty-printed JSON. `buildlab-out/` is git-ignored. |
 | `--quiet` | | No summary on stdout. |
@@ -36,25 +36,29 @@ No new dependency: the content registry uses `import.meta.glob`, which plain nod
 | `src/buildlab/combat.ts` | `PROXY` (every tunable) and `playAisle`: one aisle on `FakeCtx`. |
 | `src/buildlab/policy.ts` | `Policy` interface, `ShopAction`, `bestPlacement`, `createGreedyPolicy`. |
 | `src/buildlab/report.ts` | JSON types, `summarize`, `formatSummary`. |
+| `src/buildlab/metrics.ts` | `computeMetrics`, `formatMetrics`: the mechanics metrics over a report. |
 | `tools/buildlab.mjs`, `tools/buildlab.ts` | Launcher and CLI. |
-| `tests/buildlab/*.test.ts` | Determinism, full runs, placements, proxy sanity, crates, JSON shape. |
+| `tools/mechanics-metrics.mjs` | The mechanics-metrics CLI. |
+| `tests/buildlab/*.test.ts` | Determinism, full runs, placements, proxy sanity, crates, JSON shape, metrics. |
 
 ## What a run does
 
-The order of calls is `flow.ts`'s: `createRun` (seed, character, weapon) -> `unlocked` set -> for each aisle: play it -> `finishWave` -> `openShop` -> policy acts -> `leaveShop` -> policy picks a door -> `chooseDoor` -> `startNextWave`. Everything in the shop is the real rules from `state/run.ts` (`buyOffer`, `mergeItems`, `moveItem`, `upgradeCart`, `repair` ...); an action the rules refuse is logged with its reason and skipped.
+The order of calls is `flow.ts`'s: `createRun` (seed, character, weapon) -> `pool` set (`POOLS` in `src/buildlab/run.ts`) -> for each aisle: play it -> `finishWave` -> `openShop` -> policy acts -> `leaveShop` -> policy picks a door -> `chooseDoor` -> `startNextWave`. Everything in the shop is the real rules from `state/run.ts` (`buyOffer`, `mergeItems`, `moveItem`, `upgradeCart`, `repair` ...); an action the rules refuse is logged with its reason and skipped.
 
 Randomness, as in the game: `mulberry32(seed)` is `flow.rng` (shop rolls, doors, the wave plan, spawns, kill coins); `combatRng(seed, aisle)` is the weapons' rng (crits, statuses, hook rolls) exactly as the arena creates it; the policy has its own `mulberry32(seed ^ 0x51ed270b)`; the proxy's spots and exposure rolls use a third stream (`combatRng(seed ^ 0x1ab5, aisle)`), so the damage model never shifts a weapon's crit rolls.
 
 Aisle by kind:
 
-- Aisle 1..7: the real `waveSpawnPlan` (mix, count, hp / speed / damage scales, department, modifier, shift), groups scheduled like `ArenaScene.planWave` (same draw order, same ramp, same entries, the 70-enemy cap), elites by `eliteChance` + modifier bonus with the real affixes (swift, tough, splitter, plated; pickpocket only rolls), melon slices, splitter copies. The aisle ends after its 60 s, remaining enemies swept without credit (as `beginCheckout` does).
+- Aisle 1..7: the real `waveSpawnPlan` (mix, count, hp / speed / damage scales, department, modifier, shift), groups scheduled like `ArenaScene.planWave` (same draw order, same ramp, same entries, the 70-enemy cap), elites by `eliteChance` + modifier bonus with the real affixes (swift, tough, splitter, plated; pickpocket only rolls), melon slices, splitter copies. The aisle ends after its `duration` (44 s in aisles 1 and 2, 60 s after), remaining enemies swept without credit (as `beginCheckout` does).
 - Aisle 4 (mini-boss, unless the door was a stockroom): the boss variant is rolled from `flow.rng`, arrives at 8 s with the real `miniBossDef`, summons and volleys; the aisle ends when it dies; `rollMiniCrates` is resolved by the policy (`pickCrate`); the item goes through `takeStockroomItem` (shelf, or coins if the shelf is full).
 - Stockroom door: no fight; `rollStockroom` resolved by `pickStockroom`.
 - Aisle 8 (boss): the department boss arrives at 1.6 s, six escorts by the plan, the Manager's cycle (volley, charge, summon, special), enrage after 61.6 s. Killing it is the win. Overtime after the boss is not played.
 
 ## The combat proxy
 
-Real, not modelled: the weapon patterns (`FakeArsenal` runs every pattern), item and combo and set hooks, the damage pipeline (crit, affinity, mark, armor, Shred, Wet, statuses, burn and poison ticks driven here every step, reactions), kill coins (`killCoins`, `giftcardCoins`, `killCoinMult`, the 0.4 drop chance), `build.regen`, bread, honey healing (`healTargets`), the Sanitizer's cleanse (`cleanseAura`), Weaken on enemy damage (`weakenedDamage`), the player hit path (`FakeCtx.hurt`: i-frames, `onPlayerHit` hooks such as Bubble Wrap), the damage breakdown (`systems/damageStats`, including reaction counts).
+Real, not modelled: the weapon patterns (`FakeArsenal` runs every pattern), item and combo and set hooks, the damage pipeline (crit, affinity, mark, armor, Shred, Wet, statuses, burn and poison ticks driven here every step, reactions), kill coins (`killCoins`, `giftcardCoins`, `killCoinMult`, the 0.4 drop chance), `build.regen`, bread, honey healing (`healTargets`), the Sanitizer's cleanse (`cleanseAura`), Weaken on enemy damage (`weakenedDamage`), the player hit path (`FakeCtx.hurt`: i-frames, `onPlayerHit` hooks such as Bubble Wrap), the damage breakdown (`systems/damageStats`, including reaction counts). The effects a hook spawns run too: `playAisle` gives its `FakeArsenal` to the `FakeCtx` (`fake.arsenal`), which routes `spawnShot`, `spawnPool`, `sweep`, `explode` and `beam` to it as `PhaserCtx` routes them to the scene's arsenal (Ray Gun bolts, Shrapnel fragments, Kettle Corn kernels, the Reheat / Pressure Point / Sizzling Skillet fire pools, Power Surge's aftershock). The Punch Card runs on the functions `ArenaScene` calls (`rollPunchCard` at the aisle start, `punchKill` on credited kills, `punchHit` on landed hits, `punchTick` on the aisle clock, `payPunchCard` on a met goal); the free reroll then comes from `openShop`. The Tough affix regenerates from `lastHitT`, which every hit that is not damage over time sets, as in the arena.
+
+Changed after the October hillclimb. Before, `FakeCtx` only logged the effects a hook spawns: with Ray Gun the Nail Gun dealt 0, and fire pools, fragments, kernels and aftershocks did nothing. The Punch Card never rolled, and a burn or poison tick reset the Tough regen timer. With these fixes and the partial combo credit in greedy placement (see "The greedy policy"), 1200 greedy Day runs (seed 1, 100 per character and starting weapon) went from 25.8% to 28.4% wins, mostly from Nail Gun starts (13.8% to 21.3%). The hillclimb's metric (toaster start, 800 runs, seed 1) barely moved, 26.0% to 26.1%: toaster runs build Toast Mode and rarely own an affected combo.
 
 Modelled (the part that is a guess):
 
@@ -93,20 +97,48 @@ These values are NOT calibrated against human play (there is no recorded data). 
 
 Per aisle: `aisle`, `kind` (`fight`, `mini`, `boss`, `stockroom`), `department`, `modifier`, `seconds`, `spawned`, `kills`, `leftover` (alive when the aisle ended: the "wipe pressure" signal), `escaped` (Gift Cards), `clearTime` (when the last enemy of the plan died; `null` if some were left), `cleared`, `hpBefore`, `hpAfter`, `damageTaken`, `coins`, `dealt`, `dps`, `died`, `stalled`, `miniDefeated`, `bossDefeated`, `combos` and `sets` of the cart at the start, `weapons`, `loot` (crate / stockroom pick), and `damage`: `byType`, `dot`, `weak`, `resisted`, `shred`, `mark`, `reactions`, `bySource` (weapon item id, `burn`, `poison`, labels).
 
-A regular aisle always lasts its full 60 s (that is the game's rule), so `clearTime` is `null` whenever the cart cannot clear the aisle in time; use `leftover` and `dps` to rank builds then. `playAisle(..., { mode: 'clear' })` runs on until everything is dead (at most 30 s extra) when you want a time-to-clear.
+A regular aisle always lasts its full `duration` (44 s in aisles 1 and 2, 60 s after; that is the game's rule), so `clearTime` is `null` whenever the cart cannot clear the aisle in time; use `leftover` and `dps` to rank builds then. `playAisle(..., { mode: 'clear' })` runs on until everything is dead (at most 30 s extra) when you want a time-to-clear.
 
 ## The output
 
 ```
 { meta:    { seed, runs, starter, weapon, shift, theme, pool, policy, proxy, gitRev?, durationMs },
-  runs:    [{ seed, starter, weapon, shift, theme, result: 'win'|'dead', diedAt?, cause?, aislesPlayed, kills, coinsEarned,
+  runs:    [{ seed, starter, weapon, shift, theme, result: 'win'|'dead', diedAt?, cause?, aislesPlayed, kills, coinsEarned, merges, rerolls, sells,
               aisles: [...], acquired: [{item, tier, from}], finalBuild: { items: [{id, tier, x, y, rot}], shelf, combos, sets, cartSize, maxHp },
               shopLog: [{ shop, hp, moneyIn, moneyOut, shopLevel, offers, steps: [{kind, ok, item?, tier?, cost?, reason?}], door }] }],
   summary: { runs, winRate, avgAisleReached, itemPickRate, itemFinalRate, itemWinRate, comboRate, comboWinRate, setRate,
              reactionTotals, avgDpsByAisle, avgDamageTakenByAisle, deathsByAisle, byStarter } }
 ```
 
-`itemPickRate` is the share of runs that ever held the item (starter, buys, crates, stockrooms); `itemFinalRate` the share that had it in the cart at the end; `itemWinRate` the win rate among those runs (the dominance signal); `comboRate` / `setRate` the share of runs where it was active at the start of at least one fight (sets: per level 1 to 3). `avgAisleReached` counts a win as 8.
+`itemPickRate` is the share of runs that ever held the item (starter, buys, crates, stockrooms); `itemFinalRate` the share that had it in the cart at the end; `itemWinRate` the win rate among those runs (the dominance signal); `comboRate` / `setRate` the share of runs where it was active at the start of at least one fight (sets: per level 1 to 3). `avgAisleReached` counts a win as 8. `merges`, `rerolls` and `sells` count the shop actions the rules carried out in the run. A merge turns two copies into one item of the next tier.
+
+## Mechanics metrics
+
+`tools/mechanics-metrics.mjs` turns build-lab output into structural numbers (merges, star tiers, combos, sets, deaths by aisle) and compares two outputs. To measure a change, write one output on the base commit and one on the changed commit with the same options and seed:
+
+```
+npm run buildlab -- --runs 600 --seed 1 --pool all --out buildlab-out/a.json --quiet
+npm run buildlab -- --runs 600 --seed 1 --pool all --out buildlab-out/b.json --quiet
+node tools/mechanics-metrics.mjs buildlab-out/a.json
+node tools/mechanics-metrics.mjs buildlab-out/a.json buildlab-out/b.json
+node tools/mechanics-metrics.mjs buildlab-out/a.json buildlab-out/b.json --json
+```
+
+With one file the script prints a markdown report. With two files it prints both columns and the delta B - A, with percentages as points. `--json` prints the metrics object, or `{ a, b }` for two files. The header lists each file's options and git revision, and names the options that differ (starter, weapon, shift, theme, pool, policy, proxy). The script refuses a file whose runs have no `merges`, `rerolls` and `sells`. Rerun the build lab to regenerate it. To measure a fresh profile's item pool instead of every item, pass `--pool starting` to both build-lab runs.
+
+| Metric | Definition |
+| --- | --- |
+| win rate | Share of runs won. The standard error is `sqrt(p (1 - p) / runs)`. |
+| average aisle reached | A win counts as 8, as in the summary. |
+| deaths by aisle | Each aisle's share of all deaths, and its death rate, which is the deaths there over the runs that reached it. |
+| HP lost by aisle | Mean `aisles[].damageTaken` over the aisle's fights. Stockrooms are left out. |
+| merges per run | Mean `runs[].merges`. |
+| ★2 and ★3 items | Items at that tier in `finalBuild.items` and `finalBuild.shelf`, in total and per run. |
+| combos at run end | The mean count of `finalBuild.combos` per run, the number of distinct combos over all runs, and per combo the share of runs that end with it active. |
+| sets at run end | Per set, the share of runs whose `finalBuild.sets` level is 2 or more, and the share at level 3. |
+| weapons at run end | Mean `weapons` of the last aisle. No shop follows the last aisle, so its cart is the run-end cart. |
+| coins at shop entry | Mean `shopLog[].moneyIn` per shop, over the runs that reached that shop. |
+| rerolls and sells per run | Mean `runs[].rerolls` and `runs[].sells`. The greedy policy with its default options never rerolls or sells, so both are 0 for it. |
 
 ## The greedy policy
 
@@ -115,7 +147,7 @@ A port of `tools/botrun.mjs`'s shop block, with the cart size read from the stat
 1. Repair when `hp < maxHp - 9`. Buy the next Loyalty level when money > 45.
 2. Buy every affordable offer (slot order; shelf room and coins are tracked).
 3. Merge identical pairs (same type and tier, the shelf copy into the cart copy).
-4. For each shelf item, find the best spot in the WHOLE cart (all distinct rotations, every cell), scored `active combos x 10 + module buffs on weapons`; the first best wins. It is placed even when it scores 0.
+4. For each shelf item, find the best spot in the WHOLE cart (all distinct rotations, every cell), scored by `scoreBuild`; the first best wins. It is placed even when it scores 0. Per combo anchor in the cart (the weapon, or a cart combo's first part): 10 for a combo whose parts all touch it, a replaced one included (so Ray Gun scores above the Nailstorm it grows from), and `10 x 0.5 x` the share of parts in place for a combo not formed yet; plus 1 per module buff on a weapon. The partial credit puts a passive part such as the Magnet next to its weapon before the last part arrives. In `npm run buildlab -- --runs 100 --seed 1 --starter all --weapon all` (1200 runs), about 400 runs end with all three Nailstorm parts in the cart, nearly all of them Nail Gun starts. Nailstorm or Ray Gun had formed in 2 of 403 such runs without the partial credit, and in 401 of 404 with it.
 5. Cart upgrade when money > 30, shelf upgrade when money > 25.
 6. Merge and place again (the new space and the new tiers).
 7. Door: random, but never `rush` when hp < 60% or the aisle just fought is <= 3.
@@ -152,7 +184,7 @@ Shop protocol: the lab calls `decideShop(state, view)` again and again with the 
 | `door.<kind>` | relative odds of each door kind (the boss door is forced) |
 | `rule.rushAvoidHpFrac`, `rushAvoidUntilWave` | skip the Rush door while hp is below that share of max hp, or in aisles up to that number |
 
-Placement scoring is the Phase 1a one: the policy tries every free spot and rotation, computes the real `Build`, and takes the best `Σ combo weights + Σ set weights x level + rule.buffWeight x buffs`. Crates and stockrooms use the same placement score (plus `rule.pickItem x` the item weight).
+Placement scoring is the Phase 1a one: the policy tries every free spot and rotation, computes the real `Build`, and takes the best `Σ combo weight x combo credit + Σ set weights x level + rule.buffWeight x buffs`. The combo credit is the greedy one (`comboCredits`): 1 per formed combo on each anchor, `0.5 x` the share of parts in place for one not formed yet. Crates and stockrooms use the same placement score (plus `rule.pickItem x` the item weight).
 
 **The greedy policy is one genome**: `greedyGenome()` (all item weights 1, combo weights 10, set weights 0, buffWeight 1, tierBonus 0, repairMargin 9, upgrade thresholds 45/30/25, no rerolls, no selling, Rush avoided below 60% hp up to aisle 3). `tests/buildlab/genome.test.ts` plays both over a batch and compares the JSON byte for byte.
 
@@ -187,11 +219,12 @@ Skipped in `flow.ts`: the profile (unlock recording, loyalty, daily seed, the +2
 
 Skipped in the arena:
 
-- No player movement or dodging at all (the exposure constants stand in for it), no dash. Items that only act through the dash or shove (Running Boot, Sugar Rush, Express Checkout, Tailwind ...), the move-speed items and the pickup radius do nothing here: expect them to look dead. The goblin stays at `PLAYER_START`.
+- No player movement or dodging at all (the exposure constants stand in for it), no dash. Items that only act through the dash or shove (Running Boot, Sugar Rush, Express Checkout, Tailwind ...), the move-speed items and the pickup radius do nothing here: expect them to look dead. The Punch Card's dash goal can be drawn but never completes. The goblin stays at `PLAYER_START`.
+- No crowding. The goblin never gets cornered, so the number of groceries alive at once costs nothing beyond their hits. In the real game that number decides the opening aisles, where the starting weapon alone cannot keep up. With aisles 1 and 2 at 38 s and 30 / 33 groceries, the lab showed no aisle-1 deaths, but `tools/botrun.mjs` died in aisle 1 in 13 of 24 runs, with up to 16 groceries alive at once (5 to 10 at the earlier 60 s pacing). Check every change to the opening aisles' counts, durations or spawn pacing with the real bot, over at least 24 runs: even the 60 s pacing lost it in aisle 1 in 13 of 72 runs.
 - Enemy movement is a straight walk: no separation between enemies, no obstacles, no knockback from hits (a hit's `kb` is not applied; only knockback a hook writes to `kx / ky`), no gum puddles, no teleports (Expired Milk is a plain walker), Bananas do not lunge (they are walkers), Gift Cards flee and escape as in the game, eggs explode at the cart (and hurt their neighbours for 12) without credit.
 - Hazards (ice, vents, cables, conveyor), aisle events (Wet Floor, Outage, Happy Hour ...), obstacles and props, zones' hazards: none. Zone enemy tilts and the department mix, hp / count / coin multipliers, bread healing and the Electronics electric rate do apply.
 - Boss special moves are plain volleys; boss summons spawn through the same group director (real types and counts). The Manager's other kits (Walk-In Freezer slush, Industrial Oven ring ...) are not told apart.
-- Pickpocket elites do not absorb coins; the Tough affix regenerates after 2 s without damage (HP delta based, not `lastHitT`).
+- Pickpocket elites do not absorb coins.
 - Enemies arrive fully formed (no 0.3 s spawn grow-in; the boss does not drop in over 1.2 s).
 - Coins are all collected (no pickup radius, no sweep loss); coins fall where the player cannot lose them.
 - The fixed 0.05 s step differs from the arena's frame step; burn and poison tick on the fake clock exactly as in the game, weapon cooldowns can land up to one step late.
@@ -200,7 +233,43 @@ Skipped in the arena:
 
 ## Balance hillclimb (difficulty curve)
 
+All numbers here are proxy numbers from the greedy bot, not human win rates. A human playtest is still needed to calibrate them.
+
+### Pass 2: the integrated game (stock pool)
+
+Run after the mechanics units (run stock, owned weight, shop-1 openers, tier-weighted sets, base interest, door previews, death recap, goal unlocks, weapon ★3 behaviors) were merged. Rows 13 to 22 of `balance-hillclimb.tsv`.
+
+Metric: `npm run buildlab -- --runs 50 --seed S --starter all --weapon all --pool stock --shift N --quiet` (600 runs: 4 characters x 3 weapons x 50), `--pool starting` for the new-player view, then `node tools/mechanics-metrics.mjs`. Day on seeds 1 and 2, Evening and Late on seed 1. Win rate has a standard error of about 2 points at 600 runs, so each knob was judged on seeds 1 and 2 pooled (1200 runs) and, run by run, on the same seeds before and after (a sign test over the runs that flipped).
+
+Targets on the stock pool, Day: merges per run at least 2.0, combos at run end at least 2.0, ★3 items at least 0.15, win rate 20% to 35%, aisle 4 below 28% of all deaths, some HP lost in aisle 2. On the starting pool: win rate at most 55%. Evening at least 12%, near 15%.
+
+What moved when the units landed (seed 1): the stock pool's openers and owned weight tripled merges (1.00 to 2.94 against the old pool-all baseline), tier-weighted sets put Kitchen and Tools at level 3 in over half the runs, and base interest raised the coins at every shop. Win rate went from 26% (the old baseline, pool all, rev 2b0b851) to 49% (stock pool, 038fff7); the pools differ, so read that as a direction, not a delta. Aisle 4 held 40% of all deaths, because everything after it had become easy.
+
+| Metric (stock, Day, seed 1) | Integrated start (038fff7) | After this pass |
+| --- | ---: | ---: |
+| Win rate | 48.8% (seed 2: 48.3%) | 28.3% (seed 2: 28.5%) |
+| Aisle 4 share of all deaths | 39.7% | 23.3% |
+| HP lost in aisle 1 / aisle 2 | 2.24 / 0.23 | 4.07 / 1.11 |
+| Merges per run | 2.94 | 2.73 |
+| Combos at run end per run | 2.60 | 2.41 |
+| ★3 items per run | 0.28 | 0.22 |
+| Kitchen / Tools level 3 at run end | 53.7% / 52.5% | 18.5% / 22.2% |
+| Starting pool win rate | 60.5% | 39.0% |
+| Evening / Late win rate | 28.5% / 16.2% | 14.8% / 4.2% (Evening seeds 1 + 2: 15.7%) |
+
+Knobs, in the order they landed: `SET_THRESHOLDS` 2/3/4 to 2/4/6; aisles 1 and 2 last 38 s instead of 60 s with the same counts; Spitter and Expired Milk move into aisle 3 and Frozen Turkey and Cereal Killer out of aisle 4, so the mini-boss is aisle 4's only new thing; `MINI_BOSS.hp` 340 to 260 to 240; hpScale aisles 5 to 7 1.7/2.0/2.3 to 1.8/2.2/2.6; dmgScale aisles 5 to 7 1.6/1.7/1.8 to 1.7/1.85/2.0; the boss aisle's hpScale 2.0 to 2.6 and dmgScale 1.7 to 2.1; Evening hpMult 1.2 to 1.1. Aisle events start at least `EVENT_LEAD` (10 s) before an aisle ends, so the wet floor still matters in the short aisle 2.
+
+Tried and reverted. Before the mini-boss cut, on seed 1 against win 33.2% and an aisle 4 share of 38.2%: aisle 4 total 46 to 40 (37.4% share), aisle 4 hpScale 1.5 to 1.38 (36.4%), a mini-boss enrage at 60 s instead of 45 s (37.2%); the HP cut did far more (28.9%). After it, on seeds 1 + 2 pooled against win 36.8% and a share of 29.4%: aisle 3 hpScale 1.24 to 1.4 (36.9%) or total 42 to 48 (35.8%), since the bot clears aisle 3 either way; `inflationPerShop` 0.1 to 0.15 (34.4%, but the share rose to 31.1%); `interestCap` 3 to 2 (37.3%); `WAVE_RAMP.hp` 0.4 to 0.7 (35.2%); totals aisles 5 to 7 52/55/60 to 58/62/68 (31.8%), rejected because an earlier pass cut counts after players found the aisles too crowded.
+
+Not changed: the Restock offer (merges stayed above 2.0 throughout), `ECONOMY.ownedWeight`, `STOCK.size`, the Checkout interest caps, and the Pressure Cooker ★3 (a ★3 Cooker appeared in 1 of 70 runs that ended with a Cooker; its runs win no more often than those with the other late weapons). The Vacuum's ★3 changed from a doubled pickup radius to a pulse that knocks the groceries at the cart back out; the lab models neither. The Frying Pan is the strongest starting weapon (41% to 45% against 25% for the Toaster and 15% to 18% for the Nail Gun). That gap was there before the ★3 behaviors and holds in runs without a ★3 Pan, so it is the base weapon, which this pass did not tune.
+
+Follow-up, rows 23 to 25: the opening aisles' pace. At 38 s with 30 / 33 groceries the real-game bot (`tools/botrun.mjs`, starter Toaster) died in aisle 1 in 13 of 24 runs, which the lab cannot show (see "No crowding" in the known deviations). Aisles 1 and 2 now last 44 s with 25 / 27 groceries, 20% and 17% more per second of spawn window than the 60 s aisles before this pass. Bot, full runs to aisle 3: aisle-1 deaths 12 of 48 against 7 of 48 at the 60 s pacing, aisle 3 reached in 29 of 48 against 33 of 48. That leans harder than the 60 s pacing but is not significant at this sample (z about 1.3). Pooled with the 24-run aisle-1 screens it reads 15 of 72 against 13 of 72. Lab, stock pool, Day: win 31.0% (seed 2: 28.3%), aisle 4 share 22.7% (seed 2: 27.7%), HP lost in aisle 1 / aisle 2 2.45 / 0.32, merges 2.81, combos 2.48, ★3 0.22; Evening 16.8% on seeds 1 + 2, Late 5.3%, starting pool 39.8%. Every target above still holds. 38 s with 21 / 23 groceries did better for the bot (aisle-1 deaths 4 of 48 against 9 of 48 at the 60 s pacing), but the lab's carts lost their aisle 1 and 2 kill coins and the aisle 4 share rose to 30.1%. The two proxies disagree here, so a human playtest should choose between 44 s with 25 / 27 and 38 s with 21 / 23.
+
+### Pass 1: the difficulty curve (pool all, before the mechanics units)
+
 Goal: greedy bot, Day Shift, win rate 25-35%, no aisle above 35% deaths among the runs that reached it (aisle 4 at most 25%), later shifts harder. Metric: `npm run buildlab -- --runs 200 --seed S --starter all --shift N` (800 runs per cell), seeds 1 and 2 on Day, seed 1 on Evening and Late. The proxy was not touched. Every step, with its hypothesis and measurements, is in `balance-hillclimb.tsv`.
+
+These numbers, and every row of `balance-hillclimb.tsv`, were measured on the proxy before the fixes in "The combat proxy" (hook-spawned effects, Punch Card, Tough regen) and before the partial combo credit in greedy placement.
 
 Choice: counts and hpScale both fell, because both were growing every aisle. Most of the gain came from dmgScale (what lands on the cart; the proxy's exposure model makes contact damage the main killer) and from counts (more bodies means more contact rolls). The mini-boss lost HP, not damage: its contact hit follows dmgScale. Elite chance was flattened. A bigger tier damage multiplier (1 + 0.75 per tier) was tried twice and reverted: it moved the Day win rate by under one point because the greedy bot rarely tiers weapons. Tiering value is still weak; fix it in the shop or the bot, not here.
 

@@ -44,7 +44,7 @@ describe('weaken and armor sims', () => {
     expect(simDummies(s).every((d) => d.immortal)).toBe(true); // they keep attacking
   });
 
-  it('weaken-cleaning: three cleaning types make Cleaning L2, 20% for 2 s; the cones fire inside the 2 s the notes name', () => {
+  it('weaken-cleaning: three cleaning types (4 points with the ★2 fan) make Cleaning L2, 20% for 2 s; the cones fire inside the 2 s the notes name', () => {
     const s = sim('weaken-cleaning'), run = createSimRun(s);
     expect(run.build.sets.cleaning).toBe(2);
     expect(s.god).toBe(false);

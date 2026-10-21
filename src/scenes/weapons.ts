@@ -1,4 +1,4 @@
-import type { WeaponStats } from '../types';
+import type { HitSource, WeaponStats } from '../types';
 import { newHitTracker } from '../systems/combat';
 import { DEPTH } from '../data/depth';
 import { contentItem, contentTune } from '../engine/registry';
@@ -41,7 +41,7 @@ export class Arsenal implements PatternHost {
   private makeShot(key: string): Shot {
     const img = this.scene.add.image(0, 0, key).setVisible(false);
     const shadow = this.scene.add.image(0, 0, 'shadow').setVisible(false).setDisplaySize(22, 7).setAlpha(0.6).setDepth(DEPTH.decal);
-    return { img, shadow, active: false, x: 0, y: 0, vx: 0, vy: 0, life: 0, damage: 0, tracker: newHitTracker(1), stats: null, homing: false, spin: 0, maxLife: 1, ricochet: false, splash: null };
+    return { img, shadow, active: false, x: 0, y: 0, vx: 0, vy: 0, life: 0, damage: 0, tracker: newHitTracker(1), stats: null, source: null, homing: false, spin: 0, maxLife: 1, ricochet: false, splash: null };
   }
 
   /** The runtime of the weapon with this uid (what `ctx.sweep` / `explode` / `beam` act on). */
@@ -84,6 +84,8 @@ export class Arsenal implements PatternHost {
     s.tracker = newHitTracker(maxHits);
     s.homing = false;
     s.splash = null;
+    s.killBounce = false;
+    s.repop = 0;
     s.ricochet = key === 'proj_cap';
     s.spin = key === 'proj_toast' ? 9 : key === 'proj_receipt' ? 6 : key === 'proj_cap' ? 14 : 0;
     s.img.setTexture(key).setVisible(true).setAlpha(1).setScale(1).setRotation(key === 'proj_nail' || key.startsWith('proj_raybolt') ? a : 0).setPosition(x, y - 26);
@@ -110,7 +112,7 @@ export class Arsenal implements PatternHost {
       const sy = s.y < p.y ? Math.min(p.y, s.y + 34) : s.y;
       const hit = sc.playerNear(s.x, sy).d < p.radius;
       if (hit && sc.hooks.onEnemyShotTouch.length) { const ev = { shot: s, damage: s.damage, handled: false }; sc.hooks.emit('onEnemyShotTouch', ev); if (ev.handled) continue; }
-      if (hit && sc.hurtPlayer(s.damage)) {
+      if (hit && sc.hurtPlayer(s.damage, s.source!)) {
         sc.fx.puff(s.x, s.y - 20, 3);
         this.kill(s);
       }
@@ -131,8 +133,9 @@ export class Arsenal implements PatternHost {
     this.kill(s);
   }
 
-  spawnEnemyShot(key: string, x: number, y: number, a: number, speed: number, life: number, damage: number): void {
-    this.spawn(key, x, y, a, speed, life, damage, null, 1);
+  spawnEnemyShot(key: string, x: number, y: number, a: number, speed: number, life: number, damage: number, source: HitSource): void {
+    const s = this.spawn(key, x, y, a, speed, life, damage, null, 1);
+    if (s) s.source = source;
   }
 
   kill(s: Shot): void {

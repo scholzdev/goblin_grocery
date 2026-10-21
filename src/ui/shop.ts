@@ -3,7 +3,7 @@ import { profile, unlockedItems } from '../state/profile';
 import { ITEMS, ITEM_IDS, TIER, cellsFor, cellsOf } from '../data/items';
 import { RECIPES, recipeIcon, recipeParts } from '../data/recipes';
 import { BOSS_WAVE, ECONOMY, SHOP_LEVELS } from '../data/waves';
-import { cartUpgradeCost, nextCartSize, shelfUpgradeCost, upgradeCart, upgradeShelf, buyOffer, mergeItems, mergeTargetFor, upgradeShop, shopUpgradeCost, moveItem, previewMerge, previewMove, repair, reroll, sellItem, toggleShopLock, type MoveTarget } from '../state/run';
+import { cartUpgradeCost, nextCartSize, shelfUpgradeCost, upgradeCart, upgradeShelf, buyOffer, interestPreview, mergeItems, mergeTargetFor, upgradeShop, shopUpgradeCost, moveItem, previewMerge, previewMove, repair, reroll, sellItem, toggleShopLock, type MoveTarget } from '../state/run';
 import { findItem, rotateCells, rotatedSize, footprint } from '../systems/inventory';
 import { describeBuffs, tierScaling } from '../systems/synergies';
 import { currentRerollCost, inflation, repairCost, sellPrice } from '../systems/shop';
@@ -13,16 +13,19 @@ import { flow } from '../flow';
 import { play } from '../audio/sfx';
 import { svg } from './hud';
 import { settings } from '../state/settings';
+import { setsShown } from '../state/disclosure';
+import { changeLine } from './changeLine';
 import { ACTIVE_KEYS, bindingLabel, keyLabel, matches } from '../state/keymap';
 import type { ShopPad } from '../input/gamepad';
 import { pickNext, type Dir } from '../input/pad-core';
 import { icons, setIcon } from './icons';
 import { strongVsHtml } from './affinity';
 import { t, fmtNum } from '../i18n';
-import { itemRules, itemT, recipeT, setBonusT, tagT } from '../i18n/data';
-import { lvOf, setCount as setCountOf, setGains, setsOf } from '../data/sets';
+import { itemRules, itemT, recipeT, setBonusT, star3Teaser, tagT } from '../i18n/data';
+import { lvOf, setCount as setCountOf, setGains, setWeight, setsOf, type SetCandidate } from '../data/sets';
+import { tierBoostOf } from '../engine/build';
 import { SET_ORDER, SET_THRESHOLDS, flavorOf } from '../engine/define';
-import type { Build, ItemInstance, ItemTypeId, RecipeId, Rotation, RunState, SetId } from '../types';
+import type { Build, ItemInstance, ItemTypeId, RecipeId, Rotation, RunState, SetId, ShopOffer } from '../types';
 
 // Cell pitch in design pixels (cell + 4px gap). 92 for the 4×4 and 5×4 carts; shrinks so bigger carts fit the same 460×368 area.
 let CELL = 92;
@@ -32,6 +35,9 @@ const RECIPE_ORDER = Object.keys(RECIPES) as RecipeId[];
 let root: HTMLElement;
 let ledger: { label: string; amount: number }[] = [];
 let toastTimer = 0;
+const CHANGE_MS = 4000;
+let change: string[] = [];
+let changeTimer = 0;
 
 interface Drag {
   uid: string;
@@ -53,8 +59,7 @@ interface Drag {
 let drag: Drag | null = null;
 let hoverUid: string | null = null;
 let hoverType: ItemTypeId | null = null;
-let hoverTier: number | undefined;
-let hoverDouble = false;
+let hoverOffer: ShopOffer | undefined;
 let hoverSlot: number | null = null;
 let hoverSet: SetId | null = null;
 let receiptPreview: ItemTypeId | null = null; // offer type whose set gains the receipt is currently previewing
@@ -156,7 +161,7 @@ function itemEl(it: ItemInstance, build: Build, extra = '', compact = false): st
   const canCombine = store.state.phase === 'shop' && !!mergePartner(it);
   const flavor = it.type === 'jellybeans' ? flavorOf(it) : null;
   return `<div class="item ${def.kind} ${rarityClass(it.type, it.tier)} ${flavor ? `flavor flavor-${flavor}` : ''} ${canCombine ? 'mergeable' : ''} ${inner.shaped ? 'shaped' : ''} ${on ? 'recipe-on' : ''} ${it.uid === selectedUid ? 'selected' : ''} ${extra}" data-uid="${it.uid}"
-    style="left:${it.x * CELL}px;top:${it.y * CELL}px;width:${inner.w * CELL - 4}px;height:${inner.h * CELL - 4}px">${inner.html}${flavor ? `<b class="flavor-tag" title="${esc(t('flavorLabel', { f: tagT(flavor) }))}">${esc(tagT(flavor))}</b>` : ''}${slotBadge(it.uid, compact)}${it.double ? `<b class="dbl-mark" title="${esc(t('setDouble', { set: tagT(def.family) }))}">${t('doubleSticker')}</b>` : ''}</div>`;
+    style="left:${it.x * CELL}px;top:${it.y * CELL}px;width:${inner.w * CELL - 4}px;height:${inner.h * CELL - 4}px">${inner.html}${flavor ? `<b class="flavor-tag" title="${esc(t('flavorLabel', { f: tagT(flavor) }))}">${esc(tagT(flavor))}</b>` : ''}${slotBadge(it.uid, compact)}${it.double ? `<b class="dbl-mark" title="${esc(t('setDouble'))}">${t('doubleSticker')}</b>` : ''}</div>`;
 }
 
 export function gridHtml(s: RunState): string {
@@ -166,6 +171,9 @@ export function gridHtml(s: RunState): string {
     for (let x = 0; x < s.inventory.cols; x++) cells += `<div class="cell" data-cx="${x}" data-cy="${y}" style="left:${x * CELL}px;top:${y * CELL}px;width:${CELL - 4}px;height:${CELL - 4}px"></div>`;
   return cells + s.inventory.placed.map((it) => itemEl(it, s.build)).join('');
 }
+
+/** A combo the player knows: in the Catalog or active right now. Others show as a mystery. */
+const discovered = (id: RecipeId, build: Build): boolean => profile.recipes.includes(id) || build.recipes.some((r) => r.id === id);
 
 export function combosHtml(build: Build, preview?: Build | null, relevant: ItemTypeId[] = []): string {
   const now = new Set(build.recipes.map((r) => r.id));
@@ -178,7 +186,7 @@ export function combosHtml(build: Build, preview?: Build | null, relevant: ItemT
   const score = (id: RecipeId) => (now.has(id) ? 100 : 0) + (next?.has(id) ? 50 : 0) +
     recipeParts(RECIPES[id]).filter((t) => have.has(t)).length * 10 + (have.has(recipeIcon(RECIPES[id])) ? 5 : 0);
   // Only combos already in the Catalog are shown; an undiscovered one only appears as a mystery while a drop would trigger it.
-  const known = (id: RecipeId) => profile.recipes.includes(id) || now.has(id);
+  const known = (id: RecipeId) => discovered(id, build);
   // ...and only if every component item is unlocked (or the combo is live / about to trigger).
   const shown = (id: RecipeId) => now.has(id) || next?.has(id) || (known(id) && recipeParts(RECIPES[id]).every((ty) => open.has(ty)));
   const ids = [...RECIPE_ORDER].filter(shown).sort((a, b) => score(b) - score(a)).slice(0, 4);
@@ -205,10 +213,17 @@ export function combosHtml(build: Build, preview?: Build | null, relevant: ItemT
   }).join('');
 }
 
+function featuredHtml(s: RunState): string {
+  if (!s.featured?.length) return '';
+  const names = s.featured.map((id) => (discovered(id, s.build) ? esc(recipeT(id).name) : t('featuredMystery', { n: recipeParts(RECIPES[id]).length })));
+  return `<div class="featured"><b>${t('featuredRun')}:</b> ${names.join(' · ')}</div>`;
+}
+
 /** Bonus text for one set level, rendered from the set's content file (src/content/sets/<id>.ts: tune arrays are L1/L2/L3). */
 export const setBonus = setBonusT;
 
-const setPips = (id: SetId, n: number, ghost = false): string => `<span class="pips set-${id}">${Array.from({ length: SET_THRESHOLDS[2] }, (_, k) => `<i class="${k < n ? 'on' : ghost && k === n ? 'ghost' : ''}"></i>`).join('')}</span>`;
+/** Pips from `n` up to `to` are ghosted: what a hovered offer would add. */
+const setPips = (id: SetId, n: number, to = n): string => `<span class="pips set-${id}">${Array.from({ length: SET_THRESHOLDS[2] }, (_, k) => `<i class="${k < n ? 'on' : k < to ? 'ghost' : ''}"></i>`).join('')}</span>`;
 const setTiers = (id: SetId, lv: number, fresh = 0, all = true): string => ([1, 2, 3] as const).filter((l) => all || l <= lv + 1).map((l) => `<div class="tier ${l <= lv ? '' : 'locked'} ${l === fresh ? 'new' : ''}"><em>${SET_THRESHOLDS[l - 1]}</em><span>${esc(setBonus(id, l))}</span></div>`).join('');
 const setCount = (id: SetId): number => setCountOf(store.state.inventory.placed, id);
 const setLv = (n: number): number => lvOf(n);
@@ -219,9 +234,10 @@ const chipHtml = (id: SetId): string => `<span class="chip set-${id}">${setIcon(
 export const activeSets = (): { id: SetId; n: number; lv: number }[] =>
   SET_ORDER.map((id) => ({ id, n: setCount(id) })).filter((x) => x.n > 0).map((x) => ({ ...x, lv: setLv(x.n) })).sort((a, b) => b.lv - a.lv || b.n - a.n);
 
-export function setsHtml(preview?: ItemTypeId, previewDouble = false): string {
+export function setsHtml(preview?: SetCandidate): string {
+  if (!setsShown()) return '';
   const t1 = SET_THRESHOLDS[0];
-  const gm = new Map((preview ? setGains(store.state.inventory.placed, preview, previewDouble) : []).map((g) => [g.id, g]));
+  const gm = new Map((preview ? setGains(store.state.inventory.placed, preview) : []).map((g) => [g.id, g]));
   const have = activeSets();
   const ghosts = SET_ORDER.filter((id) => gm.get(id)?.from === 0);
   if (!have.length && !ghosts.length) return '';
@@ -229,12 +245,12 @@ export function setsHtml(preview?: ItemTypeId, previewDouble = false): string {
     const g = gm.get(id);
     if (g) {
       const nlv = setLv(g.to);
-      const hd = `<div class="hd">${chipHtml(id)}<span class="arrow">${g.from}→${g.to}</span>${!nlv ? `<span class="need">${t('setNeed', { n: t1 - g.to })}</span>` : ''}${setPips(id, n, true)}</div>`;
+      const hd = `<div class="hd">${chipHtml(id)}<span class="arrow">${g.from}→${g.to}</span>${!nlv ? `<span class="need">${t('setNeed', { n: t1 - g.to })}</span>` : ''}${setPips(id, n, g.to)}</div>`;
       return `<div class="coupon set-${id} hot" data-set="${id}">${hd}${nlv ? setTiers(id, nlv, g.levelUp ? nlv : 0, false) : ''}</div>`;
     }
     const hd = `<div class="hd">${chipHtml(id)}${lv ? '' : `<span class="need">${t('setNeed', { n: t1 - n })}</span>`}${setPips(id, n)}</div>`;
     return `<div class="coupon set-${id} ${lv ? '' : 'dim'} ${preview ? 'faded' : ''}" data-set="${id}">${hd}${lv ? setTiers(id, lv, 0, false) : ''}</div>`;
-  }).join('') + ghosts.map((id) => `<div class="coupon set-${id} ghost" data-set="${id}"><div class="hd">${chipHtml(id)}<span class="arrow">${t('setNew')}</span>${setPips(id, 0, true)}</div></div>`).join('');
+  }).join('') + ghosts.map((id) => `<div class="coupon set-${id} ghost" data-set="${id}"><div class="hd">${chipHtml(id)}<span class="arrow">${t('setNew')}</span>${setPips(id, 0, gm.get(id)!.to)}</div></div>`).join('');
 }
 
 /** Hover card for one set: progress, all tiers, and every item type that counts toward it (owned ones in colour). */
@@ -248,14 +264,19 @@ function setCardHtml(id: SetId): string {
 const gainText = (g: ReturnType<typeof setGains>[number]): string => { const th = SET_THRESHOLDS, ni = th.findIndex((x) => x > g.to); return g.levelUp ? t('setStkUp', { n: lvOf(g.to) }) : t((['setStkMore', 'setStkMore2', 'setStkMore3'] as const)[Math.max(0, ni < 0 ? 2 : ni)], { n: th[Math.max(0, ni < 0 ? 2 : ni)] - g.to }); };
 
 /** Offer-card set badges: level-up first, then sets already started, then new ones (max 3). Maxed / already-counted sets get none. */
-function setBadges(placed: ItemInstance[], type: ItemTypeId, double = false): string {
-  const gains = new Map(setGains(placed, type, double).map((g) => [g.id, g]));
+function setBadges(placed: ItemInstance[], offer: SetCandidate): string {
+  const gains = new Map(setGains(placed, offer).map((g) => [g.id, g]));
   const rank = (g: ReturnType<typeof setGains>[number]): number => (g.levelUp ? 0 : g.from >= 1 ? 1 : 2);
   return [...gains.values()].sort((a, b) => rank(a) - rank(b)).slice(0, 3).map((g) => {
     const lvl = lvOf(g.to);
     const detail = g.levelUp ? t('setIconUp', { n: lvl, b: setBonus(g.id, lvl as 1 | 2 | 3) }) : g.from === 0 ? t('setIconNew') : gainText(g);
     return `<span class="seticon set-${g.id} ${g.levelUp ? 'up' : g.from === 0 ? 'new' : ''}" title="${esc(`${tagT(g.id)} ${g.from}→${g.to}: ${detail}`)}">${setIcon(g.id, 18)}${g.levelUp ? '<u>!</u>' : ''}</span>`;
   }).join('');
+}
+
+export function interestLineHtml(s: RunState): string {
+  const { amount, cap } = interestPreview(s);
+  return `<div class="interest-next"><span>${t('interestNext')}</span><span>${t('interestNextAmount', { n: amount, max: cap })}</span></div>`;
 }
 
 function render(): void {
@@ -268,6 +289,7 @@ function render(): void {
   const earned = s.coinLog.map((l) => `<div class="line"><span>${esc(l.label)}</span><span>+${l.amount}</span></div>`).join('');
   const spent = ledger.map((l) => `<div class="line ${l.amount < 0 ? 'neg' : ''}"><span>${esc(l.label)}</span><span>${l.amount > 0 ? '+' : ''}${l.amount}</span></div>`).join('');
   const infl = inflation(s, shop.shopIndex);
+  const sets = setsShown(s);
   const offers = shop.offers.map((o) => {
     const def = ITEMS[o.type];
     const lv = o.sold ? null : mergeTargetFor(s.inventory, o.type, o.tier);
@@ -280,18 +302,20 @@ function render(): void {
     const w = Math.max(...cells.map((c) => c.x)) + 1;
     const fp = cells.map((c) => `<i style="grid-column:${c.x + 1};grid-row:${c.y + 1}"></i>`).join('');
     const rar = def.legendary ? t('legendaryKind', { k: kindLabel(o.type) }) : o.tier === 3 ? t('epicKind', { k: kindLabel(o.type) }) : o.tier === 2 ? t('rareKind', { k: kindLabel(o.type) }) : kindLabel(o.type);
-    const stks = o.sold ? '' : setBadges(s.inventory.placed, o.type, !!o.double);
+    const stks = o.sold || !sets ? '' : setBadges(s.inventory.placed, o);
+    const s3 = o.sold ? '' : star3Teaser(o.type, o.tier);
     // Undiscounted price: struck through when a discount (Checkout, coupons, starter perk) baked a lower price in.
     const list = Math.max(1, Math.round(TIER.value(def.price, o.tier) * infl));
     const was = list > o.price ? list : Math.max(1, Math.round(o.price / infl));
     const struck = !o.sold && (list > o.price || infl > 1) ? was : undefined;
-    return `<div class="card ${rarityClass(o.type, o.tier)} ${o.sold ? 'sold' : ''} ${why || poor ? 'blocked' : ''} ${lv ? 'lvl' : ''}" data-offer="${o.slot}" data-type="${o.type}" ${poor ? `title="${t('needCoins', { n: o.price - s.money })}"` : ''} ${o.sold ? `data-sold="${t('soldStamp')}"` : ''} role="button" tabindex="0"
+    return `<div class="card ${rarityClass(o.type, o.tier)} ${s3 ? 'has-s3' : ''} ${o.sold ? 'sold' : ''} ${why || poor ? 'blocked' : ''} ${lv ? 'lvl' : ''}" data-offer="${o.slot}" data-type="${o.type}" ${poor ? `title="${t('needCoins', { n: o.price - s.money })}"` : ''} ${o.sold ? `data-sold="${t('soldStamp')}"` : ''} role="button" tabindex="0"
       aria-label="${t('buyAria', { rar, name: itemT(o.type).name, price: o.price })}">
       <img class="art" src="${svg(`icon_${o.type}`)}" alt="">
       <div class="nm">${itemT(o.type).name}</div><div class="fp" style="grid-template-columns:repeat(${w},10px)">${fp}</div>
+      ${s3 ? `<div class="s3" title="${esc(s3)}">${esc(s3)}</div>` : ''}
       <span class="price-tag">${costPill(o.price, s.money >= o.price, struck)}</span>
       ${lv ? `<span class="lvlup" title="${t('combinesTip', { name: itemT(o.type).name })}">${t('combinesTag', { n: (lv.tier ?? 1) + 1 })}</span>` : ''}
-      ${o.double && !o.sold ? `<span class="dblpack" title="${esc(t('setDouble', { set: tagT(def.family) }))}">${t('packSticker')}</span>` : ''}
+      ${o.double && !o.sold ? `<span class="dblpack" title="${esc(t('setDouble'))}">${t('packSticker')}</span>` : ''}
       ${stks ? `<div class="seticons">${stks}</div>` : ''}
       <div class="why">${why}</div></div>`;
   }).join('');
@@ -307,6 +331,7 @@ function render(): void {
       <div class="lines">${earned || `<div class="line"><span>${t('noCoins')}</span><span>0</span></div>`}${spent ? '<hr class="dash">' + spent : ''}</div>
       <hr class="dash">
       <div class="total"><span>${t('wallet')}</span><span><img class="coin-ico" src="${svg('coin')}" alt=""> ${s.money}</span></div>
+      ${interestLineHtml(s)}
       <div class="hpbox"><img src="${svg('heart')}" width="26" alt=""><div class="hpbar"><i style="width:${(100 * s.hp) / s.build.maxHp}%"></i></div><span>${Math.ceil(s.hp)}/${s.build.maxHp}</span></div>
       <button class="btn small gold" data-act="repair" style="margin-top:10px" ${shop.repairUsed || s.hp >= s.build.maxHp || s.money < rcost ? 'disabled' : ''}>
         ${shop.repairUsed ? t('repaired') : t('repairBtn', { hp: ECONOMY.repairHp }) + costPill(rcost, s.money >= rcost)}</button>
@@ -318,6 +343,8 @@ function render(): void {
       <div class="cart-title sticker">${t('cartLoadout')}</div>
       <div class="grid-wrap"><div class="grid" style="width:${s.inventory.cols * cellFor(s.inventory.cols, s.inventory.rows)}px;height:${s.inventory.rows * cellFor(s.inventory.cols, s.inventory.rows)}px;margin:0 auto">${gridHtml(s)}</div></div>
       <div class="combos">${combosHtml(s.build, null, relevantTypes())}</div>
+      ${featuredHtml(s)}
+      ${change.length ? `<div class="change-line">${change.map((c) => `<span>${esc(c)}</span>`).join(' · ')}</div>` : ''}
     </div>
     <div class="col-right">
       <div class="offers-head"><h3>${t('todaysDeals')}</h3>${infl > 1 ? `<span class="inflation">${t('priceInflation', { n: Math.round((infl - 1) * 100) })}</span>` : ''}</div>
@@ -366,12 +393,12 @@ function slotChip(uid: string | null): string {
   return `<span class="chip slot-chip slot-cycle" data-slot-uid="${uid}" title="${esc(t('activeSlotPick'))}">${slot} · ${esc(bindingLabel(settings.keys, ACTIVE_KEYS[slot - 1], t('keySpace')))}</span>`;
 }
 
-export function inspectorHtml(type: ItemTypeId, uid: string | null, offerTier?: number, offerDouble = false): string {
+export function inspectorHtml(type: ItemTypeId, uid: string | null, offer?: ShopOffer): string {
   const s = store.state;
   const def = ITEMS[type];
   const ws = uid ? s.build.weapons.find((x) => x.uid === uid) : null;
   const loc = uid ? findItem(s.inventory, uid) : null;
-  const tier = loc?.inst.tier ?? offerTier ?? 1;
+  const tier = loc?.inst.tier ?? offer?.tier ?? 1;
   const cells = cellsFor(type, tier);
   const w = Math.max(...cells.map((c) => c.x)) + 1, h = Math.max(...cells.map((c) => c.y)) + 1;
   const rc = rarityClass(type, tier);
@@ -379,11 +406,12 @@ export function inspectorHtml(type: ItemTypeId, uid: string | null, offerTier?: 
   const weaponTag = (def.tags ?? []).find((tg): tg is keyof typeof KIND_BY_TAG => tg in KIND_BY_TAG);
   const kind = def.kind === 'weapon' && weaponTag ? t(KIND_BY_TAG[weaponTag]) : kindLabel(type);
   const otherTags = (def.tags ?? []).filter((tg) => !(tg in KIND_BY_TAG));
-  const gains = offerTier !== undefined && !loc && s ? setGains(s.inventory.placed, type, offerDouble) : [];
-  const dblNote = offerDouble || (loc?.inst.double ?? false) ? `<span class="chip dbl">${esc(t('setDouble', { set: tagT(def.family) }))}</span>` : '';
+  const gains = offer && !loc && s ? setGains(s.inventory.placed, offer) : [];
+  const dblNote = offer?.double || loc?.inst.double ? `<span class="chip dbl">${esc(t('setDouble'))}</span>` : '';
   const flavor = type === 'jellybeans' ? (loc ? flavorOf(loc.inst) : null) : null;
   const binder = type === 'binder' && loc?.inst.binderFamily ? `<span class="chip">${esc(t('binderChip', { f: tagT(loc.inst.binderFamily), n: Math.min(20, (loc.inst.binderSold ?? 0) * 2) }))}</span>` : '';
-  const setChips = setsOf(type, flavor ?? undefined).map((id) => { const g = gains.find((x) => x.id === id); return `<span class="chip set-${id}${s?.build?.sets?.[id] ? ' act' : ''}">${setIcon(id, 14)}${tagT(id)}${g ? ` <small>(${gainText(g)})</small>` : ''}</span>`; }).join('');
+  const points = setWeight({ type, tier, double: offer?.double || loc?.inst.double }, loc ? tierBoostOf(s.inventory.placed)(loc.inst) : 0);
+  const setChips = !setsShown(s) ? '' : setsOf(type, flavor ?? undefined).map((id) => { const g = gains.find((x) => x.id === id); return `<span class="chip set-${id}${s?.build?.sets?.[id] ? ' act' : ''}">${setIcon(id, 14)}${tagT(id)}${points > 1 ? ` +${points}` : ''}${g ? ` <small>(${gainText(g)})</small>` : ''}</span>`; }).join('');
   const head = `<header><span class="ico-tile ${rc}"><img src="${svg(loc ? iconOf(loc.inst) : `icon_${type}`)}" alt=""></span>
     <div class="hd"><div class="nm"><span style="font-size:${fitName(itemT(type).name)}px">${itemT(type).name}</span><b class="lv ${def.legendary ? 'leg' : `t${tier}`}">★${def.legendary ? '' : tier}</b></div>
     <span class="sub ${rc}">${rarity} · ${kind}</span></div></header>
@@ -418,7 +446,8 @@ export function inspectorHtml(type: ItemTypeId, uid: string | null, offerTier?: 
   const callout = !ws && def.weapon && loc?.where === 'shelf'
     ? `<div class="callout">${icons.crate(30)}<div><b>${t('shelfTitle')}</b><span>${t('shelfText')}</span></div></div>` : '';
 
-  body += `<p class="rules">${esc(itemRules(type, tier))}</p>`; // numbers follow the item's level
+  const teaser = star3Teaser(type, tier);
+  body += `<p class="rules">${esc(itemRules(type, tier))}${teaser ? `<span class="s3">${esc(teaser)}</span>` : ''}</p>`;
 
   // Level comparison: each level column tinted in its rarity colour, the current one stronger and labelled.
   const scale = tierScaling(type);
@@ -466,7 +495,7 @@ function refreshHover(): void {
   if (pv !== receiptPreview) {
     receiptPreview = pv;
     const sets = root.querySelector('.sets');
-    if (sets) { sets.innerHTML = setsHtml(pv ?? undefined, hoverDouble); }
+    if (sets) { sets.innerHTML = setsHtml(pv ? hoverOffer : undefined); }
   }
   if (hoverSet) { // set coupon hover: glow member items, card to the right of the receipt
     for (const p of s.inventory.placed) if (setsOf(p.type, flavorOf(p)).includes(hoverSet)) root.querySelector(`.grid .item[data-uid="${p.uid}"]`)?.classList.add('setlit');
@@ -482,7 +511,7 @@ function refreshHover(): void {
     if (other) root.querySelector(`.grid .item[data-uid="${other}"]`)?.classList.add('affect');
   }
   const anchor = focusUid ? root.querySelector<HTMLElement>(`.item[data-uid="${focusUid}"]`) : root.querySelector<HTMLElement>(`.card[data-offer="${hoverSlot}"]`);
-  showCard(inspectorHtml(type, focusUid, hoverType ? hoverTier : undefined, hoverType ? hoverDouble : false), anchor, !!focusUid && focusUid === selectedUid && s.phase === 'shop');
+  showCard(inspectorHtml(type, focusUid, hoverType ? hoverOffer : undefined), anchor, !!focusUid && focusUid === selectedUid && s.phase === 'shop');
 }
 
 /** Floating item card beside `anchor`; `pinned` (selected item) makes it clickable for the Combine button. */
@@ -597,7 +626,9 @@ function onClick(e: MouseEvent): void {
     const btn = el.closest<HTMLElement>('[data-act="combine"]')!;
     const uid = btn.dataset.uid!, partner = btn.dataset.partner!;
     const it = findItem(s.inventory, uid)?.inst;
+    const before = s.build;
     const r = mergeItems(s, partner, uid);
+    noteChange(before);
     if (r.ok && it) { ledger.push({ label: t('ledgerCombined', { name: itemT(it.type).name, n: it.tier ?? 1 }), amount: 0 }); play('upgrade'); selectedUid = uid; }
     else if (!r.ok) toast(r.reason);
     store.changed();
@@ -649,8 +680,7 @@ function hoverFrom(el: HTMLElement): void {
   hoverType = type;
   loyaltyOn = loyalty;
   hoverSlot = offer ? Number(offer.dataset.offer) : null;
-  hoverTier = offer ? store.state.shop?.offers.find((o) => o.slot === hoverSlot)?.tier : undefined;
-  hoverDouble = offer ? !!store.state.shop?.offers.find((o) => o.slot === hoverSlot)?.double : false;
+  hoverOffer = offer ? store.state.shop?.offers.find((o) => o.slot === hoverSlot) : undefined;
   refreshHover();
 }
 
@@ -855,6 +885,7 @@ const dragWorth = (d: Drag): number => { const i = dragInst(d); const base = sel
 /** Applies a finished drag to the run (pointer release or gamepad drop). */
 function commitDrop(d: Drag): void {
   const s = store.state;
+  const before = s.build;
   const tg = d.target;
   let ok = false;
   if (tg && tg.where === 'sell') {
@@ -873,8 +904,15 @@ function commitDrop(d: Drag): void {
   }
   if (ok && tg?.where === 'merge') { selectedUid = tg.uid; hoverUid = tg.uid; }
   else hoverUid = ok && tg?.where !== 'sell' ? d.uid : null;
+  noteChange(before);
   render(); // invalid drop: re-render restores the original position, nothing else changed
   store.changed();
+}
+
+function noteChange(before: Build): void {
+  clearTimeout(changeTimer);
+  change = changeLine(before, store.state.build, setsShown());
+  if (change.length) changeTimer = window.setTimeout(() => { change = []; root.querySelector('.change-line')?.remove(); }, CHANGE_MS);
 }
 
 const pct = (x: number) => `${Math.round(x * 100)}%`;

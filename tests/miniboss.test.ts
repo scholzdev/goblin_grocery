@@ -41,7 +41,7 @@ describe('mid-shift boss', () => {
 
   it('crates: 3 free distinct items, one unowned legendary when unlocked, weapons otherwise', () => {
     const s = createRun(1);
-    s.unlocked = undefined; // everything unlocked
+    s.pool = undefined; // everything unlocked
     const offers = rollMiniCrates(s, mulberry32(7));
     expect(offers).toHaveLength(MINI_BOSS.crates);
     expect(new Set(offers.map((o) => o.type)).size).toBe(offers.length);
@@ -51,7 +51,7 @@ describe('mid-shift boss', () => {
       expect(ITEMS[o.type].kind).toBe('weapon');
       expect(o.tier).toBe(MINI_BOSS.weaponTier);
     }
-    s.unlocked = ['toaster', 'pan', 'nailgun', 'vacuum'];
+    s.pool = ['toaster', 'pan', 'nailgun', 'vacuum'];
     const locked = rollMiniCrates(s, mulberry32(7));
     expect(locked.some((o) => ITEMS[o.type].legendary)).toBe(false);
     expect(locked).toHaveLength(3);

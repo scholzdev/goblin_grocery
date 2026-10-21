@@ -37,16 +37,16 @@ describe('dash items', () => {
   it('show up in the shop once unlocked, and never while locked', () => {
     const seen = new Set<ItemTypeId>();
     const s = createRun(1);
-    s.unlocked = [...ITEM_IDS];
+    s.pool = [...ITEM_IDS];
     for (let seed = 0; seed < 300; seed++) for (const o of rollOffers(s, mulberry32(seed), 2 + (seed % 5))) seen.add(o.type);
     for (const id of DASH_ITEMS) expect(seen.has(id), id).toBe(true);
-    s.unlocked = s.unlocked.filter((t) => !DASH_ITEMS.includes(t));
+    s.pool = s.pool.filter((t) => !DASH_ITEMS.includes(t));
     for (let seed = 0; seed < 100; seed++) for (const o of rollOffers(s, mulberry32(seed), 3)) expect(DASH_ITEMS).not.toContain(o.type);
   });
   it('shop leans towards them when the cart has a Bell', () => {
     const count = (own: ItemTypeId[]) => {
       const s = createRun(1);
-      s.unlocked = undefined;
+      s.pool = undefined;
       for (const t of own) s.inventory.shelf[own.indexOf(t)] = { uid: `u${t}`, type: t, x: 0, y: 0, rot: 0 } as never;
       let n = 0;
       for (let seed = 0; seed < 400; seed++) for (const o of rollOffers(s, mulberry32(seed), 3)) if (o.type === 'flag') n++;

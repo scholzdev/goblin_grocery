@@ -9,10 +9,10 @@ export default defineItem({
   id: Item.leafblower, kind: 'weapon', sets: [Set.cleaning], shape: '2x1', price: 14, tags: ['area'],
   weapon: W,
   // damage and interval per ★ for the text and the shop rows (the stats themselves come from `weapon`)
-  tune: { ...weaponTiers(W), range: W.range, arcDeg: W.arcDeg, blow: 8 },
+  tune: { ...weaponTiers(W), range: W.range, arcDeg: W.arcDeg, blow: 8, slamStun: 0.5 },
   rows: WEAPON_ROWS,
   text: {
-    en: { name: 'Leaf Blower', blurb: 'Huff and puff. Slams groceries into things.', rules: 'Every {cooldown|s} blasts a {arcDeg|deg} cone ({range} reach) for {damage} damage and a heavy push. Blown groceries that hit a wall or prop take {blow} slam damage (scales with level).' },
-    de: { name: 'Laubbläser', blurb: 'Puff puff. Schleudert Gegner gegen Sachen.', rules: 'Bläst alle {cooldown|s} einen {arcDeg|deg}-Kegel ({range} Reichweite) für {damage} Schaden und einen kräftigen Stoß. Weggeblasene Gegner, die gegen eine Wand oder Deko prallen, erleiden {blow} Aufprallschaden (skaliert mit der Stufe).' },
+    en: { name: 'Leaf Blower', blurb: 'Huff and puff. Slams groceries into things.', rules: 'Every {cooldown|s} blasts a {arcDeg|deg} cone ({range} reach) for {damage} damage and a heavy push. Blown groceries that hit a wall or prop take {blow} slam damage (scales with level).', star3: '★3: Slammed groceries are also stunned for {slamStun|s}.' },
+    de: { name: 'Laubbläser', blurb: 'Puff puff. Schleudert Gegner gegen Sachen.', rules: 'Bläst alle {cooldown|s} einen {arcDeg|deg}-Kegel ({range} Reichweite) für {damage} Schaden und einen kräftigen Stoß. Weggeblasene Gegner, die gegen eine Wand oder Deko prallen, erleiden {blow} Aufprallschaden (skaliert mit der Stufe).', star3: '★3: Aufgeprallte Gegner sind außerdem {slamStun|s} lang betäubt.' },
   },
 });

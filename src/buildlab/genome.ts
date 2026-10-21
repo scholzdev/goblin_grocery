@@ -4,8 +4,8 @@ import { ITEM_ORDER, RECIPE_ORDER, SET_ORDER } from '../engine/define';
 import { cartUpgradeCost, shelfUpgradeCost, shopUpgradeCost } from '../state/run';
 import { currentRerollCost, repairCost, sellPrice } from '../systems/shop';
 import type { Rng } from '../systems/rng';
-import type { Build, ItemInstance, ItemTypeId, RunState, ShopOffer } from '../types';
-import { bestPlacement, mergePairs, type Policy, type PolicyFactory, type PolicyView, type ShopAction } from './policy';
+import type { ItemInstance, ItemTypeId, RunState, ShopOffer } from '../types';
+import { DEFAULT_SCORE, bestPlacement, comboCredits, mergePairs, type Policy, type PolicyFactory, type PolicyView, type Scorer, type ShopAction } from './policy';
 
 // The parameterized policy of Phase 1b (docs/buildlab.md "Genome"): every number a shop policy decides with, as a flat JSON object, so an
 // optimizer can mutate it. `greedyGenome()` is the Phase 1a greedy policy written as one genome (tests/buildlab/genome.test.ts checks that
@@ -107,9 +107,9 @@ export function createGenomePolicy(genome: Genome, name = 'genome'): Policy {
   const g = genomeFromJSON(genome).p;
   const w = (k: string): number => g[k];
   const value = (type: ItemTypeId, tier: number): number => g[`item.${type}`] * (1 + w('rule.tierBonus') * (tier - 1));
-  const scorer = (b: Build): number => {
+  const scorer: Scorer = (b, placed) => {
     let s = 0;
-    for (const r of b.recipes) s += g[`combo.${r.id}`];
+    for (const c of comboCredits(b, placed, DEFAULT_SCORE.partial)) s += g[`combo.${c.id}`] * c.credit;
     for (const id of SET_ORDER) s += g[`set.${id}`] * b.sets[id];
     for (const x of b.weapons) s += w('rule.buffWeight') * x.buffs.length;
     return s;

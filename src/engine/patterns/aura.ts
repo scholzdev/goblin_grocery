@@ -1,3 +1,5 @@
+import { hasStar3 } from '../define';
+import { CART_STANDOFF } from './common';
 import type { Pattern } from './types';
 
 /** Blender: every tick, each enemy inside the radius is hit once. The blade ring (drawn by the arsenal) spins while fighting. */
@@ -14,13 +16,15 @@ export const aura: Pattern = {
     const sc = h.sc;
     const p = sc.player;
     const st = w.stats;
+    const pullIn = hasStar3(st.tier) ? w.tune.pullIn ?? 0 : 0;
     let hit = false;
     for (const e of sc.enemies) {
       if (!e.alive || e.state === 'spawn') continue;
       const d = Math.hypot(e.x - p.x, e.y - p.y);
       if (d > st.range + e.def.radius) continue;
       hit = true;
-      sc.damageEnemy(e, st.damage, st, { kb: 20, kbX: (e.x - p.x) / (d || 1), kbY: (e.y - p.y) / (d || 1), quiet: true });
+      const pull = pullIn > 0 && d > p.radius + e.def.radius + CART_STANDOFF;
+      sc.damageEnemy(e, st.damage, st, { kb: pull ? pullIn : 20, kbX: (pull ? p.x - e.x : e.x - p.x) / (d || 1), kbY: (pull ? p.y - e.y : e.y - p.y) / (d || 1), quiet: true });
     }
     if (hit) h.sound('blender');
     if (sc.hooks['pattern:aura'].length) sc.hooks.emit('pattern:aura', { stats: st, x: p.x, y: p.y, range: st.range, hit }); // Smoothie Shield shreds enemy shots here

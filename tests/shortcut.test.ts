@@ -99,7 +99,7 @@ describe('Shortcut Key', () => {
     expect(sellPrice('spentkey')).toBe(contentTune('spentkey', 1).sell);
     expect(sellPrice('spentkey')).toBe(1);
     const s = shopWithKey(1);
-    s.unlocked = undefined;
+    s.pool = undefined;
     for (let seed = 0; seed < 300; seed++) expect(rollOffers(s, mulberry32(seed), 2 + (seed % 6)).map((o) => o.type)).not.toContain('spentkey');
     const spent = createRun(1);
     spent.phase = 'shop';
@@ -138,5 +138,16 @@ describe('Shortcut Key', () => {
     recordRun(s, false);
     expect(profile.stats.deptClears.main).toBe(before.main + 3);
     expect(profile.stats.deptClears.clearance).toBe(before.clearance + 1);
+  });
+
+  it('a won run that took the Staff Only door counts the boss clear once', () => {
+    const s = createRun(1);
+    const route = [...Array<'main'>(BOSS_WAVE - 1).fill('main'), 'boss' as const];
+    Object.assign(s, { route, mods: route.map(() => 'none'), skippedAisles: [3], wave: BOSS_WAVE });
+    s.stats.wavesCleared = BOSS_WAVE - 1; // flow.victory sets this whether or not an aisle was skipped
+    const before = { main: profile.stats.deptClears.main ?? 0, boss: profile.stats.deptClears.boss ?? 0 };
+    recordRun(s, true);
+    expect(profile.stats.deptClears.boss, 'one boss clear').toBe(before.boss + 1);
+    expect(profile.stats.deptClears.main, 'every played aisle before the boss').toBe(before.main + BOSS_WAVE - 2);
   });
 });

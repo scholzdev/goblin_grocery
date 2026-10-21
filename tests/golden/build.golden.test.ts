@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { computeBuild } from '../../src/systems/synergies';
+import type { SetId } from '../../src/types';
 import { cart } from '../cart';
 import { build, goldenCarts } from './carts';
 import { stable } from './serialize';
@@ -15,6 +16,13 @@ describe('golden: computeBuild', () => {
     const out: Record<string, unknown> = {};
     for (const c of carts) out[c.name] = computeBuild(c.inv, c.perk);
     await expect(stable(out)).toMatchFileSnapshot('./__snapshots__/build.json');
+  });
+
+  it('each set cart reaches the level its name names', () => {
+    for (const c of carts.filter((x) => x.name.startsWith('set.'))) {
+      const [, id, lv] = c.name.split('.');
+      expect(computeBuild(c.inv, c.perk).sets[id as SetId], c.name).toBe(Number(lv.slice(1)));
+    }
   });
 
   it('is deterministic (same inputs, same output, twice)', () => {

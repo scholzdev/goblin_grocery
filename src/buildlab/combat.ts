@@ -8,13 +8,15 @@ import { Enemy } from '../engine/ids';
 import { FakeCtx } from '../engine/fakeCtx';
 import { buildHooks } from '../engine/hooks';
 import { FakeArsenal } from '../engine/patterns/fakeHost';
+import { isDashHit } from '../engine/hitTags';
 import type { BossKit, BossMove } from '../engine/define';
 import type { CombatEnemy } from '../engine/ctx';
-import { applyWeaken, cleanseAura, giftcardCoins, healTargets, killCoinMult, killCoins, slowFactor, tickBurn, tickPoison, weakenedDamage } from '../systems/combat';
+import { applyWeaken, cleanseAura, giftcardCoins, healTargets, killCoinMult, killCoins, slowFactor, tickBurn, tickPoison, toughRegen, weakenedDamage } from '../systems/combat';
 import { totalDamage, type DamageStats } from '../systems/damageStats';
 import { combatRng, type Rng } from '../systems/rng';
 import { waveSpawnPlan } from '../systems/shop';
-import { addCoins } from '../state/run';
+import { punchHit, punchKill, punchTick, rollPunchCard } from '../systems/contracts';
+import { addCoins, payPunchCard } from '../state/run';
 import type { EnemyDef, EnemyId, RunState } from '../types';
 
 // The build-lab combat proxy (docs/buildlab.md). One aisle played headless: the real weapon patterns, statuses, reactions, armor, affinity and
@@ -122,8 +124,6 @@ interface Foe {
   /** > 0 while winding up an attack (tell). */
   tellT: number;
   aux: number;
-  lastHp: number;
-  idle: number;
   bossStep: number;
   bossMove: BossMove;
   /** Removed without kill credit (escaped, exploded, aisle over). */
@@ -150,6 +150,7 @@ export function playAisle(state: RunState, flow: Rng, opts: AisleOpts = {}): Ais
   const fake = new FakeCtx({ seed: state.seed, aisle: state.wave, build, hp: state.hp, maxHp: build.maxHp, boss, player: { x: PLAYER_START.x, y: PLAYER_START.y } });
   fake.attach(buildHooks(state.inventory, build.recipes, build.sets, fake));
   const arsenal = new FakeArsenal(fake, build);
+  fake.arsenal = arsenal;
   arsenal.electricalRate = dept.electricalRate;
   arsenal.applyLooks();
   if (fake.hooks.onAisleStart.length) fake.hooks.emit('onAisleStart', { aisle: state.wave, boss, department: dept.id, modifier: state.modifier });
@@ -192,6 +193,8 @@ export function playAisle(state: RunState, flow: Rng, opts: AisleOpts = {}): Ais
     if (wave.index === MINI_BOSS.aisle && state.modifier !== 'stockroom') { miniDue = true; miniAt = MINI_BOSS.at; }
   }
   const kind: AisleKind = boss ? 'boss' : miniDue ? 'mini' : 'fight';
+  state.punch = rollPunchCard(state.seed, state.inventory, { aisle: state.wave, boss, total: plan.total, fight: state.modifier !== 'stockroom' }) ?? undefined;
+  const timeLeft = (): number => (boss || miniDue ? -1 : Math.max(0, wave.duration - waveTime));
 
   const pickEntry = (): number => {
     const far = ENTRIES.map((e, i) => ({ i, d: Math.hypot(e.x - px, e.y - py) })).filter((e) => e.d > 320);
@@ -221,7 +224,7 @@ export function playAisle(state: RunState, flow: Rng, opts: AisleOpts = {}): Ais
       e, d, affix, small, mini: mini ?? undefined, kit: mini ? mini.kit : d.behavior === 'boss' ? BOSS_KITS[id] : undefined,
       speed: d.speed * speedScale * (affix === 'swift' ? AFFIX.swift.speedMult : 1), ang, stop,
       atkCd: d.behavior === 'boss' ? 1.8 : d.attackCooldown * (0.4 + fake.rng() * 0.6), tellT: 0,
-      aux: id === Enemy.honey ? 0.5 : id === Enemy.sanitizer ? SANI.cleanseInterval : 0, lastHp: hp, idle: 0, bossStep: 0, bossMove: 'volley', noCredit: false, done: false,
+      aux: id === Enemy.honey ? 0.5 : id === Enemy.sanitizer ? SANI.cleanseInterval : 0, bossStep: 0, bossMove: 'volley', noCredit: false, done: false,
     };
     foes.push(f);
     spawned++;
@@ -273,7 +276,7 @@ export function playAisle(state: RunState, flow: Rng, opts: AisleOpts = {}): Ais
   // ── damage to the player ──
   const hurt = (dmg: number): void => {
     const before = fake.run.hp;
-    fake.hurt(dmg);
+    if (fake.hurt(dmg) && state.punch) punchHit(state.punch);
     damageTaken += Math.max(0, before - fake.run.hp);
   };
   const bossShots = new WeakSet<object>();
@@ -315,11 +318,7 @@ export function playAisle(state: RunState, flow: Rng, opts: AisleOpts = {}): Ais
     if (burn > 0) { fake.hit(e, burn, null, { isDot: true }); if (!e.alive) return; }
     const poison = tickPoison(e.status, now);
     if (poison > 0) { fake.hit(e, poison, null, { isDot: true, poison: true }); if (!e.alive) return; }
-    if (f.affix === 'tough') { // regen after `idle` s without taking damage
-      if (e.hp < f.lastHp) f.idle = 0; else f.idle += dt;
-      if (f.idle >= AFFIX.tough.idle) e.hp = Math.min(e.maxHp, e.hp + e.maxHp * AFFIX.tough.regenPct * dt);
-      f.lastHp = e.hp;
-    }
+    if (f.affix === 'tough') toughRegen(e, dt, now);
     f.atkCd -= dt;
     if (d.id === Enemy.sanitizer && (f.aux -= dt) <= 0) { f.aux += SANI.cleanseInterval; cleanseAura(e, fake.enemies, SANI.cleanseRadius, now); }
     if (d.behavior === 'healer' && (f.aux -= dt) <= 0) {
@@ -387,6 +386,8 @@ export function playAisle(state: RunState, flow: Rng, opts: AisleOpts = {}): Ais
   const onDeath = (f: Foe): void => {
     const e = f.e, d = f.d;
     kills++;
+    const hit = fake.killingHit.get(e);
+    if (state.punch && punchKill(state.punch, { tags: hit?.tags ?? [], dash: !!hit && isDashHit(hit.opts), elite: e.elite })) payPunchCard(state);
     const thief = d.id === Enemy.giftcard;
     const n = thief ? giftcardCoins(d.coins, GIFT.coinMult, mults) : f === ref.boss ? bossTuning(state.shift).coins : f.mini ? MINI_BOSS.coins : killCoins(d.coins * (f.e.elite ? ELITE.coinMult : 1), killCoinMult(mults), flow);
     for (let i = 0; i < n; i++) if (thief || d.behavior === 'boss' || flow() < ECONOMY.killCoinChance) award(1);
@@ -433,6 +434,7 @@ export function playAisle(state: RunState, flow: Rng, opts: AisleOpts = {}): Ais
     const now = fake.time;
     waveTime += dt;
     if (build.regen > 0 && fake.run.hp < build.maxHp) fake.run.hp = Math.min(build.maxHp, fake.run.hp + build.regen * dt);
+    if (state.punch && punchTick(state.punch, dt, timeLeft()) === 'done') payPunchCard(state);
     if (!only) updateDirector();
     if (!enraged && ((ref.boss && waveTime > bossTuning(state.shift).enrageAfter + 1.6) || (ref.mini && waveTime > MINI_BOSS.at + MINI_BOSS.enrageAfter))) enraged = true;
     contactors.length = 0;

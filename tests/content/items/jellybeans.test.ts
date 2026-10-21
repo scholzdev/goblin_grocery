@@ -16,6 +16,9 @@ afterEach(() => setLang('en'));
 
 const fuel = contentTune('fuel', 1), ice = contentTune('ice', 1), popper = contentTune('popper', 1);
 const STRENGTH = 0.7;
+// Lone beans are ★t set points of their flavor's element: ★3 heat beans reach Heat L2 (burn x1.4), ★2 / ★3 frost beans Frost L1 / L2 (+10 points).
+const HEAT = (lv: number) => contentSetTune('heat', lv), FROST = (lv: number) => contentSetTune('frost', lv);
+const withFrost = (pct: number, lv: number) => Math.min(FROST(lv).slowCap, pct + FROST(lv).slowBonus);
 const beans = (flavor?: ElementTag, tier?: number, extra = {}) => at('jellybeans', tier, { ...(flavor ? { flavor } : {}), ...extra });
 // Vacuum (cleaning, no element, no fuel/popper combo) for heat; Nail Gun (tools / blast) for frost and blast.
 const vac = at('vacuum'), gun = at('nailgun');
@@ -70,18 +73,19 @@ describe('Jelly Beans: flavors', () => {
 });
 
 describe('Jelly Beans: 70% x tier', () => {
-  it('scales with the tier: 70% / 105% / 140% of the full module at ★1', () => {
+  it('scales with the tier: 70% / 105% / 140% of the full module at ★1, plus the element level its own set points reach', () => {
+    const frost = [(pct: number) => pct, (pct: number) => withFrost(pct, 1), (pct: number) => withFrost(pct, 1)]; // a lone ★2 / ★3 is L1
     for (const tier of [1, 2, 3]) {
-      expect(stats([vac, beans('heat', tier)]).burn!.dps).toBe(fuel.dps * (TIER.mult(tier) * STRENGTH));
-      expect(stats([gun, beans('frost', tier)]).slow!.pct).toBe(ice.pct * (TIER.mult(tier) * STRENGTH));
+      expect(stats([vac, beans('heat', tier)]).burn!.dps).toBe(fuel.dps * (TIER.mult(tier) * STRENGTH)); // Heat L1 adds no dps multiplier
+      expect(stats([gun, beans('frost', tier)]).slow!.pct).toBe(frost[tier - 1](ice.pct * (TIER.mult(tier) * STRENGTH)));
       expect(stats([gun, beans('blast', tier)]).popper!.damage).toBe(popper.damage * (TIER.mult(tier) * STRENGTH));
     }
     [1.75, 2.625, 3.5].forEach((dps, i) => expect(stats([vac, beans('heat', i + 1)]).burn!.dps).toBeCloseTo(dps, 12));
   });
 
-  it('Gold Star lifts it (★3 -> effective ★4: 175%); the Ice Pack slow stays under its cap', () => {
-    expect(stats([vac, beans('heat', 3), gilded(1)]).burn!.dps).toBeCloseTo(fuel.dps * STRENGTH * 2.5, 12);
-    expect(stats([gun, beans('frost', 3), gilded(1)]).slow!.pct).toBeCloseTo(ice.pct * STRENGTH * 2.5, 12);
+  it('Gold Star lifts it (★3 -> effective ★4: 175%, 4 set points: L2); the Ice Pack slow stays under its cap', () => {
+    expect(stats([vac, beans('heat', 3), gilded(1)]).burn!.dps).toBeCloseTo(fuel.dps * STRENGTH * 2.5 * HEAT(2).burnMult, 12);
+    expect(stats([gun, beans('frost', 3), gilded(1)]).slow!.pct).toBeCloseTo(withFrost(ice.pct * STRENGTH * 2.5, 2), 12);
     expect(ice.pct * STRENGTH * 2.5).toBeLessThan(ice.cap);
   });
 
@@ -92,20 +96,20 @@ describe('Jelly Beans: 70% x tier', () => {
 
   it('each instance uses its own tier (not the best copy in the cart)', () => {
     const w = stats([vac, beans('heat', 1), beans('heat', 3, { near: [], apart: [0] })]);
-    expect(w.burn!.dps).toBe(fuel.dps * STRENGTH);
+    expect(w.burn!.dps).toBe(fuel.dps * STRENGTH); // the far ★3 copy still sets the Heat level (3 points: L1, no dps multiplier)
   });
 });
 
 describe('Jelly Beans: never weaker than the real module (max)', () => {
   it('a stronger Fuel Can keeps its burn; weaker beans do not replace it', () => {
     const w = stats([vac, at('fuel', 3), beans('heat', 1)]);
-    expect(w.burn!.dps).toBe(contentTune('fuel', 3).dps); // 5 > 1.75
+    expect(w.burn!.dps).toBe(contentTune('fuel', 3).dps * HEAT(2).burnMult); // 5 > 1.75; 4 Heat points: L2
     expect(w.buffs).toEqual(['fuel']);
   });
 
   it('stronger beans replace a weaker Fuel Can (and keep the Fuel Can buff)', () => {
     const w = stats([vac, at('fuel', 1), beans('heat', 3)]);
-    expect(w.burn!.dps).toBe(fuel.dps * (TIER.mult(3) * STRENGTH)); // 3.5 > 2.5
+    expect(w.burn!.dps).toBe(fuel.dps * (TIER.mult(3) * STRENGTH) * HEAT(2).burnMult); // 3.5 > 2.5; 4 Heat points: L2
     expect(w.buffs).toEqual(['fuel']);
   });
 
@@ -115,15 +119,15 @@ describe('Jelly Beans: never weaker than the real module (max)', () => {
   });
 
   it('frost: a stronger Ice Pack wins, a weaker one is raised to the beans', () => {
-    const FROST_BONUS = contentSetTune('frost', 1).slowBonus; // Ice Pack + frost beans = Frost L1: +10% (capped) after the combos
+    // ★3 Ice Pack + ★1 frost beans (or the other way round) = 4 Frost points: L2, +10% (capped) after the combos
     const strong = stats([gun, at('ice', 3), beans('frost', 1)]).slow!;
-    expect(strong.pct).toBeCloseTo(Math.min(contentSetTune('frost', 1).slowCap, contentTune('ice', 3).pct + FROST_BONUS), 12);
+    expect(strong.pct).toBeCloseTo(withFrost(contentTune('ice', 3).pct, 2), 12);
     const weak = stats([gun, at('ice', 1), beans('frost', 3)]).slow!;
-    expect(weak.pct).toBeCloseTo(Math.min(contentSetTune('frost', 1).slowCap, ice.pct * TIER.mult(3) * STRENGTH + FROST_BONUS), 12);
+    expect(weak.pct).toBeCloseTo(withFrost(ice.pct * TIER.mult(3) * STRENGTH, 2), 12);
   });
 
   it('blast: a stronger Party Popper keeps its blast, stronger beans replace it', () => {
-    // Popper + blast beans + Nail Gun (blast) = three blast types: Blast L2 (radius x1.15 too)
+    // Popper + blast beans + Nail Gun (blast) = three blast types, 5 points with the ★3 one: Blast L2
     const strong = stats([gun, at('popper', 3), beans('blast', 1)]).popper!;
     expect(strong.damage).toBe(contentTune('popper', 3).damage);
     const weak = stats([gun, at('popper', 1), beans('blast', 3)]).popper!;
@@ -131,10 +135,10 @@ describe('Jelly Beans: never weaker than the real module (max)', () => {
   });
 
   it('two bags: the stronger one decides, in any order; different flavors both apply', () => {
-    expect(stats([vac, beans('heat', 1), beans('heat', 3, { near: [0] })]).burn!.dps).toBe(fuel.dps * (TIER.mult(3) * STRENGTH));
+    expect(stats([vac, beans('heat', 1), beans('heat', 3, { near: [0] })]).burn!.dps).toBe(fuel.dps * (TIER.mult(3) * STRENGTH)); // 3 Heat points: L1
     expect(stats([vac, beans('heat', 3), beans('heat', 1, { near: [0] })]).burn!.dps).toBe(fuel.dps * (TIER.mult(3) * STRENGTH));
     const mixed = stats([gun, beans('frost', 2), beans('blast', 1, { near: [0] })]);
-    expect(mixed.slow!.pct).toBe(ice.pct * (TIER.mult(2) * STRENGTH));
+    expect(mixed.slow!.pct).toBe(withFrost(ice.pct * (TIER.mult(2) * STRENGTH), 1));
     expect(mixed.popper!.damage).toBe(popper.damage * STRENGTH);
   });
 });

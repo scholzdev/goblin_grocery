@@ -1,4 +1,5 @@
-import { EVENTS, SET_EVENT, SET_EVENTS, SET_EVENT_KINDS, type EventKind, type SetEventKind } from '../data/events';
+import { EVENTS, EVENT_LEAD, SET_EVENT, SET_EVENTS, SET_EVENT_KINDS, type EventKind, type SetEventKind } from '../data/events';
+import { waveDef } from '../data/waves';
 import type { DepartmentId, SetId } from '../types';
 import type { Rng } from './rng';
 
@@ -17,7 +18,8 @@ export function rollEvent(dept: DepartmentId, aisle: number, shift: number, rng:
   }
   if (!kind) return null;
   const [a, b] = isSetEvent(kind) ? SET_EVENT.startAt : EVENTS[kind].startAt;
-  return { kind, startAt: a + rng() * (b - a), duration: kind === 'outage' ? outageDuration(shift) : isSetEvent(kind) ? EVENTS[kind].duration : 0 };
+  const end = Math.min(b, waveDef(aisle).duration - EVENT_LEAD);
+  return { kind, startAt: a + rng() * (end - a), duration: kind === 'outage' ? outageDuration(shift) : isSetEvent(kind) ? EVENTS[kind].duration : 0 };
 }
 
 export const isSetEvent = (k: EventKind): k is SetEventKind => k in SET_EVENTS;

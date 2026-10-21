@@ -22,14 +22,13 @@ import { isWet } from './wet';
 // The rules live here once; `PhaserCtx` and `FakeCtx` each own a `Reactor` and call it from the same three places (a status application, the start and the end of a
 // hit), so the arena, the sims and the tests run the same code. No rng: a reaction is always the same for the same state. Pure over the `RuntimeCtx` (damage, fx, clock).
 
-/** The label pop and the breakdown name of each reaction (`i18n/ui.ts`). */
-export const REACTION_TEXT: Readonly<Record<ReactionId, { label: UIKey; name: UIKey }>> = {
-  shatter: { label: 'reactShatter', name: 'rnShatter' },
-  fumes: { label: 'reactFumes', name: 'rnFumes' },
-  conduct: { label: 'reactConduct', name: 'rnConduct' },
-  crack: { label: 'reactCrack', name: 'rnCrack' },
-  iceSheet: { label: 'reactIceSheet', name: 'rnIceSheet' },
-  detonate: { label: 'reactDetonate', name: 'rnDetonate' },
+export const REACTION_TEXT: Readonly<Record<ReactionId, { label: UIKey; name: UIKey; desc: UIKey }>> = {
+  shatter: { label: 'reactShatter', name: 'rnShatter', desc: 'rdShatter' },
+  fumes: { label: 'reactFumes', name: 'rnFumes', desc: 'rdFumes' },
+  conduct: { label: 'reactConduct', name: 'rnConduct', desc: 'rdConduct' },
+  crack: { label: 'reactCrack', name: 'rnCrack', desc: 'rdCrack' },
+  iceSheet: { label: 'reactIceSheet', name: 'rnIceSheet', desc: 'rdIceSheet' },
+  detonate: { label: 'reactDetonate', name: 'rnDetonate', desc: 'rdDetonate' },
 };
 
 /** The `damageByWeapon` key of a reaction's burst hits (`HitOpts.label`). */

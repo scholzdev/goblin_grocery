@@ -6243,7 +6243,7 @@
     {
       "lines": [
         "Kills explodieren: 6 Schaden, Radius 70 (Partyknaller)",
-        "Treffer wiederholen sich mit 50 % Schaden (Doppeltüte)",
+        "Treffer wiederholen sich mit 75 % Schaden (Doppeltüte ★2)",
         "Mengenrabatt: 2 Gegenstände → +12 % Schaden"
       ],
       "weapon": "nailgun"
@@ -6253,7 +6253,7 @@
     {
       "lines": [
         "Kills explode: 6 dmg, 70 radius (Party Popper)",
-        "Hits repeat for 50% damage (Double Bag)",
+        "Hits repeat for 75% damage (Double Bag ★2)",
         "Bundle Deal: 2 items → +12% damage"
       ],
       "weapon": "nailgun"
@@ -6625,7 +6625,7 @@
     {
       "lines": [
         "Brand 2,5/s für 2 s (Benzinkanister)",
-        "+25 % Schaden (Scharfe Soße)",
+        "+38 % Schaden (Scharfe Soße ★2)",
         "Mengenrabatt: 2 Gegenstände → +12 % Schaden",
         "Combo: Zischende Pfanne"
       ],
@@ -6636,7 +6636,7 @@
     {
       "lines": [
         "Burn 2.5/s for 2s (Fuel Can)",
-        "+25% damage (Hot Sauce)",
+        "+38% damage (Hot Sauce ★2)",
         "Bundle Deal: 2 items → +12% damage",
         "Combo: Sizzling Skillet"
       ],
@@ -6647,7 +6647,7 @@
     {
       "lines": [
         "Brand 2,5/s für 2 s (Benzinkanister)",
-        "+25 % Schaden (Scharfe Soße)",
+        "+38 % Schaden (Scharfe Soße ★2)",
         "Mengenrabatt: 2 Gegenstände → +12 % Schaden",
         "Combo: Zischende Pfanne"
       ],
@@ -6655,7 +6655,7 @@
     },
     {
       "lines": [
-        "+25 % Schaden (Scharfe Soße)",
+        "+38 % Schaden (Scharfe Soße ★2)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "cooker"
@@ -6665,7 +6665,7 @@
     {
       "lines": [
         "Burn 2.5/s for 2s (Fuel Can)",
-        "+25% damage (Hot Sauce)",
+        "+38% damage (Hot Sauce ★2)",
         "Bundle Deal: 2 items → +12% damage",
         "Combo: Sizzling Skillet"
       ],
@@ -6673,7 +6673,7 @@
     },
     {
       "lines": [
-        "+25% damage (Hot Sauce)",
+        "+38% damage (Hot Sauce ★2)",
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "cooker"
@@ -6710,9 +6710,7 @@
   "buffs.set.kitchen.L3.de": [
     {
       "lines": [
-        "Verlangsamung 25 % für 1 s (Kühlakku)",
-        "Mengenrabatt: 2 Gegenstände → +12 % Schaden",
-        "Combo: Eiskopfschmerz"
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "blender"
     }
@@ -6720,9 +6718,7 @@
   "buffs.set.kitchen.L3.en": [
     {
       "lines": [
-        "Slow 25% for 1s (Ice Pack)",
-        "Bundle Deal: 2 items → +12% damage",
-        "Combo: Brain Freeze"
+        "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "blender"
     }
@@ -6790,7 +6786,7 @@
   "buffs.set.tools.L2.de": [
     {
       "lines": [
-        "Mehr Reichweite / extra Durchschlag (Panzertape)",
+        "Mehr Reichweite / extra Durchschlag (Panzertape ★2)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "nailgun"
@@ -6799,7 +6795,7 @@
   "buffs.set.tools.L2.en": [
     {
       "lines": [
-        "Bigger reach / extra pierce (Duct Tape)",
+        "Bigger reach / extra pierce (Duct Tape ★2)",
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "nailgun"
@@ -6808,7 +6804,7 @@
   "buffs.set.tools.L3.de": [
     {
       "lines": [
-        "Mehr Reichweite / extra Durchschlag (Panzertape)",
+        "Mehr Reichweite / extra Durchschlag (Panzertape ★2)",
         "Mengenrabatt: 2 Gegenstände → +12 % Schaden"
       ],
       "weapon": "nailgun"
@@ -6817,7 +6813,7 @@
   "buffs.set.tools.L3.en": [
     {
       "lines": [
-        "Bigger reach / extra pierce (Duct Tape)",
+        "Bigger reach / extra pierce (Duct Tape ★2)",
         "Bundle Deal: 2 items → +12% damage"
       ],
       "weapon": "nailgun"
@@ -8142,7 +8138,7 @@
     "rulesByTier": {
       "1": "Schreddert alle 0,3 s jeden Gegner im Umkreis von 85 für 2 Schaden (jeden Gegner einmal pro Tick). Elektrisch.",
       "2": "Schreddert alle 0,27 s jeden Gegner im Umkreis von 85 für 3 Schaden (jeden Gegner einmal pro Tick). Elektrisch.",
-      "3": "Schreddert alle 0,24 s jeden Gegner im Umkreis von 85 für 4 Schaden (jeden Gegner einmal pro Tick). Elektrisch."
+      "3": "Schreddert alle 0,24 s jeden Gegner im Umkreis von 85 für 4 Schaden (jeden Gegner einmal pro Tick). Elektrisch. ★3: Die Klingen ziehen Gegner heran, statt sie wegzustoßen."
     },
     "tierScaling": [
       {
@@ -8170,7 +8166,7 @@
     "rulesByTier": {
       "1": "Shreds every enemy within 85 for 2 damage every 0.3 s (each enemy once per tick). Electrical.",
       "2": "Shreds every enemy within 85 for 3 damage every 0.27 s (each enemy once per tick). Electrical.",
-      "3": "Shreds every enemy within 85 for 4 damage every 0.24 s (each enemy once per tick). Electrical."
+      "3": "Shreds every enemy within 85 for 4 damage every 0.24 s (each enemy once per tick). Electrical. ★3: The blades pull enemies in instead of pushing them away."
     },
     "tierScaling": [
       {
@@ -8430,7 +8426,7 @@
     "rulesByTier": {
       "1": "Schleudert alle 2,6 s einen Topf auf die dichteste Gruppe im Umkreis von 420. Er explodiert und macht 16 Schaden an allem im Umkreis von 90, mit Rückstoß.",
       "2": "Schleudert alle 2,34 s einen Topf auf die dichteste Gruppe im Umkreis von 420. Er explodiert und macht 24 Schaden an allem im Umkreis von 90, mit Rückstoß.",
-      "3": "Schleudert alle 2,08 s einen Topf auf die dichteste Gruppe im Umkreis von 420. Er explodiert und macht 32 Schaden an allem im Umkreis von 90, mit Rückstoß."
+      "3": "Schleudert alle 2,08 s einen Topf auf die dichteste Gruppe im Umkreis von 420. Er explodiert und macht 32 Schaden an allem im Umkreis von 90, mit Rückstoß. ★3: Schleudert zusätzlich einen kleineren Topf (50% Schaden und Radius) auf die dichteste Gruppe außerhalb dieser Explosion."
     },
     "tierScaling": [
       {
@@ -8458,7 +8454,7 @@
     "rulesByTier": {
       "1": "Every 2.6 s lobs a pot at the densest group within 420. It explodes for 16 damage to everything within 90, with knockback.",
       "2": "Every 2.34 s lobs a pot at the densest group within 420. It explodes for 24 damage to everything within 90, with knockback.",
-      "3": "Every 2.08 s lobs a pot at the densest group within 420. It explodes for 32 damage to everything within 90, with knockback."
+      "3": "Every 2.08 s lobs a pot at the densest group within 420. It explodes for 32 damage to everything within 90, with knockback. ★3: Also lobs a smaller pot (50% damage and radius) at the densest group outside that blast."
     },
     "tierScaling": [
       {
@@ -8844,7 +8840,7 @@
     "rulesByTier": {
       "1": "Feuert alle 1 s einen Kronkorken für 6 Schaden, der auf 2 weitere Gegner abprallt (nie zweimal auf denselben). 420 Reichweite.",
       "2": "Feuert alle 0,9 s einen Kronkorken für 9 Schaden, der auf 2 weitere Gegner abprallt (nie zweimal auf denselben). 420 Reichweite.",
-      "3": "Feuert alle 0,8 s einen Kronkorken für 12 Schaden, der auf 2 weitere Gegner abprallt (nie zweimal auf denselben). 420 Reichweite."
+      "3": "Feuert alle 0,8 s einen Kronkorken für 12 Schaden, der auf 2 weitere Gegner abprallt (nie zweimal auf denselben). 420 Reichweite. ★3: Der erste Abschuss eines Kronkorkens bringt ihm einen weiteren Abprall."
     },
     "tierScaling": [
       {
@@ -8872,7 +8868,7 @@
     "rulesByTier": {
       "1": "Fires a bottle cap for 6 damage every 1 s that bounces to 2 more enemies (never the same one twice). 420 range.",
       "2": "Fires a bottle cap for 9 damage every 0.9 s that bounces to 2 more enemies (never the same one twice). 420 range.",
-      "3": "Fires a bottle cap for 12 damage every 0.8 s that bounces to 2 more enemies (never the same one twice). 420 range."
+      "3": "Fires a bottle cap for 12 damage every 0.8 s that bounces to 2 more enemies (never the same one twice). 420 range. ★3: A cap's first knockout earns it one more bounce."
     },
     "tierScaling": [
       {
@@ -9224,7 +9220,7 @@
     "rulesByTier": {
       "1": "Bläst alle 0,9 s einen 50°-Kegel (220 Reichweite) für 3 Schaden und einen kräftigen Stoß. Weggeblasene Gegner, die gegen eine Wand oder Deko prallen, erleiden 8 Aufprallschaden (skaliert mit der Stufe).",
       "2": "Bläst alle 0,81 s einen 50°-Kegel (220 Reichweite) für 4,5 Schaden und einen kräftigen Stoß. Weggeblasene Gegner, die gegen eine Wand oder Deko prallen, erleiden 8 Aufprallschaden (skaliert mit der Stufe).",
-      "3": "Bläst alle 0,72 s einen 50°-Kegel (220 Reichweite) für 6 Schaden und einen kräftigen Stoß. Weggeblasene Gegner, die gegen eine Wand oder Deko prallen, erleiden 8 Aufprallschaden (skaliert mit der Stufe)."
+      "3": "Bläst alle 0,72 s einen 50°-Kegel (220 Reichweite) für 6 Schaden und einen kräftigen Stoß. Weggeblasene Gegner, die gegen eine Wand oder Deko prallen, erleiden 8 Aufprallschaden (skaliert mit der Stufe). ★3: Aufgeprallte Gegner sind außerdem 0,5 s lang betäubt."
     },
     "tierScaling": [
       {
@@ -9252,7 +9248,7 @@
     "rulesByTier": {
       "1": "Every 0.9 s blasts a 50° cone (220 reach) for 3 damage and a heavy push. Blown groceries that hit a wall or prop take 8 slam damage (scales with level).",
       "2": "Every 0.81 s blasts a 50° cone (220 reach) for 4.5 damage and a heavy push. Blown groceries that hit a wall or prop take 8 slam damage (scales with level).",
-      "3": "Every 0.72 s blasts a 50° cone (220 reach) for 6 damage and a heavy push. Blown groceries that hit a wall or prop take 8 slam damage (scales with level)."
+      "3": "Every 0.72 s blasts a 50° cone (220 reach) for 6 damage and a heavy push. Blown groceries that hit a wall or prop take 8 slam damage (scales with level). ★3: Slammed groceries are also stunned for 0.5 s."
     },
     "tierScaling": [
       {
@@ -9360,7 +9356,7 @@
     "rulesByTier": {
       "1": "Zappt alle 2,4 s den zähsten Gegner im Umkreis von 380 (zuerst Elite, dann meiste LP) für 24 Schaden, mit Flächenschaden im Umkreis von 70. Elektrisch.",
       "2": "Zappt alle 2,16 s den zähsten Gegner im Umkreis von 380 (zuerst Elite, dann meiste LP) für 36 Schaden, mit Flächenschaden im Umkreis von 70. Elektrisch.",
-      "3": "Zappt alle 1,92 s den zähsten Gegner im Umkreis von 380 (zuerst Elite, dann meiste LP) für 48 Schaden, mit Flächenschaden im Umkreis von 70. Elektrisch."
+      "3": "Zappt alle 1,92 s den zähsten Gegner im Umkreis von 380 (zuerst Elite, dann meiste LP) für 48 Schaden, mit Flächenschaden im Umkreis von 70. Elektrisch. ★3: Schaltet ein Zap sein Ziel aus, lädt der nächste in 50% der Zeit."
     },
     "tierScaling": [
       {
@@ -9388,7 +9384,7 @@
     "rulesByTier": {
       "1": "Every 2.4 s zaps the toughest enemy within 380 (Elites first, then most HP) for 24 damage, splashing everything within 70. Electrical.",
       "2": "Every 2.16 s zaps the toughest enemy within 380 (Elites first, then most HP) for 36 damage, splashing everything within 70. Electrical.",
-      "3": "Every 1.92 s zaps the toughest enemy within 380 (Elites first, then most HP) for 48 damage, splashing everything within 70. Electrical."
+      "3": "Every 1.92 s zaps the toughest enemy within 380 (Elites first, then most HP) for 48 damage, splashing everything within 70. Electrical. ★3: When a zap knocks out its target, the next one charges in 50% of the time."
     },
     "tierScaling": [
       {
@@ -9456,7 +9452,7 @@
     "rulesByTier": {
       "1": "Hinterlässt alle 1,6 s eine Seifenpfütze (Radius 60, hält 3 s). Gegner darin rutschen und werden nass (3 s): 25% langsamer und 3 Schaden alle 0,5 s.",
       "2": "Hinterlässt alle 1,44 s eine Seifenpfütze (Radius 60, hält 3 s). Gegner darin rutschen und werden nass (3 s): 25% langsamer und 4,5 Schaden alle 0,5 s.",
-      "3": "Hinterlässt alle 1,28 s eine Seifenpfütze (Radius 60, hält 3 s). Gegner darin rutschen und werden nass (3 s): 25% langsamer und 6 Schaden alle 0,5 s."
+      "3": "Hinterlässt alle 1,28 s eine Seifenpfütze (Radius 60, hält 3 s). Gegner darin rutschen und werden nass (3 s): 25% langsamer und 6 Schaden alle 0,5 s. ★3: Pfützen halten 2× so lange."
     },
     "tierScaling": [
       {
@@ -9484,7 +9480,7 @@
     "rulesByTier": {
       "1": "Every 1.6 s drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip and get Wet (3 s): 25% slow and 3 damage every 0.5 s.",
       "2": "Every 1.44 s drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip and get Wet (3 s): 25% slow and 4.5 damage every 0.5 s.",
-      "3": "Every 1.28 s drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip and get Wet (3 s): 25% slow and 6 damage every 0.5 s."
+      "3": "Every 1.28 s drops a soap puddle (radius 60, lasts 3 s). Enemies inside slip and get Wet (3 s): 25% slow and 6 damage every 0.5 s. ★3: Puddles last 2× as long."
     },
     "tierScaling": [
       {
@@ -9568,7 +9564,7 @@
     "rulesByTier": {
       "1": "Feuert alle 1,1 s eine Dreier-Nagelsalve. 3 Schaden pro Nagel. 480 Reichweite.",
       "2": "Feuert alle 0,99 s eine Dreier-Nagelsalve. 4,5 Schaden pro Nagel. 480 Reichweite.",
-      "3": "Feuert alle 0,88 s eine Dreier-Nagelsalve. 6 Schaden pro Nagel. 480 Reichweite."
+      "3": "Feuert alle 0,88 s eine Dreier-Nagelsalve. 6 Schaden pro Nagel. 480 Reichweite. ★3: Die Nägel einer Salve verteilen sich auf verschiedene Gegner."
     },
     "tierScaling": [
       {
@@ -9596,7 +9592,7 @@
     "rulesByTier": {
       "1": "Fires a three-nail burst every 1.1 s. 3 damage per nail. 480 range.",
       "2": "Fires a three-nail burst every 0.99 s. 4.5 damage per nail. 480 range.",
-      "3": "Fires a three-nail burst every 0.88 s. 6 damage per nail. 480 range."
+      "3": "Fires a three-nail burst every 0.88 s. 6 damage per nail. 480 range. ★3: The nails of a burst spread out over different enemies."
     },
     "tierScaling": [
       {
@@ -9624,7 +9620,7 @@
     "rulesByTier": {
       "1": "Schwingt alle 1,15 s auf Gegner in der Nähe für 9 Schaden. 150 Reichweite. Trifft jeden Gegner einmal pro Schwung.",
       "2": "Schwingt alle 1,03 s auf Gegner in der Nähe für 13,5 Schaden. 150 Reichweite. Trifft jeden Gegner einmal pro Schwung.",
-      "3": "Schwingt alle 0,92 s auf Gegner in der Nähe für 18 Schaden. 150 Reichweite. Trifft jeden Gegner einmal pro Schwung."
+      "3": "Schwingt alle 0,92 s auf Gegner in der Nähe für 18 Schaden. 150 Reichweite. Trifft jeden Gegner einmal pro Schwung. ★3: Schwingt die vollen 360° rund um den Wagen."
     },
     "tierScaling": [
       {
@@ -9652,7 +9648,7 @@
     "rulesByTier": {
       "1": "Sweeps toward nearby enemies for 9 damage every 1.15 s. 150 reach. Hits each enemy once per swing.",
       "2": "Sweeps toward nearby enemies for 13.5 damage every 1.03 s. 150 reach. Hits each enemy once per swing.",
-      "3": "Sweeps toward nearby enemies for 18 damage every 0.92 s. 150 reach. Hits each enemy once per swing."
+      "3": "Sweeps toward nearby enemies for 18 damage every 0.92 s. 150 reach. Hits each enemy once per swing. ★3: Sweeps the full 360° around the cart."
     },
     "tierScaling": [
       {
@@ -9720,7 +9716,7 @@
     "rulesByTier": {
       "1": "Schießt alle 1,3 s 6 Körner, jedes auf einen zufälligen Gegner in Reichweite. 3 Schaden pro Korn. 240 Reichweite.",
       "2": "Schießt alle 1,17 s 6 Körner, jedes auf einen zufälligen Gegner in Reichweite. 4,5 Schaden pro Korn. 240 Reichweite.",
-      "3": "Schießt alle 1,04 s 6 Körner, jedes auf einen zufälligen Gegner in Reichweite. 6 Schaden pro Korn. 240 Reichweite."
+      "3": "Schießt alle 1,04 s 6 Körner, jedes auf einen zufälligen Gegner in Reichweite. 6 Schaden pro Korn. 240 Reichweite. ★3: Ein Korn, das ohne Treffer landet, springt noch einmal auf den nächsten Gegner, mit 50% seines Schadens."
     },
     "tierScaling": [
       {
@@ -9748,7 +9744,7 @@
     "rulesByTier": {
       "1": "Pops 6 kernels every 1.3 s, each at a random enemy in range. 3 damage per kernel. 240 range.",
       "2": "Pops 6 kernels every 1.17 s, each at a random enemy in range. 4.5 damage per kernel. 240 range.",
-      "3": "Pops 6 kernels every 1.04 s, each at a random enemy in range. 6 damage per kernel. 240 range."
+      "3": "Pops 6 kernels every 1.04 s, each at a random enemy in range. 6 damage per kernel. 240 range. ★3: A kernel that lands without a hit pops once more at the nearest enemy for 50% of its damage."
     },
     "tierScaling": [
       {
@@ -10082,7 +10078,7 @@
     "rulesByTier": {
       "1": "Hinterlässt alle 2 s eine Matschpfütze (Radius 65, hält 4 s). Gegner darin werden nass (3 s): 35% langsamer und 3 Frostschaden alle 0,5 s. Der nächste Frosttreffer einer anderen Quelle auf einen nassen Gegner lässt ihn wegrutschen: Eisfläche.",
       "2": "Hinterlässt alle 1,8 s eine Matschpfütze (Radius 65, hält 4 s). Gegner darin werden nass (3 s): 35% langsamer und 4,5 Frostschaden alle 0,5 s. Der nächste Frosttreffer einer anderen Quelle auf einen nassen Gegner lässt ihn wegrutschen: Eisfläche.",
-      "3": "Hinterlässt alle 1,6 s eine Matschpfütze (Radius 65, hält 4 s). Gegner darin werden nass (3 s): 35% langsamer und 6 Frostschaden alle 0,5 s. Der nächste Frosttreffer einer anderen Quelle auf einen nassen Gegner lässt ihn wegrutschen: Eisfläche."
+      "3": "Hinterlässt alle 1,6 s eine Matschpfütze (Radius 65, hält 4 s). Gegner darin werden nass (3 s): 35% langsamer und 6 Frostschaden alle 0,5 s. Der nächste Frosttreffer einer anderen Quelle auf einen nassen Gegner lässt ihn wegrutschen: Eisfläche. ★3: Tritt ein Gegner zum ersten Mal in eine Pfütze, friert er 0,5 s lang fest."
     },
     "tierScaling": [
       {
@@ -10110,7 +10106,7 @@
     "rulesByTier": {
       "1": "Every 2 s drops a slush puddle (radius 65, lasts 4 s). Enemies inside get Wet (3 s): 35% slow and 3 frost damage every 0.5 s. The next frost hit from another source on a Wet enemy sends it sliding: Ice Sheet.",
       "2": "Every 1.8 s drops a slush puddle (radius 65, lasts 4 s). Enemies inside get Wet (3 s): 35% slow and 4.5 frost damage every 0.5 s. The next frost hit from another source on a Wet enemy sends it sliding: Ice Sheet.",
-      "3": "Every 1.6 s drops a slush puddle (radius 65, lasts 4 s). Enemies inside get Wet (3 s): 35% slow and 6 frost damage every 0.5 s. The next frost hit from another source on a Wet enemy sends it sliding: Ice Sheet."
+      "3": "Every 1.6 s drops a slush puddle (radius 65, lasts 4 s). Enemies inside get Wet (3 s): 35% slow and 6 frost damage every 0.5 s. The next frost hit from another source on a Wet enemy sends it sliding: Ice Sheet. ★3: The first time an enemy steps into a puddle it freezes for 0.5 s."
     },
     "tierScaling": [
       {
@@ -10280,7 +10276,7 @@
     "rulesByTier": {
       "1": "Sprüht alle 0,55 s einen 70°-Kegel (170 Reichweite) und macht 3 Schaden an jedem Gegner darin (je einmal pro Sprühstoß) und macht sie 3 s lang nass.",
       "2": "Sprüht alle 0,5 s einen 70°-Kegel (170 Reichweite) und macht 4,5 Schaden an jedem Gegner darin (je einmal pro Sprühstoß) und macht sie 3 s lang nass.",
-      "3": "Sprüht alle 0,44 s einen 70°-Kegel (170 Reichweite) und macht 6 Schaden an jedem Gegner darin (je einmal pro Sprühstoß) und macht sie 3 s lang nass."
+      "3": "Sprüht alle 0,44 s einen 70°-Kegel (170 Reichweite) und macht 6 Schaden an jedem Gegner darin (je einmal pro Sprühstoß) und macht sie 3 s lang nass. ★3: Der Sprühstoß spült auch gegnerische Geschosse im Kegel aus der Luft."
     },
     "tierScaling": [
       {
@@ -10308,7 +10304,7 @@
     "rulesByTier": {
       "1": "Every 0.55 s sprays a 70° cone (170 reach) for 3 damage to every enemy inside (each once per spray) and makes them Wet for 3 s.",
       "2": "Every 0.5 s sprays a 70° cone (170 reach) for 4.5 damage to every enemy inside (each once per spray) and makes them Wet for 3 s.",
-      "3": "Every 0.44 s sprays a 70° cone (170 reach) for 6 damage to every enemy inside (each once per spray) and makes them Wet for 3 s."
+      "3": "Every 0.44 s sprays a 70° cone (170 reach) for 6 damage to every enemy inside (each once per spray) and makes them Wet for 3 s. ★3: The spray also washes enemy shots inside the cone out of the air."
     },
     "tierScaling": [
       {
@@ -10488,7 +10484,7 @@
     "rulesByTier": {
       "1": "Feuert alle 1 s Toast für 9 Schaden. 455 Reichweite. Jeder Toast trifft einen Gegner.",
       "2": "Feuert alle 0,9 s Toast für 13,5 Schaden. 455 Reichweite. Jeder Toast trifft einen Gegner.",
-      "3": "Feuert alle 0,8 s Toast für 18 Schaden. 455 Reichweite. Jeder Toast trifft einen Gegner."
+      "3": "Feuert alle 0,8 s Toast für 18 Schaden. 455 Reichweite. Jeder Toast trifft einen Gegner. ★3: Feuert zusätzlich einen Toast auf einen zweiten Gegner."
     },
     "tierScaling": [
       {
@@ -10516,7 +10512,7 @@
     "rulesByTier": {
       "1": "Fires toast for 9 damage every 1 s. 455 range. Each toast hits one enemy.",
       "2": "Fires toast for 13.5 damage every 0.9 s. 455 range. Each toast hits one enemy.",
-      "3": "Fires toast for 18 damage every 0.8 s. 455 range. Each toast hits one enemy."
+      "3": "Fires toast for 18 damage every 0.8 s. 455 range. Each toast hits one enemy. ★3: Also fires a toast at a second enemy."
     },
     "tierScaling": [
       {
@@ -10538,13 +10534,13 @@
     ]
   },
   "items.vacuum.de": {
-    "blurb": "Saugt Gegner heran. Münzen übrigens auch.",
+    "blurb": "Hilfswaffe. Saugt Gegner heran, Münzen übrigens auch.",
     "name": "Staubsauger",
     "rules": "Zieht Gegner in der Nähe ständig zum Wagen. Alle {1} erleiden Gegner im Radius {0} Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir.",
     "rulesByTier": {
       "1": "Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,65 s erleiden Gegner im Radius 2 Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir.",
       "2": "Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,59 s erleiden Gegner im Radius 3 Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir.",
-      "3": "Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,52 s erleiden Gegner im Radius 4 Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir."
+      "3": "Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,52 s erleiden Gegner im Radius 4 Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir. ★3: Jeder Schadensstoß stößt die Gegner direkt am Wagen zurück."
     },
     "tierScaling": [
       {
@@ -10566,13 +10562,13 @@
     ]
   },
   "items.vacuum.en": {
-    "blurb": "Sucks groceries closer. Sucks coins closer too.",
+    "blurb": "Utility weapon. Sucks groceries closer, and coins too.",
     "name": "Vacuum",
     "rules": "Constantly pulls nearby enemies toward the cart. Every {1}, enemies in range take {0} damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you.",
     "rulesByTier": {
       "1": "Constantly pulls nearby enemies toward the cart. Every 0.65 s, enemies in range take 2 damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you.",
       "2": "Constantly pulls nearby enemies toward the cart. Every 0.59 s, enemies in range take 3 damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you.",
-      "3": "Constantly pulls nearby enemies toward the cart. Every 0.52 s, enemies in range take 4 damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you."
+      "3": "Constantly pulls nearby enemies toward the cart. Every 0.52 s, enemies in range take 4 damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you. ★3: Each damage pulse knocks the groceries right at the cart back out."
     },
     "tierScaling": [
       {
@@ -10607,14 +10603,14 @@
   },
   "sets.checkout.de": {
     "L1": "Shop-Preise −8 % (neue Angebote)",
-    "L2": "Zinsen +1 Münze pro 10 gehalten (max. 5)",
-    "L3": "Shop-Preise −15 %; Zinsen +1 Münze pro 10 gehalten (max. 8)",
+    "L2": "Zinsobergrenze steigt auf 6",
+    "L3": "Shop-Preise −15 %; Zinsobergrenze steigt auf 10",
     "name": "Kasse"
   },
   "sets.checkout.en": {
     "L1": "Shop prices −8% (new offers)",
-    "L2": "Interest +1 coin per 10 held (max 5)",
-    "L3": "Shop prices −15%; interest +1 coin per 10 held (max 8)",
+    "L2": "Interest cap raised to 6",
+    "L3": "Shop prices −15%; interest cap raised to 10",
     "name": "Checkout"
   },
   "sets.cleaning.de": {

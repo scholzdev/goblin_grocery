@@ -9,12 +9,12 @@ import { draws, expectSetText, seedWhere } from './helpers';
 afterEach(() => setLang('en'));
 
 const PAN = at('pan'); // a kitchen weapon (sweep)
-// Kitchen members that touch nothing: Free Sample and Sourdough (passives), Ice Pack (a module not next to the weapon).
-const L1 = [PAN, far('sample')], L2 = [...L1, far('sourdough')], L3 = [...L2, far('ice')];
+// Kitchen members that touch nothing: Free Sample and a ★2 Sourdough (passives), a ★2 Ice Pack (a module not next to the weapon).
+const L1 = [PAN, far('sample')], L2 = [...L1, far('sourdough', 2)], L3 = [...L2, far('ice', 2)];
 const base = ITEMS.pan.weapon!.damage * TIER.weaponDamage(1);
 
 describe('Kitchen set: thresholds', () => {
-  it('counts distinct kitchen types: the weapon alone is 1 (no bonus), 2 / 3 / 4 types give L1 / L2 / L3', () => {
+  it('counts set points (its tier per kitchen type): the weapon alone is 1 (no bonus), 2 / 4 / 6 give L1 / L2 / L3', () => {
     expect([[PAN], L1, L2, L3].map((c) => sets(c).kitchen)).toEqual([0, 1, 2, 3]);
     expect(sets([PAN, far('sample'), far('sample')]).kitchen).toBe(1); // a duplicate type counts once
   });
@@ -31,7 +31,7 @@ describe('Kitchen set: thresholds', () => {
 
   it('only kitchen weapons: a cleaning weapon in the same cart is untouched', () => {
     const leaf = at('leafblower');
-    const members = [far('sample'), far('sourdough'), far('ice')]; // three kitchen types and no kitchen weapon: L2
+    const members = [far('sample'), far('sourdough', 2), far('ice')]; // three kitchen types (4 points) and no kitchen weapon: L2
     expect(sets([leaf, ...members]).kitchen).toBe(2);
     expect(stats([leaf, ...members]).damage).toBe(stats([leaf]).damage);
   });
@@ -99,7 +99,7 @@ describe('Kitchen set: heal on kills', () => {
   });
 
   it('needs a kitchen weapon and a kill: a cleaning weapon or a non-lethal hit rolls nothing', () => {
-    const cart = [at('leafblower'), far('sample'), far('sourdough'), far('ice')]; // Kitchen L3 without a kitchen weapon
+    const cart = [at('leafblower'), far('sample'), far('sourdough', 2), far('ice', 2)]; // Kitchen L2 without a kitchen weapon
     const { fake, e } = kill(cart, 1);
     expect(fake.callsOf('heal')).toEqual([]);
     expect(e.alive).toBe(false);

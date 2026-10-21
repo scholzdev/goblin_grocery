@@ -8,6 +8,8 @@ export const SET_EVENTS: Record<SetEventKind, SetId> = { happyHour: 'snacks', he
 export const SET_EVENT_KINDS = Object.keys(SET_EVENTS) as SetEventKind[];
 /** Each set event: `chance` per eligible aisle (x`setWeight` when the matching set is level 1+); `bonus` scales the helpful part when it is. */
 export const SET_EVENT = { chance: 0.12, setWeight: 3, bonus: 1.5, minAisle: 2, startAt: [6, 22] as [number, number] };
+/** An event starts at least this many seconds before a regular aisle ends: aisles 1 and 2 are shorter than the `startAt` windows. */
+export const EVENT_LEAD = 10;
 type Chances = Partial<Record<DepartmentId, number>>;
 
 export const EVENTS = {

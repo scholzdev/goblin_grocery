@@ -1,6 +1,7 @@
 import { DEPTH } from '../../data/depth';
 import { applyBurn, applySlow } from '../../systems/combat';
 import { burnFor, slowFor } from '../affinity';
+import { hasStar3 } from '../define';
 import { applyWet, burnVsWet } from '../wet';
 import type { WeaponStats } from '../../types';
 import type { Pattern, PatternHost, Puddle } from './types';
@@ -24,9 +25,10 @@ function dropPuddle(h: PatternHost, w: { stats: WeaponStats; tune: Readonly<Reco
   const st = w.stats;
   const key = h.looks.get(st.uid)?.puddleKey ?? 'fx_puddle';
   const x = p.x - p.facing * 40, y = p.y + 4;
+  const duration = st.duration * (hasStar3(st.tier) ? w.tune.lifeMult ?? 1 : 1);
   const img = h.sc.add.image(x, y, key).setDepth(DEPTH.decal).setDisplaySize(st.range * 0.6, st.range * 0.4).setAlpha(0.9);
   h.sc.tweens.add({ targets: img, displayWidth: st.range * 2.2, displayHeight: st.range * 1.36, duration: 200, ease: 'Back.Out' });
-  h.puddles.push({ img, x, y, r: st.range, until: h.time + st.duration, nextTick: h.time + 0.1, stats: st, slow: { pct: w.tune.slowPct, duration: w.tune.slowDuration }, wet: w.tune.wet });
+  h.puddles.push({ img, x, y, r: st.range, until: h.time + duration, nextTick: h.time + 0.1, stats: st, slow: { pct: w.tune.slowPct, duration: w.tune.slowDuration }, wet: w.tune.wet });
   h.sound('splash');
 }
 

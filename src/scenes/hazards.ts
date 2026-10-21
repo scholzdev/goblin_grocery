@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import type { HazardKind } from '../types';
+import type { HazardLayout } from '../systems/shop';
 import { DEPT_TUNING } from '../data/departments';
 import { play } from '../audio/sfx';
 import { DEPTH } from './fx';
@@ -23,26 +24,25 @@ export class Hazards {
   private next = 0;
   private g: Phaser.GameObjects.Graphics;
 
-  /** Aisle 1..7 drives the ramp: +1 spot per 3 aisles, belts 4% faster per aisle. Overtime uses the aisle-7 values. `zoneExtra` shifts the spot count (kept within 1..available). */
+  readonly kind: HazardKind;
   private speed: number;
 
-  constructor(private scene: ArenaScene, readonly kind: HazardKind, aisle = 1, zoneExtra = 0) {
-    const a = Math.min(Math.max(aisle, 1), 7) - 1, extra = Math.floor(a / 3) + zoneExtra;
-    const n = (base: number, len: number) => Math.min(len, Math.max(1, base + extra));
-    this.speed = DEPT_TUNING.conveyor.speed * (1 + 0.04 * a);
+  constructor(private scene: ArenaScene, { kind, spots, beltSpeed }: HazardLayout) {
+    this.kind = kind;
+    this.speed = beltSpeed;
     this.g = scene.add.graphics().setDepth(DEPTH.telegraph);
     const T = DEPT_TUNING;
     if (kind === 'ice') {
-      for (const p of ICE_SPOTS.slice(0, n(T.ice.patches, ICE_SPOTS.length))) {
+      for (const p of ICE_SPOTS.slice(0, spots)) {
         scene.add.image(p.x, p.y, 'hz_ice').setDepth(DEPTH.decal - 0.5);
         this.patches.push({ x: p.x, y: p.y, ...ICE_RADII });
       }
     } else if (kind === 'vents') {
-      for (const p of VENT_SPOTS.slice(0, n(T.vents.count, VENT_SPOTS.length))) {
+      for (const p of VENT_SPOTS.slice(0, spots)) {
         this.timed.push({ ...p, img: scene.add.image(p.x, p.y, 'hz_vent').setDepth(DEPTH.decal - 0.5), phase: 'idle', t: 0, hitPlayer: false, hit: new Set(), w: T.vents.radius });
       }
     } else if (kind === 'cables') {
-      for (const c of CABLE_ROWS.slice(0, n(T.cables.count, CABLE_ROWS.length))) {
+      for (const c of CABLE_ROWS.slice(0, spots)) {
         const img = scene.add.tileSprite((c.x0 + c.x1) / 2, c.y, c.x1 - c.x0, 36, 'hz_cable').setDepth(DEPTH.decal - 0.5);
         this.timed.push({ x: (c.x0 + c.x1) / 2, y: c.y, img, phase: 'idle', t: 0, hitPlayer: false, hit: new Set(), w: c.x1 - c.x0 });
       }
@@ -130,7 +130,7 @@ export class Hazards {
       const T = DEPT_TUNING.vents;
       if (Math.random() < 0.6) sc.fx.flame(h.x + Phaser.Math.Between(-T.radius, T.radius) * 0.7, h.y - Phaser.Math.Between(0, 30));
       const inside = (x: number, y: number, r: number) => ((x - h.x) / (T.radius + r)) ** 2 + ((y - h.y) / ((T.radius + r) * 0.62)) ** 2 <= 1;
-      if (!h.hitPlayer && inside(p.x, p.y, 10)) { h.hitPlayer = true; sc.hurtPlayer(T.playerDamage); }
+      if (!h.hitPlayer && inside(p.x, p.y, 10)) { h.hitPlayer = true; sc.hurtPlayer(T.playerDamage, { how: 'hazard', by: 'vents' }); }
       for (const e of sc.enemies) {
         if (!e.alive || e.state === 'spawn' || h.hit.has(e.id) || !inside(e.x, e.y, e.def.radius)) continue;
         h.hit.add(e.id);
@@ -140,7 +140,7 @@ export class Hazards {
       const T = DEPT_TUNING.cables;
       if (Math.random() < 0.7) sc.fx.spark(h.x + (Math.random() - 0.5) * h.w, h.y - 6, 1, 0xf5bd45);
       const inside = (x: number, y: number, r: number) => Math.abs(x - h.x) < h.w / 2 && Math.abs(y - h.y) < T.width + r * 0.5;
-      if (!h.hitPlayer && inside(p.x, p.y, 10)) { h.hitPlayer = true; sc.hurtPlayer(T.playerDamage); }
+      if (!h.hitPlayer && inside(p.x, p.y, 10)) { h.hitPlayer = true; sc.hurtPlayer(T.playerDamage, { how: 'hazard', by: 'cables' }); }
       for (const e of sc.enemies) {
         if (!e.alive || e.state === 'spawn' || h.hit.has(e.id) || !inside(e.x, e.y, e.def.radius)) continue;
         h.hit.add(e.id);

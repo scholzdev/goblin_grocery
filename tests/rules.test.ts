@@ -6,18 +6,18 @@ import { inflation, rollDoors, waveSpawnPlan, currentRerollCost, rerollCost, rol
 import { profile, noteEnemy, recordRun, recordOvertime, shiftUnlocked, starterUnlocked } from '../src/state/profile';
 import { mulberry32 } from '../src/systems/rng';
 import { rollEvent, outageDuration } from '../src/systems/events';
-import { EVENTS } from '../src/data/events';
+import { EVENTS, EVENT_LEAD } from '../src/data/events';
 import { cart } from './cart';
 import { setLevels } from '../src/data/sets';
 import { RECIPES } from '../src/data/recipes';
 import { DEPARTMENTS, DEPT_TUNING, THEMES } from '../src/data/departments';
 import { DOOR_POOL, MODIFIERS, ROOM_DOORS } from '../src/data/modifiers';
 import { BOSS_WAVE, ECONOMY, OVERTIME, SHIFTS, SHOP_LEVELS, WAVES, waveDef, bossTuning, eliteChance, enemyAppears } from '../src/data/waves';
-import { BOSS, THEME_SUMMONS, CODEX_ENEMIES, ELITE, ELITE_EXCLUDED, ENEMIES } from '../src/data/enemies';
+import { BOSS, THEME_SUMMONS, CODEX_ENEMIES, ELITE, ELITE_EXCLUDED, ENEMIES, MINI_BOSS } from '../src/data/enemies';
 import { enemyT } from '../src/i18n/data';
 import { setLang } from '../src/i18n/lang';
 import { ITEMS, ITEM_IDS, PLAYER, STARTER_WEAPONS, TIER } from '../src/data/items';
-import { contentTune } from '../src/engine/registry';
+import { contentSetTune, contentTune } from '../src/engine/registry';
 import { STARTING_ITEMS, UNLOCKS } from '../src/data/unlocks';
 import { createLabRun, labAddItem, labDoor, cartUpgradeCost, shelfUpgradeCost, upgradeCart, upgradeShelf, chooseDoor, finishWave, leaveShop, startNextWave, buyOffer, mergeTargetFor, createRun, damagePlayer, mergeItems, moveItem, openShop, previewMerge, previewMove, repair, reroll, sellItem, upgradeCost, upgradeItem, upgradeShop } from '../src/state/run';
 import { OBSTACLES, hazardRects } from '../src/data/obstacles';
@@ -208,14 +208,6 @@ describe('run state ops', () => {
     const lc = createRun(5, 'pan');
     expect([lc.starter, lc.weapon, lc.inventory.placed[0].type, lc.build.maxHp]).toEqual(['pan', 'toaster', 'toaster', PLAYER.maxHp + 5]);
   });
-  it('shop 1 guarantees the starting weapon\'s two suggested items', () => {
-    for (const [weapon, want] of [['toaster', ['fan', 'fuel']], ['pan', ['bell', 'hotsauce']]] as const) {
-      expect(STARTER_WEAPONS[weapon].guarantee).toEqual(want);
-      const s = createRun(1, 'coupon', 0, weapon);
-      const types = rollOffers(s, mulberry32(3), 1).map((o) => o.type);
-      for (const t of want) expect(types).toContain(t);
-    }
-  });
   it('every character applies its perk to money and max HP, any weapon', () => {
     for (const [id, st] of Object.entries(PLAYER.starters) as [keyof typeof PLAYER.starters, (typeof PLAYER.starters)[keyof typeof PLAYER.starters]][]) {
       for (const w of Object.keys(STARTER_WEAPONS) as (keyof typeof STARTER_WEAPONS)[]) {
@@ -377,19 +369,20 @@ describe('run state ops', () => {
   });
   it('damagePlayer sets defeat', () => {
     const s = createRun(1);
-    expect(damagePlayer(s, 10)).toBe(false);
-    expect(damagePlayer(s, 100)).toBe(true);
+    expect(damagePlayer(s, 10, { how: 'contact', by: 'milk' })).toBe(false);
+    expect(damagePlayer(s, 100, { how: 'contact', by: 'milk' })).toBe(true);
     expect([s.hp, s.phase]).toEqual([0, 'defeat']);
   });
 });
 
 describe('shop rolls', () => {
-  it('shop 1 has fan + fuel and 4 distinct types', () => {
+  it('shop 1 leads with the run\'s openers and has 4 distinct types', () => {
+    const s = createRun(1);
+    s.openers = ['fan', 'hotsauce'];
     for (let seed = 0; seed < 50; seed++) {
-      const types = rollOffers(createRun(1), mulberry32(seed), 1).map((o) => o.type);
+      const types = rollOffers(s, mulberry32(seed), 1).map((o) => o.type);
       expect(types).toHaveLength(4);
-      expect(types).toContain('fan');
-      expect(types).toContain('fuel');
+      expect(types.slice(0, 2)).toEqual(['fan', 'hotsauce']);
       expect(new Set(types).size).toBe(4);
     }
   });
@@ -464,7 +457,7 @@ describe('tiers', () => {
   });
   it('weapon tier scales damage and cooldown; sell price uses tier', () => {
     const w = w0(inv(mk('toaster', 0, 0, 2)));
-    expect(w.damage).toBeCloseTo(9 * 1.5);
+    expect(w.damage).toBeCloseTo(9 * 1.5 * contentSetTune('kitchen', 1).damageMult); // its own 2 Kitchen points: L1
     expect(w.cooldown).toBeCloseTo(ITEMS.toaster.weapon!.cooldown * 0.9);
     expect(sellPrice('toaster', 2)).toBe(12);
   });
@@ -559,16 +552,16 @@ describe('tiers', () => {
     const mop = w0(inv(it_('mop', 0, 0), it_('fuel', 1, 0)));
     expect(mop.recipes).toContain('greaseFire');
     expect(mop.burn).toEqual({ dps: 5, duration: 2, tick: 0.5 });
-    expect(w0(inv(it_('mop', 0, 0), mk('fuel', 1, 0, 3))).burn!.dps).toBeCloseTo(10);
+    expect(w0(inv(it_('mop', 0, 0), mk('fuel', 1, 0, 3))).burn!.dps).toBeCloseTo(10); // the ★3 can alone is 3 Heat points: L1, no dps multiplier
     expect(w0(inv(it_('toaster', 0, 0), it_('fuel', 2, 0))).burn!.dps).toBe(2.5);
   });
   it('bubble wrap armor is an onPlayerHit hook (content/items/bubblewrap.test.ts); damagePlayer is plain', () => {
     const s = createRun(1);
     s.inventory.placed.push(it_('bubblewrap', 0, 3));
     s.build = computeBuild(s.inventory);
-    damagePlayer(s, 1);
+    damagePlayer(s, 1, { how: 'contact', by: 'milk' });
     expect(s.hp).toBe(39);
-    damagePlayer(s, 5);
+    damagePlayer(s, 5, { how: 'contact', by: 'milk' });
     expect(s.hp).toBe(34);
   });
   it('combat helpers', () => {
@@ -608,14 +601,14 @@ describe('legendaries / bundle / shop levels', () => {
     const nonAdj = w0(inv(it_('toaster', 1, 1), mk('fan', 0, 1, 3), it_('goldstar', 4, 3)));
     expect(nonAdj.projectileSpeed).toBeCloseTo(540 * 1.6);
   });
-  it('goldstar lunchbox hp = round(15*1.5)=23, no heal', () => {
+  it('goldstar lunchbox hp = round(15*1.5)=23 plus Snacks L1 (2 set points), no heal', () => {
     const s = shopRun();
     s.inventory.shelf[0] = it_('lunchbox', 0, 0);
     s.inventory.shelf[1] = it_('goldstar', 0, 0);
     expect(moveItem(s, s.inventory.shelf[0]!.uid, { where: 'grid', x: 0, y: 2, rot: 0 }).ok).toBe(true);
     expect(s.build.maxHp).toBe(55);
     expect(moveItem(s, s.inventory.shelf[1]!.uid, { where: 'grid', x: 0, y: 3, rot: 0 }).ok).toBe(true);
-    expect(s.build.maxHp).toBe(40 + 23);
+    expect(s.build.maxHp).toBe(40 + 23 + contentSetTune('snacks', 1).maxHp);
     expect(s.hp).toBe(40);
   });
   it('snackbag and laser', () => {
@@ -653,6 +646,7 @@ describe('legendaries / bundle / shop levels', () => {
   it('level 4 rolls: legendaries only from shop 2, unique, priced by tier', () => {
     const s = createRun(1);
     s.shopLevel = 4;
+    s.openers = ['fan', 'fuel'];
     let legends = 0, t3 = 0;
     for (let seed = 0; seed < 300; seed++) {
       for (const idx of [1, 2, 5]) {
@@ -767,6 +761,7 @@ describe('departments and routes', () => {
       expect(new Set(o.map((x) => x.type)).size).toBe(4);
     }
     const early = createRun(1);
+    early.openers = ['fan', 'fuel'];
     early.modifier = 'clearance';
     early.wave = 1;
     openShop(early, mulberry32(2));
@@ -808,11 +803,11 @@ describe('departments and routes', () => {
     const s = createRun(1);
     s.modifier = 'rush';
     finishWave(s);
-    expect(s.coinLog).toEqual([{ label: 'Wave clear bonus', amount: 15 }]);
-    expect(s.money).toBe(15);
+    expect(s.coinLog).toEqual([{ label: 'Wave clear bonus', amount: 15 }, { label: 'Interest', amount: 1 }]);
+    expect(s.money).toBe(16);
     const m = createRun(1);
     finishWave(m);
-    expect(m.money).toBe(12);
+    expect(m.coinLog).toEqual([{ label: 'Wave clear bonus', amount: 12 }, { label: 'Interest', amount: 1 }]);
   });
   it('themes are flat: no multipliers, rosters only reference real enemies', () => {
     expect(THEMES).toEqual(['main', 'frozen', 'bakery', 'electronics', 'checkout']);
@@ -928,6 +923,10 @@ describe('shifts & overtime', () => {
     for (const id of ELITE_EXCLUDED) for (const w of [3, 6, BOSS_WAVE, BOSS_WAVE + 2]) expect(eliteChance(id, waveDef(w), 3)).toBe(0);
     expect(eliteChance('turkey', waveDef(BOSS_WAVE), 0)).toBe(0);
   });
+  it('aisle 4 brings no new grocery type: the mini-boss is its new thing', () => {
+    expect(MINI_BOSS.aisle).toBe(4);
+    for (const id of Object.keys(WAVES[3].mix) as (keyof typeof WAVES[3]['mix'])[]) expect(WAVES[2].mix[id] ?? 0, id).toBeGreaterThan(0);
+  });
   it('frozen turkey: tank in the later mixes only, frozen dept may boost it', () => {
     expect(ENEMIES.turkey.behavior).toBe('tank');
     expect(ENEMIES.turkey.hp).toBeGreaterThan(ENEMIES.soda.hp);
@@ -951,8 +950,9 @@ describe('shifts & overtime', () => {
   it('shift coin multiplier scales the wave clear bonus', () => {
     const a = createRun(1), b = createRun(1, 'toaster', SHIFTS.length - 1);
     finishWave(a); finishWave(b);
-    expect(b.money - PLAYER.startMoney).toBe(Math.round(ECONOMY.waveClearBonus * SHIFTS[SHIFTS.length - 1].coinMult));
-    expect(a.money - PLAYER.startMoney).toBe(ECONOMY.waveClearBonus);
+    const clear = (s: RunState): number | undefined => s.coinLog.find((c) => c.label === 'Wave clear bonus')?.amount;
+    expect(clear(b)).toBe(Math.round(ECONOMY.waveClearBonus * SHIFTS[SHIFTS.length - 1].coinMult));
+    expect(clear(a)).toBe(ECONOMY.waveClearBonus);
   });
   it('overtime doors are never the boss; normal runs still get the boss door', () => {
     const s = createRun(1);
@@ -977,7 +977,8 @@ describe('shifts & overtime', () => {
     expect(shiftUnlocked('toaster', 2)).toBe(false);
     recordRun(createRun(1, 'pan', 0), true);
     expect(profile.stats.bestShift.pan).toBe(1);
-    recordOvertime(3); recordOvertime(1);
+    const ot = (wave: number) => Object.assign(createRun(1), { overtime: true, counted: { kills: 0, coins: 0 }, wave, route: Array(wave).fill('main'), mods: Array(wave).fill('none') });
+    recordOvertime(ot(BOSS_WAVE + 4)); recordOvertime(ot(BOSS_WAVE + 2));
     expect(profile.stats.bestOvertime).toBe(3);
   });
 });
@@ -1087,7 +1088,7 @@ describe('meta-progression gating', () => {
     const allowed = ['toaster', 'pan', 'fan', 'fuel', 'battery', 'bell', 'hotsauce', 'magnet'] as ItemTypeId[];
     for (let seed = 1; seed <= 200; seed++) {
       const s = createRun(seed);
-      s.unlocked = allowed;
+      s.pool = allowed;
       s.shopLevel = 4;
       for (const idx of [1, 3, 6]) for (const o of rollOffers(s, mulberry32(seed * 7 + idx), idx)) expect(allowed).toContain(o.type);
     }
@@ -1167,7 +1168,7 @@ describe('Test Lab', () => {
     expect(s.inventory.shelf).toHaveLength(opts.shelf);
     expect(s.inventory.placed).toEqual([]);
     expect([s.money, s.shift, s.shopLevel, s.lab, s.labGod]).toEqual([opts.money, opts.shift, opts.shopLevel, true, true]);
-    expect(s.unlocked).toHaveLength(Object.keys(ITEMS).length);
+    expect(s.pool).toHaveLength(Object.keys(ITEMS).length);
     expect(s.overtime).toBeFalsy();
     expect(labDoor(s)).toBe('rush');
     expect([s.theme, s.department]).toEqual(['frozen', 'frozen']);
@@ -1203,7 +1204,7 @@ describe('Test Lab', () => {
 describe('enemy codex', () => {
   it('enemyAppears gives the first aisle', () => {
     expect(enemyAppears('milk').first).toBe(1);
-    expect(enemyAppears('turkey').first).toBe(4);
+    expect(enemyAppears('turkey').first).toBe(5);
     expect(enemyAppears('slice').first).toBe(enemyAppears('melon').first);
     expect(enemyAppears('boss').first).toBe(BOSS_WAVE);
     expect(enemyAppears('milk').depts).toContain('frozen');
@@ -1339,6 +1340,15 @@ describe('aisle events', () => {
       expect(rollEvent(d, 5, 0, just(0.999), false)).toBeNull();
     }
   });
+  it('starts at least EVENT_LEAD s before a short aisle ends, from the same two draws; a 60 s aisle keeps the whole window', () => {
+    const seq = (...v: number[]) => { let i = 0; return () => v[i++]; };
+    const [a, b] = EVENTS.wetFloor.startAt;
+    const short = rollEvent('main', 2, 0, seq(0, 0.999), false)!;
+    expect(short.kind).toBe('wetFloor');
+    expect(waveDef(2).duration).toBeLessThan(b + EVENT_LEAD);
+    expect(short.startAt).toBeCloseTo(a + 0.999 * (waveDef(2).duration - EVENT_LEAD - a), 9);
+    expect(rollEvent('main', 5, 0, seq(0, 0.999), false)!.startAt).toBeCloseTo(a + 0.999 * (b - a), 9);
+  });
   it('outage lasts longer on later shifts and starts inside the window', () => {
     expect(outageDuration(2)).toBe(EVENTS.outage.duration + 2 * EVENTS.outage.durationPerShift);
     const r = rollEvent('electronics', 5, 2, always, false)!;
@@ -1416,12 +1426,12 @@ describe('armored / shield / healer / thief enemies', () => {
 describe('set bonuses', () => {
   const b = (...types: ItemTypeId[]) => computeBuild(inv(...types.map((t, i) => it_(t, i % 5, Math.floor(i / 5) * 2))));
   const bw = (...types: ItemTypeId[]) => b(...types).weapons.find((w) => w.type === types[0])!;
-  it('setLevels counts distinct types, ignores duplicates and the shelf', () => {
+  it('setLevels counts each type once (its best copy) and ignores the shelf', () => {
     const sh = inv(it_('toaster', 0, 0), it_('toaster', 2, 0), it_('pan', 0, 1));
     expect(setLevels(sh.placed).kitchen).toBe(1);
     sh.shelf[0] = it_('microwave', 0, 0);
     expect(setLevels(sh.placed).kitchen).toBe(1);
-    sh.placed.push(it_('hotsauce', 4, 0));
+    sh.placed.push(mk('hotsauce', 4, 0, 2));
     expect(setLevels(sh.placed)).toMatchObject({ kitchen: 2, heat: 2, electric: 0, tools: 0 });
     expect(setLevels([]).kitchen).toBe(0);
   });
@@ -1439,27 +1449,27 @@ describe('set bonuses', () => {
     expect(computeBuild(inv(it_('toaster', 0, 0), it_('popper', 2, 0), it_('multipack', 3, 0))).weapons[0].popper!.radius).toBeCloseTo(70 * 1.15);
   });
   it('tools L2 doubles dash damage; snacks L2 regen stacks with snack bag', () => {
-    const t3 = b('nailgun', 'tape', 'boot');
+    const t3 = b('nailgun', 'tape', 'boot', 'magnet');
     expect(t3.shoveDamage).toBe((PLAYER.shove.damage + contentTune('boot', 1).damage) * 2);
-    expect(b('lunchbox', 'energy', 'fizz').regen).toBeCloseTo(0.3);
-    expect(b('lunchbox', 'energy', 'snackbag').regen).toBeCloseTo(contentTune('snackbag', 1).regenHp / contentTune('snackbag', 1).interval + 0.3);
+    expect(b('lunchbox', 'energy', 'fizz', 'fortune').regen).toBeCloseTo(0.3);
+    expect(b('lunchbox', 'energy', 'snackbag', 'fortune').regen).toBeCloseTo(contentTune('snackbag', 1).regenHp / contentTune('snackbag', 1).interval + 0.3);
   });
   it('heat L2: burn dps x1.4 and heat weapons without fuel ignite', () => {
-    const w = bw('toaster', 'pan', 'microwave');
+    const w = bw('toaster', 'pan', 'microwave', 'cooker');
     expect(w.burn).toBeNull();
     expect(w.ignite).toEqual({ chance: 0.15, burn: { dps: 2.5 * 1.4, duration: 3, tick: 0.5 } });
     expect(bw('toaster', 'pan').ignite).toBeNull();
-    const f = w0(inv(it_('pan', 0, 0), it_('fuel', 1, 0), it_('toaster', 0, 3)));
+    const f = w0(inv(it_('pan', 0, 0), it_('fuel', 1, 0), it_('toaster', 0, 3), it_('cooker', 3, 3)));
     expect(f.burn).toEqual({ dps: 2.5 * 1.4, duration: 3, tick: 0.5 });
     expect(f.ignite).toBeNull();
   });
   it('electric: non-zap electrical weapons chain, microwave does not', () => {
     expect(bw('toaster', 'nailgun').chainChance).toBe(0.1);
-    expect(bw('toaster', 'nailgun', 'battery').chainJumps).toBe(2);
+    expect(bw('toaster', 'nailgun', 'battery', 'microwave').chainJumps).toBe(2);
     expect(bw('microwave', 'toaster').chainChance).toBe(0);
     expect(bw('pan', 'toaster').chainChance).toBe(0);
   });
-  it('checkout L1 discounts rolled offers; L2 pays capped interest after the clear bonus', () => {
+  it('checkout L1 discounts rolled offers but keeps the base interest cap; L2 raises the cap', () => {
     const s = shopRun();
     s.inventory.placed.push(it_('bell', 0, 3), it_('coupon', 1, 3));
     s.build = computeBuild(s.inventory);
@@ -1467,12 +1477,12 @@ describe('set bonuses', () => {
     const cheap = rollOffers(s, mulberry32(5), 1, false), full = rollOffers({ ...s, build: { ...s.build, priceMult: 1 } }, mulberry32(5), 1, false);
     expect(cheap.every((o, i) => o.price <= full[i].price)).toBe(true);
     expect(cheap.some((o, i) => o.price < full[i].price)).toBe(true);
-    s.money = 0; finishWave(s);
-    expect(s.coinLog.some((c) => c.label === 'Interest')).toBe(false);
-    s.inventory.placed.push(it_('pricegun', 2, 3));
+    const s1 = { ...s, coinLog: [], money: 100 } as RunState; finishWave(s1);
+    expect(s1.coinLog.find((c) => c.label === 'Interest')!.amount).toBe(3);
+    s.inventory.placed.push(mk('pricegun', 2, 3, 2));
     s.build = computeBuild(s.inventory);
     const s2 = { ...s, coinLog: [], money: 100 } as RunState; finishWave(s2);
-    expect(s2.coinLog.find((c) => c.label === 'Interest')!.amount).toBe(5);
+    expect(s2.coinLog.find((c) => c.label === 'Interest')!.amount).toBe(6);
     const s3 = { ...s, coinLog: [], money: 0 } as RunState; finishWave(s3);
     const clear = s3.coinLog.find((c) => c.label === 'Wave clear bonus')!.amount;
     expect(s3.coinLog.find((c) => c.label === 'Interest')?.amount ?? 0).toBe(Math.floor(clear / 10));

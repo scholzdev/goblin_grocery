@@ -6,7 +6,7 @@ import { contentItem } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { tierScaling } from '../../../src/systems/synergies';
-import { around, arsenal, at, stats } from '../helpers';
+import { around, arsenal, at, setTuneAt, stats } from '../helpers';
 
 afterEach(() => setLang('en'));
 
@@ -33,11 +33,11 @@ describe('Frying Pan: content', () => {
     expect([1, 2, 3].map((t) => itemRules('pan', t))).toEqual([
       'Sweeps toward nearby enemies for 9 damage every 1.15 s. 150 reach. Hits each enemy once per swing.',
       'Sweeps toward nearby enemies for 13.5 damage every 1.03 s. 150 reach. Hits each enemy once per swing.',
-      'Sweeps toward nearby enemies for 18 damage every 0.92 s. 150 reach. Hits each enemy once per swing.',
+      'Sweeps toward nearby enemies for 18 damage every 0.92 s. 150 reach. Hits each enemy once per swing. ★3: Sweeps the full 360° around the cart.',
     ]);
     expect(itemT('pan')).toMatchObject({ name: 'Frying Pan', blurb: 'Big clangy sweep around the cart.' });
     setLang('de');
-    expect([1, 3].map((t) => itemRules('pan', t))).toEqual(['Schwingt alle 1,15 s auf Gegner in der Nähe für 9 Schaden. 150 Reichweite. Trifft jeden Gegner einmal pro Schwung.', 'Schwingt alle 0,92 s auf Gegner in der Nähe für 18 Schaden. 150 Reichweite. Trifft jeden Gegner einmal pro Schwung.']);
+    expect([1, 3].map((t) => itemRules('pan', t))).toEqual(['Schwingt alle 1,15 s auf Gegner in der Nähe für 9 Schaden. 150 Reichweite. Trifft jeden Gegner einmal pro Schwung.', 'Schwingt alle 0,92 s auf Gegner in der Nähe für 18 Schaden. 150 Reichweite. Trifft jeden Gegner einmal pro Schwung. ★3: Schwingt die vollen 360° rund um den Wagen.']);
     expect(itemT('pan')).toMatchObject({ name: 'Bratpfanne', blurb: 'Großer, scheppernder Schwung um den Wagen.' });
   });
 
@@ -55,18 +55,19 @@ describe('Frying Pan: content', () => {
 });
 
 describe('Frying Pan: build', () => {
-  it('damage grows +50% and the interval shrinks -10% per ★ (to the bit), as the content tune says', () => {
+  it('damage grows +50% and the interval shrinks -10% per ★ (to the bit), as the content tune says, times the Kitchen bonus its own set points reach', () => {
     const base = ITEMS.pan.weapon!;
     const tune = contentItem('pan')!.tune as unknown as Record<string, readonly number[]>;
+    const kitchen = (t: number) => setTuneAt('kitchen', t)?.damageMult ?? 1;
     for (const t of [1, 2, 3]) {
       const w = stats([at('pan', t)]);
       expect(w.tier).toBe(t);
-      expect(w.damage).toBe(base.damage * weaponDamageMult(t));
+      expect(w.damage).toBe(base.damage * weaponDamageMult(t) * kitchen(t));
       expect(w.cooldown).toBe(base.cooldown * weaponCooldownMult(t));
-      expect(w.damage).toBe(tune.damage[t - 1]);
+      expect(w.damage).toBe(tune.damage[t - 1] * kitchen(t));
       expect(w.cooldown).toBe(tune.cooldown[t - 1]);
     }
-    expect([1, 2, 3].map((t) => stats([at('pan', t)]).damage)).toEqual([9.0, 13.5, 18.0]);
+    expect([1, 2, 3].map((t) => stats([at('pan', t)]).damage)).toEqual([9.0, 13.5, 18.0].map((d, i) => d * kitchen(i + 1)));
   });
 
   it('carries the base shape of the pattern into the build', () => {
@@ -76,21 +77,21 @@ describe('Frying Pan: build', () => {
 
 describe('Frying Pan: pattern sweep', () => {
   it('swings at the nearest enemy: hits what is in the 150° arc and the reach, once, with a push of 150', () => {
-    const { a, fake } = arsenal([at('pan', 3)]);
+    const { a, fake } = arsenal([at('pan', 2)]);
     const near = fake.spawnEnemy({ x: 100, hp: 1000 });
     const behind = fake.spawnEnemy({ x: -100, hp: 1000 });
     const far = fake.spawnEnemy({ x: 200, y: 20, hp: 1000 });
     a.step(0.5);
     const hits = fake.callsOf('damage');
     expect(hits).toHaveLength(1);
-    expect(hits[0]).toMatchObject({ enemy: near.id, dmg: 18, source: 'u0', opts: { kb: 150, kbX: 1, kbY: 0 } });
+    expect(hits[0]).toMatchObject({ enemy: near.id, dmg: 13.5 * setTuneAt('kitchen', 2)!.damageMult, source: 'u0', opts: { kb: 150, kbX: 1, kbY: 0 } }); // its 2 set points: Kitchen L1
     expect([behind, far].every((e) => !hits.some((h) => h.enemy === e.id))).toBe(true);
     expect(a.sounds).toEqual(['pan_clang@1']);
     expect(a.sprites.map((s) => s.key)).toEqual(['fx_sweep']);
   });
 
-  it('the arc is 150° (±75° around the aim); an enemy beyond reach (150 + its radius) is safe', () => {
-    const { a, fake } = arsenal([at('pan', 3)]);
+  it('below ★3 the arc is 150° (±75° around the aim); an enemy beyond reach (150 + its radius) is safe', () => {
+    const { a, fake } = arsenal([at('pan', 2)]);
     const aimed = fake.spawnEnemy({ x: 100, hp: 1000 });
     const inside = fake.spawnEnemy({ x: 120 * Math.cos(1.29), y: 120 * Math.sin(1.29), hp: 1000 }); // 73.9°
     const outside = fake.spawnEnemy({ x: 120 * Math.cos(1.33), y: 120 * Math.sin(1.33), hp: 1000 }); // 76.2°
@@ -104,16 +105,31 @@ describe('Frying Pan: pattern sweep', () => {
 
   it('Duct Tape widens the arc (+60° at ★3) so the same enemy at 100° is caught', () => {
     const at100 = { x: 120 * Math.cos(1.75), y: 120 * Math.sin(1.75), hp: 1000 };
-    const plain = arsenal([at('pan', 3)]);
+    const plain = arsenal([at('pan', 2)]);
     plain.fake.spawnEnemy({ x: 100, hp: 1000 });
     const p100 = plain.fake.spawnEnemy(at100);
     plain.a.step(0.5);
     expect(plain.fake.callsOf('damage').some((c) => c.enemy === p100.id)).toBe(false);
-    const taped = arsenal([at('pan', 3), at('tape', 3)]);
+    const taped = arsenal([at('pan', 2), at('tape', 3)]);
     taped.fake.spawnEnemy({ x: 100, hp: 1000 });
     const t100 = taped.fake.spawnEnemy(at100);
     taped.a.step(0.5);
     expect(taped.fake.callsOf('damage').some((c) => c.enemy === t100.id)).toBe(true);
+  });
+
+  it('from ★3 the sweep goes all the way around: the enemy behind the cart is hit too, still at ★4, and the swoosh spins a full turn', () => {
+    const swing = (tier: number) => {
+      const { a, fake } = arsenal([at('pan', tier)]);
+      fake.spawnEnemy({ x: 100, hp: 1000 });
+      const behind = fake.spawnEnemy({ x: -100, hp: 1000 });
+      const beside = fake.spawnEnemy({ x: 0, y: 120, hp: 1000 });
+      a.step(0.5);
+      const ids = fake.callsOf('damage').map((c) => c.enemy);
+      return { behind: ids.includes(behind.id), beside: ids.includes(beside.id), spin: Math.abs((a.tweens[0].rotation as number) - Math.PI) };
+    };
+    expect(swing(2)).toEqual({ behind: false, beside: false, spin: 0.5 });
+    expect(swing(3)).toEqual({ behind: true, beside: true, spin: 2 * Math.PI });
+    expect(swing(4)).toEqual({ behind: true, beside: true, spin: 2 * Math.PI });
   });
 
   it('Multipack swings once more, 0.18 s later, while the aisle is fought', () => {

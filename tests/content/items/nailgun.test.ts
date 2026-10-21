@@ -7,7 +7,7 @@ import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { tierScaling } from '../../../src/systems/synergies';
 import { combatRng } from '../../../src/systems/rng';
-import { around, arsenal, at, stats } from '../helpers';
+import { around, arsenal, at, setTuneAt, stats } from '../helpers';
 
 afterEach(() => setLang('en'));
 
@@ -34,11 +34,11 @@ describe('Nail Gun: content', () => {
     expect([1, 2, 3].map((t) => itemRules('nailgun', t))).toEqual([
       'Fires a three-nail burst every 1.1 s. 3 damage per nail. 480 range.',
       'Fires a three-nail burst every 0.99 s. 4.5 damage per nail. 480 range.',
-      'Fires a three-nail burst every 0.88 s. 6 damage per nail. 480 range.',
+      'Fires a three-nail burst every 0.88 s. 6 damage per nail. 480 range. ★3: The nails of a burst spread out over different enemies.',
     ]);
     expect(itemT('nailgun')).toMatchObject({ name: 'Nail Gun', blurb: 'Rat-a-tat three-nail bursts.' });
     setLang('de');
-    expect([1, 3].map((t) => itemRules('nailgun', t))).toEqual(['Feuert alle 1,1 s eine Dreier-Nagelsalve. 3 Schaden pro Nagel. 480 Reichweite.', 'Feuert alle 0,88 s eine Dreier-Nagelsalve. 6 Schaden pro Nagel. 480 Reichweite.']);
+    expect([1, 3].map((t) => itemRules('nailgun', t))).toEqual(['Feuert alle 1,1 s eine Dreier-Nagelsalve. 3 Schaden pro Nagel. 480 Reichweite.', 'Feuert alle 0,88 s eine Dreier-Nagelsalve. 6 Schaden pro Nagel. 480 Reichweite. ★3: Die Nägel einer Salve verteilen sich auf verschiedene Gegner.']);
     expect(itemT('nailgun')).toMatchObject({ name: 'Nagelpistole', blurb: 'Ratatatat, Dreier-Nagelsalven.' });
   });
 
@@ -56,16 +56,17 @@ describe('Nail Gun: content', () => {
 });
 
 describe('Nail Gun: build', () => {
-  it('damage grows +50% and the interval shrinks -10% per ★ (to the bit), as the content tune says', () => {
+  it('damage grows +50% and the interval shrinks -10% per ★ (to the bit), as the content tune says, the interval also by the Tools bonus its own set points reach', () => {
     const base = ITEMS.nailgun.weapon!;
     const tune = contentItem('nailgun')!.tune as unknown as Record<string, readonly number[]>;
+    const tools = (t: number) => setTuneAt('tools', t)?.cooldownDiv ?? 1;
     for (const t of [1, 2, 3]) {
       const w = stats([at('nailgun', t)]);
       expect(w.tier).toBe(t);
       expect(w.damage).toBe(base.damage * weaponDamageMult(t));
-      expect(w.cooldown).toBe(base.cooldown * weaponCooldownMult(t));
+      expect(w.cooldown).toBe(base.cooldown * weaponCooldownMult(t) / tools(t));
       expect(w.damage).toBe(tune.damage[t - 1]);
-      expect(w.cooldown).toBe(tune.cooldown[t - 1]);
+      expect(w.cooldown).toBe(tune.cooldown[t - 1] / tools(t));
     }
     expect([1, 2, 3].map((t) => stats([at('nailgun', t)]).damage)).toEqual([3.0, 4.5, 6.0]);
   });
@@ -91,9 +92,9 @@ describe('Nail Gun: pattern burst', () => {
     expect(first[0].life).toBe(480 / 760);
     expect(Math.abs(first[1].at - first[0].at - 0.08)).toBeLessThan(0.02);
     expect(Math.abs(first[2].at - first[1].at - 0.08)).toBeLessThan(0.02);
-    // the next burst starts one ★3 interval (0.88 s) after the first
+    // the next burst starts one ★3 interval (0.88 s, faster by its own Tools L2) after the first
     const second = nails(a)[3];
-    expect(Math.abs(second.at - first[0].at - 0.88 - 0.01)).toBeLessThan(0.03);
+    expect(Math.abs(second.at - first[0].at - 0.88 / setTuneAt('tools', 3)!.cooldownDiv - 0.01)).toBeLessThan(0.03);
   });
 
   it('draws exactly one number per nail from the combat rng, in order, and the "nail_burst" sound plays on the first nail only', () => {
@@ -121,6 +122,23 @@ describe('Nail Gun: pattern burst', () => {
     expect(n1.angle).toBe(Math.atan2(0, 300 - 18) + (ref() - 0.5) * 0.08);
     expect(n2.angle).toBe(Math.atan2(100, 200 - 18) + (ref() - 0.5) * 0.08);
     expect(n3.angle).toBe(Math.atan2(100, 200 - 18) + (ref() - 0.5) * 0.08);
+  });
+
+  it('from ★3 the nails of a burst go to different enemies, nearest first; ★2 puts all three on the nearest', () => {
+    const burstAt = (tier: number, enemies: { x: number; y: number }[]) => {
+      const { a, fake } = arsenal([at('nailgun', tier)], { seed: 7, ...P });
+      for (const e of enemies) fake.spawnEnemy({ ...e, hp: 1000 });
+      a.run(60, 0.01);
+      const ref = combatRng(7, 0);
+      return nails(a).slice(0, 3).map((s) => s.angle - (ref() - 0.5) * 0.08);
+    };
+    const three = [{ x: 300, y: 400 }, { x: 300, y: 560 }, { x: 300, y: 230 }];
+    const near = 0, low = Math.atan2(160, 300 - 118), high = Math.atan2(-170, 300 - 118);
+    const close = (got: number[], want: number[]) => got.forEach((g, i) => expect(g, `nail ${i + 1}`).toBeCloseTo(want[i], 12));
+    close(burstAt(2, three), [near, near, near]);
+    close(burstAt(3, three), [near, low, high]);
+    close(burstAt(4, three), [near, low, high]);
+    close(burstAt(3, three.slice(0, 2)), [near, low, near]);
   });
 
   it('a burst that finds nobody for a nail still spends it (burstLeft counts down) and draws no number for it', () => {

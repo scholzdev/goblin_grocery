@@ -8,8 +8,10 @@ import { SIM_DEFAULTS, simDummies, type SimDef } from './sims/_sim';
 import { chooseDoor, createLabRun, labApply, createRun, finishWave, leaveShop, openShop, recomputeBuild, startNextWave } from './state/run';
 import type { DoorId } from './data/modifiers';
 import type { DepartmentId, LabOpts } from './types';
-import { COUPON_COINS, dailySeed, emptyFresh, freshSince, nearUnlocks, noteDailyStart, recordFinish, recordOvertime, recordRun, snapProfile, unlockedItems, useCoupon, type DailyResult, type Fresh, type Loyalty, type Near, type ProfileSnap } from './state/profile';
+import { COUPON_COINS, dailySeed, emptyFresh, freshSince, nearUnlocks, noteDailyStart, recordFinish, recordOvertime, recordRun, snapProfile, unlockedItems, unseenUnlocks, useCoupon, type DailyResult, type Fresh, type Loyalty, type Near, type ProfileSnap } from './state/profile';
 import { mulberry32, type Rng } from './systems/rng';
+import { applyStock } from './systems/stock';
+import { ITEM_IDS } from './data/items';
 import { submitRun } from './state/settings';
 import { BOSS_WAVE } from './data/waves';
 import { play, stopLoops } from './audio/sfx';
@@ -55,8 +57,9 @@ export const flow = {
     store.state = createRun(seed, starter, shift, weapon, theme);
     if (opts.daily) { store.state.daily = true; noteDailyStart(); }
     else if (!BOT && useCoupon()) { store.state.money += COUPON_COINS; store.state.voucher = true; }
-    if (BOT) store.state.bot = true;
-    store.state.unlocked = unlockedItems();
+    applyStock(store.state, opts.daily ? ITEM_IDS : unlockedItems(), opts.daily ? [] : unseenUnlocks());
+    // Bot runs offer every unlocked item; only shop 1's openers and the featured combos come from the stock.
+    if (BOT) { store.state.bot = true; store.state.pool = unlockedItems(); }
     runSnap = snapProfile();
     rng = mulberry32(seed);
     store.state.phase = 'combat';
@@ -235,18 +238,9 @@ export const flow = {
       store.emit('run-end');
       return;
     }
-    if (s.overtime) { // the run was already counted at victory
-      const past = Math.max(0, s.wave - BOSS_WAVE - 1);
-      recordOvertime(past);
-      const { daily } = recordFinish(s, won, score);
-      this.lastResult = { score, newBest: false, fresh: runSnap ? freshSince(runSnap) : emptyFresh(), near: nearUnlocks(), daily };
-      play('defeat');
-      store.changed();
-      store.emit('run-end');
-      return;
-    }
-    const newBest = submitRun({ score, wave: s.wave, won, date: new Date().toISOString().slice(0, 10) });
-    const got = recordRun(s, won).map((u) => u.id);
+    // An overtime run was submitted and recorded at victory, so only what came after it is added.
+    const newBest = !s.overtime && submitRun({ score, wave: s.wave, won, date: new Date().toISOString().slice(0, 10) });
+    const got = (s.overtime ? recordOvertime(s) : recordRun(s, won)).map((u) => u.id);
     const fresh = runSnap ? freshSince(runSnap) : emptyFresh();
     fresh.unlocks = [...new Set([...fresh.unlocks, ...got])];
     const { loyalty, daily } = recordFinish(s, won, score);

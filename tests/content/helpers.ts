@@ -1,9 +1,11 @@
 import { ITEMS } from '../../src/data/items';
+import { lvOf } from '../../src/data/sets';
 import { FakeCtx, type FakeOptions } from '../../src/engine/fakeCtx';
+import { contentSetTune } from '../../src/engine/registry';
 import { buildHooks } from '../../src/engine/hooks';
 import { FakeArsenal } from '../../src/engine/patterns/fakeHost';
 import { computeBuild } from '../../src/systems/synergies';
-import type { ItemTypeId, WeaponStats } from '../../src/types';
+import type { ItemTypeId, SetId, WeaponStats } from '../../src/types';
 import type { Perk } from '../../src/types';
 import { build, type Spec } from '../golden/carts';
 
@@ -15,6 +17,9 @@ export const sets = (specs: Spec[]) => computeBuild(build(specs)).sets;
 
 /** `{ type, tier }` shorthand. */
 export const at = (type: ItemTypeId, tier?: number, extra: Partial<Spec> = {}): Spec => ({ type, ...(tier ? { tier } : {}), ...extra });
+
+/** A set's tune at the level `points` set points reach, undefined below L1. A lone ★t item is t points in each of its sets. */
+export const setTuneAt = (id: SetId, points: number): Record<string, number> | undefined => (lvOf(points) ? contentSetTune(id, lvOf(points)) : undefined);
 
 /** A Gold Star touching the item at `index` but not the weapon: it lifts that module by one effective tier. */
 export const gilded = (index: number): Spec => ({ type: 'goldstar', near: [index], apart: [0] });

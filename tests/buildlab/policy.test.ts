@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { bestPlacement, createGreedyPolicy, mergePairs, scoreBuild } from '../../src/buildlab/policy';
-import { Item } from '../../src/engine/ids';
+import { Combo, Item } from '../../src/engine/ids';
 import { canPlace } from '../../src/systems/inventory';
 import { buyOffer, createRun, mergeItems, moveItem, newUid, openShop, recomputeBuild, repair, upgradeCart, upgradeShelf, upgradeShop } from '../../src/state/run';
 import { rollMiniCrates, rollStockroom } from '../../src/systems/shop';
@@ -31,7 +31,31 @@ describe('greedy policy', () => {
     s.inventory.shelf[0] = null;
     s.inventory.placed.push({ ...fan, ...t });
     recomputeBuild(s);
-    expect(scoreBuild(s.build)).toBe(p.score);
+    expect(scoreBuild(s.build, s.inventory.placed)).toBe(p.score);
+  });
+
+  it('places a passive combo part next to its weapon before the last part arrives: Nailstorm forms whichever part comes first', () => {
+    for (const order of [[Item.magnet, Item.battery], [Item.battery, Item.magnet]]) {
+      const s = stateWith([{ type: Item.nailgun, at: [5, 3] }], { cols: 7, rows: 5 }); // far from the first free cell
+      s.phase = 'shop';
+      const pol = createGreedyPolicy();
+      for (const type of order) {
+        const it = shelf(s, type);
+        const t = pol.placeItem(s, it, view())!;
+        expect(moveItem(s, it.uid, { where: 'grid', ...t }).ok, `${type} placed`).toBe(true);
+      }
+      expect(s.build.recipes.map((r) => r.id), `${order.join(' then ')}`).toContain(Combo.nailstorm);
+    }
+  });
+
+  it('takes the bigger combo the last part completes: a Tin Foil Hat turns Nailstorm into Ray Gun', () => {
+    const s = stateWith([{ type: Item.nailgun, at: [5, 3] }, { type: Item.magnet }, { type: Item.battery }], { cols: 7, rows: 5 });
+    expect(s.build.recipes.map((r) => r.id)).toContain(Combo.nailstorm);
+    s.phase = 'shop';
+    const hat = shelf(s, Item.tinfoilhat);
+    const t = createGreedyPolicy().placeItem(s, hat, view())!;
+    expect(moveItem(s, hat.uid, { where: 'grid', ...t }).ok).toBe(true);
+    expect(s.build.recipes.map((r) => r.id)).toContain(Combo.rayGun);
   });
 
   it('returns null when nothing fits', () => {
@@ -49,7 +73,7 @@ describe('greedy policy', () => {
 
   it('a shop visit: every move it asks for is valid, and it ends by leaving', () => {
     const s = createRun(7, 'toaster', 0, 'toaster', 'main');
-    s.unlocked = [...ITEM_IDS];
+    s.pool = [...ITEM_IDS];
     s.money = 80;
     const rng = mulberry32(7);
     s.wave = 2;
@@ -93,7 +117,7 @@ describe('greedy policy', () => {
 
   it('crate and stockroom picks resolve to a valid option, the one that builds the best cart', () => {
     const s = stateWith([{ type: Item.toaster }], { cols: 7, rows: 5 });
-    s.unlocked = [...ITEM_IDS];
+    s.pool = [...ITEM_IDS];
     const pol = createGreedyPolicy();
     const crates = rollMiniCrates(s, mulberry32(3));
     const ci = pol.pickCrate(crates, s, view());

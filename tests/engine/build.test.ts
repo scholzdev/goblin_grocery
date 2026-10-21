@@ -89,7 +89,7 @@ describe('computeBuild dispatch', () => {
   });
 
   it('runs a set hook when its level is above 0, with the level as tier', () => {
-    run('toaster', ['sample', 'ice']); // toaster (kitchen), sample (kitchen), ice (kitchen): Kitchen L2
+    run('toaster', ['sample', 'ice', 'basil']); // toaster, sample, ice, basil: 4 Kitchen points, Kitchen L2
     expect(calls.filter((c) => c.startsWith('set'))).toEqual(['set:2']);
   });
 
@@ -102,7 +102,7 @@ describe('computeBuild dispatch', () => {
     const inv = cart('toaster', ['jellybeans']); // cart() builds while placing
     tunes.length = 0;
     computeBuild(inv);
-    expect(tunes).toEqual(['3.75:5:3']); // Fuel Can dps [2.5, 3.75, 5] at ★2 and ★3; the Toaster's tune has damage, cooldown and range (every item is content now)
+    expect(tunes).toEqual(['3.75:5:4']); // Fuel Can dps [2.5, 3.75, 5] at ★2 and ★3; the Toaster's tune has damage, cooldown, range and secondToast (every item is content now)
   });
 
   it('runs player hooks after all weapons, by order, only for owned items', () => {

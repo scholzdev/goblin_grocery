@@ -22,16 +22,19 @@ import { initShop, shopKey, shopPad, gridHtml, combosHtml, starsHtml, rarityClas
 import { DEPARTMENTS, THEMES } from '../data/departments';
 import { MODIFIERS, type DoorId, type ModifierId } from '../data/modifiers';
 import { CART_SKINS, GOBLIN_SKINS, UNLOCKS, type CartSkin, type GoblinSkin } from '../data/unlocks';
-import { COUPON_COINS, STAMPS_PER_CARD, cartUnlocked, dailyBestToday, discoverRecipe, goblinUnlocked, isNew, markSeen, newCount, profile, saveProfile, shiftUnlocked, starterUnlocked, unlockedItems } from '../state/profile';
+import { COUPON_COINS, STAMPS_PER_CARD, cartUnlocked, dailyBestToday, discoverRecipe, goblinUnlocked, isNew, markSeen, newCount, profile, saveProfile, shiftUnlocked, starterUnlocked, unlockProgress, unlockedItems } from '../state/profile';
 import { ITEM_IDS } from '../data/items';
 import type { DepartmentId, EnemyId, ItemTypeId, LabOpts, Perk, RecipeId, SetId, StarterId, StarterWeapon } from '../types';
 import type { Fresh } from '../state/profile';
 import { modIcon, setIcon } from './icons';
 import { affinityRowsHtml } from './affinity';
-import { damageBreakdownHtml, sourceNames } from './damageBreakdown';
+import { damageBreakdownHtml, damageTakenHtml, sourceNames } from './damageBreakdown';
 import { t, fmtNum, lang, setLang, LANGS, type Lang, type UIKey } from '../i18n';
 import { newSetLevels } from '../data/sets';
+import { allSystemsShown, disclose, setsShown, showAllSystems } from '../state/disclosure';
+import { REACTION_TEXT } from '../engine/reactions';
 import { ZONES } from '../data/zones';
+import { previewAisle, type AislePreview } from '../systems/shop';
 import { cartSkinT, deptT, enemyT, goblinSkinT, itemT, recipeT, setBonusT, shiftT, starterT, tagT, unlockNeedT, zoneT } from '../i18n/data';
 
 // DOM controllers are created exactly once at boot and driven by store events,
@@ -128,10 +131,13 @@ export function initUi(_game: Phaser.Game): void {
     const now = snap();
     if (setBase) {
       const ups = newSetLevels(setBase, now);
-      if (ups.length) setBonusCard(ups);
+      if (ups.length && setsShown(st)) setBonusCard(ups);
     }
     setBase = now;
   });
+  setInterval(() => {
+    if (store.state) for (const id of disclose(store.state)) if (id !== 'sets') celebrate(t('newReaction'), t(REACTION_TEXT[id].name), null, t(REACTION_TEXT[id].desc));
+  }, 250);
   store.on('pause', render);
   store.on('run-end', render);
   store.on('run-start', () => hud.reset());
@@ -179,13 +185,14 @@ function closeSetCard(): void {
   clearTimeout(setCard.timer);
   setCard.el.remove();
   setCard = null;
+  ui.style.removeProperty('--setbonus-h');
 }
 
 function setBonusCard(ups: { id: SetId; lv: number }[]): void {
   if (document.querySelector('#labbench.in-shop:not(.hidden)')) { play('upgrade'); return; } // the lab bench lists the sets itself, and sits where this card would
   if (!setCard) {
     const el = document.createElement('div');
-    el.className = 'setcard';
+    el.className = 'setbonus';
     el.innerHTML = `<small>${t('setUp')}</small>`;
     ui.append(el);
     setCard = { el, timer: 0 };
@@ -200,11 +207,11 @@ function setBonusCard(ups: { id: SetId; lv: number }[]): void {
     card.el.append(row);
   }
   card.el.classList.remove('out');
-  // Sits under the receipt column, clear of the cart grid (the receipt grows with the ledger).
+  // Sits under the receipt column, clear of the cart grid; a long receipt shrinks to make room (its set coupons scroll).
+  ui.style.setProperty('--setbonus-h', `${card.el.offsetHeight + 12}px`);
   const rcpt = document.querySelector('#shop .col-left')?.getBoundingClientRect();
   const k = ui.getBoundingClientRect(), sc = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--s')) || 1;
-  const below = rcpt ? (rcpt.bottom - k.top) / sc + 12 : 520;
-  card.el.style.top = `${Math.min(below, ui.clientHeight - card.el.offsetHeight - 8)}px`;
+  card.el.style.top = `${rcpt ? (rcpt.bottom - k.top) / sc + 12 : 520}px`;
   play('upgrade');
   clearTimeout(card.timer);
   card.timer = window.setTimeout(() => {
@@ -213,12 +220,12 @@ function setBonusCard(ups: { id: SetId; lv: number }[]): void {
   }, SET_CARD_MS);
 }
 
-function celebrate(title: string, name: string, icon: string, line: string | null = t('addedCatalog')): void {
+function celebrate(title: string, name: string, icon: string | null, line: string | null = t('addedCatalog')): void {
   const el = document.createElement('div');
   el.className = 'celebrate';
   // Several discoveries at once stack downwards instead of overlapping.
   el.style.top = `${92 + ui.querySelectorAll('.celebrate').length * 104}px`;
-  el.innerHTML = `<img src="${svg(icon)}" alt=""><div><small>${title}</small><b>${name}</b>${line ? `<span>${line}</span>` : ''}</div>`;
+  el.innerHTML = `${icon ? `<img src="${svg(icon)}" alt="">` : ''}<div><small>${title}</small><b>${name}</b>${line ? `<span>${line}</span>` : ''}</div>`;
   ui.append(el);
   play('upgrade');
   setTimeout(() => el.remove(), 2800);
@@ -290,6 +297,7 @@ function settingsHtml(): string {
     <label class="check"><input type="checkbox" data-set="reducedMotion" ${settings.reducedMotion ? 'checked' : ''}>${t('reducedMotion')}</label>
     <label class="check"><input type="checkbox" data-set="shake" ${settings.shake ? 'checked' : ''}>${t('screenShake')}</label>
     <label class="check"><input type="checkbox" data-set="damageColors" ${settings.damageColors ? 'checked' : ''}>${t('damageColors')}</label>
+    <label class="check"><input type="checkbox" data-sys="all" ${allSystemsShown() ? 'checked disabled' : ''}>${t('showAllSystems')}</label>
     <button class="btn small" data-act="replay-tutorial">${t('tutReplay')}</button>
     ${controlsHtml()}
     ${desktop ? `<label class="check"><input type="checkbox" data-set="fullscreen" ${settings.fullscreen ? 'checked' : ''}>${t('fullscreen')}</label>` : ''}
@@ -430,7 +438,7 @@ function starterHtml(): string {
       <img src="${svg(d.theme.icon)}" alt=""><span class="wp-text"><span class="wp-head"><b>${dt.short}</b></span><span class="wp-stat">${dt.blurb}</span></span></button>`;
   };
   const detail = `<div class="detail"><span class="who">${portrait(id)}</span><div class="dtxt"><div class="dn display">${stT.name}</div><div class="blurb">${stT.blurb}</div><div class="sig"><b>${t('sigLabel')}</b> ${t(`sig_${id}` as UIKey)}</div>
-      ${away ? `<div class="need">🔒 ${gate ? `${unlockNeedT(gate.id)} (${gate.progress(profile.stats).join('/')})` : t('charLocked')}</div>`
+      ${away ? `<div class="need">🔒 ${gate ? `${unlockNeedT(gate.id)} (${unlockProgress(gate).join('/')})` : t('charLocked')}</div>`
         : st.perk ? `<ul>${perkLines(st.perk).map((l) => `<li>${l}</li>`).join('')}</ul>` : ''}</div></div>`;
   const reason = away ? t('charLocked') : shiftLock ? t('winShiftStarter', { n: pickedShift }) : '';
   return `<div class="route loadout-pick"><h2 class="display">${t('pickStarter')}</h2>
@@ -452,7 +460,12 @@ function starterHtml(): string {
       <button class="btn coral start" data-act="start-run" ${reason ? 'disabled' : ''}>${t('startRun')} <kbd>Enter</kbd></button></div></div>`;
 }
 
-function routeHtml(): string {
+/** '' for the Stockroom, which has no groceries. */
+const aislePreviewHtml = ({ top, elites, hazard }: AislePreview): string => !top.length ? '' : `<span class="foes">${top.map((e) => `<span class="foe"><img src="${svg(enemyFrame(e))}" alt="">${enemyT(e).name}</span>`).join('')}</span>
+      <span class="ln"><b>${t('elites')}</b> ${t(`elites_${elites}`)}</span>
+      <span class="ln"><b>${t('hazard')}</b> ${hazard.kind === 'none' ? t('hazardNone') : t('hazardSpots', { name: t(`hazard_${hazard.kind}`), n: hazard.spots })}</span>`;
+
+export function routeHtml(): string {
   const s = store.state;
   const doors = s.doors ?? [];
   const steps = Array.from({ length: BOSS_WAVE }, (_, i) => {
@@ -493,6 +506,7 @@ function routeHtml(): string {
       <span class="dn">${mt.name}</span>
       <span class="danger" title="${t('danger')}">${'★'.repeat(risk) + '☆'.repeat(3 - risk)}</span>
       <span class="ln"><b>${t('enemies')}</b> ${mt.fx}</span>
+      ${aislePreviewHtml(previewAisle(s, id))}
       <span class="ln reward"><b>${t('reward')}</b> ${mt.rw}</span>
     </button>`;
   }).join('');
@@ -538,15 +552,21 @@ function freshHtml(res: NonNullable<typeof flow.lastResult>): string {
 }
 
 
-function endHtml(): string {
+export function endHtml(): string {
   const s = store.state;
   const won = s.phase === 'victory';
   const res = flow.lastResult;
   const icons = [...s.inventory.placed].map((i) => `<span class="endicon ${rarityClass(i.type, i.tier)}" title="${itemT(i.type).name}"><img src="${svg(`icon_${i.type}`)}" alt="${itemT(i.type).name}">${starsHtml(i.tier)}</span>`).join('');
-  const dmg = damageBreakdownHtml(s.stats, sourceNames(s.inventory), settings.damageColors);
+  const dmg = damageBreakdownHtml(s.stats, sourceNames(s.inventory), settings.damageColors), taken = damageTakenHtml(s.stats, won);
   const mins = Math.floor(s.stats.timeSeconds / 60), secs = Math.floor(s.stats.timeSeconds % 60);
   const fresh = res ? freshHtml(res) : '';
-  return `<div class="endcard receipt ${fresh ? 'cols' : ''}">
+  // The side column leads with the outcome (unlocks on a win, the hits that ended the run on a defeat) and takes the damage breakdown when no unlocks fill it.
+  const side = (won ? fresh + taken : taken + fresh) + (fresh ? '' : dmg);
+  const buttons = s.lab
+    ? `<button class="btn coral" data-act="lab-back" data-focus>${t('backToLab')}</button><button class="btn" data-act="quit">${t('titleBtn')}</button>`
+    : `${won ? `<button class="btn coral overtime" data-act="overtime" data-focus>${t('keepGoing')}</button>` : ''}<button class="btn ${won ? '' : 'coral'}" data-act="again" ${won ? '' : 'data-focus'}>${t('shopAgain')}</button><button class="btn" data-act="end-catalog">${t('catalog')}</button><button class="btn" data-act="quit">${t('titleBtn')}</button>`;
+  // The body scrolls when a long run outgrows the screen; the score and the buttons stay in the foot.
+  return `<div class="endcard receipt ${side ? 'cols' : ''}">
     <h2 class="display" style="font-size:46px;margin:0;color:${won ? 'var(--green-deep)' : 'var(--coral)'}">${won ? t('paidInFull') : s.overtime ? t('overtimeOver') : t('wipedOut')}</h2>
     <div style="text-align:center;font-weight:800">${won ? t('managerReturned') : t('cartStopped', { where: s.wave === BOSS_WAVE ? t('theFinalAisle') : t('aisleLc', { n: s.wave }) })}</div>
     <div style="text-align:center;font-weight:800">${t('shiftN', { n: s.shift + 1, name: shiftT(s.shift).name })}</div>
@@ -561,15 +581,16 @@ function endHtml(): string {
     <div style="font-weight:800;text-align:center">${t('finalCart')}</div>
     <div class="icons">${icons || '—'}</div>
     ${s.build.recipes.length ? `<div style="text-align:center">${s.build.recipes.map((r) => `<span class="badge">${recipeT(r.id).name}</span>`).join(' ')}</div>` : ''}
-    ${dmg}
+    ${fresh ? dmg : ''}
+    </div>${side ? `<div class="endr">${side}</div>` : ''}</div>
+    <div class="endfoot">
     <hr class="dash">
-    <div class="score">${t('pts', { n: res?.score ?? 0 })}</div>
-    ${res?.newBest ? `<span class="newbest sticker">${t('newBest')}</span>` : ''}
+    <div class="endscore"><div class="score">${t('pts', { n: res?.score ?? 0 })}</div>${res?.newBest ? `<span class="newbest sticker">${t('newBest')}</span>` : ''}</div>
     ${res?.daily ? `<div style="text-align:center;font-weight:800">${res.daily.newBest ? t('dailyNewBest') + ' · ' : ''}${t('dailyEndBest', { n: res.daily.best })}</div>` : ''}
-    </div>${fresh ? `<div class="endr">${fresh}</div>` : ''}</div>
     ${res ? stampsHtml(res) : ''}
-    ${s.lab ? `<div class="row"><button class="btn coral" data-act="lab-back" data-focus>${t('backToLab')}</button><button class="btn" data-act="quit">${t('titleBtn')}</button></div>` : `${won ? `<div class="row"><button class="btn coral overtime" data-act="overtime" data-focus>${t('keepGoing')}</button></div>` : ''}<div class="row"><button class="btn ${won ? '' : 'coral'}" data-act="again" ${won ? '' : 'data-focus'}>${t('shopAgain')}</button><button class="btn" data-act="end-catalog">${t('catalog')}</button><button class="btn" data-act="quit">${t('titleBtn')}</button></div>`}
+    <div class="row">${buttons}</div>
     <div style="display:flex;justify-content:center;margin-top:12px"><div class="barcode" style="width:180px"></div></div>
+    </div>
   </div>`;
 }
 
@@ -659,7 +680,7 @@ function historyHtml(): string {
   const rows = profile.history.map((h) => `<div class="hcard">
       <div class="htop"><span class="hstamp ${h.win ? 'win' : ''}">${h.win ? t('stampWin') : t('stampLoss')}</span><b>${fmt.format(h.t)}</b>${h.daily ? `<span class="badge">${t('histDaily')}</span>` : ''}<span class="hscore display">${t('pts', { n: h.score })}</span></div>
       <div class="hmeta">${t('histAisle', { n: h.aisle })} · ${t('shiftN', { n: h.shift + 1, name: shiftT(h.shift).name })} · ${starterT(h.starter).name}</div>
-      <div class="hicons">${h.items.map((i) => `<img src="${svg(`icon_${i}`)}" title="${itemT(i).name}" alt="${itemT(i).name}">`).join('')}${h.sets.map((x) => `<span class="hset" title="${x.id} ${x.lv}">${setIcon(x.id, 14)}<small>${x.lv}</small></span>`).join('')}</div>
+      <div class="hicons">${h.items.map((i) => `<img src="${svg(`icon_${i}`)}" title="${itemT(i).name}" alt="${itemT(i).name}">`).join('')}${!setsShown() ? '' : h.sets.map((x) => `<span class="hset" title="${x.id} ${x.lv}">${setIcon(x.id, 14)}<small>${x.lv}</small></span>`).join('')}</div>
     </div>`).join('');
   return `<h2>${t('historyTitle')}</h2><div class="hlist">${rows || `<div class="hempty">${t('historyEmpty')}</div>`}</div>`;
 }
@@ -729,7 +750,7 @@ function codexTab(tab: 'combos' | 'items' | 'enemies'): string {
   const tiles = ITEM_IDS.map((ty) => {
     if (unlocked.has(ty)) return `<div class="codex-item ${ITEMS[ty].legendary ? 'legendary' : ''}" data-card="${ty}">${newTag(`item:${ty}`)}<img src="${svg(`icon_${ty}`)}" alt=""><span>${itemT(ty).name}</span></div>`;
     const u = UNLOCKS.find((x) => x.kind === 'item' && x.item === ty)!;
-    return `<div class="codex-item locked" data-card="${ty}"><img src="${svg(`icon_${ty}`)}" alt=""><span>${unlockNeedT(u.id)}</span>${bar(u.progress(profile.stats))}</div>`;
+    return `<div class="codex-item locked" data-card="${ty}"><img src="${svg(`icon_${ty}`)}" alt=""><span>${unlockNeedT(u.id)}</span>${bar(unlockProgress(u))}</div>`;
   }).join('');
   return `<h2>${t('catalog')}</h2>${tabs}<div class="codex-items">${tiles}</div>`;
 }
@@ -739,13 +760,13 @@ function wardrobeHtml(): string {
     const ok = goblinUnlocked(k), u = UNLOCKS.find((x) => x.kind === 'goblin' && x.skin === k);
     const key = k === 'classic' ? 'goblin_head' : `goblin_head__${k}`;
     return `<button class="skin ${profile.goblin === k ? 'on' : ''} ${ok ? '' : 'locked'}" data-act="skin" data-skin="goblin:${k}" ${ok ? '' : 'disabled'}>
-      <img src="${svg(key)}" alt=""><b>${goblinSkinT(k).name}</b><small>${ok ? (profile.goblin === k ? t('equipped') : goblinSkinT(k).blurb) : unlockNeedT(u!.id)}</small>${ok ? '' : bar(u!.progress(profile.stats))}</button>`;
+      <img src="${svg(key)}" alt=""><b>${goblinSkinT(k).name}</b><small>${ok ? (profile.goblin === k ? t('equipped') : goblinSkinT(k).blurb) : unlockNeedT(u!.id)}</small>${ok ? '' : bar(unlockProgress(u!))}</button>`;
   }).join('');
   const carts = (Object.keys(CART_SKINS) as CartSkin[]).map((k) => {
     const ok = cartUnlocked(k), u = UNLOCKS.find((x) => x.kind === 'cart' && x.skin === k);
     const key = k === 'chrome' ? 'cart_back' : `cart_back__${k}`;
     return `<button class="skin ${profile.cart === k ? 'on' : ''} ${ok ? '' : 'locked'}" data-act="skin" data-skin="cart:${k}" ${ok ? '' : 'disabled'}>
-      <img src="${svg(key)}" alt=""><b>${cartSkinT(k).name}</b><small>${ok ? (profile.cart === k ? t('equipped') : cartSkinT(k).blurb) : unlockNeedT(u!.id)}</small>${ok ? '' : bar(u!.progress(profile.stats))}</button>`;
+      <img src="${svg(key)}" alt=""><b>${cartSkinT(k).name}</b><small>${ok ? (profile.cart === k ? t('equipped') : cartSkinT(k).blurb) : unlockNeedT(u!.id)}</small>${ok ? '' : bar(unlockProgress(u!))}</button>`;
   }).join('');
   return `<h2>${t('wardrobe')}</h2><h5 class="sec">${t('goblin')}</h5><div class="skins">${goblins}</div><h5 class="sec">${t('cart')}</h5><div class="skins">${carts}</div>`;
 }
@@ -796,6 +817,7 @@ const applyMotion = (): void => { document.documentElement.classList.toggle('red
 
 function onInput(e: Event): void {
   const el = e.target as HTMLInputElement;
+  if (el.dataset.sys) { showAllSystems(); el.disabled = true; store.changed(); return; } // met systems stay met: no way back
   const k = el.dataset.set as keyof typeof settings | undefined;
   if (!k) return;
   if (k === 'language') { changeLanguage(el.value as Lang); return; }

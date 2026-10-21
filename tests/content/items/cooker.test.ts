@@ -8,7 +8,7 @@ import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { tierScaling } from '../../../src/systems/synergies';
 import { explodeAt } from '../../../src/engine/patterns';
-import { around, arsenal, at, stats } from '../helpers';
+import { around, arsenal, at, setTuneAt, stats } from '../helpers';
 
 afterEach(() => setLang('en'));
 
@@ -35,11 +35,11 @@ describe('Pressure Cooker: content', () => {
     expect([1, 2, 3].map((t) => itemRules('cooker', t))).toEqual([
       'Every 2.6 s lobs a pot at the densest group within 420. It explodes for 16 damage to everything within 90, with knockback.',
       'Every 2.34 s lobs a pot at the densest group within 420. It explodes for 24 damage to everything within 90, with knockback.',
-      'Every 2.08 s lobs a pot at the densest group within 420. It explodes for 32 damage to everything within 90, with knockback.',
+      'Every 2.08 s lobs a pot at the densest group within 420. It explodes for 32 damage to everything within 90, with knockback. ★3: Also lobs a smaller pot (50% damage and radius) at the densest group outside that blast.',
     ]);
     expect(itemT('cooker')).toMatchObject({ name: 'Pressure Cooker', blurb: 'Lobs a whistling pot. KABOOM.' });
     setLang('de');
-    expect([1, 3].map((t) => itemRules('cooker', t))).toEqual(['Schleudert alle 2,6 s einen Topf auf die dichteste Gruppe im Umkreis von 420. Er explodiert und macht 16 Schaden an allem im Umkreis von 90, mit Rückstoß.', 'Schleudert alle 2,08 s einen Topf auf die dichteste Gruppe im Umkreis von 420. Er explodiert und macht 32 Schaden an allem im Umkreis von 90, mit Rückstoß.']);
+    expect([1, 3].map((t) => itemRules('cooker', t))).toEqual(['Schleudert alle 2,6 s einen Topf auf die dichteste Gruppe im Umkreis von 420. Er explodiert und macht 16 Schaden an allem im Umkreis von 90, mit Rückstoß.', 'Schleudert alle 2,08 s einen Topf auf die dichteste Gruppe im Umkreis von 420. Er explodiert und macht 32 Schaden an allem im Umkreis von 90, mit Rückstoß. ★3: Schleudert zusätzlich einen kleineren Topf (50% Schaden und Radius) auf die dichteste Gruppe außerhalb dieser Explosion.']);
     expect(itemT('cooker')).toMatchObject({ name: 'Schnellkochtopf', blurb: 'Schleudert einen pfeifenden Topf. KABUMM.' });
   });
 
@@ -57,18 +57,19 @@ describe('Pressure Cooker: content', () => {
 });
 
 describe('Pressure Cooker: build', () => {
-  it('damage grows +50% and the interval shrinks -10% per ★ (to the bit), as the content tune says', () => {
+  it('damage grows +50% and the interval shrinks -10% per ★ (to the bit), as the content tune says, times the Kitchen bonus its own set points reach', () => {
     const base = ITEMS.cooker.weapon!;
     const tune = contentItem('cooker')!.tune as unknown as Record<string, readonly number[]>;
+    const kitchen = (t: number) => setTuneAt('kitchen', t)?.damageMult ?? 1;
     for (const t of [1, 2, 3]) {
       const w = stats([at('cooker', t)]);
       expect(w.tier).toBe(t);
-      expect(w.damage).toBe(base.damage * weaponDamageMult(t));
+      expect(w.damage).toBe(base.damage * weaponDamageMult(t) * kitchen(t));
       expect(w.cooldown).toBe(base.cooldown * weaponCooldownMult(t));
-      expect(w.damage).toBe(tune.damage[t - 1]);
+      expect(w.damage).toBe(tune.damage[t - 1] * kitchen(t));
       expect(w.cooldown).toBe(tune.cooldown[t - 1]);
     }
-    expect([1, 2, 3].map((t) => stats([at('cooker', t)]).damage)).toEqual([16.0, 24.0, 32.0]);
+    expect([1, 2, 3].map((t) => stats([at('cooker', t)]).damage)).toEqual([16.0, 24.0, 32.0].map((d, i) => d * kitchen(i + 1)));
   });
 
   it('carries the base shape of the pattern into the build', () => {
@@ -85,7 +86,7 @@ describe('Pressure Cooker: pattern mortar', () => {
   });
 
   it('lobs one pot at the densest group within 420: from the nose of the cart to the first enemy with the most neighbours in 90', () => {
-    const { a, fake } = arsenal([at('cooker', 3)]);
+    const { a, fake } = arsenal([at('cooker', 2)]);
     const { c1 } = cluster(fake);
     a.step(0.5);
     expect(a.pots).toHaveLength(1);
@@ -98,15 +99,15 @@ describe('Pressure Cooker: pattern mortar', () => {
     expect(a.recoils).toHaveLength(1);
   });
 
-  it('explodes on landing: 32 damage to everything within 90 + radius with a push of 220 away from the center, nothing outside', () => {
-    const { a, fake } = arsenal([at('cooker', 3)]);
+  it('explodes on landing: 24 damage (★2, x1.1 from its own Kitchen L1) to everything within 90 + radius with a push of 220 away from the center, nothing outside', () => {
+    const { a, fake } = arsenal([at('cooker', 2)]);
     const { lone, c1, c2, c3 } = cluster(fake);
     a.step(0.5);
     expect(fake.callsOf('damage')).toHaveLength(0); // nothing until it lands
     a.run(40, 0.05);
     const hits = fake.callsOf('damage');
     expect(hits.map((c) => c.enemy)).toEqual([c1.id, c2.id, c3.id]);
-    expect(hits.every((c) => c.dmg === 32)).toBe(true);
+    expect(hits.every((c) => c.dmg === 24 * setTuneAt('kitchen', 2)!.damageMult)).toBe(true);
     expect(hits[0].opts).toEqual({ kb: 220, kbX: 0, kbY: 0, tags: ['blast'] });
     expect(hits[1].opts).toMatchObject({ kb: 220, kbX: 1, kbY: 0 });
     expect(hits.some((c) => c.enemy === lone.id)).toBe(false);
@@ -136,7 +137,7 @@ describe('Pressure Cooker: pattern mortar', () => {
   });
 
   it('Multipack lobs a second pot, 0.18 s later', () => {
-    const { a, fake } = arsenal([at('cooker', 3), at('multipack', 1)]);
+    const { a, fake } = arsenal([at('cooker', 2), at('multipack', 1)]);
     cluster(fake);
     a.step(0.5);
     expect(a.pots).toHaveLength(1);
@@ -144,11 +145,35 @@ describe('Pressure Cooker: pattern mortar', () => {
     expect(a.pots).toHaveLength(2);
   });
 
+  it('from ★3 a second pot at half damage and half radius goes to the densest group the first blast will not reach; ★2 lobs one', () => {
+    for (const tier of [2, 3, 4]) {
+      const { a, fake, b } = arsenal([at('cooker', tier)]);
+      const { lone, c1 } = cluster(fake);
+      while (!a.pots.length) a.step(0.05); // small steps: the lone enemy is close, a pot to it lands within 0.35 s
+      a.weapons[0].cd = 99;
+      const st = b.weapons[0];
+      expect(a.pots.map((p) => [p.tx, p.ty]), `★${tier}`).toEqual(tier < 3 ? [[c1.x, c1.y]] : [[c1.x, c1.y], [lone.x, lone.y]]);
+      if (tier < 3) continue;
+      expect(a.pots[1].stats).toMatchObject({ uid: st.uid, damage: st.damage / 2, aoe: 45 });
+      expect((a.pots[1].shadow as StubSprite).log).toContain('setDisplaySize(15,4.5)'); // a half-size shadow under the small pot
+      a.run(40, 0.05);
+      const hits = fake.callsOf('damage');
+      expect(hits.filter((c) => c.enemy === lone.id).map((c) => c.dmg), `★${tier}`).toEqual([st.damage / 2]);
+      expect(hits.filter((c) => c.enemy !== lone.id).every((c) => c.dmg === st.damage), `★${tier}`).toBe(true);
+      expect(fake.callsOf('sound').map((c) => c.name), `★${tier}`).toEqual(['whistle', 'whistle', 'boom', 'boom']);
+    }
+    const edge = arsenal([at('cooker', 3)]);
+    edge.fake.spawnEnemy({ x: 200, y: 0, hp: 1000 });
+    edge.fake.spawnEnemy({ x: 200 + 90 + 20, y: 0, hp: 1000 });
+    while (!edge.a.pots.length) edge.a.step(0.05);
+    expect(edge.a.pots, 'the other enemy is on the edge of 90 + radius: the first blast reaches it').toHaveLength(1);
+  });
+
   it('explodeAt is also the entry point for Pot Slam: it explodes the given weapon\'s numbers at any spot', () => {
     const { a, fake } = arsenal([at('cooker', 3)]);
     const e = fake.spawnEnemy({ x: 500, y: 300, hp: 1000 });
     explodeAt(a, 500, 300, a.weapons[0].stats);
     expect(fake.callsOf('damage')).toHaveLength(1);
-    expect(fake.callsOf('damage')[0]).toMatchObject({ enemy: e.id, dmg: 32 });
+    expect(fake.callsOf('damage')[0]).toMatchObject({ enemy: e.id, dmg: 32 * setTuneAt('kitchen', 3)!.damageMult });
   });
 });

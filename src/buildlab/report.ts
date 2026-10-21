@@ -65,6 +65,9 @@ export interface RunRecord {
   aislesPlayed: number;
   kills: number;
   coinsEarned: number;
+  merges: number;
+  rerolls: number;
+  sells: number;
   aisles: AisleRecord[];
   /** Every item the run got hold of: the starter weapon, shop buys, crates, stockrooms. */
   acquired: { item: string; tier: number; from: 'start' | 'shop' | 'crate' | 'stockroom' }[];
@@ -116,7 +119,7 @@ export interface Summary {
 export interface Report { meta: ReportMeta; runs: RunRecord[]; summary: Summary }
 
 const r3 = (n: number): number => Math.round(n * 1000) / 1000;
-const reached = (r: RunRecord): number => (r.result === 'win' ? BOSS_WAVE : r.diedAt ?? r.aislesPlayed);
+export const reached = (r: Pick<RunRecord, 'result' | 'diedAt' | 'aislesPlayed'>): number => (r.result === 'win' ? BOSS_WAVE : r.diedAt ?? r.aislesPlayed);
 
 function rate(runs: RunRecord[], has: (r: RunRecord) => boolean): { n: number; wins: number } {
   let n = 0, wins = 0;

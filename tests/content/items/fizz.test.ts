@@ -33,11 +33,11 @@ describe('Fizz Cannon: content', () => {
     expect([1, 2, 3].map((t) => itemRules('fizz', t))).toEqual([
       'Fires a bottle cap for 6 damage every 1 s that bounces to 2 more enemies (never the same one twice). 420 range.',
       'Fires a bottle cap for 9 damage every 0.9 s that bounces to 2 more enemies (never the same one twice). 420 range.',
-      'Fires a bottle cap for 12 damage every 0.8 s that bounces to 2 more enemies (never the same one twice). 420 range.',
+      'Fires a bottle cap for 12 damage every 0.8 s that bounces to 2 more enemies (never the same one twice). 420 range. ★3: A cap\'s first knockout earns it one more bounce.',
     ]);
     expect(itemT('fizz')).toMatchObject({ name: 'Fizz Cannon', blurb: 'Shaken soda fires ricocheting bottle caps.' });
     setLang('de');
-    expect([1, 3].map((t) => itemRules('fizz', t))).toEqual(['Feuert alle 1 s einen Kronkorken für 6 Schaden, der auf 2 weitere Gegner abprallt (nie zweimal auf denselben). 420 Reichweite.', 'Feuert alle 0,8 s einen Kronkorken für 12 Schaden, der auf 2 weitere Gegner abprallt (nie zweimal auf denselben). 420 Reichweite.']);
+    expect([1, 3].map((t) => itemRules('fizz', t))).toEqual(['Feuert alle 1 s einen Kronkorken für 6 Schaden, der auf 2 weitere Gegner abprallt (nie zweimal auf denselben). 420 Reichweite.', 'Feuert alle 0,8 s einen Kronkorken für 12 Schaden, der auf 2 weitere Gegner abprallt (nie zweimal auf denselben). 420 Reichweite. ★3: Der erste Abschuss eines Kronkorkens bringt ihm einen weiteren Abprall.']);
     expect(itemT('fizz')).toMatchObject({ name: 'Sprudelkanone', blurb: 'Geschüttelte Limo schießt abprallende Kronkorken.' });
   });
 
@@ -111,6 +111,22 @@ describe('Fizz Cannon: pattern ricochet', () => {
     const hits = fake.callsOf('damage');
     expect(hits.map((c) => c.enemy)).toEqual([first.id, second.id]);
     expect(hits.every((c) => c.dmg === 12)).toBe(true);
+  });
+
+  it('from ★3 a cap\'s first knockout earns it one more bounce, once per cap; ★2 stops after 1 + bounces hits', () => {
+    // A and B die to one cap; C, D, E are a chain within the 230 bounce reach (A -> B -> C -> D -> E).
+    const chain = (tier: number, hp: number) => {
+      const { a, fake } = arsenal([at('fizz', tier)], P);
+      const ids = [[300, 400, hp], [300, 550, hp], [300, 700, 1000], [480, 700, 1000], [480, 550, 1000]].map(([x, y, h]) => fake.spawnEnemy({ x, y, hp: h }).id);
+      while (!a.spawned.length) a.step(0.02);
+      a.weapons[0].cd = 99;
+      a.run(80, 0.02);
+      return fake.callsOf('damage').map((c) => ids.indexOf(c.enemy));
+    };
+    expect(chain(2, 5)).toEqual([0, 1, 2]);
+    expect(chain(3, 5)).toEqual([0, 1, 2, 3]);
+    expect(chain(4, 5)).toEqual([0, 1, 2, 3]);
+    expect(chain(3, 1000)).toEqual([0, 1, 2]);
   });
 
   it('with nobody left to bounce to the cap flies on (a ★3 cap is not spent by one hit)', () => {

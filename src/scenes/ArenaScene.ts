@@ -12,7 +12,7 @@ import { isDashHit } from '../engine/hitTags';
 import { addCoins, damagePlayer, payPunchCard, takeStockroomItem } from '../state/run';
 import { hitArmor, newHitTracker, shredGain, shredStacks, tryHit, weakenedDamage, weakenMult, type HitTracker } from '../systems/combat';
 import { isWet, wetElectricMult } from '../engine/wet';
-import type { EnemyId, ShopOffer, WaveDef, WeaponStats } from '../types';
+import type { EnemyId, HitSource, ShopOffer, WaveDef, WeaponStats } from '../types';
 import { play, setWheel } from '../audio/sfx';
 import { musicFor, playMusic } from '../audio/music';
 import { settings } from '../state/settings';
@@ -33,7 +33,7 @@ import { hitTags } from '../engine/hitTags';
 import { contentSetTune } from '../engine/registry';
 import { Enemy as EnemyIds } from '../engine/ids';
 import { PhaserCtx } from './phaserCtx';
-import { createEnemy, drawTelegraph, updateEnemy, type Enemy } from './enemies';
+import { attackBy, createEnemy, drawTelegraph, updateEnemy, type Enemy } from './enemies';
 import { Arsenal } from './weapons';
 import { PlayerOverlay } from './playerOverlay';
 import { Hazards } from './hazards';
@@ -49,7 +49,7 @@ const sk = (key: string): string =>
     : CART_PARTS.includes(key) && profile.cart !== 'chrome' ? `${key}__${profile.cart}` : key;
 import { DEPARTMENTS, DEPT_TUNING } from '../data/departments';
 import { MODIFIERS, ROOMS } from '../data/modifiers';
-import { waveSpawnPlan, rollStockroom, rollMiniCrates } from '../systems/shop';
+import { aisleHazard, waveSpawnPlan, rollStockroom, rollMiniCrates } from '../systems/shop';
 import { giftcardCoins, killCoinMult, killCoins } from '../systems/combat';
 import type { DepartmentDef } from '../types';
 import { CRATE, DASH_PROPS, OBSTACLES, OBSTACLE_KINDS, PROP_TUNING, crateSpots, type Obstacle } from '../data/obstacles';
@@ -167,7 +167,7 @@ export class ArenaScene extends Phaser.Scene {
     center();
     this.scale.on(Phaser.Scale.Events.RESIZE, center);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.scale.off(Phaser.Scale.Events.RESIZE, center));
-    this.hazards = new Hazards(this, s.phase === 'combat' && s.modifier !== 'stockroom' ? this.dept.hazard : 'none', s.wave, this.zone()?.hazardExtra ?? 0);
+    this.hazards = new Hazards(this, s.phase === 'combat' ? aisleHazard(s) : { kind: 'none', spots: 0, beltSpeed: 0 });
     const roll = s.phase === 'combat' ? rollEvent(this.dept.id, s.wave, s.shift, flow.rng, this.wave.boss, s.modifier === 'stockroom' ? 'none' : s.labEvent && s.labEvent !== 'random' ? s.labEvent : MODIFIERS[s.modifier].forceEvent ? (flow.rng() < 0.5 ? 'wetFloor' : 'outage') : 'random', s.build.sets) : null;
     this.aisleEvent = new AisleEvents(this, roll);
     if (roll) store.emit('tut:event');
@@ -551,6 +551,7 @@ export class ArenaScene extends Phaser.Scene {
     this.fx.spark(e.x, e.y - 30, 4, 0xcfefff);
     this.fx.shake(0.003, 80);
     this.damageEnemy(e, dmg, null, { label: 'Slam', tags: ['cleaning'] }); // the Leaf Blower's slam
+    if (e.blownStun) this.stunEnemy(e, e.blownStun);
   }
 
   /** Ice Sheet: shoves a grocery away from the goblin and marks it as blown, so the Leaf Blower's slam (`slamEnemy`) lands when it stops at a wall, a prop or another enemy. Bosses are immune. */
@@ -559,7 +560,7 @@ export class ArenaScene extends Phaser.Scene {
     const now = this.time.now / 1000, dx = e.x - this.player.x, dy = e.y - this.player.y, d = Math.hypot(dx, dy) || 1;
     const k = 1 - e.def.knockbackResist;
     e.kx = (dx / d) * speed * k; e.ky = (dy / d) * speed * k;
-    e.slideUntil = now + seconds; e.blownUntil = now + seconds; e.blownDmg = slam;
+    e.slideUntil = now + seconds; e.blownUntil = now + seconds; e.blownDmg = slam; e.blownStun = 0;
     e.slideTouch = new Set(this.enemies.filter((o) => o !== e && o.alive && Math.hypot(o.x - e.x, o.y - e.y) < o.def.radius + e.def.radius).map((o) => o.id)); // already in contact: not a collision
     return seconds;
   }
@@ -728,7 +729,7 @@ export class ArenaScene extends Phaser.Scene {
     if (o.kb) {
       const k = o.kb * (1 - e.def.knockbackResist) * (this.hazards.onIce(e.x, e.y) ? DEPT_TUNING.ice.knockbackMult : 1) * hit.kbMult;
       e.kx += (o.kbX ?? 0) * k * 3; e.ky += (o.kbY ?? 0) * k * 3;
-      if (o.blow) { e.blownUntil = now + 0.6; e.blownDmg = o.blow; } // Leaf Blower: marked until it stops against a wall or prop
+      if (o.blow) { e.blownUntil = now + 0.6; e.blownDmg = o.blow; e.blownStun = o.blowStun; } // Leaf Blower: marked until it stops against a wall or prop
     }
     if (!o.isDot && !o.quiet) {
       // Short flash with a re-trigger gap so constant fire never leaves a sprite solid white.
@@ -959,14 +960,14 @@ export class ArenaScene extends Phaser.Scene {
     }
   }
 
-  hurtPlayer(dmg: number): boolean {
+  hurtPlayer(dmg: number, source: HitSource): boolean {
     const p = this.player;
     if (store.state.phase !== 'combat' || this.ending || p.dead) return true;
     if (p.invulnT > 0 || p.protectT > 0 || store.state.labGod) return true;
     // Hooks may lower `dmg` and change the i-frames (Bubble Wrap: armor and +0.25 s).
     let invuln = PLAYER.invuln;
     if (this.hooks.onPlayerHit.length) { const ev = { dmg, invuln }; this.hooks.emit('onPlayerHit', ev); dmg = ev.dmg; invuln = ev.invuln; }
-    const dead = damagePlayer(store.state, dmg);
+    const dead = damagePlayer(store.state, dmg, source);
     if (store.state.punch) punchHit(store.state.punch);
     p.invulnT = invuln;
     p.hurtT = 0.45;
@@ -987,7 +988,7 @@ export class ArenaScene extends Phaser.Scene {
     const dx = near.x - e.x, dy = near.y - e.y;
     const d = near.d;
     const diff = Math.abs(Phaser.Math.Angle.Wrap(Math.atan2(dy, dx) - a));
-    if (d < e.def.attackRange + 26 + p.radius && diff < Phaser.Math.DegToRad(e.def.arcDeg / 2 + 10)) this.hurtPlayer(this.enemyDmg(e, e.def.attackDamage));
+    if (d < e.def.attackRange + 26 + p.radius && diff < Phaser.Math.DegToRad(e.def.arcDeg / 2 + 10)) this.hurtPlayer(this.enemyDmg(e, e.def.attackDamage), attackBy(e, 'swipe'));
   }
 
   /**
@@ -997,8 +998,8 @@ export class ArenaScene extends Phaser.Scene {
    */
   enemyDmg(e: Enemy, dmg: number): number { return weakenedDamage(e, dmg, this.time.now / 1000); }
 
-  spawnEnemyShot(key: string, x: number, y: number, a: number, speed: number, life: number, damage: number): void {
-    this.arsenal.spawnEnemyShot(key, x, y, a, speed, life, damage);
+  spawnEnemyShot(key: string, x: number, y: number, a: number, speed: number, life: number, damage: number, source: HitSource): void {
+    this.arsenal.spawnEnemyShot(key, x, y, a, speed, life, damage, source);
   }
 
   // ───────────────────────────── main loop ─────────────────────────────
@@ -1239,7 +1240,7 @@ export class ArenaScene extends Phaser.Scene {
       const d2 = dx * dx + dy * dy;
       if (d2 > r * r) continue;
       const charging = e.state === 'attack' && (e.def.behavior === 'charger' || (e.def.behavior === 'boss' && e.bossMove === 'charge'));
-      this.hurtPlayer(this.enemyDmg(e, e.def.contactDamage + (charging ? 3 : 0)));
+      this.hurtPlayer(this.enemyDmg(e, e.def.contactDamage + (charging ? 3 : 0)), attackBy(e, charging ? 'charge' : 'contact'));
       // Keep groceries from stacking inside the cart.
       const d = Math.sqrt(d2) || 1;
       if (e.def.behavior !== 'boss') { e.x = near.x + (dx / d) * r; e.y = near.y + (dy / d) * r; }

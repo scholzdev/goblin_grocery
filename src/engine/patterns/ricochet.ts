@@ -10,7 +10,8 @@ export const ricochet: Pattern = {
     for (let i = 0; i < st.count; i++) {
       const ai = a + (i - (st.count - 1) / 2) * 0.2;
       if (emitFire(h, st, o.x, o.y, ai, i === 0)) continue;
-      h.spawn('proj_cap', o.x, o.y, ai, st.projectileSpeed, st.range / st.projectileSpeed, st.damage, st, 1 + st.bounces + st.pierce);
+      const cap = h.spawn('proj_cap', o.x, o.y, ai, st.projectileSpeed, st.range / st.projectileSpeed, st.damage, st, 1 + st.bounces + st.pierce);
+      if (cap) cap.killBounce = w.tune.killBounce > 0;
     }
     h.sound('cap_ping', { rate: 0.8 });
   },

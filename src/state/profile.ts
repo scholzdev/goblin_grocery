@@ -1,7 +1,8 @@
 import type { DepartmentId, EnemyId, ItemTypeId, RecipeId, RunState, SetId, StarterId } from '../types';
-import { STARTING_ITEMS, UNLOCKS, type CartSkin, type GoblinSkin, type ProfileStats, type Unlock } from '../data/unlocks';
+import { STARTING_ITEMS, UNLOCKS, type CartSkin, type GoblinSkin, type ProfileStats, type RunSummary, type Unlock } from '../data/unlocks';
 import { BOSS_WAVE, SHIFTS } from '../data/waves';
 import { setLevels } from '../data/sets';
+import type { ModifierId } from '../data/modifiers';
 
 // Persistent meta-progression (localStorage). Every access is guarded: a blocked storage just means
 // progress isn't kept between sessions; the game itself never depends on it.
@@ -19,6 +20,7 @@ export interface Profile {
   stamps: number;        // loyalty card progress 0-9
   coupons: number;       // pending +20 coin vouchers
   daily: { date: string; best: number; tries: number };
+  goalBest: Record<string, number>;
 }
 
 /** One line of the receipt history ("Bons"). */
@@ -47,7 +49,7 @@ const fresh = (): Profile => ({
   v: 1,
   stats: { runs: 0, wins: 0, losses: 0, kills: 0, coins: 0, bestWave: 0, combos: 0, deptClears: {}, bestShift: {}, bestOvertime: 0 },
   recipes: [], unlocked: [], goblin: 'classic', cart: 'chrome', enemies: {}, seen: [],
-  history: [], stamps: 0, coupons: 0, daily: { date: '', best: 0, tries: 0 },
+  history: [], stamps: 0, coupons: 0, daily: { date: '', best: 0, tries: 0 }, goalBest: {},
 });
 
 function load(): Profile {
@@ -79,6 +81,8 @@ export function unlockedItems(): ItemTypeId[] {
   const extra = UNLOCKS.flatMap((u) => (u.kind === 'item' && isUnlocked(u) ? [u.item] : []));
   return [...new Set([...STARTING_ITEMS, ...extra])];
 }
+export const unseenUnlocks = (): ItemTypeId[] =>
+  UNLOCKS.flatMap((u) => (u.kind === 'item' && isUnlocked(u) && !profile.seen.includes(`item:${u.item}`) ? [u.item] : []));
 
 export const goblinUnlocked = (skin: GoblinSkin): boolean =>
   skin === 'classic' || UNLOCKS.some((u) => u.kind === 'goblin' && u.skin === skin && isUnlocked(u));
@@ -107,12 +111,33 @@ export function noteEnemy(s: RunState, id: EnemyId, kill?: { elite: boolean }): 
   saveProfile();
 }
 
-/** Checks every unlock against current stats; returns the ones newly earned. */
-export function evaluateUnlocks(): Unlock[] {
-  const fresh = UNLOCKS.filter((u) => !isUnlocked(u) && u.check(profile.stats));
+export const unlockProgress = (u: Unlock): [number, number] =>
+  u.type === 'goal' ? [Math.min(profile.goalBest[u.id] ?? 0, u.target), u.target] : u.progress(profile.stats);
+const isMet = (u: Unlock): boolean => (u.type === 'goal' ? (profile.goalBest[u.id] ?? 0) >= u.target : u.check(profile.stats));
+
+export function evaluateUnlocks(run: RunSummary): Unlock[] {
+  for (const u of UNLOCKS) if (u.type === 'goal') profile.goalBest[u.id] = Math.max(profile.goalBest[u.id] ?? 0, u.measure(run));
+  const fresh = UNLOCKS.filter((u) => !isUnlocked(u) && isMet(u));
   for (const u of fresh) profile.unlocked.push(u.id);
-  if (fresh.length) saveProfile();
+  saveProfile();
   return fresh;
+}
+
+export function runSummary(s: RunState): RunSummary {
+  const { stats, build } = s;
+  return {
+    won: stats.bossDefeated, wave: s.wave, starter: s.starter, weapon: s.weapon, theme: s.theme, shift: s.shift, daily: !!s.daily,
+    kills: stats.kills, coins: stats.coinsEarned,
+    sets: build.sets, combos: [...new Set(build.recipes.map((r) => r.id))], weapons: build.weapons.length,
+    maxTier: Math.max(1, ...s.inventory.placed.map((i) => i.tier ?? 1)),
+    reactions: stats.damage.reactions, damageByType: stats.damage.byType, damageByWeapon: stats.damageByWeapon,
+  };
+}
+
+function countClear(d: DepartmentId, mod: ModifierId): void {
+  const c = profile.stats.deptClears;
+  c[d] = (c[d] ?? 0) + 1;
+  if (mod === 'clearance') c.clearance = (c.clearance ?? 0) + 1;
 }
 
 /** Folds a finished run into lifetime stats and returns anything it unlocked. */
@@ -122,26 +147,31 @@ export function recordRun(s: RunState, won: boolean): Unlock[] {
   if (won) st.wins++; else st.losses++;
   st.kills += s.stats.kills;
   st.coins += s.stats.coinsEarned;
+  s.counted = { kills: s.stats.kills, coins: s.stats.coinsEarned };
   st.bestWave = Math.max(st.bestWave, won ? BOSS_WAVE : s.wave);
   // route[i] is the department of aisle i+1; the first `wavesCleared` aisles that were played (not skipped by a Staff Only door) were cleared.
-  const bump = (d: string) => (st.deptClears[d as DepartmentId] = (st.deptClears[d as DepartmentId] ?? 0) + 1);
-  s.route.map((d, i) => ({ d, m: s.mods[i], aisle: i + 1 })).filter((a) => !s.skippedAisles?.includes(a.aisle)).slice(0, s.stats.wavesCleared)
-    .forEach(({ d, m }) => { bump(d); if (m === 'clearance') bump('clearance'); });
+  // The boss aisle is counted from `won` below. Victory sets wavesCleared to BOSS_WAVE - 1 even when a skip left fewer aisles before it.
+  s.route.map((d, i) => ({ d, m: s.mods[i], aisle: i + 1 })).filter((a) => a.d !== 'boss' && !s.skippedAisles?.includes(a.aisle)).slice(0, s.stats.wavesCleared)
+    .forEach(({ d, m }) => countClear(d, m));
   if (won) {
     st.deptClears.boss = (st.deptClears.boss ?? 0) + 1;
     st.bestShift[s.starter] = Math.max(st.bestShift[s.starter] ?? 0, s.shift);
   }
-  saveProfile();
-  return evaluateUnlocks();
+  return evaluateUnlocks(runSummary(s));
 }
 
 /** Shift `n` (0-based) is open for a starter once the previous shift was won with it. */
 export const shiftUnlocked = (starter: string, n: number): boolean => n <= 0 || n < SHIFTS.length && (profile.stats.bestShift[starter] ?? -1) >= n - 1;
 
-/** Overtime defeat: only the new best is tracked (the run itself was counted at victory). */
-export function recordOvertime(aisles: number): void {
-  profile.stats.bestOvertime = Math.max(profile.stats.bestOvertime, aisles);
-  saveProfile();
+/** Overtime defeat. The run was recorded at victory, so this adds only the kills, coins and aisle clears since, plus the overtime best. */
+export function recordOvertime(s: RunState): Unlock[] {
+  const st = profile.stats, since = s.counted!;
+  st.kills += s.stats.kills - since.kills;
+  st.coins += s.stats.coinsEarned - since.coins;
+  // Overtime offers neither the boss door nor Staff Only, so every aisle after the boss up to the current one was cleared.
+  for (let i = BOSS_WAVE; i < s.wave - 1; i++) countClear(s.route[i], s.mods[i]);
+  st.bestOvertime = Math.max(st.bestOvertime, s.wave - BOSS_WAVE - 1);
+  return evaluateUnlocks(runSummary(s));
 }
 
 /** What a run added to the profile: unlock ids, discovered combos, first-sighted enemies. */
@@ -168,7 +198,7 @@ export function freshSince(snap: ProfileSnap): Fresh {
 
 /** The (up to 3) locked unlocks closest to done. */
 export function nearUnlocks(): Near[] {
-  return UNLOCKS.filter((u) => !isUnlocked(u)).map((u) => { const [cur, need] = u.progress(profile.stats); return { id: u.id, ratio: cur / need, cur, need }; })
+  return UNLOCKS.filter((u) => !isUnlocked(u)).map((u) => { const [cur, need] = unlockProgress(u); return { id: u.id, ratio: cur / need, cur, need }; })
     .filter((n) => n.ratio > 0 && n.ratio < 1).sort((a, b) => b.ratio - a.ratio).slice(0, 3);
 }
 

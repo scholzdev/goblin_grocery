@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { ITEMS, PLAYER, TIER } from '../../../src/data/items';
 import boot from '../../../src/content/items/boot';
-import { contentItem, contentTune } from '../../../src/engine/registry';
+import { contentItem, contentSetTune, contentTune } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { tierScaling } from '../../../src/systems/synergies';
@@ -12,8 +12,10 @@ afterEach(() => setLang('en'));
 const BASE = PLAYER.shove.damage; // 6
 
 // Legacy: dash distance +35% and dash damage +6 at ★1 (x TIER.mult); the best copy counts once; the Tools set (L2+) multiplies the total.
+// A lone ★3 boot is 3 Tools set points: L1, which leaves the dash alone. Gold Star's effective ★4 is 4 points: L2 (dash damage x2).
+const TOOLS = (lv: number) => contentSetTune('tools', lv);
 describe('Running Boot: build', () => {
-  it('sets the dash reach x1.35 / x1.525 / x1.7 and the dash damage 12 / 15 / 18 at ★1 / ★2 / ★3', () => {
+  it('sets the dash reach x1.35 / x1.525 / x1.7 and the dash damage 12 / 15 / 18 at ★1 / ★2 / ★3 (a lone ★3 is Tools L1: no multiplier)', () => {
     const plain = full([at('toaster')]);
     expect([plain.shoveDistMult, plain.shoveDamage]).toEqual([1, BASE]);
     [[1.35, 12], [1 + 0.35 * 1.5, 15], [1.7, 18]].forEach(([dist, dmg], i) => {
@@ -31,23 +33,24 @@ describe('Running Boot: build', () => {
     }
     const lifted = full([at('toaster'), corner('boot', 3), gilded(1)]);
     expect(lifted.shoveDistMult).toBe(1 + 0.35 * TIER.mult(4));
-    expect(lifted.shoveDamage).toBe(BASE + 6 * TIER.mult(4)); // 21
+    expect(lifted.shoveDamage).toBe((BASE + 6 * TIER.mult(4)) * TOOLS(2).shoveDamageMult); // 21 x2: 4 Tools points, L2
   });
 
-  it('changes nothing but the two dash fields', () => {
+  it('changes nothing but the two dash fields, besides the Tools L1 its 3 set points reach', () => {
     const plain = full([at('toaster')]), withBoot = full([at('toaster'), far('boot', 3)]);
-    expect(withBoot.weapons).toEqual(plain.weapons);
-    expect({ ...withBoot, shoveDistMult: 0, shoveDamage: 0 }).toEqual({ ...plain, shoveDistMult: 0, shoveDamage: 0 });
+    expect(withBoot.sets).toEqual({ ...plain.sets, tools: 1 });
+    expect(withBoot.weapons).toEqual(plain.weapons.map((w) => ({ ...w, cooldown: w.cooldown / TOOLS(1).cooldownDiv })));
+    expect({ ...withBoot, shoveDistMult: 0, shoveDamage: 0, sets: plain.sets, weapons: plain.weapons }).toEqual({ ...plain, shoveDistMult: 0, shoveDamage: 0 });
   });
 
   it('does not stack: the best copy in the cart counts once', () => {
-    expect(full([at('toaster'), far('boot', 1), far('boot', 3)]).shoveDamage).toBe(BASE + 12);
+    expect(full([at('toaster'), far('boot', 1), far('boot', 3)]).shoveDamage).toBe(BASE + 12); // 3 Tools points, not 4: L1, no multiplier
     expect(full([at('toaster'), far('boot', 2), at('boot', 1, { near: [0] })]).shoveDistMult).toBe(1 + 0.35 * 1.5);
   });
 
   it('adds to the perk\'s flat dash damage, and the Tools set\'s multiplier applies to the finished total (boot included)', () => {
     expect(full([at('toaster'), far('boot')], { shoveDamage: 2 }).shoveDamage).toBe(BASE + 6 + 2);
-    // Nail Gun + Duct Tape + Boot = 3 tools types: Tools L2 (dash damage x2, dash stun 0.3 s)
+    // Nail Gun + Duct Tape + Boot ★2 = 4 Tools points: Tools L2 (dash damage x2)
     const tools = full([at('nailgun'), far('tape'), far('boot', 2)], { shoveDamage: 2 });
     expect(tools.sets.tools).toBe(2);
     expect(tools.shoveDamage).toBe((BASE + 9 + 2) * 2); // (base + boot + perk) x mult
@@ -59,8 +62,8 @@ describe('Running Boot: build', () => {
 describe('Running Boot: runtime', () => {
   it('has no combat hooks, and compiles none', () => {
     expect(boot.hooks).toBeUndefined();
-    const { fake } = arena([at('toaster'), far('boot', 3)]);
-    expect(fake.hooks.size).toBe(0);
+    expect(arena([at('toaster'), far('boot')]).fake.hooks.size).toBe(0);
+    expect(arena([at('toaster'), far('boot', 3)]).fake.hooks.size, 'only the Tools L2 hooks its 3 set points switch on').toBe(arena([at('toaster'), far('magnet', 3)]).fake.hooks.size);
   });
 });
 

@@ -11,13 +11,13 @@ import { draws, expectSetText, seedWhere } from './helpers';
 afterEach(() => setLang('en'));
 
 const GUN = at('nailgun'); // a tools weapon
-// Tools members that touch nothing and change neither cooldowns nor the dash: Magnet, Spare Wheel, Tin Foil Hat.
-const MEMBERS = [far('magnet'), far('sparewheel'), far('tinfoilhat')];
+// Tools members that touch nothing and change neither cooldowns nor the dash: Magnet, a ★2 Spare Wheel, a ★2 Tin Foil Hat (2 points each).
+const MEMBERS = [far('magnet'), far('sparewheel', 2), far('tinfoilhat', 2)];
 const cart = (n: number) => [GUN, ...MEMBERS.slice(0, n)];
 const baseCooldown = ITEMS.nailgun.weapon!.cooldown * TIER.weaponCooldown(1);
 
 describe('Tools set: thresholds', () => {
-  it('2 / 3 / 4 distinct tools types give L1 / L2 / L3; the weapon alone is 1', () => {
+  it('2 / 4 / 6 set points give L1 / L2 / L3 (weapon 1, magnet 1, each ★2 member 2); the weapon alone is 1', () => {
     expect([0, 1, 2, 3].map((n) => full(cart(n)).sets.tools)).toEqual([0, 1, 2, 3]);
   });
 
@@ -47,7 +47,7 @@ describe('Tools set: thresholds', () => {
 
   it('applies to weapons of any family (a kitchen weapon in a Tools cart attacks faster too)', () => {
     const pan = at('pan'), plain = full([pan]).weapons[0].cooldown;
-    expect(full([pan, ...MEMBERS.slice(0, 2)]).sets.tools).toBe(1); // two tools types, none of them the pan: L1
+    expect(full([pan, ...MEMBERS.slice(0, 2)]).sets.tools).toBe(1); // two tools types (3 points), none of them the pan: L1
     expect(full([pan, ...MEMBERS.slice(0, 2)]).weapons[0].cooldown).toBeCloseTo(plain / 1.08, 12);
   });
 });
@@ -57,14 +57,14 @@ describe('Tools set: dash damage ordering', () => {
   const boot = contentTune('boot', 1).damage;
 
   it('multiplies Running Boot\'s bonus too (the legacy (6 + boot + perk) x mult)', () => {
-    expect(full([GUN, far('magnet'), far('boot')]).shoveDamage).toBe((PLAYER.shove.damage + boot) * 2); // L2
-    expect(full([GUN, far('magnet'), far('boot'), far('sparewheel')]).shoveDamage).toBe((PLAYER.shove.damage + boot) * 3); // L3
-    expect(full([GUN, far('magnet'), far('boot', 3)]).shoveDamage).toBe((PLAYER.shove.damage + contentTune('boot', 3).damage) * 2);
+    expect(full([GUN, far('magnet'), far('boot'), far('sparewheel')]).shoveDamage).toBe((PLAYER.shove.damage + boot) * 2); // 4 points: L2
+    expect(full([GUN, far('magnet'), far('boot'), far('sparewheel', 2), far('tinfoilhat')]).shoveDamage).toBe((PLAYER.shove.damage + boot) * 3); // 6 points: L3
+    expect(full([GUN, far('magnet'), far('boot', 3), far('sparewheel')]).shoveDamage).toBe((PLAYER.shove.damage + contentTune('boot', 3).damage) * 3); // the ★3 boot is 3 points: 6 in all, L3
   });
 
   it('multiplies the perk\'s dash damage as well', () => {
     expect(full([GUN, ...MEMBERS.slice(0, 2)], { shoveDamage: 2 }).shoveDamage).toBe((PLAYER.shove.damage + 2) * 2);
-    expect(full([GUN, ...MEMBERS.slice(0, 2), far('boot')], { shoveDamage: 2 }).shoveDamage).toBe((PLAYER.shove.damage + boot + 2) * 3);
+    expect(full([GUN, ...MEMBERS, far('boot')], { shoveDamage: 2 }).shoveDamage).toBe((PLAYER.shove.damage + boot + 2) * 3);
   });
 
   it('its player hook runs after every item\'s (their order is below 200, Expired Milk\'s curse is 100)', () => {

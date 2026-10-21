@@ -104,7 +104,7 @@ describe('Wet + electric', () => {
 
   describe('chain +1 (Electric set arc)', () => {
     const TOASTER = at('toaster');
-    const cart = [TOASTER, far('battery'), far('vacuum')]; // Electric L2: 20%, 2 jumps
+    const cart = [TOASTER, far('battery'), far('vacuum', 2)]; // 4 points, Electric L2: 20%, 2 jumps
     const field = (seed: number) => {
       const a = arena(cart, { seed });
       return { ...a, row: [0, 50, 100, 150, 200, 250].map((x) => a.fake.spawnEnemy({ hp: 1000, x, y: 0 })) };
@@ -199,7 +199,7 @@ describe('Wet + frost', () => {
   });
 
   describe('freeze chance x2 (Frost L2)', () => {
-    const cart = [at('fizz'), at('ice'), far('mop')]; // Frost L2: 10%, 0.5 s on a >= 35% slow
+    const cart = [at('fizz'), at('ice'), far('mop', 2)]; // 4 points, Frost L2: 10%, 0.5 s on a >= 35% slow
     const run = (seed: number, wet: boolean) => {
       const a = arena(cart, { seed });
       const e = a.fake.spawnEnemy({ hp: 1000 });

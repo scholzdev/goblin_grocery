@@ -127,7 +127,7 @@ describe('Tin Foil Hat: the legacy reads are gone', () => {
     const w = source('weapons.ts');
     const body = w.slice(w.indexOf('private updateEnemyShots'));
     expect(body.indexOf("emit('onEnemyShotTouch'")).toBeGreaterThan(-1);
-    expect(body.indexOf('if (ev.handled) continue')).toBeLessThan(body.indexOf('sc.hurtPlayer(s.damage)'));
+    expect(body.indexOf('if (ev.handled) continue')).toBeLessThan(body.indexOf('sc.hurtPlayer(s.damage, s.source!)'));
   });
 });
 

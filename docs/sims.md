@@ -110,7 +110,7 @@ One sim per weapon, `src/sims/weapon-<id>.ts` (`?sim=weapon-toaster`, `weapon-pa
 | `weapon-toaster` | 8 milk in a bunch on the right | One toast per 0.8 s at the nearest enemy, one enemy per toast. |
 | `weapon-pan` | ring of 12 milk | The 150° sweep hits only the half of the ring inside the arc. |
 | `weapon-nailgun` | 8 milk in a bunch | Bursts of three nails, 0.08 s apart, each aimed at the nearest enemy then. |
-| `weapon-vacuum` | 10 mortal milk | Suction toward the cart, the pulse every 0.52 s, coins flying in from 130 px (the +60 pickup radius). |
+| `weapon-vacuum` | 10 mortal milk | Suction toward the cart, the pulse every 0.52 s that knocks the groceries at the cart back out (★3), coins flying in from 130 px (the +60 pickup radius). |
 | `weapon-microwave` | milk and cereal bunch, a far Elite melon | The zap picks the Elite first, then the toughest, and splashes around it. |
 | `weapon-blender` | 10 walking milk | The blade ring and the tick damage on whatever comes within 85. |
 | `weapon-fizz` | three bunches of 4 milk | The cap bounces on to 2 more enemies within 230, never the same one twice. |

@@ -9,6 +9,8 @@ import { hideItemCard, kindLabel, rarityClass, showItemCard, starsHtml } from '.
 let el: HTMLElement | null = null;
 let onKey: ((e: KeyboardEvent) => void) | null = null;
 
+export const stockroomOpen = (): boolean => el !== null;
+
 export function hideStockroom(): void {
   if (onKey) window.removeEventListener('keydown', onKey);
   onKey = null;

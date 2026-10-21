@@ -29,7 +29,7 @@ describe('Cart weight', () => {
 });
 
 describe('Bowling Ball: dash damage', () => {
-  it('adds 1 / 1.5 / 2 damage per occupied cell at ★1 / ★2 / ★3, the ball\'s own 4 cells included', () => {
+  it('adds 1 / 1.5 / 2 damage per occupied cell at ★1 / ★2 / ★3, the ball\'s own 4 cells included (a lone ★3 is Tools L1: no multiplier)', () => {
     const cellCount = cells('toaster', 'bowlingball');
     [1, 1.5, 2].forEach((per, i) => {
       const b = full([at('toaster'), far('bowlingball', i + 1)]);
@@ -62,7 +62,7 @@ describe('Bowling Ball: dash damage', () => {
     const one = full([at('toaster'), far('bowlingball', 1)]);
     const two = full([at('toaster'), far('bowlingball', 1), far('bowlingball', 3)]);
     expect(two.shoveKnockMult).toBe(one.shoveKnockMult);
-    expect(two.shoveDamage).toBe(BASE + 2 * cells('toaster', 'bowlingball', 'bowlingball')); // best tier (★3) x all cells, once
+    expect(two.shoveDamage).toBe(BASE + 2 * cells('toaster', 'bowlingball', 'bowlingball')); // best tier (★3) x all cells, once; 3 Tools points: L1
   });
 });
 

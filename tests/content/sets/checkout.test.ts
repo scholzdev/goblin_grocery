@@ -3,7 +3,8 @@ import checkout from '../../../src/content/sets/checkout';
 import { contentSet, contentSetTune } from '../../../src/engine/registry';
 import { setLang } from '../../../src/i18n/lang';
 import { t } from '../../../src/i18n';
-import { createRun, finishWave, recomputeBuild } from '../../../src/state/run';
+import { createRun, finishWave, interestPreview, recomputeBuild } from '../../../src/state/run';
+import type { RunState } from '../../../src/types';
 import { build, type Spec } from '../../golden/carts';
 import { at, far, full } from '../helpers';
 import { expectSetText } from './helpers';
@@ -11,12 +12,12 @@ import { expectSetText } from './helpers';
 afterEach(() => setLang('en'));
 
 const PAN = at('pan'); // not a checkout item: the weapon only
-// Checkout members that touch nothing: Bell, Sale Flag, Tip Jar, Coupon Book (passives).
-const MEMBERS = [far('bell'), far('flag'), far('tipjar'), far('coupon')];
+// Checkout members that touch nothing: Bell, Sale Flag, a ★2 Tip Jar, a ★2 Coupon Book (passives; a ★2 is 2 points).
+const MEMBERS = [far('bell'), far('flag'), far('tipjar', 2), far('coupon', 2)];
 const cart = (n: number): Spec[] => [PAN, ...MEMBERS.slice(0, n)];
 
 describe('Checkout set: thresholds', () => {
-  it('2 / 3 / 4 distinct checkout types give L1 / L2 / L3 (the pan does not count)', () => {
+  it('2 / 4 / 6 set points give L1 / L2 / L3 (the pan does not count; cart(n) holds 0 / 1 / 2 / 4 / 6 points)', () => {
     expect([0, 1, 2, 3, 4].map((n) => full(cart(n)).sets.checkout)).toEqual([0, 0, 1, 2, 3]);
   });
 
@@ -39,11 +40,11 @@ describe('Checkout set: thresholds', () => {
 });
 
 describe('Checkout set: content', () => {
-  it('is registered with its tune (arrays are L1/L2/L3; the interest step is the same everywhere)', () => {
+  it('is registered with its tune (arrays are L1/L2/L3; L1 keeps the base interest cap)', () => {
     expect(contentSet('checkout')).toBe(checkout);
-    expect(contentSetTune('checkout', 1)).toEqual({ priceMult: 0.92, interestPer: 10, interestCap: 5 });
-    expect(contentSetTune('checkout', 2)).toEqual(contentSetTune('checkout', 1));
-    expect(contentSetTune('checkout', 3)).toEqual({ priceMult: 0.85, interestPer: 10, interestCap: 8 });
+    expect(contentSetTune('checkout', 1)).toEqual({ priceMult: 0.92, interestCap: 0 });
+    expect(contentSetTune('checkout', 2)).toEqual({ priceMult: 0.92, interestCap: 6 });
+    expect(contentSetTune('checkout', 3)).toEqual({ priceMult: 0.85, interestCap: 10 });
     expect(checkout.hooks).toBeUndefined();
   });
 
@@ -54,37 +55,51 @@ describe('Checkout set: content', () => {
 
   it('renders EN and DE bonus lines from the tune', () => {
     expectSetText('checkout', {
-      en: { name: 'Checkout', bonus: ['Shop prices −8% (new offers)', 'Interest +1 coin per 10 held (max 5)', 'Shop prices −15%; interest +1 coin per 10 held (max 8)'] },
-      de: { name: 'Kasse', bonus: ['Shop-Preise −8 % (neue Angebote)', 'Zinsen +1 Münze pro 10 gehalten (max. 5)', 'Shop-Preise −15 %; Zinsen +1 Münze pro 10 gehalten (max. 8)'] },
+      en: { name: 'Checkout', bonus: ['Shop prices −8% (new offers)', 'Interest cap raised to 6', 'Shop prices −15%; interest cap raised to 10'] },
+      de: { name: 'Kasse', bonus: ['Shop-Preise −8 % (neue Angebote)', 'Zinsobergrenze steigt auf 6', 'Shop-Preise −15 %; Zinsobergrenze steigt auf 10'] },
     });
   });
 });
 
-// The interest is paid by state/run.ts `finishWave`, which reads this set's tune: +1 coin per 10 held, capped (L2+), after the clear bonus.
 describe('Checkout set: interest at the end of an aisle', () => {
-  const finish = (specs: Spec[], money: number): { gained: number; interest: number } => {
+  const run = (specs: Spec[], money: number): RunState => {
     const s = createRun(1);
     s.inventory = build(specs, 8, 6);
     recomputeBuild(s);
     s.money = money;
+    return s;
+  };
+  const paid = (s: RunState): number => s.coinLog.find((c) => c.label === t('coinInterest'))?.amount ?? 0;
+  const finish = (specs: Spec[], money: number): number => {
+    const s = run(specs, money);
     finishWave(s);
-    const interest = s.coinLog.find((c) => c.label === t('coinInterest'))?.amount ?? 0;
-    return { gained: s.money - money - interest, interest };
+    return paid(s);
   };
 
-  it('pays nothing below L2', () => {
-    expect(finish(cart(0), 95).interest).toBe(0);
-    expect(finish(cart(2), 95).interest).toBe(0); // L1: cheaper offers only
+  it('every run earns +1 per 10 held after the 12-coin clear bonus, capped at 3 without Checkout', () => {
+    expect(finish(cart(0), 0), '0 + 12 held').toBe(1);
+    expect(finish(cart(0), 5), '5 + 12 held').toBe(1);
+    expect(finish(cart(0), 8), '8 + 12 held').toBe(2);
+    expect(finish(cart(0), 35), '35 + 12 held, capped').toBe(3);
+    expect(finish(cart(0), 80), '80 + 12 held, capped').toBe(3);
   });
 
-  it('pays 1 coin per 10 held (after the clear bonus), capped at 5 (L2) / 8 (L3)', () => {
-    const bonus = finish(cart(0), 0).gained;
-    for (const [n, cap] of [[3, 5], [4, 8]] as const) {
-      for (const money of [0, 7, 35, 95, 400]) {
-        expect(finish(cart(n), money).interest, `L${n - 1} with ${money}`).toBe(Math.min(cap, Math.floor((money + bonus) / 10)));
+  it('Checkout L1 keeps the base cap of 3; L2 raises it to 6, L3 to 10', () => {
+    expect(finish(cart(2), 80), 'L1').toBe(3);
+    expect(finish(cart(3), 80), 'L2').toBe(6);
+    expect(finish(cart(3), 30), 'L2 below the cap').toBe(4);
+    expect(finish(cart(4), 120), 'L3').toBe(10);
+    expect(finish(cart(4), 400), 'L3 far above the cap').toBe(10);
+  });
+
+  it('interestPreview names what finishWave then pays, and the cap', () => {
+    for (const [n, cap] of [[0, 3], [2, 3], [3, 6], [4, 10]] as const) {
+      for (const money of [0, 7, 8, 35, 49, 95, 400]) {
+        const s = run(cart(n), money);
+        const preview = interestPreview(s);
+        finishWave(s);
+        expect(preview, `${n} checkout items with ${money}`).toEqual({ amount: paid(s), cap });
       }
     }
-    expect(finish(cart(3), 400).interest).toBe(5);
-    expect(finish(cart(4), 400).interest).toBe(8);
   });
 });

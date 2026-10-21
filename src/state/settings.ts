@@ -12,7 +12,7 @@ export interface Settings {
   damageColors: boolean;
   hintSeen: boolean;
   tutorialDone: boolean;
-  /** Ids of finished tutorial steps and one-time tips. */
+  /** Ids of finished tutorial steps and one-time tips, and `sys:<id>` for each system the profile has met (state/disclosure.ts). */
   tutorialSeen: string[];
   fullscreen: boolean;
   language: Lang;
