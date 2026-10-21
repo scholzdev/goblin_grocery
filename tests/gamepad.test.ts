@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEADZONE, clampLength, dpadVector, makeRepeater, mergeVectors, padMode, pickNext, pressedEdges, stickDir, stickVector } from '../src/input/pad-core';
+import { DEADZONE, clampLength, dpadVector, makeConfirmGate, makeRepeater, mergeVectors, padMode, pickNext, pressedEdges, stickDir, stickVector } from '../src/input/pad-core';
 
 describe('gamepad stick mapping', () => {
   it('ignores drift inside the deadzone', () => {
@@ -93,5 +93,24 @@ describe('what the pad drives', () => {
     expect(padMode('combat', true, false)).toBe('menu');
     expect(padMode('combat', true, true)).toBe('menu');
     expect(padMode('checkout', false, false)).toBe('combat');
+  });
+});
+
+describe('A right after the fight', () => {
+  it('confirms nothing for a moment when a pick dialog takes the pad, so a shove mash cannot take the first card', () => {
+    const gate = makeConfirmGate();
+    expect(gate('combat', 0)).toBe(true);
+    expect(gate('menu', 1000), 'the crates just opened').toBe(false);
+    expect(gate('menu', 1399)).toBe(false);
+    expect(gate('menu', 1400)).toBe(true);
+  });
+
+  it('holds back the shop the same way, and leaves menus that were not reached from the fight alone', () => {
+    const gate = makeConfirmGate();
+    expect(gate('menu', 0), 'title screen').toBe(true);
+    expect(gate('combat', 100)).toBe(true);
+    expect(gate('shop', 2000)).toBe(false);
+    expect(gate('shop', 2400)).toBe(true);
+    expect(gate('menu', 2500), 'shop to route screen').toBe(true);
   });
 });
