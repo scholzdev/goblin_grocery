@@ -38,14 +38,14 @@ export function damageBreakdownHtml(stats: Pick<RunStats, 'damageByWeapon' | 'da
   const stack = colors ? `<div class="dstack">${types.map((ty) => `<i style="flex:${d.byType[ty]};background:${ELEMENT_COLORS[ty]}" title="${esc(damageTypeName(ty))}"></i>`).join('')}</div>` : '';
   const legend = types.map((ty) => `<span class="dleg">${colors ? `<i style="background:${ELEMENT_COLORS[ty]}"></i>` : ''}${esc(damageTypeName(ty))} <b>${pct(d.byType[ty], total)}</b></span>`).join('');
   const reacted = REACTION_IDS.filter((r) => d.reactions[r] > 0);
-  const line = (label: string, v: string) => `<div class="line"><span>${label}</span><span>${v}</span></div>`;
+  const line = (label: string, v: string, cls = 'line') => `<div class="${cls}"><span>${label}</span><span>${v}</span></div>`;
   const lines = [
     d.dot > 0 && line(t('dmgShareDot'), pct(d.dot, total)),
     d.weak > 0 && line(t('dmgShareWeak'), pct(d.weak, total)),
     d.resisted > 0 && line(t('dmgShareResisted'), pct(d.resisted, total)),
     d.shred >= 0.5 && line(t('dmgBonusShred'), `+${fmtNum(Math.round(d.shred))}`),
     d.mark >= 0.5 && line(t('dmgBonusMark'), `+${fmtNum(Math.round(d.mark))}`),
-    reacted.length > 0 && line(t('dmgReactions'), `${reacted.map((r) => `${t(REACTION_TEXT[r].name)} \u00d7${d.reactions[r]}`).join(', ')}${d.byType.reaction >= 0.5 ? ` \u00b7 ${fmtNum(Math.round(d.byType.reaction))}` : ''}`),
+    reacted.length > 0 && line(t('dmgReactions'), `${reacted.map((r) => `${t(REACTION_TEXT[r].name)} \u00d7${d.reactions[r]}`).join(', ')}${d.byType.reaction >= 0.5 ? ` \u00b7 ${fmtNum(Math.round(d.byType.reaction))}` : ''}`, 'line rx'),
   ].filter(Boolean).join('');
   return `<hr class="dash"><div class="dmg">
     <div class="dh">${t('damageByItem')}</div>${bars}${more}
