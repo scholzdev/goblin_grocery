@@ -44,6 +44,12 @@ for (let r = 0; r < runs; r++) {
   while (Date.now() - t0 < 15 * 60_000) {
     const s = await st();
     if (s.phase === 'victory' || s.phase === 'defeat') { console.log(`run ${r}: ${s.phase} wave=${s.wave} hp=${s.hp} kills=${s.kills} ${s.rec} [${s.tiers}] time=${Math.round((Date.now() - t0) / 1000)}s`); finished = true; break; }
+    const card = page.locator('.stockroom [data-i="0"]'); // pick-one dialog (stockroom aisle, boss crates); the phase stays 'combat' until a pick
+    if (await card.isVisible()) {
+      console.log('  crate:', await card.locator('.nm').textContent());
+      await card.click();
+      continue;
+    }
     if (s.phase === 'route') {
       const doors = await page.$$('[data-act="door"]');
       let pick = doors[Math.floor(Math.random() * doors.length)];

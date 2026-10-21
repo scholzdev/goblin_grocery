@@ -1,12 +1,14 @@
 // Shared by every browser tool: resolve the game URL, starting a private Vite dev server on a free port when none is given.
 // `await devUrl(process.argv[2])` -> the argument if it is an http(s) URL, else $GG_URL, else a fresh dev server (stopped on process exit).
 import { spawn } from 'node:child_process';
+import { createRequire } from 'node:module';
 import { createServer } from 'node:net';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-const VITE = join(ROOT, 'node_modules', 'vite', 'bin', 'vite.js');
+// Node's lookup, not ROOT/node_modules: a nested git worktree has no node_modules of its own and resolves the main checkout's.
+const VITE = join(dirname(createRequire(join(ROOT, 'package.json')).resolve('vite/package.json')), 'bin', 'vite.js');
 
 export function freePort() {
   return new Promise((resolve, reject) => {
