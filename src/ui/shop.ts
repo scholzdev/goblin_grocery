@@ -20,12 +20,18 @@ import type { ShopPad } from '../input/gamepad';
 import { pickNext, type Dir } from '../input/pad-core';
 import { icons, setIcon } from './icons';
 import { strongVsHtml } from './affinity';
-import { t, fmtNum } from '../i18n';
+import { t, fmtNum, type UIKey } from '../i18n';
 import { itemRules, itemT, recipeT, setBonusT, star3Teaser, tagT } from '../i18n/data';
 import { lvOf, setCount as setCountOf, setGains, setWeight, setsOf, type SetCandidate } from '../data/sets';
 import { tierBoostOf } from '../engine/build';
 import { SET_ORDER, SET_THRESHOLDS, flavorOf } from '../engine/define';
-import type { Build, ItemInstance, ItemTypeId, RecipeId, Rotation, RunState, SetId, ShopOffer } from '../types';
+import type { Build, ItemInstance, ItemTypeId, RecipeId, Rotation, RunState, SetId, ShopOffer, WeaponPattern } from '../types';
+
+const TARGETS: Readonly<Record<WeaponPattern, UIKey>> = {
+  toast: 'tgtNearest', sweep: 'tgtNearest', cone: 'tgtNearest', burst: 'tgtSpread', ricochet: 'tgtBounce',
+  zap: 'tgtToughest', mortar: 'tgtCrowd', laser: 'tgtLine', popcorn: 'tgtRandom', tomato: 'tgtUnpoisoned',
+  pulse: 'tgtAround', aura: 'tgtAround', puddle: 'tgtFloor',
+};
 
 // Cell pitch in design pixels (cell + 4px gap). 92 for the 4×4 and 5×4 carts; shrinks so bigger carts fit the same 460×368 area.
 let CELL = 92;
@@ -429,6 +435,7 @@ export function inspectorHtml(type: ItemTypeId, uid: string | null, offer?: Shop
     const pat = ws?.pattern ?? wd!.pattern;
     const cnt = ws?.count ?? wd!.count ?? 1;
     body += `<div class="stats3">${tile(icons.burst(26), `${fmtNum(+dmg.toFixed(1))}${cnt > 1 ? ` ×${cnt}` : ''}`, t('statDamage'))}${tile(icons.stopwatch(26), `${fmtNum(cd.toFixed(2))} s`, t('statEvery'))}${tile(icons.crosshair(26), `${Math.round(rng)}`, t(pat === 'sweep' ? 'reachCap' : pat === 'pulse' || pat === 'aura' ? 'statRadius' : 'rangeCap'))}</div>`;
+    body += `<div class="kv tgt"><span>${esc(t('statTargets'))}</span><b>${esc(t(TARGETS[pat]))}</b></div>`;
   }
   const modRows = wd ? [] : tierScaling(type).slice(0, 3);
   if (modRows.length) body += `<div class="stats3">${modRows.map((r, i) => tile((MOD_ICONS[type]?.[i] ?? icons.burst)(26), r.values[tier - 1], r.label)).join('')}</div>`;
