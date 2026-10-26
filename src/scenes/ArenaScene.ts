@@ -20,6 +20,7 @@ import { hud, showBanner } from '../ui/hud';
 import { Fx, DEPTH } from './fx';
 import { combatRng, type Rng } from '../systems/rng';
 import { clampPoint, spreadPoint, type Pt } from '../systems/spread';
+import { HURT_FACE_GAP } from '../systems/enemyFrame';
 import { EMPTY_HOOKS, buildHooks, type HitEvent, type HitOpts, type HookTable } from '../engine/hooks';
 import { applyHitStatuses, scheduleEcho } from '../engine/onHitStatuses';
 import { applyKillEffects } from '../engine/onKillEffects';
@@ -739,6 +740,7 @@ export class ArenaScene extends Phaser.Scene {
         e.flashT = 0.06;
         if (e.def.behavior === 'boss') e.sprite.setTint(0xffb8ae); else e.sprite.setTintFill(0xffffff);
       }
+      if (now - e.hurtAt > HURT_FACE_GAP) e.hurtAt = now;
       this.fx.spark(e.x, e.y - 30, 3, armored ? 0xaab2c2 : (stats && this.arsenal.looks.get(stats.uid)?.hitSpark) ?? 0xffffff);
       if (armored) { this.fx.label(e.x, e.y - e.sprite.displayHeight - 10, lang() === 'de' ? '-Panzer' : '-armor', '#AAB2C2', 16); play('cap_ping', { rate: 0.7 }); }
       if (e.def.behavior === 'boss') play('boss_hit');

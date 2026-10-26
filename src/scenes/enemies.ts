@@ -4,6 +4,7 @@ import { bossTuning } from '../data/waves';
 import { store } from '../state/store';
 import type { EnemyDef, EnemyHitHow, EnemyId, HitSource } from '../types';
 import { cleanseAura, healTargets, newStatus, slowFactor, tickBurn, tickPoison, toughRegen, type StatusFx } from '../systems/combat';
+import { enemyTexture } from '../systems/enemyFrame';
 import { pushOutCircle } from '../systems/obstacles';
 import { lang, t } from '../i18n';
 import { play } from '../audio/sfx';
@@ -40,6 +41,8 @@ export interface Enemy {
   spots?: { x: number; y: number }[];
   lastHitNumberAt: number;
   lastFlashAt: number;
+  /** Scene time (s) of the last hurt-face trigger (systems/enemyFrame). */
+  hurtAt: number;
   critCoinDropped?: boolean;
   /** Price Check mark: takes extra damage from everything until this time (s). */
   markedUntil?: number;
@@ -88,9 +91,6 @@ export const pickAffix = (id: EnemyId, rng: () => number): EliteAffix => {
 
 // The enemies' own behavior numbers: their content `tune` (src/content/enemies/<id>.ts).
 const SPITTER = ENEMIES.spitter.tune, EGG_BLAST = ENEMIES.egg.tune, HONEY = ENEMIES.honey.tune, GIFTCARD = ENEMIES.giftcard.tune, EXPIRED = ENEMIES.expired.tune, GUM = ENEMIES.gum.tune, SANITIZER = ENEMIES.sanitizer.tune;
-const TELL_TEX: Partial<Record<EnemyId, string>> = { banana: 'enemy_banana_tell', spitter: 'enemy_spitter_tell', baguette: 'enemy_baguette_tell', egg: 'enemy_egg_tell', soda: 'enemy_soda_tell', turkey: 'enemy_turkey_tell' };
-const tellKey = (id: EnemyId): string | undefined => (isBossId(id) ? enemyFrame(id, 'tell') : TELL_TEX[id]);
-const frameKey = (id: EnemyId, f: 0 | 1) => enemyFrame(id, f ? 'b' : 'a');
 
 let nextId = 1;
 
@@ -108,14 +108,14 @@ export function createEnemy(scene: ArenaScene, id: EnemyId, x: number, y: number
   // `small` (Splitter copies): scale / HP of the base type; the def copy shrinks the hit radius too.
   const hp = mini ? Math.round(MINI_BOSS.hp * hpScale) : Math.max(1, Math.round(base.hp * hpScale * (elite ? ELITE.hpMult : 1) * (small ? AFFIX.splitter.hpMult : 1)));
   if (small) def.radius = base.radius * small;
-  const sprite = scene.add.image(x, y, frameKey(id, 0)).setOrigin(0.5, 0.95).setScale(0);
+  const sprite = scene.add.image(x, y, enemyFrame(id)).setOrigin(0.5, 0.95).setScale(0);
   const shadow = scene.add.image(x, y, 'shadow').setDepth(DEPTH.decal).setAlpha(0);
   shadow.setDisplaySize(def.radius * 2.6, def.radius * 0.9);
   const e: Enemy = {
     id: nextId++, def, sprite, shadow, x, y, kx: 0, ky: 0,
     hp, maxHp: hp, elite, affix, lastHitT: -99, loot: 0, trailT: 0, small, speed: def.speed * speedScale * (affix === 'swift' ? AFFIX.swift.speedMult : 1),
     status: newStatus(), state: 'spawn', stateT: 0.3, atkCd: def.attackCooldown * (0.4 + scene.rng() * 0.6),
-    dirX: 1, dirY: 0, flashT: 0, animT: Math.random(), facing: 1, alive: true, lastHitNumberAt: 0, lastFlashAt: 0,
+    dirX: 1, dirY: 0, flashT: 0, animT: Math.random(), facing: 1, alive: true, lastHitNumberAt: 0, lastFlashAt: 0, hurtAt: -99,
     auxT: id === 'expired' ? EXPIRED.interval * (0.5 + scene.rng() * 0.5) : id === 'honey' ? 0.5 : id === 'gum' ? 0.6 : id === 'sanitizer' ? SANITIZER.cleanseInterval : 0, tx: x, ty: y, linkT: 0,
   };
   if (mini) { e.mini = true; e.kit = mini.kit; }
@@ -280,9 +280,8 @@ export function updateEnemy(scene: ArenaScene, e: Enemy, dt: number, now: number
   // Visuals.
   const moving = Math.abs(mx) + Math.abs(my) > 0.1;
   e.animT += dt * (moving ? 7 * slow : 2);
-  const tellTex = tellKey(d.id);
   if (d.behavior === 'teleporter') e.sprite.setAlpha(e.state === 'tell' ? 0.3 + 0.4 * Math.abs(Math.sin(now * 28)) : 1);
-  const tex = (e.state === 'tell' || (e.state === 'attack' && d.behavior !== 'chase')) && tellTex ? tellTex : frameKey(d.id, (Math.floor(e.animT) % 2) as 0 | 1);
+  const tex = enemyTexture({ id: d.id, telling: e.state === 'tell' || (e.state === 'attack' && d.behavior !== 'chase'), now, hurtAt: e.hurtAt, step: (Math.floor(e.animT) % 2) as 0 | 1 });
   if (e.sprite.texture.key !== tex) e.sprite.setTexture(tex);
   const s = d.scale * (e.elite ? ELITE.scale : 1) * (e.small || 1) * (e.mini ? MINI_BOSS.scale : 1);
   const squash = e.state === 'tell' ? 0.06 * Math.sin(now * 40) : Math.sin(e.animT * Math.PI) * 0.035;
