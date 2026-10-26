@@ -150,7 +150,7 @@ const fist = (x, y, r, deg, col) =>
   rot(ell(x, y, r, r * 0.85, col, null, { sw: 2.6 }) +
     strokeD(`M${n(x - r * 0.5)} ${n(y - r * 0.55)}L${n(x - r * 0.5)} ${n(y - r * 0.1)}M${n(x)} ${n(y - r * 0.65)}L${n(x)} ${n(y - r * 0.15)}M${n(x + r * 0.5)} ${n(y - r * 0.55)}L${n(x + r * 0.5)} ${n(y - r * 0.1)}`, C.plum, 1.6) +
     ell(x - r * 0.85, y + r * 0.1, r * 0.32, r * 0.45, col, null, { sw: 2.2, attrs: `transform="rotate(-20 ${n(x - r * 0.85)} ${n(y + r * 0.1)})"` }), deg, x, y);
-// sneaker; (x, y) = bottom of the ankle, d = +1 toe right / -1 toe left, k scales it (not shoe(): that one is the goblin's)
+// sneaker; (x, y) = bottom of the ankle, d = +1 toe right / -1 toe left, k scales it (the goblin's own high-top is hiTop)
 const sneaker = (x, y, d = 1, col = C.coral, k = 1) => {
   const a = (v) => v * k;
   return shape(`M${n(x - a(5) * d)} ${n(y)}L${n(x - a(5) * d)} ${n(y - a(6))}Q${n(x)} ${n(y - a(9))} ${n(x + a(4) * d)} ${n(y - a(5))}Q${n(x + a(11) * d)} ${n(y - a(4))} ${n(x + a(11) * d)} ${n(y)}Z`, col, null, { sw: 2.4 }) +
@@ -177,72 +177,132 @@ const add = (key, fn) => { ASSETS[key] = fn; };
 // GOBLIN
 // =====================================================================================
 // skin palettes (K is read by the goblin/cart drawing functions at call time)
-const K0 = { skin: C.green, skinD: C.greenD, skinL: C.greenL, apron: C.cream, apronD: C.creamD, heart: C.coral, heartD: C.coralD, eye: C.gold,
+const K0 = { skin: C.green, skinD: C.greenD, skinL: C.greenL, apron: C.cream, apronD: C.creamD, heart: C.coral, heartD: C.coralD, heartL: C.coralL, eye: C.gold,
   cf: C.chrome, cfD: C.chromeD, cfL: C.chromeL, grip: C.coral, gripD: C.coralD, gripL: C.coralL, hub: C.lavL };
 let K = K0;
-const shoe = (x, y, deg = 0) =>
-  `<g transform="translate(${x} ${y}) rotate(${deg})">` +
-  shape([[-10, -6], [0, -9], [6, -8], [14, -1], [19, 3], [19, 7], [-10, 7]], C.coral, C.coralD, { sw: SWs + 0.5, dx: 2, dy: 3 }) +
-  shape([[-10, 3], [18, 2.5], [19, 7], [-10, 7]], C.cream, C.creamD, { sw: SWs, dx: 0, dy: 1.5 }) +
-  flat([[11, -2], [15, -1], [18.5, 2.5], [11, 2.5]], C.cream) +
-  line([[1, -5], [5, -3.5]], C.plum, 1.6) + line([[4, -7], [8, -4.5]], C.plum, 1.6) + `</g>`;
-const gLimb = (pts, w = 4.5) => tube(pts, w, K.skin, 1.8);
+// Every skin-coloured part reads the live K, so the skins recolour it; shorts, sneakers and outlines stay fixed.
+// The skull is one path in all three heads, so hats never float or clip whatever the mood does to face and ears.
+const SKULL = 'M46 15C65 14 78 28 78 45C78 61 67 72 51 73C30 74 15 63 15 44C15 27 28 16 46 15Z';
+
+// tapered brow: quadratic centre line (x0,y0) via (cx,cy) to (x1,y1), thickness t0 -> t1
+function gBrow(x0, y0, cx, cy, x1, y1, t0, t1) {
+  const up = [], dn = [];
+  for (let i = 0; i <= 12; i++) {
+    const u = i / 12, a = (1 - u) * (1 - u), b = 2 * (1 - u) * u, c = u * u;
+    const x = a * x0 + b * cx + c * x1, y = a * y0 + b * cy + c * y1;
+    let dx = 2 * (1 - u) * (cx - x0) + 2 * u * (x1 - cx), dy = 2 * (1 - u) * (cy - y0) + 2 * u * (y1 - cy);
+    const l = Math.hypot(dx, dy) || 1; dx /= l; dy /= l;
+    const th = ((t0 + (t1 - t0) * u) * (1 - 0.3 * (2 * u - 1) ** 2)) / 2;
+    up.push([x - dy * th, y + dx * th]); dn.push([x + dy * th, y - dx * th]);
+  }
+  return shape(up.concat(dn.reverse()), C.plum, null, { sw: 1.6 });
+}
+
+// tall oval eye with a gold iris, clipped to the sclera, and a top lid in the skin colour. o.lid 0..1 covered from the top, o.tilt in degrees
+function gEye(cx, cy, rx, ry, px = 0, py = 0, o = {}) {
+  const id = `c${++uid}`, ir = o.ir ?? rx * 0.95, pr = o.pr ?? rx * 0.5, el = `cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"`;
+  let s = `<clipPath id="${id}"><ellipse ${el}/></clipPath><ellipse ${el} fill="${C.white}"/><g clip-path="url(#${id})">` +
+    `<circle cx="${n(cx + px)}" cy="${n(cy + py)}" r="${n(ir)}" fill="${K.eye}"/><circle cx="${n(cx + px)}" cy="${n(cy + py)}" r="${n(pr)}" fill="${C.plum}"/>` +
+    `<circle cx="${n(cx + px - pr * 0.35)}" cy="${n(cy + py - pr * 0.45)}" r="${n(pr * 0.38)}" fill="${C.white}"/>`;
+  if (o.lid) {
+    const y0 = cy - ry + 2 * ry * o.lid;
+    s += rot(`<rect x="${n(cx - rx * 2)}" y="${n(cy - ry * 3)}" width="${n(rx * 4)}" height="${n(y0 - cy + ry * 3)}" fill="${K.skin}"/>` + line([[cx - rx * 2, y0], [cx + rx * 2, y0]], C.plum, 2.4), o.tilt || 0, cx, n(y0));
+  }
+  return s + `</g><ellipse ${el} fill="none" stroke="${C.plum}" stroke-width="2.4"/>`;
+}
+
+function gSkull() {
+  return clipTo(SKULL, `<rect x="0" y="0" width="96" height="80" fill="${K.skinD}"/><ellipse cx="50" cy="40" rx="31" ry="29" fill="${K.skin}"/>` +
+    `<ellipse cx="33" cy="27" rx="9" ry="4.2" fill="${K.skinL}" opacity=".85" transform="rotate(-28 33 27)"/><ellipse cx="35" cy="56" rx="4.6" ry="3" fill="${C.coralL}"/>`) + strokeD(SKULL, C.plum, SW);
+}
+
+const gNose = () =>
+  shape('M66 42C77 39 89 46 94.2 58C88 61 80 60.6 74 58C69 55.5 67.4 50 66 42Z', K.skin, null, { sw: 2.8 }) +
+  flat('M74 58C80 60.6 88 61 93.4 58.4C88 59.6 80 58.6 73 55.4Z', K.skinD) +
+  `<ellipse cx="82" cy="49" rx="4.6" ry="1.5" fill="${K.skinL}" opacity=".8" transform="rotate(28 82 49)"/><circle cx="83.6" cy="57" r="1.4" fill="${C.plum}"/>`;
+
+// ears as [attach top, tip, attach bottom] for the near (left) and far (right) ear
+const GEARS = {
+  idle: { near: [[28, 18], [2.5, 9], [19, 58]], far: [[46, 20], [91, 3], [76, 37]] },
+  hurt: { near: [[27, 20], [2.5, 52], [19, 44]], far: [[56, 17], [92, 35], [77, 42]] },
+  shove: { near: [[28, 19], [2.5, 30], [19, 54]], far: [[46, 20], [76, 3], [66, 28]] },
+};
+function gEars(mood) {
+  const { near, far } = GEARS[mood];
+  const tri = (p, fill) => shape(p, fill, null);
+  const inner = (p, k) => {
+    const cx = (p[0][0] + p[1][0] + p[2][0]) / 3, cy = (p[0][1] + p[1][1] + p[2][1]) / 3;
+    return `<path d="${D(p.map(([x, y]) => [cx + (x - cx) * k, cy + (y - cy) * k]))}" fill="${C.coralL}" stroke="${C.coralL}" stroke-width="2" stroke-linejoin="round"/>`;
+  };
+  return tri(far, K.skinD) + `<g opacity=".7">${inner(far, 0.5)}</g>` + tri(near, K.skin) + inner(near, 0.52);
+}
+
+function gHead(mood) {
+  let s = gEars(mood) + gSkull();
+  if (mood === 'hurt') {
+    s += strokeD('M40 36L51 42L40 48', C.plum, 3.4) + strokeD('M68 35L57 40.5L68 46', C.plum, 3.4);
+    s += gBrow(36, 33, 44, 29, 52, 25.5, 3, 4.4) + gBrow(58, 25.5, 65, 28, 70, 33, 4.4, 3);
+    s += shape('M47 59Q51 54 56 58Q61 54 66 58Q70 66 63 71Q56 74 51 70Q45 65 47 59Z', C.plum, null, { sw: 1.6 }) +
+      flat('M51 69Q56 63 63 68Q57 73 51 69Z', C.coral) + flat('M50 59.5Q54 57 56 59.5Q53 61.5 50 59.5Z', C.white);
+    s += drop(40, 50, 1.5) + drop(9, 30, 1.3);
+    return s + gNose();
+  }
+  if (mood === 'shove') {
+    s += gEye(45.5, 42, 6.5, 8.6, 1.6, 1.5, { lid: 0.5, tilt: 17, ir: 5.8, pr: 3 }) + gEye(62, 40.5, 6.1, 8.1, 1.6, 1.5, { lid: 0.5, tilt: -17, ir: 5.5, pr: 2.9 });
+    s += gBrow(34, 27, 44, 29, 56, 37, 3.4, 6) + gBrow(58, 36, 68, 27, 73, 24, 6, 3.4);
+    s += shape('M48 59Q58 56 68 57L69.5 66Q58 69 49.5 66Z', C.white, null, { sw: 2.4 }) + strokeD('M49 62.3L69 61.5', C.plum, 1.7) + strokeD('M54 58L54.6 67.6M59 57.4L59.4 68M64 57.2L64.4 67.2', C.plum, 1.5);
+    s += gNose();
+    return s + strokeD('M80 22L88 16', C.coral, 3.2) + strokeD('M84 31L93 28', C.coral, 3.2) + strokeD('M75 14L77 6', C.coral, 3.2);
+  }
+  s += gEye(45.5, 42, 6.5, 8.6, 1.8, 0.6, { lid: 0.3, tilt: 9 }) + gEye(62, 40.5, 6.1, 8.1, 1.8, 0.6, { lid: 0.3, tilt: -9, ir: 5.6, pr: 3 });
+  s += gBrow(35, 33, 45, 25.5, 55, 31, 3.4, 5.4) + gBrow(56, 30, 64, 20.5, 72, 29, 5.4, 3.4);
+  s += shape('M47 60Q57 63 68 57.5Q61 70 47 60Z', C.plum, null, { sw: 1.6 }) + flat('M51 64.6Q56 62.4 60 65Q56 68 51 64.6Z', C.coral) +
+    shape('M59.5 66.4L62.4 58.4L65.4 63.6Z', C.white, null, { sw: 1.6 });
+  return s + gNose();
+}
+add('goblin_head', () => gHead('idle'));
+add('goblin_head_hurt', () => gHead('hurt'));
+add('goblin_head_shove', () => gHead('shove'));
+
+// chunky high-top; (x, y) = ankle centre on the ground (bottom of the sole), toe points +x. deg tilts the shoe about (0, pivotY)
+const hiTop = (x, y, deg = 0, pivotY = 0) =>
+  `<g transform="translate(${x} ${y}) rotate(${deg} 0 ${pivotY})">` +
+  shape('M-8 -4L-8.6 -18Q-8.6 -19.6 -7 -19.6L3.6 -19.6Q5.4 -19.6 5.6 -17.8L6.6 -12.4Q10 -10.6 14 -10Q18 -9 18 -4Z', C.coral, null, { sw: 2.5 }) +
+  flat('M-7.4 -4L-7.9 -14Q-4 -12 -2 -4Z', C.coralD, 'opacity=".55"') +
+  shape('M-8.6 -19.6L5.4 -19.6L5.8 -15.6L-8.6 -15.6Z', C.cream, null, { sw: 2 }) +
+  shape('M10 -10Q17.4 -9.4 18 -4L10 -4Q11 -7.4 10 -10Z', C.white, null, { sw: 1.9 }) +
+  strokeD('M-0.5 -14.2L4.8 -13.4M-0.5 -11L5.6 -10.4', C.plum, 1.7) + dot(-3.6, -9.6, 2.6, C.white, 1.4) +
+  shape('M-9.6 -4L17.4 -4Q19.6 -4 19 -1.6Q18.4 0 16 0L-8 0Q-9.8 0 -9.8 -2Z', C.white, null, { sw: 2.2 }) + strokeD('M-8 -1.9L16 -1.9', C.lavL, 1) +
+  `</g>`;
+const gLeg = (d) => limb(d, K.skin, 8);
+// mitt() would bend the thumb here: ellPath rounds both arc endpoints, so they no longer span rx = 0.36r. Real <ellipse> elements keep it round
+const gMitt = (x, y, r, deg, col) =>
+  rot(`<ellipse cx="${n(x - r * 0.75)}" cy="${n(y - r * 0.45)}" rx="${n(r * 0.36)}" ry="${n(r * 0.55)}" fill="${col}" stroke="${C.plum}" stroke-width="2.2" transform="rotate(-30 ${n(x - r * 0.75)} ${n(y - r * 0.45)})"/>` +
+    `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${n(r * 0.9)}" fill="${col}" stroke="${C.plum}" stroke-width="2.4"/>`, deg, x, y);
 
 add('goblin_legs_a', () =>
-  gLimb([[32, 6], [23, 22], [17, 33]]) + shoe(17, 37, -8) +
-  gLimb([[32, 6], [39, 24], [41, 37]]) + shoe(41, 38, 0));
+  gLeg('M26 8Q22 19 18 26.5') + hiTop(18.5, 44.5) +
+  gLeg('M38 8Q42 19 44 26.5') + hiTop(45.5, 44.5));
 add('goblin_legs_b', () =>
-  gLimb([[32, 6], [35, 20], [41, 30]]) + shoe(41, 31, -14) +
-  gLimb([[32, 6], [31, 24], [30, 38]]) + shoe(29, 38, 0));
+  gLeg('M29 8L29 26.5') + hiTop(29.5, 44.5) +
+  gLeg('M37 8Q47 11 46 19') + hiTop(46, 37.5, -14, -10));
 
 add('goblin_torso', () =>
-  shape([[13, 6], [30, 3.5], [43, 8], [45, 28], [42, 40], [16, 41], [11, 24]], K.skin, K.skinD, { dx: 4, dy: 3 }) +
-  flat([[17, 8], [28, 5], [30, 8], [20, 12]], K.skinL, 'opacity=".8"') +
-  shape([[14, 36], [43, 34], [45, 50], [30, 52], [28, 44], [26, 52], [12, 50]], C.plum, null) +
-  flat([[16, 38], [26, 37], [25, 40]], C.plumSoft) +
-  shape([[19, 14], [37, 12], [40, 38], [18, 40]], K.apron, K.apronD, { dx: 3, dy: 3, sw: SWs + 0.5 }) +
-  shape('M28 35 L21 28 Q18 23 22 21 Q26 19 28 24 Q31 19 35 21 Q38 24 35 28 Z', K.heart, K.heartD, { sw: SWs, dx: 1.5, dy: 1.5 }) +
-  line([[19, 14], [15, 9]], C.plum, 2) + line([[37, 12], [39, 8]], C.plum, 2));
-
-function goblinHead(mood) {
-  const hurt = mood === 'hurt', shove = mood === 'shove';
-  // ears
-  const farEar = hurt ? [[56, 24], [70, 30], [82, 44]] : shove ? [[54, 24], [68, 28], [58, 6]] : [[50, 24], [70, 30], [78, 5]];
-  const nearEar = hurt ? [[24, 30], [28, 50], [4, 56]] : shove ? [[23, 28], [30, 52], [4, 36]] : [[23, 22], [30, 56], [4, 13]];
-  const nearIn = hurt ? [[23, 36], [26, 47], [9, 53]] : shove ? [[23, 35], [26, 45], [9, 36]] : [[23, 29], [27, 50], [10, 21]];
-  let s = shape(farEar, K.skinD, null) + shape(nearEar, K.skin, K.skinD, { dx: 3, dy: 3 }) + flat(nearIn, '#F7A08F');
-  s += shape([[20, 30], [34, 18], [56, 15], [68, 24], [72, 34], [80, 38], [91, 47], [80, 52], [71, 54], [67, 63], [56, 71], [38, 72], [23, 62], [16, 46]], K.skin, K.skinD, { dx: 4, dy: 4 });
-  s += flat([[28, 30], [38, 22], [52, 19], [44, 26]], K.skinL, 'opacity=".85"');
-  s += `<circle cx="83" cy="46" r="1.6" fill="${C.plum}"/><circle cx="44" cy="52" r="3.4" fill="#F7A08F" opacity=".85"/>`;
-  const slit = (x, y, k) => shape([[x - 9, y + 1], [x - 2, y - 7 * k], [x + 9, y - 4 * k], [x + 3, y + 7 * k]], K.eye, null, { sw: 2.2 }) + `<circle cx="${x + 3}" cy="${y}" r="3.6" fill="${C.plum}"/><circle cx="${x + 4}" cy="${y - 1.2}" r="1.2" fill="${C.cream}"/>`;
-  if (hurt) {
-    s += line([[39, 31], [52, 37], [40, 43]], C.plum, 3.2) + line([[69, 31], [58, 36], [68, 42]], C.plum, 3.2);
-    s += line([[36, 27], [48, 24]], C.plum, 3) + line([[60, 23], [72, 27]], C.plum, 3);
-    s += shape([[43, 52], [52, 49], [58, 53], [67, 50], [66, 61], [58, 66], [48, 64]], C.plum, null, { sw: 1.5 }) +
-      flat([[46, 52], [52, 50], [50, 55]], C.cream) + flat([[54, 64], [62, 62], [60, 58]], C.coral);
-    s += shape('M12 62 Q16 54 20 62 Q20 68 16 68 Q12 68 12 62Z', C.sky, null, { sw: SWs });
-  } else if (shove) {
-    s += slit(45, 40, 0.6) + slit(63, 38, 0.6);
-    s += brow(31, 24, 54, 37, 4.5) + brow(53, 25, 73, 35, 4.5);
-    s += shape(rect(38, 52, 32, 11), C.plum, null, { sw: 1.5 }) + flat(rect(40, 53.5, 28, 3.5), C.cream) + flat(rect(40, 58.5, 28, 3), C.cream);
-    for (let x = 46; x < 68; x += 7) s += line([[x, 53], [x, 62]], C.plum, 1.4);
-    s += line([[30, 14], [24, 8]], C.coral, 2.5) + line([[40, 11], [38, 4]], C.coral, 2.5);
-  } else {
-    s += slit(45, 40, 1) + slit(63, 38, 1);
-    s += brow(32, 28, 52, 35, 4) + brow(54, 25, 73, 31, 4);
-    s += shape([[34, 54], [54, 60], [76, 51], [71, 64], [54, 70], [38, 65]], C.plum, null, { sw: 1.5 }) +
-      flat([[40, 55.5], [47, 57.5], [44, 62]], C.cream) + flat([[58, 61], [66, 57], [67, 65]], C.cream) + flat([[44, 66], [54, 67], [50, 69.5]], C.coral);
-  }
-  return s;
-}
-add('goblin_head', () => goblinHead('idle'));
-add('goblin_head_hurt', () => goblinHead('hurt'));
-add('goblin_head_shove', () => goblinHead('shove'));
+  // neck: the head hides most of it, but it closes the gap while the head bobs
+  ell(30, 9, 7, 6, K.skin, null, { sw: 2.4 }) +
+  shape('M14 15Q13 7 23 6L35 6Q46 7 46 16L47 31Q48 41 44 45L16 45Q10 41 12 31Z', K.skin, null) +
+  flat('M13 31Q12 41 16.5 44.4L22 44.4Q14.5 40 14.4 29Z', K.skinD) +
+  shape('M13.5 39L45.5 38L47.5 51Q45 53 41 52.6L32 52.6L29.5 46L27 52.6L16 52.6Q12 53 11.5 51Z', C.lavD, null) +
+  flat('M14.5 41L18 41L17 51L14 51Z', C.lavL, 'opacity=".5"') + strokeD('M13 40.4L46 39.6', C.lavL, 1.6) +
+  strokeD('M19 15L16 8.5M38 14.4L40.5 8', C.plum, 2.2) +
+  shape('M19.5 15L37.5 14.2Q40.5 27 39.5 39.4Q29 43 19 39.4Q17.8 27 19.5 15Z', K.apron, null, { sw: 2.6 }) +
+  flat('M19 35.4Q29 39.2 39.5 35.4L39.6 38.6Q29 42 19 38.6Z', K.apronD) +
+  nudge(-1.8, 0, shape('M29 34C22 29.4 20.6 24.6 23.4 22.2C25.8 20.2 28.2 21.6 29 23.6C29.8 21.6 32.2 20.2 34.6 22.2C37.4 24.6 36 29.4 29 34Z', K.heart, null, { sw: 2.2 }) +
+    `<ellipse cx="25.2" cy="24" rx="1.6" ry="1" fill="${K.heartL}" transform="rotate(-35 25.2 24)"/>`));
 
 add('goblin_arm', () =>
-  shape([[3, 8], [27, 7], [32, 5], [39, 4], [44, 11], [41, 18], [32, 19], [3, 17]], K.skin, K.skinD, { dx: 2, dy: 3, sw: SWs + 0.5 }) +
-  shape([[26, 6], [32, 5], [32, 19], [26, 18]], C.cream, C.creamD, { dx: 1.5, dy: 2, sw: SWs }) +
-  line([[36, 8], [41, 9]], C.plum, 1.6) + line([[36, 12], [42, 12.5]], C.plum, 1.6) + flat([[6, 9.5], [24, 9], [24, 11]], K.skinL, 'opacity=".8"'));
+  limb('M5.5 12Q19 18 34 12.8', K.skin, 7) + `<circle cx="6.2" cy="12" r="2.3" fill="${K.skin}"/>` +
+  gMitt(39.6, 12, 6.6, 8, K.skin) + strokeD('M42.5 9.2Q44.6 12 42.5 14.8', C.plum, 1.5));
 
 // ---------- starter accessories (head ones: +32px headroom, drawn in goblin_head coords) ----------
 const onHead = (inner) => `<g transform="translate(0 32)">${inner}</g>`;
@@ -262,17 +322,18 @@ add('acc_apron', () =>
   line([[17, 14], [14, 8]], C.plum, 2) + line([[38, 12], [40, 7]], C.plum, 2) +
   shape(rect(21, 29, 15, 9), C.white, C.lavL, { sw: 1.6, dx: 1, dy: 1.5 }) +
   flat('M22 20 Q26 17 31 20 Q34 24 29 26 Q24 28 22 24Z', C.coral) + flat([[24, 20.5], [27, 19.5], [25, 22]], C.coralL) + `<circle cx="34" cy="28" r="1.6" fill="${C.coral}"/>`);
+// visor and headlamp sit higher than the old angular art: brim and band clear the new brows, lenses re-centred on the new eyes
 add('acc_visor', () => onHead(
-  shape([[28, 25], [60, 20], [88, 29], [84, 34], [32, 31]], C.green, C.greenD, { dx: 2, dy: 3, sw: SWs + 0.5 }) +
-  flat([[36, 25], [58, 22], [62, 24], [40, 27]], C.greenL, 'opacity=".8"') +
-  `<circle cx="45" cy="40" r="10" fill="${C.sky}" fill-opacity=".3" stroke="${C.plum}" stroke-width="2.4"/><circle cx="64" cy="38" r="10" fill="${C.sky}" fill-opacity=".3" stroke="${C.plum}" stroke-width="2.4"/>` +
-  line([[54, 39], [55, 38.5]], C.plum, 2.4) + line([[35, 40], [24, 38]], C.plum, 2.2) + flat([[40, 34], [46, 33], [41, 38]], C.white, 'opacity=".7"')));
-add('acc_headlamp', () => onHead(
-  flat([[66, 25], [96, 14], [96, 40]], C.gold, 'opacity=".28"') +
-  shape([[25, 31], [27, 14], [42, 5], [60, 8], [70, 22], [71, 31]], C.lavD, C.plumSoft, { dx: 3, dy: 3, sw: SWs + 0.5 }) +
-  shape([[24, 22], [71, 20], [73, 32], [25, 34]], C.plumSoft, C.plum, { dx: 2, dy: 3, sw: SWs + 0.5 }) +
-  [32, 40, 48, 56, 64].map((x) => line([[x, 23], [x + 1, 32]], C.plum, 1.3)).join('') +
-  shape(rect(61, 12, 13, 10), C.chrome, C.chromeD, { sw: SWs, dx: 1.5, dy: 2 }) + `<circle cx="73" cy="17" r="3.4" fill="${C.cream}" stroke="${C.gold}" stroke-width="1.6"/>`));
+  shape('M28 19L60 14L88 23L84 28L32 25Z', C.green, C.greenD, { dx: 2, dy: 3, sw: SWs + 0.5 }) +
+  flat('M36 19L58 16L62 18L40 21Z', C.greenL, 'opacity=".8"') +
+  `<ellipse cx="46" cy="42" rx="10" ry="11" fill="${C.sky}" fill-opacity=".3" stroke="${C.plum}" stroke-width="2.4"/><ellipse cx="63" cy="40.5" rx="9.6" ry="10.6" fill="${C.sky}" fill-opacity=".3" stroke="${C.plum}" stroke-width="2.4"/>` +
+  strokeD('M55.8 41.5L53.4 41.5', C.plum, 2.4) + strokeD('M36 42L26 40', C.plum, 2.2) + flat('M40 36L46 35L41 40Z', C.white, 'opacity=".7"')));
+add('acc_headlamp', () => onHead(nudge(0, -8,
+  flat('M66 25L96 14L96 40Z', C.gold, 'opacity=".28"') +
+  shape('M25 31L27 14L42 5L60 8L70 22L71 31Z', C.lavD, C.plumSoft, { dx: 3, dy: 3, sw: SWs + 0.5 }) +
+  shape('M24 22L71 20L73 32L25 34Z', C.plumSoft, C.plum, { dx: 2, dy: 3, sw: SWs + 0.5 }) +
+  [32, 40, 48, 56, 64].map((x) => strokeD(`M${x} 23L${x + 1} 32`, C.plum, 1.3)).join('') +
+  shape('M61 12L74 12L74 22L61 22Z', C.chrome, C.chromeD, { sw: SWs, dx: 1.5, dy: 2 }) + `<circle cx="73" cy="17" r="3.4" fill="${C.cream}" stroke="${C.gold}" stroke-width="1.6"/>`)));
 
 // =====================================================================================
 // CART
@@ -4037,24 +4098,33 @@ add('fx_echo', () => {
 const GSK = {
   night: { ...K0, skin: '#8E7BC4', skinD: '#6A5899', skinL: '#B5A6E0', apron: '#2E3F6B', apronD: '#1F2B4D', eye: '#FFE9A8' },
   frost: { ...K0, skin: '#A8DDF0', skinD: '#78B6D0', skinL: '#DDF5FF', apron: C.teal, apronD: C.tealD, eye: C.gold },
-  gold: { ...K0, skin: '#F5BD45', skinD: '#D08D20', skinL: '#FFE08A', apron: C.coral, apronD: C.coralD, heart: C.cream, heartD: C.creamD },
+  gold: { ...K0, skin: '#F5BD45', skinD: '#D08D20', skinL: '#FFE08A', apron: C.coral, apronD: C.coralD, heart: C.cream, heartD: C.creamD, heartL: C.white },
 };
 const CSK = {
   coral: { ...K0, cf: C.coral, cfD: C.coralD, cfL: '#FBC3B7', grip: C.cream, gripD: C.creamD, gripL: C.white, hub: C.cream },
   gold: { ...K0, cf: C.gold, cfD: C.goldD, cfL: '#FFE08A', grip: C.plumSoft, gripD: C.plum, gripL: C.lav, hub: C.gold },
 };
+// skin marks, drawn over the base art. Head marks stay on the skull (back of the head and crown, above the brows), clear of the face and of
+// the ears, which move with the mood. Torso marks sit inside the body outline; nothing changes a silhouette
 const gDeco = (key, skin) => {
   const head = key.startsWith('goblin_head');
-  if (skin === 'night' && key === 'goblin_head') return line([[37, 47], [51, 50]], C.plumSoft, 2.2, 'opacity=".8"') + line([[56, 45], [68, 47]], C.plumSoft, 2.2, 'opacity=".8"');
+  const shine = (d, w, o) => `<g opacity="${o}">${strokeD(d, '#FFF2D5', w)}</g>`;
+  if (skin === 'night' && head) // the purple palette carries the night; star sparks replace the old brow lines, which the thick brows made pointless
+    return [[24, 39, 4.4], [28, 51, 3], [42, 21, 2.4]].map(([x, y, r]) => flat(star(x, y, r, r * 0.3, 4), '#FFE9A8')).join('');
   if (skin === 'frost') {
-    if (head) return [[84, 46, 1.6], [77, 44, 1.3], [60, 22, 1.4], [44, 20, 1.2], [30, 33, 1.3]].concat(key === 'goblin_head_hurt' ? [] : [[12, 22, 1.5], [18, 30, 1.2], [76, 8, 1.4], [72, 14, 1]]).map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" opacity=".95"/>`).join('') + line([[78, 50], [84, 49]], '#fff', 1.4, 'opacity=".9"');
-    if (key === 'goblin_torso') return shape([[9, 11], [46, 9], [48, 19], [10, 21]], '#E8F9FF', '#A9DDF0', { sw: SWs + 0.5, dx: 0, dy: 3 }) + flat([[16, 11.5], [21, 11], [22, 20], [17, 20.5]], C.sky, 'opacity=".8"') + flat([[30, 10.5], [35, 10], [36, 19.5], [31, 20]], C.sky, 'opacity=".8"') + shape([[34, 20], [44, 20], [42, 34], [33, 32]], '#E8F9FF', '#A9DDF0', { sw: SWs, dx: 2, dy: 2 });
+    if (head) return snowflake(25, 42, 4.6, '#fff', 1.2) + [[23.2, 31.5, 1.3], [38, 20.8, 1.2], [48, 20.2, 1.3], [21, 53, 1.2], [28, 59, 1]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" opacity=".95"/>`).join('');
+    if (key === 'goblin_torso') { // scarf around the shoulders; the end hangs over the back (left) side of the apron
+      const band = 'M15.6 14.2Q30 17 44.4 13.6L44.8 20.4Q30 22.6 14.9 20.6Z';
+      return shape(band, '#E8F9FF', '#A9DDF0', { sw: SWs + 0.5, dx: 0, dy: 3 }) +
+        clipTo(band, flat('M19 13L23.6 13.4L22.6 22L18 21.6Z', C.sky, 'opacity=".8"') + flat('M34 14L38.6 14L38 22L33.4 22Z', C.sky, 'opacity=".8"')) +
+        shape('M15.2 20.2L19.8 20.8L19.2 31.6L14.4 30.8Z', '#E8F9FF', '#A9DDF0', { sw: SWs, dx: 2, dy: 2 }) + flat('M15.2 25L19.4 25.4L19.3 27.4L15 27Z', C.sky, 'opacity=".8"');
+    }
   }
   if (skin === 'gold') {
-    if (head) return flat([[26, 29], [38, 20], [52, 17], [57, 20], [44, 24], [32, 33]], '#FFF2D5', 'opacity=".9"');
-    if (key === 'goblin_torso') return shape(star(24, 23, 5.6, 2.4, 5), '#FFE08A', null, { sw: 1.5 }) + flat([[14, 8], [20, 7], [14, 33]], '#FFF2D5', 'opacity=".6"');
-    if (key === 'goblin_arm') return flat([[6, 9], [24, 8.5], [24, 10.5], [6, 11]], '#FFF2D5', 'opacity=".7"');
-    return flat([[28, 8], [31, 8], [24, 24]], '#FFF2D5', 'opacity=".5"');
+    if (head) return flat('M22.5 36Q22.5 28 29.5 22.8Q37 19.4 50 19.2L51 21.4Q40 22.4 32.5 27.2Q28.5 30.4 28.5 36Z', '#FFF2D5', 'opacity=".9"');
+    if (key === 'goblin_torso') return shape(star(37.6, 45.4, 4.4, 1.9, 5), '#FFE08A', null, { sw: 1.5 }) + shine('M15.8 19Q15.4 26 15.6 31', 1.1, 0.7);
+    if (key === 'goblin_arm') return shine('M9 11.2Q19 16 30 11.4', 1.2, 0.7);
+    return shine(key === 'goblin_legs_a' ? 'M24.2 13Q21.6 18 19 22.6' : 'M27.4 13L27.4 22.6', 1.3, 0.6);
   }
   return '';
 };
