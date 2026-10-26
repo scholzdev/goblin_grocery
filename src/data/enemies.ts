@@ -31,14 +31,16 @@ const defOf = (c: EnemyContent): EnemyDef => ({
 /** Every enemy, in `ENEMY_ORDER` (engine/define). */
 export const ENEMIES: Record<EnemyId, EnemyDef> = Object.fromEntries(ENEMY_ORDER.map((id) => [id, defOf(content(id))])) as Record<EnemyId, EnemyDef>;
 
-/** Boss ids (a final boss per theme): behavior 'boss' + a kit; the sprite keys are `${id}_a|b|tell`. */
+/** Boss ids (a final boss per theme): behavior 'boss' + a kit; the sprite keys are `${id}_a|b|tell` (plus `${id}_hurt` where the manifest has it). */
 export const BOSS_IDS: EnemyId[] = ENEMY_ORDER.filter((id) => content(id).behavior === 'boss');
 export const isBossId = (id: EnemyId): boolean => BOSS_IDS.includes(id);
 export const BOSS_BY_THEME: Record<string, EnemyId> = Object.fromEntries(BOSS_IDS.map((id) => [content(id).boss!.theme, id]));
 /** The final boss of a run theme (Manager if unknown). */
 export const bossFor = (theme: DepartmentId): EnemyId => BOSS_BY_THEME[theme] ?? 'boss';
-/** Sprite texture key of any enemy (bosses use `boss_*`, the rest `enemy_*`); f = a | b | tell. */
-export const enemyFrame = (id: EnemyId, f: 'a' | 'b' | 'tell' = 'a'): string => (isBossId(id) ? `${id}_${f}` : `enemy_${id}_${f}`);
+/** a | b: the walk cycle; tell: winding up or attacking; hurt: the face shown briefly after a hit. Only a and b exist for every enemy (see systems/enemyFrame). */
+export type EnemyFrame = 'a' | 'b' | 'tell' | 'hurt';
+/** Sprite texture key of any enemy (bosses use `boss_*`, the rest `enemy_*`). */
+export const enemyFrame = (id: EnemyId, f: EnemyFrame = 'a'): string => (isBossId(id) ? `${id}_${f}` : `enemy_${id}_${f}`);
 
 /** Each boss's move set (from its content file). */
 export const BOSS_KITS: Record<string, BossKit> = Object.fromEntries(BOSS_IDS.map((id) => [id, content(id).boss!.kit]));

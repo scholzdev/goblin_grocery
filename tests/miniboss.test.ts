@@ -74,11 +74,11 @@ describe('per-theme final bosses', () => {
     }
   });
 
-  it('every boss has a/b/tell sprites registered, EN + DE names and blurbs, and bark lines for each move', () => {
+  it('every boss has a/b/tell/hurt sprites registered, EN + DE names and blurbs, and bark lines for each move', () => {
     const keys = new Set(SVG_ASSETS.map((a) => a.key));
     const names = new Set<string>();
     for (const id of BOSS_IDS) {
-      for (const f of ['a', 'b', 'tell'] as const) expect(keys.has(enemyFrame(id, f)), `${id} ${f}`).toBe(true);
+      for (const f of ['a', 'b', 'tell', 'hurt'] as const) expect(keys.has(enemyFrame(id, f)), `${id} ${f}`).toBe(true);
       expect(ENEMIES[id].name && ENEMIES[id].blurb, id).toBeTruthy();
       setLang('de');
       expect(enemyT(id).name && enemyT(id).blurb, id + ' de').toBeTruthy();

@@ -30,6 +30,7 @@ const C = {
   bread: '#D9954A', breadD: '#B86F2D', breadL: '#EDB870',
   soda: '#E2473F', sodaD: '#B1302D', chrome: '#D9DDE6', chromeD: '#9AA3B5', chromeL: '#F2F4F8',
   frost: '#CFF3FF', frostD: '#8CCDE6',
+  pink: '#FF8FC0', pinkD: '#D45A92', pinkL: '#FFC2DD',
 };
 const SW = 3, SWs = 2, SWi = 5;
 
@@ -107,28 +108,64 @@ const can = (cx, top, w, h, body, shade, band, o = {}) => {
     `<ellipse cx="${n(cx)}" cy="${n(top)}" rx="${n(w * 0.26)}" ry="${n(ry * 0.5)}" fill="none" stroke="${C.chromeD}" stroke-width="1.2"/>`;
 };
 
-// ---------- faces for cursed groceries ----------
-const eye = (x, y, r = 5, px = 1, col = C.cream) =>
-  `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${n(r * 0.85)}" fill="${col}" stroke="${C.plum}" stroke-width="2"/><circle cx="${x + px}" cy="${y + 0.5}" r="${n(r * 0.45)}" fill="${C.plum}"/>`;
 const brow = (x1, y1, x2, y2, w = 3.5) => line([[x1, y1], [x2, y2]], C.plum, w).replace('round"', 'butt"');
-function mouth(cx, cy, w, h, teeth = 3) {
-  let s = shape([[cx - w / 2, cy], [cx + w / 2, cy - 1], [cx + w * 0.4, cy + h * 0.7], [cx, cy + h], [cx - w * 0.42, cy + h * 0.65]], C.plum, null, { sw: 1.5 });
-  const tw = w / teeth;
-  for (let i = 0; i < teeth; i++) {
-    const x = cx - w / 2 + (i + 0.5) * tw;
-    s += flat([[x - tw * 0.4, cy + 0.5], [x + tw * 0.4, cy], [x + (i % 2 ? 0.8 : -0.8), cy + h * 0.5]], C.cream);
+// ---------- food-limbed parts (noodle limbs in the body's own colour, mitten hands, nub feet) ----------
+// stroke an SVG path string (line() takes points)
+const strokeD = (d, col, w) => `<path d="${d}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+// noodle limb: plum outline with a body-coloured core
+const limb = (d, col, w = 6) => strokeD(d, C.plum, w) + strokeD(d, col, n(w - 3.2));
+// mitten hand: palm plus a thumb, in the body colour
+const mitt = (x, y, r, deg, col) =>
+  rot(ell(x - r * 0.75, y - r * 0.45, r * 0.36, r * 0.55, col, null, { sw: 2.2, attrs: `transform="rotate(-30 ${n(x - r * 0.75)} ${n(y - r * 0.45)})"` }) +
+    ell(x, y, r, r * 0.9, col, null, { sw: 2.4 }), deg, x, y);
+// rounded foot nub; d = +1 toe right, -1 toe left
+const nub = (x, y, d, col, k = 1) =>
+  shape(`M${n(x - 4 * k * d)} ${n(y)}Q${n(x - 4 * k * d)} ${n(y - 6 * k)} ${n(x + 2 * k * d)} ${n(y - 6 * k)}Q${n(x + 9 * k * d)} ${n(y - 6 * k)} ${n(x + 9 * k * d)} ${n(y)}Z`, col, null, { sw: 2.4 });
+// tall oval eye clipped to its sclera, so the pupil can sit at the rim. o.lid / o.bl = top / bottom lid 0..1,
+// o.tilt = top lid rotation in degrees, o.lc = lid colour (the surface behind the eye)
+function ovalEye(cx, cy, rx, ry, px = 0, py = 0, o = {}) {
+  const id = `c${++uid}`, pr = o.pr ?? rx * 0.55, wide = rx * 2;
+  const el = `cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"`;
+  let s = `<clipPath id="${id}"><ellipse ${el}/></clipPath><ellipse ${el} fill="${o.sclera ?? C.white}"/><g clip-path="url(#${id})">` +
+    `<circle cx="${n(cx + px)}" cy="${n(cy + py)}" r="${n(pr)}" fill="${C.plum}"/><circle cx="${n(cx + px - pr * 0.3)}" cy="${n(cy + py - pr * 0.4)}" r="${n(pr * 0.35)}" fill="${C.white}"/>`;
+  if (o.lid) {
+    const y0 = cy - ry + 2 * ry * o.lid;
+    s += rot(`<rect x="${n(cx - wide)}" y="${n(cy - ry * 3)}" width="${n(wide * 2)}" height="${n(y0 - cy + ry * 3)}" fill="${o.lc}"/>` + line([[cx - wide, y0], [cx + wide, y0]], C.plum, 2.4), o.tilt || 0, cx, n(y0));
   }
-  s += flat([[cx - w * 0.14, cy + h * 0.98], [cx + w * 0.14, cy + h * 0.98], [cx, cy + h * 0.58]], C.cream);
+  if (o.bl) {
+    const y1 = cy + ry - 2 * ry * o.bl;
+    s += `<rect x="${n(cx - wide)}" y="${n(y1)}" width="${n(wide * 2)}" height="${n(ry * 3)}" fill="${o.lc}"/>` + line([[cx - wide, y1], [cx + wide, y1]], C.plum, 1.8);
+  }
+  return s + `</g><ellipse ${el} fill="none" stroke="${C.plum}" stroke-width="${o.sw ?? 2.4}"/>`;
+}
+
+// spiral for a dizzy eye (draw over a white eye)
+const spiral = (cx, cy, k = 1) =>
+  strokeD(`M${n(cx + k)} ${n(cy)}a${n(k)} ${n(k)} 0 1 0 ${n(-2 * k)} 0a${n(2 * k)} ${n(2 * k)} 0 1 0 ${n(4 * k)} 0a${n(3 * k)} ${n(3 * k)} 0 1 0 ${n(-6 * k)} 0a${n(4 * k)} ${n(4 * k)} 0 1 0 ${n(8 * k)} 0`, C.plum, 1.8);
+// sweat drop pointing up at (x, y); narrower than sweat() and recolourable
+const drop = (x, y, s = 1, col = C.sky) =>
+  shape(`M${n(x)} ${n(y)}Q${n(x + 3 * s)} ${n(y + 5 * s)} ${n(x)} ${n(y + 7 * s)}Q${n(x - 3 * s)} ${n(y + 5 * s)} ${n(x)} ${n(y)}Z`, col, null, { sw: 1.8 });
+// big fist (brute style): knuckle bumps on top and a thumb, rotated by deg about its centre
+const fist = (x, y, r, deg, col) =>
+  rot(ell(x, y, r, r * 0.85, col, null, { sw: 2.6 }) +
+    strokeD(`M${n(x - r * 0.5)} ${n(y - r * 0.55)}L${n(x - r * 0.5)} ${n(y - r * 0.1)}M${n(x)} ${n(y - r * 0.65)}L${n(x)} ${n(y - r * 0.15)}M${n(x + r * 0.5)} ${n(y - r * 0.55)}L${n(x + r * 0.5)} ${n(y - r * 0.1)}`, C.plum, 1.6) +
+    ell(x - r * 0.85, y + r * 0.1, r * 0.32, r * 0.45, col, null, { sw: 2.2, attrs: `transform="rotate(-20 ${n(x - r * 0.85)} ${n(y + r * 0.1)})"` }), deg, x, y);
+// sneaker; (x, y) = bottom of the ankle, d = +1 toe right / -1 toe left, k scales it (not shoe(): that one is the goblin's)
+const sneaker = (x, y, d = 1, col = C.coral, k = 1) => {
+  const a = (v) => v * k;
+  return shape(`M${n(x - a(5) * d)} ${n(y)}L${n(x - a(5) * d)} ${n(y - a(6))}Q${n(x)} ${n(y - a(9))} ${n(x + a(4) * d)} ${n(y - a(5))}Q${n(x + a(11) * d)} ${n(y - a(4))} ${n(x + a(11) * d)} ${n(y)}Z`, col, null, { sw: 2.4 }) +
+    shape([[x - a(6) * d, y], [x + a(12) * d, y], [x + a(12) * d, y + a(3)], [x - a(6) * d, y + a(3)]], C.white, null, { sw: 2.2 });
+};
+// row of k square teeth inside a box
+const teethRow = (x, y, w, h, k = 4, col = C.white) => {
+  let s = shape(rect(x, y, w, h), col, null, { sw: 2.2 });
+  for (let i = 1; i < k; i++) s += line([[x + (w * i) / k, y], [x + (w * i) / k, y + h]], C.plum, 1.5);
   return s;
-}
-// angry face: eyes + slanted brows + toothy mouth. s = scale, anger = brow tilt
-function face(cx, cy, s = 1, o = {}) {
-  const g = (o.gap ?? 7) * s, t = (o.tilt ?? 5) * s, ec = o.eyeCol ?? C.cream;
-  return eye(cx - g, cy, 4.6 * s, 1.2 * s, ec) + eye(cx + g, cy, 4.6 * s, -1.2 * s, ec) +
-    brow(cx - g - 6 * s, cy - 5.5 * s - t * 0.6, cx - g + 4 * s, cy - 5 * s + t * 0.9) +
-    brow(cx + g + 6 * s, cy - 5.5 * s - t * 0.6, cx + g - 4 * s, cy - 5 * s + t * 0.9) +
-    mouth(cx, cy + (o.my ?? 8) * s, (o.mw ?? 16) * s, (o.mh ?? 9) * s, o.teeth ?? 4);
-}
+};
+// plum teardrop seed shared by the melon and its slice; tip points up before deg
+const melonSeed = (x, y, deg = 0, s = 1, col = C.plum) =>
+  flat('M0 -3.4Q2.8 .6 0 3.6Q-2.8 .6 0 -3.4Z', col, `transform="translate(${n(x)} ${n(y)}) rotate(${deg}) scale(${s})"`);
+
 const spark = (cx, cy, r, col = C.coral) =>
   shape(star(cx, cy, r, r * 0.42, 6, -80), col, null, { sw: SWs }) + flat(star(cx, cy, r * 0.5, r * 0.22, 6, -80), C.cream);
 
@@ -281,584 +318,1984 @@ add('shadow', () => shadowE(64, 20, 61, 17.5));
 // ENEMIES
 // =====================================================================================
 function milk(f) {
-  const a = f === 'a', sq = a ? [1.02, 0.97] : [0.98, 1.03], gy = 91;
-  const legs = a ? stick([[24, 76], [18, 84], [14, 90]], 3.5, 6) + stick([[43, 76], [47, 83], [53, 90]], 3.5, 6)
-    : stick([[24, 76], [27, 84], [26, 90]], 3.5, 6) + stick([[43, 76], [40, 82], [44, 89]], 3.5, 6);
-  const arms = a ? stick([[12, 50], [7, 55], [5, 47]], 3.5) + stick([[57, 48], [63, 42], [67, 48]], 3.5)
-    : stick([[12, 50], [7, 44], [5, 52]], 3.5) + stick([[57, 48], [63, 52], [67, 44]], 3.5);
-  let b = '';
-  b += shape([[16, 20], [44, 20], [48, 34], [12, 34]], C.cream, C.creamD, { dx: 2, dy: 3 }); // sloped roof
-  b += shape([[44, 20], [54, 17], [58, 30], [48, 34]], C.creamD, C.lav, { dx: 1, dy: 3 });
-  b += shape([[17, 11], [42, 10], [43, 21], [16, 21]], C.blue, C.blueD, { dx: 2, dy: 2 }); // top fin
-  b += line([[22, 12], [22, 20]], C.plum, 1.6) + line([[28, 12], [28, 20]], C.plum, 1.6) + line([[34, 12], [34, 20]], C.plum, 1.6);
-  b += shape([[48, 34], [58, 30], [58, 74], [48, 79]], C.creamD, C.lav, { dx: 2, dy: 0 });
-  b += shape([[12, 34], [48, 34], [48, 79], [12, 77]], C.cream, C.creamD, { dx: 4, dy: 3 });
-  b += shape([[12, 66], [48, 67], [48, 79], [12, 77]], C.blue, C.blueD, { dx: 4, dy: 2 });
-  b += flat([[22, 68], [36, 69], [30, 77]], C.cream) + flat([[40, 69], [46, 69], [46, 75]], C.cream);
-  b += flat([[16, 38], [22, 37], [16, 46]], C.blue, 'opacity=".5"');
-  b += face(30, 49, 1, { mw: 18, mh: 10, my: 8 });
-  return `${legs}${squash(36, gy, sq[0], sq[1], b)}${arms}`;
+  if (f !== 'a' && f !== 'b' && f !== 'hurt') throw new Error(`milk: unknown frame "${f}"`);
+  const W = C.white, cr = C.cream, pl = C.plum, a = f === 'a';
+  const limbS = (d, col) => limb(d, col, 5.6);
+  const caneArt = (d, wo, wi, dash) => strokeD(d, pl, wo) + strokeD(d, C.coral, wi) + `<path d="${d}" fill="none" stroke="${W}" stroke-width="${wi}" stroke-dasharray="${dash} ${dash}"/>`;
+  const browL = 'M14 38Q15 33 19 35Q21 31 25 34Q28 32 30 36Q24 38 14 38Z', browR = 'M47 38Q46 33 42 35Q40 31 36 34Q33 32 31 36Q37 38 47 38Z';
+  const carton = shape('M17 11L42 10L43 21L16 21Z', C.blue, null) + strokeD('M22 12L22 20', pl, 1.6) + strokeD('M28 12L28 20', pl, 1.6) + strokeD('M34 12L34 20', pl, 1.6) +
+    shape('M44 21L54 18L58 30L48 33Z', C.creamD, null) + shape('M16 21L44 21L48 33L12 33Z', cr, null) +
+    shape('M48 33L58 30L58 74L48 79Z', C.creamD, null) + shape('M12 33L48 33L48 79L12 77Z', cr, null) + shape('M12 68L48 69L48 79L12 77Z', C.blue, null);
+  if (f === 'hurt') {
+    // leaning back and squashed, eyes squeezed, "ow" mouth, glasses cracked and knocked askew, cane tumbling away
+    let b = '';
+    b += limbS('M24 77L21 87', cr) + limbS('M40 78L45 85', cr) + nub(20, 91, -1, C.lav) + nub(46, 89, 1, C.lav);
+    b += limbS('M13 50Q10 45 13 38', cr) + mitt(13, 35, 4.5, 25, cr);
+    b += carton;
+    b += `<g transform="translate(0 -5) rotate(-15 22 36)">${shape(browL, W, null, { sw: 2 })}</g><g transform="translate(0 -5) rotate(15 39 36)">${shape(browR, W, null, { sw: 2 })}</g>`;
+    b += strokeD('M19 43L28 48.5L19 54', pl, 3.6) + strokeD('M42 43L33 48.5L42 54', pl, 3.6);
+    b += `<g transform="translate(2 -12) rotate(-20 30.5 46)"><circle cx="23" cy="46" r="7.5" fill="${C.sky}" fill-opacity=".22" stroke="${pl}" stroke-width="2.2"/><circle cx="38" cy="46" r="7.5" fill="${C.sky}" fill-opacity=".22" stroke="${pl}" stroke-width="2.2"/>${strokeD('M15.5 45L10 41', pl, 1.8)}${strokeD('M45.5 45L51 43', pl, 1.8)}${strokeD('M20 42L24 46.5L21 51', pl, 1.3)}${strokeD('M33 42L35 40', W, 1.4)}</g>`;
+    b += shape('M22 62Q26 57 30 61Q34 57 38 62Q42 69 37 72Q31 75 25 72Q19 69 22 62Z', pl, null, { sw: 2 }) + flat('M26 69Q31 65 36 69Q34 73 31 73Q28 73 26 69Z', C.coralL);
+    b += limbS('M57 54Q64 50 63 42', cr) + mitt(63, 39, 4.5, -25, cr);
+    let fx = `<g transform="translate(51 13) rotate(105) scale(.58) translate(-62 -68)">${caneArt('M66 92L66 50Q66 43 61 43Q57 43 57 47', 6.5, 3.4, 3.5)}</g>`;
+    fx += strokeD('M61 6L68 4', C.lav, 1.8) + strokeD('M60 22L68 22', C.lav, 1.8) + strokeD('M31 5L37 3', C.lav, 1.8);
+    fx += shape(star(8, 12, 5, 2.2, 5), C.gold, null, { sw: 1.6 }) + shape(star(66, 28, 4, 1.8, 5), C.gold, null, { sw: 1.6 });
+    fx += drop(6, 60, 1) + drop(64, 62, 0.9);
+    // translate(3 -3.7): the lean pushes the planted left toe 2.5 below its nub, this brings its outline back onto the 91.2 ground line
+    return `<g transform="translate(3 -3.7) rotate(-8 30 91)"><g transform="translate(30 91) scale(1.05 .94) translate(-30 -91)">${b}</g></g>${fx}`;
+  }
+  // a = standing, b = walk partner: left foot lifted, body bobbed up, free arm swung up, cane lifted with the body.
+  // The cane stops level with the feet and the whole figure drops -1 so the foot outlines sit on the 91.2 ground line.
+  const legs = a ? limbS('M24 77L23 87', cr) + limbS('M40 78L41 87', cr) + nub(22, 91, -1, C.lav) + nub(42, 91, 1, C.lav)
+    : limbS('M24 74L19 83', cr) + limbS('M40 74L41 87', cr) + nub(18, 88, -1, C.lav) + nub(42, 91, 1, C.lav);
+  let up = strokeD('M50 9l3 -4l2 4l3 -4l2 4', pl, 1.8);
+  up += a ? limbS('M13 50Q5 56 9 63', cr) + mitt(10, 65, 4.5, 10, cr) : limbS('M13 50Q7 51 8 57', cr) + mitt(8.5, 59, 4.5, 0, cr);
+  up += carton;
+  up += ovalEye(23, 46, 4.6, 5, 1.2, 1, { lid: 0.5, tilt: 8, lc: C.creamD }) + ovalEye(38, 46, 4.6, 5, -1.2, 1, { lid: 0.5, tilt: -8, lc: C.creamD });
+  up += `<circle cx="23" cy="46" r="7.5" fill="${C.sky}" fill-opacity=".22" stroke="${pl}" stroke-width="2"/><circle cx="38" cy="46" r="7.5" fill="${C.sky}" fill-opacity=".22" stroke="${pl}" stroke-width="2"/>` +
+    strokeD('M15.5 45L12 43', pl, 1.6) + strokeD('M45.5 45L48 43', pl, 1.6) + strokeD('M18 42L20 40', W, 1.4) + strokeD('M33 42L35 40', W, 1.4);
+  up += shape(browL, W, null, { sw: 2 }) + shape(browR, W, null, { sw: 2 });
+  up += strokeD('M19 57Q23 59 27 57', pl, 1.3) + strokeD('M34 57Q38 59 42 57', pl, 1.3);
+  up += shape('M23 64Q31 57 39 64Q31 61.5 23 64Z', pl, null, { sw: 2 }) + strokeD('M28 67.5Q31 66 34 67.5', pl, 1.4);
+  const prop = caneArt('M66 89.5L66 50Q66 43 61 43Q57 43 57 47', 5.5, 2.8, 3) + limbS('M58 54Q63 56 65 52', cr) + mitt(66, 52, 4.5, -10, cr);
+  const bob = (dy, inner) => `<g transform="translate(0 ${dy})">${inner}</g>`;
+  return `<g transform="translate(0 -1)">${legs}${a ? up + prop : bob(-1.5, up + bob(-1.5, prop))}</g>`;
 }
 add('enemy_milk_a', () => milk('a'));
 add('enemy_milk_b', () => milk('b'));
+add('enemy_milk_hurt', () => milk('hurt'));
 
 function banana(f) {
-  const tell = f === 'tell', a = f === 'a';
-  let body = '';
-  const flapL = tell ? [[28, 56], [14, 62], [8, 72], [24, 66]] : a ? [[28, 50], [13, 40], [8, 24], [22, 38]] : [[28, 52], [12, 46], [4, 34], [20, 44]];
-  const flapR = tell ? [[54, 54], [66, 62], [72, 74], [58, 64]] : a ? [[55, 48], [68, 36], [71, 20], [60, 36]] : [[55, 50], [70, 44], [76, 32], [62, 42]];
-  body += shape(flapL, C.banana, C.bananaD, { dx: 2, dy: 2 }) + flat([flapL[0], flapL[1], flapL[3]].map(([x, y], i) => [x + (i ? 1.5 : 2), y + 1.5]), C.bananaL);
-  body += shape(flapR, C.banana, C.bananaD, { dx: 2, dy: 2 }) + flat([flapR[0], flapR[1], flapR[3]].map(([x, y], i) => [x - (i ? 1.5 : 2), y + 1.5]), C.bananaL);
-  body += shape([[28, 24], [42, 14], [55, 30], [59, 52], [51, 72], [36, 77], [30, 62], [26, 42]], C.banana, C.bananaD, { dx: 5, dy: 4 });
-  body += flat([[30, 28], [40, 19], [43, 21], [34, 38]], C.bananaL);
-  body += shape([[39, 15], [46, 15], [46, 8], [41, 7]], C.breadD, null, { sw: SWs }); // stem
-  body += flat([[31, 60], [34, 57], [35, 62]], C.breadD) + flat([[52, 38], [55, 41], [51, 43]], C.breadD);
-  body += face(42, 46, 0.95, { eyeCol: tell ? C.coral : C.cream, mw: 15, mh: 9, my: 8, teeth: 4 });
-  if (tell) {
-    const bent = rot(squash(40, 92, 1.06, 0.82, body), -16, 40, 92);
-    const legs = stick([[36, 80], [26, 86], [18, 94]], 3.5, 6) + stick([[47, 80], [57, 86], [64, 94]], 3.5, 6);
-    return `<g transform="translate(40 95) scale(.95) translate(-40 -95)">` + legs + bent + spark(64, 14, 11) + line([[50, 4], [48, 10]], C.coral, 2.5) + line([[75, 6], [72, 12]], C.coral, 2.5) + '</g>';
+  if (f !== 'a' && f !== 'b' && f !== 'tell' && f !== 'hurt') throw new Error(`banana: unknown frame "${f}"`);
+  const T = f === 'tell', H = f === 'hurt', a = f === 'a', c = C.banana, W = C.white, pl = C.plum;
+  // every frame is drawn on a y=92 ground, the wrappers below drop it +2 so the boot outlines sit on the 95 ground line (tell also -0.5 to stay inside the canvas)
+  const limbS = (d) => limb(d, c, 5.6);
+  const BODY = 'M31 26Q44 16 54 30Q62 48 55 70Q49 82 37 80Q31 68 30 52Q28 38 31 26Z';
+  const boot = (x, y, d) => shape(`M${x - 4 * d} ${y}L${x - 4 * d} ${y - 8}L${x + 3 * d} ${y - 8}L${x + 3 * d} ${y - 4}Q${x + 10 * d} ${y - 4} ${x + 10 * d} ${y}Z`, C.breadD, null, { sw: 2.2 }) + flat(star(x - 6 * d, y - 2, 2.6, 1.1, 5), C.gold);
+  const hat = (t) => `<g transform="${t}">${shape('M34 19Q34 6 43 7Q52 6 52 19Z', C.breadD, null)}${flat('M36 17Q36 9 41 8.5Q38 12 38.5 17Z', C.breadL)}${shape('M34 15.5L52 15.5L52 19L34 19Z', pl, null, { sw: 1 })}${shape('M21 21Q43 13 65 19Q61 25 43 24Q27 25 21 21Z', C.breadD, null)}</g>`;
+  const dots = (pts) => pts.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.2" fill="${W}"/>`).join('');
+  let pre = '', b = '';
+  if (T) {
+    pre += strokeD('M4 40L16 40', C.lav, 2.5) + strokeD('M2 52L13 52', C.lav, 2.5) + strokeD('M6 64L16 64', C.lav, 2.5);
+    pre += limbS('M40 78Q33 82 27 83') + boot(25, 87, -1) + limbS('M49 76Q55 84 57 88') + boot(57, 92, 1);
+  } else if (a || H) pre += limbS('M40 78Q34 84 35 88') + limbS('M49 76Q55 84 54 88') + boot(35, 92, -1) + boot(54, 92, 1);
+  else pre += limbS('M40 78Q32 82 28 85') + boot(28, 89, -1) + limbS('M49 76Q55 84 54 88') + boot(54, 92, 1); // walk partner: left foot lifted
+  if (H) pre += shape(star(14, 22, 6, 2.6, 5), C.gold, null, { sw: 1.6 }) + shape(star(68, 16, 5, 2.2, 5), C.gold, null, { sw: 1.6 });
+  b += flat(BODY, c) + flat('M53 29Q62 48 55 70Q49 82 37 80Q48 73 52 60Q57 44 53 29Z', C.bananaD) + flat('M33 33Q37 25 43 21Q38 31 36 45Z', C.bananaL) + strokeD(BODY, pl, 3);
+  b += `<circle cx="35" cy="72" r="1.4" fill="${C.breadD}"/><circle cx="56" cy="58" r="1.2" fill="${C.breadD}"/>`;
+  if (H) {
+    b += `<ellipse cx="38" cy="41" rx="5" ry="6" fill="${W}" stroke="${pl}" stroke-width="2.2"/><ellipse cx="49.5" cy="40.5" rx="5" ry="6" fill="${W}" stroke="${pl}" stroke-width="2.2"/>` + spiral(38, 41) + spiral(49.5, 40.5);
+    b += strokeD('M32 33L42 30', pl, 3) + strokeD('M56 32L46 29.5', pl, 3);
+    b += shape('M37 51Q41 48 45 51Q49 48 53 51Q52 58 45 58Q38 58 37 51Z', pl, null, { sw: 2 }) + shape('M41 56Q45 54 49 56Q47 58 45 58Q43 58 41 56Z', C.coralL, null, { sw: 1.2 });
+    b += shape('M31 62Q43 60 56 58L55 64Q48 76 41 77Q35 72 32 68Z', C.coral, null, { sw: 2.5 }) + dots([[39, 66], [47, 64], [43, 71]]);
+    b += limbS('M31 52Q20 46 17 37') + mitt(17, 34, 4.4, -30, c) + limbS('M56 50Q67 44 67 35') + mitt(67, 32, 4.4, 30, c);
+    b += hat('translate(5 4) rotate(18 43 20)');
+    return `<g transform="translate(0 2)">${pre}<g transform="translate(44 92) scale(1.08 .9) translate(-44 -92)">${b}</g></g>`;
   }
-  const legs = a ? stick([[36, 77], [30, 87], [25, 94]], 3.2, 6) + stick([[46, 75], [53, 85], [58, 94]], 3.2, 6)
-    : stick([[36, 77], [38, 86], [36, 94]], 3.2, 6) + stick([[46, 75], [48, 84], [54, 94]], 3.2, 6);
-  return legs + squash(40, 94, a ? 1 : 0.97, a ? 1 : 1.03, body);
+  b += shape('M31 52L22 49L24 56Z', C.coralD, null, { sw: 2 }) + shape('M31 55L23 60L28 62Z', C.coralD, null, { sw: 2 });
+  b += shape('M30 51Q43 48 57 47L56 54Q48 70 41 71Q35 64 31 58Z', C.coral, null, { sw: 2.5 }) + dots([[38, 56], [46, 55], [52, 52], [42, 63]]);
+  if (T) {
+    b += ovalEye(38, 41, 5.5, 6.8, 2.5, 0, { pr: 2.4 }) + ovalEye(49.5, 40.5, 5.5, 6.8, 2.5, 0, { pr: 2.4 }) + strokeD('M31 31L42 36', pl, 3.5) + strokeD('M56 30L45 35', pl, 3.5);
+    b += limbS('M31 55Q22 58 15 54') + mitt(13, 53, 4.4, 90, c) + limbS('M56 54Q63 57 67 52') + mitt(68, 51, 4.6, 0, c);
+    return `<g transform="translate(-0.5 2)">${pre}<g transform="rotate(10 44 90)">${b}</g>` + strokeD('M14 10L20 14', C.lav, 2) + strokeD('M10 18L17 20', C.lav, 2) + hat('translate(-12 -4) rotate(-25 43 20)') + '</g>';
+  }
+  b += ovalEye(38, 41, 5, 6.2, 2.8, 0.5, { lid: 0.38, tilt: 8, bl: 0.22, lc: c }) + ovalEye(49.5, 40.5, 5, 6.2, 2.8, 0.5, { lid: 0.38, tilt: -8, bl: 0.22, lc: c });
+  b += strokeD('M32 32L42 35', pl, 3) + strokeD('M45 31Q50 28 55 31', pl, 3);
+  // a: arms hanging; b: left arm swung up and out, right arm swung down and out
+  b += a ? limbS('M31 55Q24 62 25 70') + mitt(26, 72, 4.4, 0, c) + limbS('M56 55Q62 62 61 70') + mitt(61, 72, 4.4, 0, c) + strokeD('M66 68L69 66', pl, 1.6) + strokeD('M67 73L70 73', pl, 1.6)
+    : limbS('M31 55Q22 57 21 65') + mitt(21.5, 67, 4.4, 0, c) + limbS('M56 55Q64 63 64 71') + mitt(64, 73, 4.4, 0, c) + strokeD('M69 69L72 67', pl, 1.6) + strokeD('M70 74L73 74', pl, 1.6);
+  b += hat('rotate(-8 43 20)');
+  return `<g transform="translate(0 2)">${pre}${a ? b : `<g transform="translate(0 -1.5)">${b}</g>`}</g>`;
 }
 add('enemy_banana_a', () => banana('a'));
 add('enemy_banana_b', () => banana('b'));
 add('enemy_banana_tell', () => banana('tell'));
+add('enemy_banana_hurt', () => banana('hurt'));
 
-function sodaCan(cx, top, h, face_, f) {
-  const w = 31;
-  let s = can(cx, top, w, h, C.soda, C.sodaD, C.cream, { sw: SW });
-  if (face_) s += face(cx, top + 17, 0.85, { gap: 6.5, mw: 14, mh: 7, my: 8, teeth: 3, eyeCol: f === 'tell' ? C.coralL : C.cream });
-  return s;
-}
 function soda(f) {
-  const tell = f === 'tell', a = f !== 'b', dy = a ? 0 : -2;
-  const L = (...p) => stick(p, 3.2);
-  let legs = a ? L([24, 68], [20, 74], [17, 80]) + L([36, 69], [38, 75], [41, 80]) + L([55, 72], [50, 76], [48, 81]) + L([66, 72], [69, 77], [72, 81]) + L([76, 68], [74, 74], [70, 80]) + L([89, 66], [93, 73], [96, 80])
-    : L([24, 68], [27, 75], [26, 80]) + L([36, 69], [33, 74], [34, 80]) + L([55, 72], [58, 77], [60, 81]) + L([66, 72], [62, 77], [64, 81]) + L([76, 68], [80, 75], [82, 80]) + L([89, 66], [86, 73], [88, 80]);
-  let b = sodaCan(22, 12, 34, false) + sodaCan(55, 10, 34, false) + sodaCan(88, 12, 34, false);
-  b += sodaCan(22, 30, 38, true) + sodaCan(88, 30, 38, true) + sodaCan(55, 36, 38, true);
-  // six-pack plastic: one wavy strip per row, dipping around each can and rising between them
-  const strip = (ys, r = 15.5) => {
-    const cx = [22, 55, 88];
-    let d = `M${cx[0] - r - 1} ${ys[0] - 2}`;
-    cx.forEach((x, i) => { d += ` A${r} 4 0 0 0 ${x + r} ${ys[i]}`; if (i < 2) d += ` L${cx[i + 1] - r} ${ys[i + 1]}`; });
-    d += ` L${cx[2] + r + 1} ${ys[2] - 2}`;
-    return `<path d="${d}" fill="none" stroke="${C.plum}" stroke-width="4.6" stroke-linejoin="round" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${C.frost}" stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round"/>`;
+  if (f !== 'a' && f !== 'b' && f !== 'tell' && f !== 'hurt') throw new Error(`soda: unknown frame "${f}"`);
+  const T = f === 'tell', H = f === 'hurt', a = f === 'a';
+  const W = C.white, pl = C.plum, SO = C.soda, SOD = C.sodaD, CO = C.coral, COD = C.coralD, COL = C.coralL, GO = C.gold, SKY = C.sky, PS = C.plumSoft, LAV = C.lav;
+  const CX = [29, 55, 81], B = 72, EY = 37.8, BT = 59; // can centres, bottom of the front slab, eye line, top of the chest band
+  const col = T ? CO : SO, colD = T ? COD : SOD;
+  const lift = (s) => `<g transform="translate(0 ${H ? -1.8 : -1.4})">${s}</g>`; // puts the planted feet's outline on the ground line
+  // white foam cloud: plum blob first, white on top so overlaps leave no inner lines
+  const foam = (cs) => cs.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${pl}" stroke="${pl}" stroke-width="3.4"/>`).join('') + cs.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${W}"/>`).join('');
+  // chrome can top with a pull-tab; open = tab popped and the hole dark
+  const top = (x, y, open) => `<ellipse cx="${x}" cy="${y}" rx="11.5" ry="3.8" fill="${C.chrome}" stroke="${pl}" stroke-width="2.2"/>` +
+    (open ? `<ellipse cx="${x - 1}" cy="${y}" rx="6.5" ry="1.9" fill="${PS}"/>` + strokeD(`M${x + 4} ${y - 1}L${x + 8} ${y - 3}`, C.chromeD, 2.2)
+      : `<ellipse cx="${x + 1}" cy="${y + 0.2}" rx="4.2" ry="1.5" fill="${C.chromeL}" stroke="${pl}" stroke-width="1.5"/>`);
+  // the yoke worn like a tank top: shoulder straps over the outer cans, a scooped neckline under the face, a wide chest band. Hurt: crushed right strap.
+  const yoke = () => {
+    const R = H ? `L93 ${BT}Q86.5 ${BT} 86.5 53L82 49L86.5 45.6L86.5 38.5L78 36.9L78 50` : `L93 ${BT}Q86.5 ${BT} 86.5 50L86.5 26L78 26L78 50`;
+    const d = `M23.5 26L23.5 50Q23.5 ${BT} 17 ${BT}L15 ${BT}Q12 ${BT} 12 ${BT + 3}L12 ${B - 2.5}Q12 ${B + 0.5} 15 ${B + 0.5}L95 ${B + 0.5}Q98 ${B + 0.5} 98 ${B - 2.5}L98 ${BT + 3}Q98 ${BT} 95 ${BT}${R}Q78 ${BT} 71 ${BT}L39 ${BT}Q32 ${BT} 32 50L32 26Z`;
+    return shape(d, C.frost, null, { sw: 2.6 })
+      + flat(`M13.5 ${B - 5}L96.5 ${B - 5}L96.5 ${B - 2.5}Q96.5 ${B - 1} 95 ${B - 1}L15 ${B - 1}Q13.5 ${B - 1} 13.5 ${B - 2.5}Z`, C.frostD, 'fill-opacity=".55"')
+      + flat('M26 29L27.8 29L27.8 49L26 49Z', W, 'fill-opacity=".85"') + (H ? '' : flat('M81 29L82.8 29L82.8 49L81 49Z', W, 'fill-opacity=".85"'))
+      + strokeD(`M42 ${BT + 1}L42 ${B - 1}M68 ${BT + 1}L68 ${B - 1}`, pl, 1.8);
   };
-  b += strip([21, 19, 21]) + strip([39, 45, 39]);
-  if (tell) { // shaken up: fizz spurting from the tabs
-    for (const [x, y, r] of [[22, 22, 7], [14, 12, 5], [88, 22, 7], [96, 11, 5], [55, 26, 6]]) b += `<circle cx="${x}" cy="${y}" r="${r}" fill="${C.frost}" stroke="${C.plum}" stroke-width="2" opacity=".95"/>`;
-    b += spark(55, 8, 9) + line([[4, 40], [10, 48]], C.coral, 2.5) + line([[106, 40], [100, 48]], C.coral, 2.5);
+  const cans = () => {
+    let b = '';
+    for (const cx of CX) b += shape(`M${cx - 12} 11L${cx - 12} 40L${cx + 12} 40L${cx + 12} 11Z`, col, null) + flat(`M${cx + 6} 12L${cx + 10.5} 12L${cx + 10.5} 39L${cx + 6} 39Z`, colD);
+    for (const cx of CX) b += top(cx, 10, T);
+    // front slab: three cans with scalloped feet
+    const x0 = CX.map((c) => c - 13), x1 = CX.map((c) => c + 13);
+    let slab = `M16 25L16 ${B - 4}`;
+    CX.forEach((c, i) => { slab += `Q${x0[i]} ${B} ${x0[i] + 5} ${B}L${x1[i] - 5} ${B}Q${x1[i]} ${B} ${x1[i]} ${B - 4}`; });
+    slab += H ? 'L94 58L82 49L94 40Z' : 'L94 25Z';
+    b += flat(slab, col);
+    for (let i = 0; i < 3; i++) b += flat(`M${x1[i] - 7} 30L${x1[i] - 1} 30L${x1[i] - 1} ${B - 4}Q${x1[i] - 2} ${B - 1} ${x1[i] - 5} ${B - 1}L${x1[i] - 7} ${B - 1}Z`, colD);
+    b += strokeD(slab, pl, 3);
+    // can seams, kept clear of the eyes
+    for (const x of [x1[0], x1[1]]) b += strokeD(`M${x} 25L${x} 30M${x} 48L${x} ${BT}`, pl, 2.2);
+    b += yoke();
+    for (const cx of CX) b += top(cx, 24, T);
+    return b;
+  };
+  const features = () => {
+    if (H) {
+      return strokeD('M38 33.5L52 39L38 44.5', pl, 3.6) + strokeD('M72 33.5L58 39L72 44.5', pl, 3.6)
+        + shape('M48.5 47Q51 44 55 47Q59 44 61.5 47Q62.5 55 55 55Q47.5 55 48.5 47Z', pl, null, { sw: 2 }) + shape('M51.5 52Q55 50 58.5 52Q57 55 55 55Q53 55 51.5 52Z', COL, null, { sw: 1.2 });
+    }
+    if (T) {
+      return ovalEye(44.5, EY, 8, 8.6, 1.6, 1.2, { pr: 3.9, sclera: COL, lid: 0.4, tilt: 15, lc: CO }) + ovalEye(65.5, EY, 8, 8.6, -1.6, 1.2, { pr: 3.9, sclera: COL, lid: 0.4, tilt: -15, lc: CO })
+        + teethRow(45, 49.5, 20, 7.5, 5, W);
+    }
+    // stern bouncer mouth: flat, a touch down at the ends, with a visible lower lip
+    return ovalEye(44.5, EY, 8, 8.6, 1.4, 1.2, { pr: 3.9, lid: 0.4, tilt: 7, lc: SO }) + ovalEye(65.5, EY, 8, 8.6, -1.4, 1.2, { pr: 3.9, lid: 0.4, tilt: -7, lc: SO })
+      + strokeD('M49 52.2Q55 49.6 61 52.2', pl, 3.2) + strokeD('M52.2 55Q55 56.6 57.8 55', pl, 1.8);
+  };
+  // legs: a = both planted, b = walk partner with the right foot lifted (only the body layer bobs, the planted foot stays)
+  const legs = a || T || H ? limb(`M38 ${B - 2}L37 76`, col, 7) + limb(`M72 ${B - 2}L73 76`, col, 7) + nub(35, 80, -1, PS, 1.3) + nub(75, 80, 1, PS, 1.3)
+    : limb(`M38 ${B - 4}L37 76`, col, 7) + limb(`M72 ${B - 4}L75 74`, col, 7) + nub(35, 80, -1, PS, 1.3) + nub(77, 77, 1, PS, 1.3);
+  let b = cans() + features();
+  if (T) {
+    b += limb('M17 52Q6 57 8 67', col, 7) + mitt(8, 69, 5.6, 0, col);
+    b += limb('M93 52Q104 57 102 67', col, 7) + mitt(102, 69, 5.6, 0, col);
+    let post = rays([[5, 30, 10, 33], [4, 42, 9, 43], [105, 30, 100, 33], [106, 42, 101, 43]], LAV, 2.6);
+    for (const cx of CX) post += foam([[cx - 6, 13, 4], [cx, 11, 5.4], [cx + 6, 13, 4], [cx - 3, 6.5, 3.2], [cx + 3, 6.5, 3.2]]);
+    post += drop(18, 12, 0.9, W) + drop(41, 8, 0.8, W) + drop(69, 8, 0.8, W) + drop(92, 12, 0.9, W);
+    post += drop(15, 44, 1, SKY) + drop(96, 38, 1, SKY);
+    return lift(`<g transform="translate(55 80) scale(.92 .92) translate(-55 -80)">${legs + b}</g>` + post);
   }
-  return squash(55, 80, tell ? 0.96 : a ? 1 : 1.03, tell ? 1.05 : a ? 1 : 0.97, legs + `<g transform="translate(0 ${dy})">${b}</g>`);
+  if (H) {
+    b += limb('M17 52Q10 46 14 35', col, 7) + mitt(14, 32, 5.6, -20, col) + limb('M94 59Q106 52 102 34', col, 7) + mitt(102, 31, 5.6, 20, col);
+    // dented right can: a crushed notch, crease lines and a fizz leak
+    b += strokeD('M76 44L72 48M76 54L72 52', colD, 2);
+    b += foam([[95.5, 49, 4.6], [99, 43, 3.2], [99.5, 55, 3.2]]) + drop(96, 33, 0.8, W) + drop(106, 32, 0.7, SKY) + rays([[97, 61, 102, 65], [99, 57, 105, 60]], LAV, 2);
+    b += shape(star(15, 22, 6, 2.6, 5), GO, null, { sw: 1.6 }) + shape(star(94, 17, 5, 2.2, 5), GO, null, { sw: 1.6 });
+    b += drop(42, 15, 0.9, SKY);
+    return lift(`<g transform="rotate(-4 35 80)">${legs + b}</g>`);
+  }
+  // arms crossed in an X over the chest band: the underneath arm is the darker shade
+  b += limb('M16 47Q4 54 8 70L72 59', colD, 8) + mitt(76, 58, 5.6, 8, colD);
+  b += limb('M94 47Q106 54 102 70L38 59', col, 8) + mitt(34, 58, 5.6, -8, col);
+  return lift(a ? legs + b : `${legs}<g transform="translate(0 -1.5)">${b}</g>`);
 }
 add('enemy_soda_a', () => soda('a'));
 add('enemy_soda_b', () => soda('b'));
 add('enemy_soda_tell', () => soda('tell'));
+add('enemy_soda_hurt', () => soda('hurt'));
 
 function spitter(f) {
-  const tell = f === 'tell', a = f === 'a';
-  let b = '';
-  // handle loop (left side)
-  b += tube([[18, 40], [11, 44], [10, 60], [14, 70], [20, 68]], 4.5, C.det, 2.2);
-  const body = tell
-    ? [[18, 50], [24, 36], [34, 29], [36, 26], [50, 26], [54, 32], [62, 38], [66, 52], [60, 64], [66, 78], [58, 85], [24, 85], [17, 77], [24, 62]]
-    : [[14, 52], [18, 38], [30, 30], [36, 26], [52, 26], [58, 32], [68, 40], [70, 56], [68, 78], [58, 84], [24, 84], [14, 76]];
-  b += shape(body, C.det, C.detD, { dx: 5, dy: 4 });
-  b += flat([[20, 42], [30, 34], [34, 36], [24, 48]], '#7FA4F0', 'opacity=".85"');
-  // label
-  b += shape([[17, 64], [64, 62], [67, 79], [20, 81]], C.cream, C.creamD, { dx: 3, dy: 3, sw: SWs + 0.5 });
-  b += shape('M43 66 L38 73 Q37 78 43 78 Q49 78 48 73 Z', C.coral, C.coralD, { sw: SWs, dx: 1, dy: 1.5 }) + flat([[25, 68], [33, 68], [30, 70]], C.det);
-  b += face(40, 48, 0.9, { mw: 14, mh: 8, my: 7, teeth: 3, eyeCol: tell ? '#FFD6C8' : C.cream });
-  // cap
-  if (tell) {
-    b += shape([[36, 26], [52, 26], [52, 22], [36, 22]], C.coralD, null, { sw: SWs });
-    b += rot(shape([[34, 22], [48, 22], [48, 16], [34, 16]], C.coral, C.coralD, { dx: 2, dy: 2 }), -62, 34, 22);
-    b += shape([[36, 26], [54, 26], [62, 21], [62, 27], [54, 30], [36, 30]], C.coral, C.coralD, { sw: SWs, dx: 1, dy: 1.5 });
-    b += `<circle cx="70" cy="14" r="9" fill="${C.frost}" stroke="${C.plum}" stroke-width="2" opacity=".95"/><circle cx="66.5" cy="10.5" r="2.8" fill="${C.white}"/><path d="M73 18 A7 7 0 0 0 76 12" fill="none" stroke="${C.sky}" stroke-width="2"/>`;
-    b += line([[58, 12], [53, 8]], C.coral, 2.5) + line([[73, 28], [79, 32]], C.coral, 2.5);
-  } else {
-    b += shape([[34, 16], [54, 16], [56, 27], [32, 27]], C.coral, C.coralD, { dx: 3, dy: 3 });
-    b += shape([[48, 11], [62, 11], [64, 17], [48, 17]], C.coral, C.coralD, { dx: 2, dy: 2, sw: SWs + 0.5 });
-    b += line([[38, 18], [38, 26]], C.plum, 1.4) + line([[44, 18], [44, 26]], C.plum, 1.4);
+  if (!['a', 'b', 'tell', 'hurt'].includes(f)) throw new Error(`spitter: unknown frame "${f}"`);
+  const JT = C.det, JTD = C.detD, CO = C.coral, COD = C.coralD, COL = C.coralL, W = C.white, CR = C.cream, CRD = C.creamD,
+    SKY = C.sky, PL = C.plum, LAV = C.lav, GO = C.gold;
+  const ln = (d, w = 3, col = PL) => strokeD(d, col, w);
+  const limbS = (d, c = JT) => limb(d, c, 5.6);
+  const bub = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${SKY}" fill-opacity=".6" stroke="${PL}" stroke-width="1.8"/><circle cx="${n(x - r * 0.35)}" cy="${n(y - r * 0.38)}" r="${n(Math.max(r * 0.26, 0.8))}" fill="${W}"/>`;
+  // popping bubble: broken ring with ticks
+  const pop = (x, y, r) => {
+    let s = `<circle cx="${x}" cy="${y}" r="${n(r * 0.6)}" fill="${SKY}" fill-opacity=".5"/>`;
+    s += ln(`M${n(x - r * 0.6)} ${y}A${n(r * 0.6)} ${n(r * 0.6)} 0 0 1 ${n(x + r * 0.1)} ${n(y - r * 0.6)}`, 1.8);
+    for (const deg of [-20, 50, 130, 200, 260]) {
+      const t = (deg * Math.PI) / 180;
+      s += ln(`M${n(x + Math.cos(t) * r * 0.85)} ${n(y + Math.sin(t) * r * 0.85)}L${n(x + Math.cos(t) * r * 1.35)} ${n(y + Math.sin(t) * r * 1.35)}`, 1.8);
+    }
+    return s;
+  };
+  const BODY = 'M30 28Q34 22 41 22Q48 22 52 28L60 33Q66 38 66 46L66 68Q66 80 55 80L27 80Q16 80 16 68L16 46Q16 38 22 33Z';
+  const HANDLE = 'M21 34Q7 32 7 44Q8 55 19 54';
+  // the jug with its label and highlight (no face)
+  const jug = (body = BODY, handle = HANDLE) => {
+    let b = limb(handle, JT, 8);
+    b += shape(body, JT, JTD, { sw: 3, dx: 4, dy: 3 });
+    b += flat('M21 42Q21 38 25 36L29 38Q25 40 25 50Z', SKY, 'opacity=".75"');
+    b += clipTo(body, `<rect x="8" y="67" width="68" height="16" fill="${CR}"/>${ln('M8 67L76 67', 2)}<path d="M52 67L74 67L74 82L45 82Z" fill="${CRD}"/>`) + ln(body, 3);
+    b += drop(41, 67.8, 1.5, CO) + flat('M38.6 73.4Q38.6 71.6 40 70.8Q39.6 72.4 40.2 73.8Z', COL);
+    return b;
+  };
+  // the backwards cap: the brim peeks out behind the head to the right
+  const cap = (t) => `<g transform="${t}">` +
+    shape('M52 24Q65 19 74 26Q70 33 54 30Z', COD, null, { sw: 2.6 }) +
+    shape('M27 29Q25 12 41 11Q57 12 55 29Q41 33 27 29Z', CO, COD, { sw: 3, dx: 3, dy: 3 }) +
+    ln('M41 13L41 27', 1.6) + ln('M32 16Q30 22 30 28', 1.6) +
+    dot(41, 11.4, 2.3, COD, 1.6) +
+    shape('M33 23.5L49 23.5L49 28.8Q41 31 33 28.8Z', COD, null, { sw: 1.8 }) + shape('M38.5 22.8L43.5 22.8L43.5 28.8L38.5 28.8Z', GO, null, { sw: 1.6 }) +
+    `</g>`;
+  // the bare jug neck and white screw cap (shown once the cap is gone)
+  const spout = () => shape('M35 15L47 15L49 27L33 27Z', JT, null, { sw: 2.6 }) + shape('M32 7L50 7L51 16L31 16Z', W, null, { sw: 2.8 }) + ln('M36 8.5L36 14.5', 1.6) + ln('M41 8.5L41 14.5', 1.6) + ln('M46 8.5L46 14.5', 1.6);
+  const legs = (wide) => wide
+    ? limbS('M28 78Q23 84 20 86') + nub(18, 91, -1, CO) + limbS('M54 78Q59 84 62 86') + nub(64, 91, 1, CO)
+    : limbS('M31 79L30 86') + nub(28.5, 91, -1, CO) + limbS('M51 79L52 86') + nub(52.5, 91, 1, CO);
+  // half-lidded smug eyes, one brow cocked, smirk with a drip
+  const smirk = () => ovalEye(34, 44, 5, 6.4, 2.2, 0.6, { lid: 0.42, tilt: -3, lc: JT }) + ovalEye(48.5, 44, 5, 6.4, 2.2, 0.6, { lid: 0.42, tilt: 3, lc: JT }) +
+    ln('M27.5 36L40 36.8', 3.2) + ln('M43 35Q49 30.5 55 34.5', 3.2) +
+    shape('M32 54.5Q42 56.5 52 52.5Q51 62.5 42 62.5Q33.5 62.5 32 54.5Z', PL, null, { sw: 2.2 }) + flat('M34 55.2Q42 57 50.5 54L50 57Q42 59 34.6 57.6Z', W) + flat('M37 60.8Q42 58.6 47 60.8Q46 62 42 62Q38 62 37 60.8Z', COL) +
+    shape('M50 59Q55 60.5 54 66.5Q52 71 49.5 67Q48.5 62.5 50 59Z', SKY, null, { sw: 1.9 }) + flat('M51.5 62Q52.4 63 52 65', W) + drop(53.5, 71.5, 0.8, SKY);
+  // game sprite anchor: nub soles must end on y = 0.95 * 96
+  const grounded = (inner) => `<g transform="translate(0 -1)">${inner}</g>`;
+
+  if (f === 'a') {
+    // left arm hangs, right hand on the hip
+    return grounded(legs() + jug() +
+      limbS('M16 67Q8 71 10 78') + mitt(10.5, 80, 4.4, 0, JT) +
+      limbS('M65 60Q77 60 76 68Q75 72 68 72') + mitt(67.5, 73, 4.4, -80, JT) +
+      smirk() + cap('rotate(6 41 28)'));
   }
-  const L = (...p) => stick(p, 3.4, 6);
-  let legs = tell ? L([30, 84], [20, 88], [14, 92]) + L([52, 84], [62, 88], [70, 92])
-    : a ? L([30, 84], [24, 88], [20, 92]) + L([52, 84], [56, 88], [60, 92]) : L([30, 84], [33, 88], [32, 92]) + L([52, 84], [49, 88], [52, 92]);
-  let arms = tell ? stick([[14, 56], [8, 50], [10, 42]], 3.4) + stick([[68, 54], [76, 50], [74, 42]], 3.4)
-    : a ? stick([[68, 54], [76, 49], [79, 55]], 3.4) + stick([[15, 54], [9, 60], [11, 66]], 3.4) : stick([[68, 54], [76, 58], [79, 51]], 3.4);
-  return legs + squash(42, 91, tell ? 0.96 : a ? 1 : 1.03, tell ? 1.03 : a ? 1 : 0.97, b) + arms;
+  if (f === 'b') {
+    // left foot planted, right foot lifted and forward; body bobbed up, arms swung the other way
+    const feet = limbS('M31 79L30 86') + nub(28.5, 91, -1, CO) + limbS('M51 79Q55 80 57 82') + nub(58, 87.5, 1, CO);
+    const upper = jug() +
+      limbS('M16 67Q12 70 15 76') + mitt(15.5, 78, 4.4, 0, JT) +
+      limbS('M65 61Q78 62 76 69Q75 73 68 73') + mitt(67.5, 74, 4.4, -80, JT) +
+      smirk() + cap('rotate(6 41 28)');
+    return grounded(feet + `<g transform="translate(0 -1.5)">${upper}</g>`);
+  }
+  if (f === 'tell') {
+    const BODY_T = 'M30 28Q34 22 41 22Q48 22 52 28L62 33Q70 38 70 46L70 68Q70 80 59 80L23 80Q12 80 12 68L12 46Q12 38 20 33Z';
+    const HANDLE_T = 'M17 35Q9 33 9 44Q10 54 16 53';
+    let pre = rays([[3, 22, 9, 26], [2, 33, 7, 35]], LAV, 2.4) + rays([[81, 22, 75, 26], [82, 33, 77, 35]], LAV, 2.4);
+    pre += limbS('M25 78Q21 83 19 86') + nub(17, 91, -1, CO) + limbS('M57 78Q61 83 63 86') + nub(65, 91, 1, CO);
+    let g = jug(BODY_T, HANDLE_T);
+    // arms pulled back, fists clenched
+    g += limbS('M13 67Q7 72 8 78') + mitt(8, 80, 4.8, 0, JT);
+    g += limbS('M69 67Q75 72 74 78') + mitt(74, 80, 4.8, 0, JT);
+    // ballooned cheeks on the face
+    g += dot(21, 60, 8.5, JT, 3) + flat('M15.5 56.5Q16 53 19.5 52Q17 55 17 58Z', SKY, 'opacity=".8"') + `<path d="M19 67.5Q24 69.5 28 66Q25 71.5 19 67.5Z" fill="${JTD}"/>`;
+    g += dot(61, 60, 8.5, JT, 3) + flat('M55.5 56.5Q56 53 59.5 52Q57 55 57 58Z', SKY, 'opacity=".8"') + `<path d="M59 67.5Q64 69.5 68 66Q65 71.5 59 67.5Z" fill="${JTD}"/>`;
+    // bulging bloodshot eyes: coral sclera
+    g += ovalEye(34, 43, 6.6, 8.2, 1.4, 0, { pr: 2.7, sclera: CO, sw: 2.8 }) + ovalEye(48.5, 43, 6.6, 8.2, -1.4, 0, { pr: 2.7, sclera: CO, sw: 2.8 });
+    g += ln('M25.5 33L39 38', 3.6) + ln('M57 33L43.5 38', 3.6);
+    // lips pushed out, a big bubble swelling from them
+    g += ell(41.5, 58, 6, 4.2, PL, null, { sw: 2.4 });
+    g += bub(41.5, 65.5, 7);
+    g += cap('rotate(-8 41 28)');
+    let b = `<g transform="rotate(-3 41 90)">${g}</g>`;
+    // the fan of blobs about to fly
+    b += bub(74, 40, 3) + bub(77.5, 49, 2.1) + bub(71, 31, 2);
+    return grounded(pre + b);
+  }
+  // hurt
+  let pre = shape(star(70, 11, 5.5, 2.4, 5), GO, null, { sw: 1.6 }) + shape(star(77, 24, 3.6, 1.6, 5), GO, null, { sw: 1.4 });
+  // pop! bubbles
+  pre += pop(72, 36, 5.4) + pop(70, 70, 4.2) + pop(8, 68, 4.2);
+  pre += legs();
+  let g = jug();
+  g += limbS('M17 66Q10 68 8.5 61') + mitt(8.5, 58, 4.4, -20, JT) + limbS('M65 62Q69 58 70.5 51') + mitt(70.5, 48.5, 4.4, 20, JT);
+  g += spout();
+  // squeezed > < eyes, wobbly "ow" mouth
+  g += ln('M27.5 38L37 44L27.5 50', 3.6) + ln('M54.5 38L45 44L54.5 50', 3.6);
+  g += ln('M26 33L37 35.5', 3) + ln('M57 33L46 35.5', 3);
+  g += shape('M32.5 56Q35.5 52.5 38.5 56Q41.5 52.5 44.5 56Q47.5 52.5 50.5 56Q52 64 41.5 65.5Q31 64 32.5 56Z', PL, null, { sw: 2.2 }) + flat('M36 62.2Q41.5 59.5 47 62.2Q45 64.4 41.5 64.4Q38 64.4 36 62.2Z', COL);
+  g += shape('M50.5 60Q55 61.5 54 67Q52.4 70 50.6 67Q49.8 63.5 50.5 60Z', SKY, null, { sw: 1.9 });
+  // a sweat drop each side, a bubble on the label
+  g += drop(23, 40, 1, SKY) + drop(60, 38, 1, SKY) + bub(30, 73, 3.4);
+  const squashed = `<g transform="translate(42.5 91) rotate(3) scale(1.04 .92) translate(-41 -91)">${g}</g>`;
+  // the cap flies off, spinning
+  const flying = cap('translate(-27 1) rotate(-40 41 20)');
+  return grounded(pre + squashed + flying + rays([[26, 21, 31, 27], [20, 28, 26, 31]], LAV, 2.2));
 }
 add('enemy_spitter_a', () => spitter('a'));
 add('enemy_spitter_b', () => spitter('b'));
 add('enemy_spitter_tell', () => spitter('tell'));
+add('enemy_spitter_hurt', () => spitter('hurt'));
 
 function baguette(f) {
-  const tell = f === 'tell', a = f === 'a';
-  let b = shape([[25, 12], [40, 6], [52, 16], [55, 42], [53, 82], [48, 102], [36, 106], [25, 100], [21, 72], [21, 32]], C.bread, C.breadD, { dx: 5, dy: 3 });
-  b += flat([[25, 16], [36, 9], [40, 11], [30, 30], [26, 60]], C.breadL, 'opacity=".9"');
-  // diagonal score marks
-  for (const [x, y] of [[26, 62], [27, 76], [28, 90]]) b += shape([[x, y], [x + 22, y - 8], [x + 24, y - 3], [x + 2, y + 6]], C.cream, C.creamD, { sw: SWs, dx: 1, dy: 2 });
-  b += shape([[25, 22], [41, 15], [43, 19], [27, 26]], C.cream, C.creamD, { sw: SWs, dx: 1, dy: 1.5 });
-  b += face(38, 40, 0.92, { gap: 6.5, mw: 14, mh: 9, my: 8, teeth: 3, eyeCol: tell ? '#FFD0C0' : C.cream });
-  const L = (...p) => stick(p, 3.4, 6);
-  if (tell) {
-    const bat = rot(squash(36, 108, 1, 0.93, b), -24, 36, 108);
-    return L([30, 106], [20, 109], [13, 114]) + L([44, 106], [54, 110], [60, 114]) + `<g transform="translate(16 2)">${bat}</g>` +
-      stick([[59, 54], [65, 60], [61, 70]], 3.4) + stick([[52, 60], [57, 66], [55, 74]], 3.4) + line([[64, 30], [67, 24]], C.coral, 2.5) + line([[60, 22], [62, 15]], C.coral, 2.5);
+  if (!['a', 'b', 'tell', 'hurt'].includes(f)) throw new Error(`baguette: unknown frame "${f}"`);
+  const W = C.white, CR = C.cream, BL = C.blue, CO = C.coral, COL = C.coralL, GO = C.gold, BR = C.bread, BRD = C.breadD, BRL = C.breadL,
+    PS = C.plumSoft, LAV = C.lav, PL = C.plum;
+  const ln = (d, w = 3, col = PL) => strokeD(d, col, w);
+  const limbS = (d) => limb(d, BR, 5.6);
+  const BODY = 'M24 18Q36 8 48 16Q56 40 53 80Q51 100 38 106Q24 104 22 84Q18 50 24 18Z';
+  const BAG = 'M19 64L23 60L27 64L31 59L35 63L39 58L43 62L47 57L51 61L55 58L56 100Q42 110 22 104Z';
+  // crust body, scoring cuts and the striped paper-bag shirt (no face, no limbs)
+  const torso = () => flat(BODY, BR) + flat('M47 16Q56 40 53 80Q51 100 38 106Q47 96 49 78Q51 44 45 18Z', BRD) + flat('M26 26Q28 18 34 14Q29 26 27 46Z', BRL) + ln(BODY, 3) +
+    shape('M26 22Q34 14 44 13L45 16Q35 18 27 26Z', CR, null, { sw: 2 }) + shape('M33 26Q41 21 50 20L50.5 23Q42 24 34 29Z', CR, null, { sw: 2 }) +
+    flat(BAG, CR) + clipTo(BAG, [68, 78, 88, 98].map((y) => `<rect x="15" y="${y}" width="45" height="4" fill="${BL}"/>`).join('')) + ln(BAG, 3);
+  // toothpick across the mouth
+  const pick = (d, tx, ty, deg) => ln(d, 3.4) + ln(d, 1.6, GO) + `<ellipse cx="${tx}" cy="${ty}" rx="2.6" ry="1.5" transform="rotate(${deg} ${tx} ${ty})" fill="${GO}" stroke="${PL}" stroke-width="1.2"/>`;
+  // game sprite anchor: nub soles must end on y = 0.95 * 120
+  const grounded = (inner, dy) => `<g transform="translate(0 ${dy})">${inner}</g>`;
+
+  if (f === 'a' || f === 'b') {
+    const walk = f === 'b';
+    // walk: left foot planted, right foot lifted and forward
+    const legs = walk
+      ? limbS('M31 103Q30 109 29 112') + nub(28, 115, -1, PS) + limbS('M43 103Q48 105 51 107') + nub(52, 110.5, 1, PS)
+      : limbS('M31 103Q30 109 29 112') + limbS('M43 103Q44 109 45 112') + nub(28, 115, -1, PS) + nub(46, 115, 1, PS);
+    let b = walk ? limbS('M23 66Q12 69 14 78') + mitt(15.5, 79, 4.6, 0, BR) : limbS('M23 66Q13 72 20 80') + mitt(22, 80, 4.6, 0, BR);
+    b += torso();
+    b += ovalEye(31, 42, 4.6, 5.5, 1.5, 0.8, { lid: 0.48, tilt: -4, lc: BR }) + ovalEye(43, 41.5, 4.6, 5.5, 1.5, 0.8, { lid: 0.48, tilt: 4, lc: BR });
+    b += ln('M25 32Q30 28 35 31') + ln('M39 33L48 33.5');
+    b += shape('M46 54Q38 57 30 51Q31 56 37 58Q43 58 46 54Z', PL, null, { sw: 2 }) + flat('M44 54.6Q38 56.6 32 52.5L32.4 54Q38 57.5 43 56Z', W) + ln('M29 50Q27 51 28 53', 1.5);
+    b += pick('M31 52L17 46', 16, 45.5, 25);
+    // flexing right arm: the bicep bulge, a fist and two shake ticks
+    b += walk
+      ? limb('M53 68Q63 73 65 67Q66 61 64 58', BR, 7) + `<ellipse cx="61" cy="68.5" rx="4.6" ry="3.6" fill="${BR}" stroke="${PL}" stroke-width="2"/>` + mitt(64, 54, 5, 170, BR) + ln('M69 61L71 59.5', 1.5) + ln('M70 66L71 66', 1.5)
+      : limb('M53 68Q63 71 64 64Q65 58 63 55', BR, 7) + `<ellipse cx="60" cy="65.5" rx="4.6" ry="3.6" fill="${BR}" stroke="${PL}" stroke-width="2"/>` + mitt(63, 51, 5, 170, BR) + ln('M68 58L71 56', 1.5) + ln('M69 63L71 63', 1.5);
+    return grounded(legs + (walk ? `<g transform="translate(0 -1.5)">${b}</g>` : b), -2.2);
   }
-  const sway = a ? 2 : -2;
-  const legs = a ? L([30, 104], [24, 110], [19, 114]) + L([43, 104], [46, 110], [50, 114]) : L([30, 104], [33, 109], [31, 114]) + L([43, 104], [40, 108], [43, 114]);
-  const arms = a ? stick([[22, 54], [14, 60], [11, 52]], 3.4) + stick([[53, 52], [62, 48], [64, 56]], 3.4) : stick([[22, 54], [13, 50], [11, 58]], 3.4) + stick([[53, 52], [62, 58], [65, 50]], 3.4);
-  return legs + rot(squash(36, 108, 1, a ? 1 : 0.98, b), sway, 36, 108) + arms;
+  if (f === 'tell') {
+    // coiled for a huge haymaker: wide stance leaning back, right arm cocked far behind the head, guard fist up front
+    let b = limbS('M31 103Q27 107 25 109.8') + limbS('M43 103Q47 108.5 49 112.5') + nub(24, 112.8, -1, PS) + nub(50, 115.5, 1, PS);
+    b += limbS('M23 69Q15 72 16 64') + fist(16, 60, 5.2, 12, BR);
+    b += torso();
+    // glaring coral eyes, brows slammed down
+    b += ovalEye(31, 42, 4.8, 6, 1.2, 0.6, { lid: 0.34, tilt: 15, lc: BR, sclera: CO, pr: 2.6 }) + ovalEye(43.5, 41.5, 4.8, 6, -1.2, 0.6, { lid: 0.34, tilt: -15, lc: BR, sclera: CO, pr: 2.6 });
+    b += ln('M23 31L36 38', 3.6) + ln('M51 32L40 38', 3.6);
+    // gritted teeth, toothpick bitten and angled up
+    b += shape('M28.5 50Q38 47.5 47.5 50L47.5 59Q38 61.5 28.5 59Z', W, null, { sw: 2.4 }) + ln('M33.5 49.5L33.5 60', 1.4) + ln('M38 49L38 60.5', 1.4) + ln('M42.5 49.5L42.5 60', 1.4) + ln('M28.5 54.5Q38 55.5 47.5 54.5', 1.4);
+    b += pick('M30 54L17 44', 16.5, 43.4, 37);
+    // cocked haymaker arm, big fist behind the head
+    b += limb('M52 68Q66 68 67 51Q68 39 63 32', BR, 7.6) + fist(63, 26, 7.6, -25, BR);
+    // anger mark
+    b += ln('M49 10Q53 12 52 16M52 8Q56 10 55 14', 3.6) + ln('M49 10Q53 12 52 16M52 8Q56 10 55 14', 1.6, CO);
+    const body = `<g transform="translate(-3 0) rotate(-5 38 115)">${b}</g>`;
+    let fx = ln('M64 9L68 5', 2.4, CO) + ln('M66 18L69.5 15', 2.4, CO) + ln('M56 7.5L58 4', 2.4, CO);
+    fx += ln('M5 96L5 106', 2.6, LAV) + ln('M10 88L10 100', 2.6, LAV) + ln('M64 98L64 108', 2.6, LAV) + ln('M59 88L59 100', 2.6, LAV);
+    fx += ln('M69 66Q71.5 56 69 48', 2.4, LAV);
+    return grounded(body + fx, -2.2);
+  }
+  // hurt: bent in the middle (upper half kinked over, a wedge of crumb showing at the crack), eyes squeezed,
+  // wobbly "ow" mouth, arms flung up, toothpick tumbling away, crumbs flying, stars and sweat
+  let b = '';
+  // dark gap where the crust cracks open (right side)
+  b += shape('M26 78L56.5 78L56 71.5L38 76Z', PS, null, { sw: 2.2 });
+  // lower half: legs and torso below the crack
+  b += limbS('M31 103Q30 109 28 112') + limbS('M43 103Q45 109 47 112') + nub(27, 115, -1, PS) + nub(48, 115, 1, PS);
+  b += clipTo('M-10 78L90 78L90 138L-10 138Z', torso());
+  // upper half: torso above the crack, face and arms, all kinked together
+  let u = clipTo('M-10 -10L90 -10L90 78L-10 78Z', torso());
+  u = limbS('M23 66Q10 62 10 50') + mitt(10, 47, 4.6, 20, BR) + u;
+  u += ln('M24 33L34 28.5') + ln('M49 34L40 29');
+  u += ln('M27 37L35.5 42.5L27 48', 3.6) + ln('M48 36.5L39.5 42L48 47.5', 3.6);
+  u += shape('M29 52Q33 49 38 52Q43 49 47 52Q50 60 38 62Q26 60 29 52Z', PL, null, { sw: 2 }) + flat('M32 59Q38 55.5 44 59Q42 62 38 62Q34 62 32 59Z', COL);
+  u += limbS('M53 66Q64 62 63 50') + mitt(63, 47, 4.6, -20, BR);
+  b += `<g transform="translate(0 -2) rotate(-14 38 78)">${u}</g>`;
+  // crack line over the kink
+  b += ln('M22 82L30 79.5L34 81L38 78', 2.2);
+  // fx: tumbling toothpick, crumbs, stars, sweat
+  let fx = `<g transform="translate(14 74) rotate(-62)">${ln('M-8 0L8 0', 3.4)}${ln('M-8 0L8 0', 1.6, GO)}<ellipse cx="9" cy="0" rx="2.6" ry="1.5" fill="${GO}" stroke="${PL}" stroke-width="1.2"/></g>` + ln('M5 62L8 66', 1.8, LAV) + ln('M3 72L7 74', 1.8, LAV);
+  const crumb = (x, y, k, fill, deg = 0) => `<g transform="translate(${x} ${y}) rotate(${deg}) scale(${k})">${shape('M-3 -1L0 -3L3.2 -1L2.4 2.2L-1.6 2.6Z', fill, null, { sw: 1.6 })}</g>`;
+  fx += crumb(62, 20, 1.2, BRL) + crumb(67, 36, 1, BR, 40) + crumb(4, 28, 1.1, BR, 20) + crumb(58, 72, 1.3, BRL, 70) + crumb(66, 62, 0.9, CR, 10) + crumb(10, 90, 1, BRL, 50) + crumb(60, 94, 0.9, BR, 30) + crumb(5, 46, 0.8, CR);
+  fx += `<circle cx="56" cy="62" r="1.3" fill="${BRD}"/><circle cx="68" cy="52" r="1.2" fill="${BRL}"/><circle cx="8" cy="38" r="1.2" fill="${BRD}"/><circle cx="55" cy="84" r="1.2" fill="${BRL}"/>`;
+  fx += shape(star(10, 12, 5, 2.2, 5), GO, null, { sw: 1.6 }) + shape(star(52, 9, 4.5, 2, 5), GO, null, { sw: 1.6 });
+  fx += drop(60, 10, 0.9) + drop(5, 52, 0.9);
+  return grounded(`<g transform="translate(6 0)">${b}</g>` + fx, -2.2);
 }
 add('enemy_baguette_a', () => baguette('a'));
 add('enemy_baguette_b', () => baguette('b'));
 add('enemy_baguette_tell', () => baguette('tell'));
+add('enemy_baguette_hurt', () => baguette('hurt'));
 
 
 // ---------- egg carton (exploder) ----------
 function egg(f) {
-  const tell = f === 'tell', a = f === 'a';
-  const legs = tell ? stick([[28, 70], [22, 78], [18, 84]], 3.5, 5) + stick([[46, 70], [50, 78], [54, 84]], 3.5, 5)
-    : a ? stick([[28, 70], [22, 78], [18, 84]], 3.5, 5) + stick([[46, 70], [48, 78], [54, 84]], 3.5, 5)
-    : stick([[28, 70], [29, 78], [27, 84]], 3.5, 5) + stick([[46, 70], [43, 77], [47, 84]], 3.5, 5);
-  let b = '';
-  b += shape([[12, 40], [62, 40], [66, 72], [8, 72]], tell ? C.coralL : C.creamD, tell ? C.coral : C.lav, { dx: 3, dy: 3 }); // carton base
-  b += ell(24, 36, 8, 11, C.white, C.creamD, { dx: 2, dy: 2, sw: SWs }) + ell(38, 33, 8, 11, C.white, C.creamD, { dx: 2, dy: 2, sw: SWs }) + ell(52, 36, 8, 11, C.white, C.creamD, { dx: 2, dy: 2, sw: SWs });
-  b += shape([[8, 30], [66, 28], [68, 42], [6, 44]], tell ? C.coral : C.cream, tell ? C.coralD : C.creamD, { dx: 3, dy: 3 }); // lid
-  b += line([[16, 36], [58, 35]], C.plum, 1.4);
-  b += face(37, 55, 0.9, { mw: 14, mh: 8, my: 6, teeth: 3, eyeCol: tell ? C.coral : C.cream });
-  const g = tell ? 1.08 : 1;
-  return legs + squash(37, 80, tell ? 1.1 : a ? 1.02 : 0.98, tell ? 0.92 : a ? 0.98 : 1.02, b) + (tell ? spark(62, 18, 10) + spark(12, 20, 7) : '');
+  if (!['a', 'b', 'tell', 'hurt'].includes(f)) throw new Error(`egg: unknown frame "${f}"`);
+  const W = C.white, CR = C.cream, CRD = C.creamD, LAV = C.lav, CO = C.coral, COD = C.coralD, COL = C.coralL, GO = C.gold,
+    BRD = C.breadD, BRL = C.breadL, BAL = C.bananaL, PL = C.plum;
+  const ln = (d, w = 3, col = PL) => strokeD(d, col, w);
+  const limbS = (d) => limb(d, CRD, 5.6);
+  const eggPath = (x, y, rx, ry) => {
+    const t = y - ry, bt = y + ry, r = x + rx, l = x - rx;
+    return `M${n(x)} ${n(t)}C${n(x + rx * 0.75)} ${n(t)} ${n(r)} ${n(y - ry * 0.1)} ${n(r)} ${n(y + ry * 0.25)}C${n(r)} ${n(y + ry * 0.8)} ${n(x + rx * 0.5)} ${n(bt)} ${n(x)} ${n(bt)}` +
+      `C${n(x - rx * 0.5)} ${n(bt)} ${n(l)} ${n(y + ry * 0.8)} ${n(l)} ${n(y + ry * 0.25)}C${n(l)} ${n(y - ry * 0.1)} ${n(x - rx * 0.75)} ${n(t)} ${n(x)} ${n(t)}Z`;
+  };
+  // plain dot eyes: they have to read at ~13px
+  const pupil = (cx, cy, r) => `<circle cx="${n(cx)}" cy="${n(cy)}" r="${r}" fill="${PL}"/><circle cx="${n(cx - r * 0.3)}" cy="${n(cy - r * 0.35)}" r="${n(r * 0.36)}" fill="${W}"/>`;
+  // one scared egg. mood: worry | scream | shut
+  const eggie = (x, y, rx, ry, mood) => {
+    const ex = rx * 0.4, ey = y - ry * 0.1, my = y + ry * 0.5;
+    let s = shape(eggPath(x, y, rx, ry), W, null, { sw: 2.4 });
+    s += flat(`M${n(x + rx * 0.55)} ${n(y - ry * 0.45)}Q${n(x + rx * 0.98)} ${n(y + ry * 0.1)} ${n(x + rx * 0.5)} ${n(y + ry * 0.75)}Q${n(x + rx * 0.78)} ${n(y + ry * 0.1)} ${n(x + rx * 0.55)} ${n(y - ry * 0.45)}Z`, CRD);
+    if (mood === 'shut') {
+      s += ln(`M${n(x - ex - 2.4)} ${n(ey - 2.2)}L${n(x - ex + 1.4)} ${n(ey)}L${n(x - ex - 2.4)} ${n(ey + 2.2)}`, 1.9) + ln(`M${n(x + ex + 2.4)} ${n(ey - 2.2)}L${n(x + ex - 1.4)} ${n(ey)}L${n(x + ex + 2.4)} ${n(ey + 2.2)}`, 1.9);
+      s += ln(`M${n(x - 3)} ${n(my)}Q${n(x - 1.5)} ${n(y + ry * 0.35)} ${n(x)} ${n(my)}Q${n(x + 1.5)} ${n(y + ry * 0.65)} ${n(x + 3)} ${n(my)}`, 1.7);
+    } else if (mood === 'scream') {
+      s += pupil(x - ex, ey, 2.9) + pupil(x + ex, ey, 2.9);
+      s += `<ellipse cx="${n(x)}" cy="${n(my)}" rx="3" ry="3.8" fill="${PL}"/>` + flat(`M${n(x - 1.8)} ${n(my + 2.8)}Q${n(x)} ${n(my)} ${n(x + 1.8)} ${n(my + 2.8)}Q${n(x)} ${n(my + 4)} ${n(x - 1.8)} ${n(my + 2.8)}Z`, COL);
+    } else {
+      s += pupil(x - ex, ey, 2.4) + pupil(x + ex, ey, 2.4);
+      s += `<ellipse cx="${n(x)}" cy="${n(my)}" rx="1.8" ry="2.3" fill="${PL}"/>`;
+    }
+    return s;
+  };
+  // lid, three eggs, carton front. mood moves the eggs' faces; hurt cracks the left one.
+  const carton = (mood, hurt = false) => {
+    let b = shape('M8 38L11 17L58 11L68 38Z', CRD, null) + flat('M15 36L17.5 22L54 17.5L62 36Z', CR);
+    b += ln('M18 30L52 26', 1.6, BRL);
+    const m = hurt ? 'shut' : mood;
+    b += eggie(55, 28, 8.6, 10.5, m) + eggie(21, 28, 8.6, 10.5, m) + eggie(38, 24.5, 8.8, 11, m);
+    if (hurt) {
+      // cracked left egg with yolk
+      b += ln('M19 20L23 24L24 18L28 23', 2.2) + shape('M12 24Q11 15.5 18 17Q23 15.5 23.5 22.5Q23 28 17.5 27.5Q13 28.5 12 24Z', GO, null, { sw: 2 }) + flat('M14.5 21Q15.5 18.8 18.5 19.3', BAL, 'stroke="none"');
+    }
+    b += shape('M7 34.5L69 34.5L67 42L9 42Z', CR, null, { sw: 2.6 });
+    b += shape('M11 40.5L65 40.5L63 76Q63 78.5 60 78.5L16 78.5Q13 78.5 13 76Z', CRD, null);
+    b += `<path d="M53 42L64 42L62.4 76Q62.4 77.6 60 77.6L50 77.6Q55 60 53 42Z" fill="${BRL}" fill-opacity=".5"/>` + flat('M15 44L21 44L19.5 70L15.5 70Z', CR);
+    // egg-cup bumps along the bottom
+    b += ln('M16 76Q21 71.5 26 76', 1.5, BRD) + ln('M50 76Q55 71.5 60 76', 1.5, BRD);
+    return b;
+  };
+  // game sprite anchor: nub soles must end on y = 0.95 * 90
+  const grounded = (inner) => `<g transform="translate(0 -1.7)">${inner}</g>`;
+
+  if (f === 'a' || f === 'b') {
+    const walk = f === 'b';
+    // walk: left foot planted, right foot lifted and forward
+    const legs = walk
+      ? limbS('M28 76L27 82') + nub(25, 86, -1, LAV) + limbS('M48 76Q51 78 52 80') + nub(53, 83, 1, LAV)
+      : limbS('M28 76L27 82') + limbS('M48 76L49 82') + nub(25, 86, -1, LAV) + nub(50, 86, 1, LAV);
+    let b = walk
+      ? limbS('M12 60Q6.5 64 8 59') + mitt(8.2, 55.5, 4.8, 0, CRD) + limbS('M64 60Q70 59 69 51') + mitt(68.8, 47.5, 4.8, 0, CRD)
+      : limbS('M12 60Q6.5 63 8.5 56') + mitt(8.7, 52.5, 4.8, 0, CRD) + limbS('M64 60Q69.5 63 67.5 56') + mitt(67.3, 52.5, 4.8, 0, CRD);
+    b += carton('worry');
+    b += ovalEye(28, 55, 6.4, 7.8, -1.6, 0.8, { pr: 2.7 }) + ovalEye(48, 55, 6.4, 7.8, -1.6, 0.8, { pr: 2.7 });
+    b += ln('M19.5 48L33 43.5') + ln('M56.5 48L43 43.5');
+    b += shape('M30 68Q33 65 36 68Q39 71 42 68Q45 65 47 68Q46 75 38.5 75Q31 75 30 68Z', PL, null, { sw: 2 }) + flat('M33.5 72.5Q38.5 70 43.5 72.5Q38.5 75.5 33.5 72.5Z', COL);
+    b += drop(66, 38, 1.15) + drop(10, 46, 1);
+    b += ln('M2.8 50L4.6 47.5', 1.8, LAV) + ln('M73.2 50L71.4 47.5', 1.8, LAV) + ln('M2.8 58L4.6 60', 1.8, LAV) + ln('M73.2 58L71.4 60', 1.8, LAV);
+    return grounded(legs + (walk ? `<g transform="translate(0 -1.5)">${b}</g>` : b));
+  }
+  if (f === 'tell') {
+    // lit fuse out of a crack in the lid
+    let b = strokeD('M54 11.5L57.5 15L54.5 18.5L58 22', CO, 5);
+    b += limbS('M28 76L26 82') + limbS('M48 76L50 82') + nub(24, 86, -1, LAV) + nub(51, 86, 1, LAV);
+    b += `<g transform="translate(38 80) scale(1.06 1.04) translate(-38 -80)">`;
+    b += limbS('M12 58Q6.5 55 10.5 41') + mitt(11, 37.5, 4.6, -12, CRD) + limbS('M64 58Q69.5 55 65.5 41') + mitt(65, 37.5, 4.6, 12, CRD);
+    b += carton('scream');
+    b += strokeD('M54 11.5L57.5 15L54.5 18.5L58 22', PL, 2.2);
+    b += ovalEye(27.5, 55, 7.2, 8.8, 0, 0, { pr: 2, sclera: COL }) + ovalEye(48.5, 55, 7.2, 8.8, 0, 0, { pr: 2, sclera: COL });
+    b += ln('M18 48.5L33 42.5', 3.4) + ln('M58 48.5L43 42.5', 3.4);
+    b += shape('M30 66.5Q38 63.5 46 66.5Q47.5 77 38 77Q28.5 77 30 66.5Z', PL, null, { sw: 2 }) + flat('M33 75Q38 69.5 43 75Q38 78 33 75Z', COL);
+    b += `</g>`;
+    // fuse cord and spark (dropped 1.5 so the spark stays inside the canvas after the ground shift)
+    const cord = 'M55 12Q57.5 8 62 11Q66.5 14 64.5 10';
+    b += ln(cord, 4.6) + ln(cord, 2.2, BRL);
+    b += shape(star(64.5, 10, 7, 3, 6), GO, null, { sw: 2 }) + flat(star(64.5, 10, 3.6, 1.5, 6), CO) + ln('M70.5 6.5L73.5 5', 1.8, COD) + ln('M71.5 12.5L74.5 13.5', 1.8, COD) + ln('M58 6L55.5 4.5', 1.8, COD);
+    b += ln('M4.5 52Q2.5 60 4.5 68', 2.6, LAV) + ln('M71.5 52Q73.5 60 71.5 68', 2.6, LAV) + ln('M7 74L4 78', 2.4, LAV) + ln('M69 74L72 78', 2.4, LAV);
+    b += drop(14, 12, 1.1) + drop(62, 32, 1.05);
+    return grounded(b);
+  }
+  // hurt
+  let b = shape(star(12, 14, 5.5, 2.4, 5), GO, null, { sw: 1.6 }) + shape(star(68, 10, 4.6, 2, 5), GO, null, { sw: 1.6 });
+  b += limbS('M28 76L27 82') + limbS('M48 76L50 82') + nub(25, 86, -1, LAV) + nub(51, 86, 1, LAV);
+  b += `<g transform="translate(2.5 0) rotate(-7 38 82) translate(38 80) scale(1.04 .94) translate(-38 -80)">`;
+  b += limbS('M12 60Q6 66 9 72') + mitt(9.5, 74, 4.4, 0, CRD) + limbS('M64 60Q73 54 69 47') + mitt(69, 44, 4.4, 20, CRD);
+  b += carton('shut', true);
+  // yolk drip down the front
+  b += shape('M13.5 40Q12 47 13 53Q13.5 58 17 58Q20.5 58 19.5 53Q19.5 47 20.5 41Z', GO, null, { sw: 2 }) + flat('M15 44Q14.5 49 15.5 53', BAL, 'stroke="none"');
+  b += ln('M20 57L33 52', 3.2) + ln('M56 57L43 52', 3.2);
+  b += ln('M22 49L33.5 55.5L22 62', 3.4) + ln('M54 49L42.5 55.5L54 62', 3.4);
+  b += shape('M29.5 68Q32.5 63.5 35.5 67.5Q38 63.5 40.5 67.5Q43.5 63.5 46.5 68Q47 76.5 38 76.5Q29 76.5 29.5 68Z', PL, null, { sw: 2 }) + flat('M32.5 74Q38 71 43.5 74Q38 77.5 32.5 74Z', COL);
+  b += `</g>`;
+  b += drop(63, 30, 1.2) + drop(8, 36, 1.1);
+  b += ln('M3 30L6 32', 1.8, LAV) + ln('M73 24L70 27', 1.8, LAV);
+  return grounded(b);
 }
 add('enemy_egg_a', () => egg('a'));
 add('enemy_egg_b', () => egg('b'));
 add('enemy_egg_tell', () => egg('tell'));
+add('enemy_egg_hurt', () => egg('hurt'));
 
 // ---------- watermelon (splitter) + slice ----------
 function melon(f) {
-  const a = f === 'a';
-  const legs = a ? stick([[28, 78], [22, 87], [18, 94]], 3.8, 6) + stick([[52, 78], [56, 86], [62, 94]], 3.8, 6)
-    : stick([[28, 78], [29, 87], [27, 94]], 3.8, 6) + stick([[52, 78], [49, 86], [53, 94]], 3.8, 6);
+  if (f !== 'a' && f !== 'b' && f !== 'hurt') throw new Error(`melon: unknown frame "${f}"`);
+  const hurt = f === 'hurt', walkB = f === 'b';
+  const W = C.white, G = C.green, GD = C.greenD, CO = C.coral, COD = C.coralD, COL = C.coralL;
+  const BODY = 'M40 15Q63 15 70 42Q75 68 58 82Q40 89 22 82Q5 68 10 42Q17 15 40 15Z';
+  const stripe = (k) => `M${n(40 + k * 8)} 11Q${n(40 + k * 62)} 50 ${n(40 + k * 8)} 92`;
+  // rind body with stripes, shade, highlight, outline
+  const rindBody = () => {
+    const id = `c${++uid}`, id2 = `c${++uid}`;
+    let s = `<clipPath id="${id}"><path d="${BODY}"/></clipPath><clipPath id="${id2}"><rect x="0" y="67" width="80" height="30"/></clipPath>`;
+    s += flat(BODY, G);
+    s += `<g clip-path="url(#${id})">`;
+    for (const k of [-0.82, 0.82]) s += strokeD(stripe(k), GD, 4.6);
+    s += `<g clip-path="url(#${id2})">` + [-0.5, 0.5].map((k) => strokeD(stripe(k), GD, 4.2)).join('') + '</g>';
+    s += flat('M64 38Q76 66 58 83Q40 91 22 84Q46 82 56 70Q63 58 64 38Z', GD, 'opacity=".4"');
+    s += flat('M17 36Q19 25 29 19Q23 28 22 42Z', C.greenL);
+    return s + '</g>' + strokeD(BODY, C.plum, 3);
+  };
+  // two lenses pushed up on the forehead; t moves the whole pair (hurt: flying away)
+  const shades = (t = '') => {
+    const lens = (cx) => `<ellipse cx="${cx}" cy="25.5" rx="8" ry="5.2" fill="${C.blue}" stroke="${C.plum}" stroke-width="2.2"/><path d="M${cx - 5} 24.5L${cx - 1.5} 23" fill="none" stroke="${W}" stroke-width="2" stroke-linecap="round"/>`;
+    return `<g${t ? ` transform="${t}"` : ''}>` + strokeD('M22.5 25.5L16 28', C.plum, 2.2) + strokeD('M57.5 25.5L64 28', C.plum, 2.2) + strokeD('M37 25Q40 23 43 25', C.plum, 2.6) + lens(30) + lens(50) + '</g>';
+  };
+  // the nubs are drawn with their bottom edge on y = 95; raise everything 1.2 so the outline's outer edge rests on the 0.95 x 100 ground line
+  const lift = (inner) => `<g transform="translate(0 -1.2)">${inner}</g>`;
+  const stem = () => shape('M36.5 16.5Q37 8 42 6.5Q41.5 12 43.5 16.5Z', GD, null, { sw: 2.2 }) + strokeD('M42 8Q47 4 51 7Q53 10 50 11', C.plum, 1.8);
   let b = '';
-  b += ell(40, 48, 31, 30, C.green, C.greenD, { dx: 4, dy: 5 });
-  for (const x of [22, 32, 42, 52, 60]) b += line([[x, 22 + Math.abs(x - 41) * 0.3], [x - 2, 48], [x + 1, 72 - Math.abs(x - 41) * 0.3]], C.greenD, 3.2);
-  b += flat([[18, 36], [26, 26], [30, 28], [22, 42]], C.greenL, 'opacity=".7"');
-  b += face(40, 50, 1.15, { mw: 20, mh: 11, my: 9, teeth: 4 });
-  return legs + squash(40, 92, a ? 1.02 : 0.98, a ? 0.98 : 1.03, b);
+  if (hurt) {
+    // hurt: squashed + leaning, arms up, crack across the belly
+    b += limb('M30 84L28 90', G, 5.6) + limb('M50 84L52 90', G, 5.6) + nub(26, 95, -1, CO) + nub(54, 95, 1, CO);
+    let body = stem() + rindBody();
+    // zigzag crack: flesh inside, white pith edge, plum seeds
+    const top = [[8, 67], [18, 73], [26, 67], [35, 74], [44, 67], [53, 74], [61, 67], [72, 72]];
+    const bot = [[72, 81], [61, 77], [53, 85], [44, 78], [35, 86], [26, 78], [18, 85], [8, 78]];
+    const crack = 'M' + top.concat(bot).map((p) => p.join(' ')).join('L') + 'Z';
+    body += clipTo(BODY, flat(crack, CO) + strokeD('M8 69L18 75L26 69L35 76L44 69L53 76L61 69L72 74', W, 3) + strokeD('M72 80L61 76L53 84L44 77L35 85L26 77L18 84L8 77', COD, 2.4) +
+      `<path d="${crack}" fill="none" stroke="${C.plum}" stroke-width="2.6" stroke-linejoin="round"/>`);
+    body += melonSeed(22, 80, 25, 1) + melonSeed(36, 81, -25, 1.1) + melonSeed(50, 81, 20, 1.1) + melonSeed(64, 78, -20, 1);
+    body += strokeD('M13 62L18 70', C.plum, 2.4) + strokeD('M66 60L61 69', C.plum, 2.4);
+    // face: > < eyes, wobbly ow mouth
+    body += strokeD('M22 42L34 48L22 54', C.plum, 3.8) + strokeD('M58 42L46 48L58 54', C.plum, 3.8);
+    body += strokeD('M21 38L31 33', C.plum, 2.8) + strokeD('M59 38L49 33', C.plum, 2.8);
+    body += shape('M34 56Q36 53 38.5 55Q40.5 52.5 42.5 55Q45 53 47 56Q49 60 46.5 65Q44 69 40.5 67Q37 69 34.5 65Q32 60 34 56Z', C.plum, null, { sw: 2.2 }) + flat('M36.5 64.5Q40.5 60 44.5 64.5Q40.5 68 36.5 64.5Z', COL);
+    body += `<path d="M18 49Q12 50 11 56Q16 57 18 52Z" fill="${C.sky}" stroke="${C.plum}" stroke-width="1.6"/><path d="M62 49Q68 50 69 56Q64 57 62 52Z" fill="${C.sky}" stroke="${C.plum}" stroke-width="1.6"/>`;
+    body += `<ellipse cx="19" cy="57" rx="4" ry="2.8" fill="${COL}" opacity=".6"/><ellipse cx="61" cy="57" rx="4" ry="2.8" fill="${COL}" opacity=".6"/>`;
+    body += limb('M14 52Q8 46 11 34', G, 5.6) + mitt(11, 31, 4.6, -10, G) + limb('M66 52Q72 46 69 34', G, 5.6) + mitt(69, 31, 4.6, 10, G);
+    b += `<g transform="translate(2.6 0) rotate(-4 40 95) translate(40 95) scale(1.04 .94) translate(-40 -95)">${body}</g>`;
+    // knocked-off shades + sweat + impact stars
+    b += shades('translate(-15 -3) rotate(-26 40 25)');
+    b += strokeD('M6 20L12 24', C.lav, 2.2) + strokeD('M22 9L26 15', C.lav, 2.2);
+    b += drop(63, 12, 1.1) + drop(72, 60, 1) + shape(star(70, 22, 4.5, 2, 5), C.gold, null, { sw: 1.6 });
+    return lift(b);
+  }
+  // idle (a) and its walk partner (b): other foot lifted, arms swapped, body bobbed up 1.5
+  if (walkB) b += limb('M31 83L30 90', G, 5.6) + nub(28, 95, -1, CO) + limb('M49 83L51 87', G, 5.6) + nub(53, 91.5, 1, CO);
+  else b += limb('M31 83L30 90', G, 5.6) + limb('M49 83L50 90', G, 5.6) + nub(28, 95, -1, CO) + nub(52, 95, 1, CO);
+  let up = walkB ? limb('M68 50Q79 58 74 66Q72 70 67 70', G, 5.6) + mitt(66, 70, 4.4, 18, G) : limb('M12 50Q1 58 6 66Q8 70 13 70', G, 5.6) + mitt(14, 70, 4.4, 100, G);
+  up += stem() + rindBody();
+  up += ovalEye(29, 47, 5.6, 6.6, 0.8, 0.6, { lid: 0.3, tilt: -4, lc: G }) + ovalEye(51, 47, 5.6, 6.6, -0.8, 0.6, { lid: 0.3, tilt: 4, lc: G });
+  up += strokeD('M22 38Q28 34 35 37', C.plum, 2.8) + strokeD('M45 37Q52 34 58 38', C.plum, 2.8);
+  up += `<ellipse cx="19" cy="58" rx="4" ry="2.8" fill="${COL}" opacity=".6"/><ellipse cx="61" cy="58" rx="4" ry="2.8" fill="${COL}" opacity=".6"/>`;
+  up += shape('M27 57Q40 54 53 57Q52 71 40 71Q28 71 27 57Z', C.plum, null, { sw: 2.4 }) + flat('M29.5 58Q40 56 50.5 58L50 62.5Q40 60.5 30 62.5Z', W) + flat('M33 69.5Q40 63.5 47 69.5Q40 72.5 33 69.5Z', COL);
+  up += shades();
+  up += walkB ? limb('M13 50Q6 46 8 38', G, 5.6) + mitt(8, 34, 4.6, 133, G) : limb('M67 50Q74 46 72 38', G, 5.6) + mitt(72, 34, 4.6, -15, G);
+  return lift(b + (walkB ? `<g transform="translate(0 -1.5)">${up}</g>` : up));
 }
-// ---------- frozen turkey (tank) ----------
+add('enemy_melon_a', () => melon('a'));
+add('enemy_melon_b', () => melon('b'));
+add('enemy_melon_hurt', () => melon('hurt'));
+
+// ---------- frozen turkey (tank): frozen gym-bro popsicle ----------
 function turkey(f) {
-  const tell = f === 'tell', a = f !== 'b';
-  const legs = a ? stick([[44, 70], [38, 80], [34, 90]], 4.2, 6) + stick([[76, 70], [80, 80], [86, 90]], 4.2, 6)
-    : stick([[44, 70], [45, 80], [43, 90]], 4.2, 6) + stick([[76, 70], [74, 80], [77, 90]], 4.2, 6);
+  if (f !== 'a' && f !== 'b' && f !== 'tell' && f !== 'hurt') throw new Error(`turkey: unknown frame "${f}"`);
+  const walkB = f === 'b';
+  const W = C.white, CR = C.cream, CRD = C.creamD, FR = C.frost, FRD = C.frostD, COL = C.coralL, TE = C.teal, TED = C.tealD, LAV = C.lav, SKY = C.sky, BRL = C.breadL;
+  const limbT = (d) => limb(d, FR, 8.5);
+  const BODY = 'M60 11C80 11 93 26 96.5 46C99.5 64 84 77.5 60 77.5C36 77.5 20.5 64 23.5 46C27 26 40 11 60 11Z';
+  // same body with a chunk knocked out of the right shoulder
+  const BODY_CHIP = 'M60 11C80 11 93 26 95 37L87 40L93.5 45L86 49.5L97 54C98 66 84 77.5 60 77.5C36 77.5 20.5 64 23.5 46C27 26 40 11 60 11Z';
+  // drumstick forearm: origin = elbow, meaty end up
+  const drumstick = (x, y, deg, k = 1) => {
+    let s = `<g transform="translate(${n(x)} ${n(y)}) rotate(${deg}) scale(${k})">`;
+    s += shape('M-2.4 3L-2.4 -10L2.4 -10L2.4 3Z', W, null, { sw: 2 }) + dot(-2.7, 3.3, 2.8, W, 2) + dot(2.7, 3.3, 2.8, W, 2);
+    s += shape('M0 -35C10.5 -35 12.5 -26.5 10 -20C7.5 -14 3 -10.5 0 -10.5C-3 -10.5 -7.5 -14 -10 -20C-12.5 -26.5 -10.5 -35 0 -35Z', CRD, null, { sw: 2.8 });
+    s += flat('M3.5 -32.5C9.4 -30.5 10.5 -25 8.4 -20C7 -16.5 5 -14.8 2.6 -14C6.4 -19 7 -27 3.5 -32.5Z', BRL);
+    s += flat('M-7.5 -29.5C-6 -32.5 -3 -33.8 0.5 -33.8C-3.5 -31.3 -5.6 -26.5 -6 -21.5C-8.8 -23.5 -9 -26.5 -7.5 -29.5Z', CR);
+    s += shape('M-6.5 -32.5Q-3.5 -36.5 0 -35.5Q3.5 -37 5.5 -33Q1 -31.5 -2.2 -32.8Q-4.5 -29.8 -6.5 -32.5Z', W, null, { sw: 1.6 });
+    return s + '</g>';
+  };
+  // bicep bump on the upper arm
+  const bicep = (x, y) => dot(x, y, 7, FR, 2.6) + flat(`M${n(x + 2.5)} ${n(y - 4.5)}Q${n(x + 6)} ${n(y)} ${n(x + 2.5)} ${n(y + 4.5)}Q${n(x + 4.5)} ${n(y)} ${n(x + 2.5)} ${n(y - 4.5)}Z`, FRD) +
+    strokeD(`M${n(x - 4)} ${n(y - 2.5)}Q${n(x - 2.5)} ${n(y - 4.2)} ${n(x - 0.5)} ${n(y - 4.2)}`, W, 1.5);
+  // frosted torso: body, shade, shine, rime cap and sweatband (clipped to the body), then outline
+  const torso = (path = BODY) => {
+    const id = `c${++uid}`;
+    let s = `<clipPath id="${id}"><path d="${path}"/></clipPath>` + flat(path, FR);
+    s += `<g clip-path="url(#${id})">` + flat('M112 14L112 90L36 90C80 86 100 60 84 14Z', FRD);
+    // rime cap with a scalloped lower edge
+    const sc = 'M10 22Q16 27 22 22Q28 27 34 22Q40 27 46 22Q52 27 58 22Q64 27 70 22Q76 27 82 22Q88 27 94 22Q100 27 106 22L110 22';
+    s += flat('M10 -4L110 -4L110 22L10 22Z', W) + flat(sc + 'Z', W) + strokeD(sc, C.plum, 2.4);
+    // sweatband
+    s += flat('M10 25Q60 36 110 25L110 33Q60 44 10 33Z', TE) + flat('M10 29Q60 40 110 29L110 33Q60 44 10 33Z', TED) + strokeD('M10 25Q60 36 110 25M10 33Q60 44 110 33', C.plum, 2.6);
+    s += `</g>` + flat('M29 44Q30 34 38 28Q34 36 34 48Z', W);
+    s += strokeD(path, C.plum, 3);
+    // flakes on the belly
+    s += strokeD('M30 62l5 0M32.5 59.5l0 5M31 60.5l3 3M34 60.5l-3 3', FRD, 1.4) + strokeD('M88 60l5 0M90.5 57.5l0 5M89 58.5l3 3M92 58.5l-3 3', W, 1.4);
+    // ice cubes on the band
+    const cube = (cx, cy, k, deg) => `<g transform="translate(${cx} ${cy}) rotate(${deg}) scale(${k})">` + shape('M-6.5 -5.5L5.5 -6.5L6.5 5L-5.5 6.5Z', W, null, { sw: 2.2 }) + flat('M-4 -3.5L2 -4.2L1.4 -2L-3.6 -1.4Z', FRD) + strokeD('M-3.5 3.2L-1 3', FRD, 1.4) + `</g>`;
+    return s + cube(42, 35.5, 1.15, -8) + cube(79, 37.5, 0.95, 10);
+  };
+  const icicles = () => [34, 60, 86].map((x, i) => shape(`M${x - 3.5} 73L${n(x + 0.5 * (i - 1))} ${i === 1 ? 86 : 83}L${x + 3.5} 73Z`, W, null, { sw: 2 })).join('');
+  // the sole's outline edge rests on the sprite's ground line (0.95 x 96 = 91.2); lift raises the right foot in the walk partner
+  const FY = 87.55;
+  const legs = (lift = 0) => limbT('M46 75L46 82.5') + limbT(`M74 75L74 ${n(82.5 - lift)}`) + sneaker(46, FY, -1, LAV, 0.85) + sneaker(74, n(FY - lift), 1, LAV, 0.85);
+  // flexing arm: shoulder fixed, y = how far the drumstick is raised (negative lowers it), deg = drumstick tilt
+  const armL = (y, deg) => limbT(`M26 58Q18 ${n(61 - y * 0.6)} 12 ${n(54 - y)}`) + bicep(19.5, 58.5 - y * 0.5) + drumstick(12, 54 - y, deg);
+  const armR = (y, deg) => limbT(`M94 58Q102 ${n(61 - y * 0.6)} 108 ${n(54 - y)}`) + bicep(100.5, 58.5 - y * 0.5) + drumstick(108, 54 - y, deg);
   let b = '';
-  // drumsticks poking up at the sides, wings, then the big frosty body
-  b += shape([[14, 40], [26, 30], [34, 42], [24, 54]], C.coralL, C.coral, { dx: 2, dy: 3 }) + ell(14, 40, 6, 6, C.cream, C.creamD, { sw: SWs });
-  b += shape([[106, 40], [94, 30], [86, 42], [96, 54]], C.coralL, C.coral, { dx: 2, dy: 3 }) + ell(106, 40, 6, 6, C.cream, C.creamD, { sw: SWs });
-  b += ell(60, 50, 42, 30, C.frost, C.frostD, { dx: 5, dy: 6 });
-  b += flat([[28, 34], [40, 24], [46, 27], [34, 42]], C.white, 'opacity=".85"');
-  b += snowflake(90, 62, 7, C.white, 2) + snowflake(30, 66, 5, C.white, 1.8);
-  b += face(60, 48, 1.3, { mw: tell ? 26 : 22, mh: tell ? 15 : 12, my: 9, teeth: 4, eyeCol: tell ? C.coralL : C.cream });
-  // icicles hanging from the belly + frost cap
-  for (const x of [38, 52, 68, 82]) b += shape([[x - 4, 76], [x + 4, 76], [x + 0.5, 86 + (x % 3) * 2]], C.frost, C.frostD, { sw: SWs, dx: 1, dy: 1 });
-  b += shape([[40, 22], [52, 16], [64, 20], [76, 16], [84, 24], [72, 28], [50, 28]], C.white, C.frostD, { sw: SWs, dx: 2, dy: 2 });
-  if (tell) b += spark(14, 18, 10, C.sky) + spark(106, 18, 10, C.sky) + snowflake(60, 8, 6, C.sky, 2);
-  return legs + squash(60, 90, tell ? 0.96 : a ? 1.02 : 0.98, tell ? 1.05 : a ? 0.98 : 1.03, b);
+
+  if (f === 'a' || walkB) {
+    // b: right foot lifted, left arm pumped up and right arm down, body bobbed up 1.5
+    const bob = (inner) => (walkB ? `<g transform="translate(0 -1.5)">${inner}</g>` : inner);
+    b += bob(icicles()) + legs(walkB ? 4.5 : 0);
+    let up = torso();
+    // flexing arms: bicep on the upper arm, drumstick forearm up
+    up += walkB ? armL(3.5, 3) + armR(-3.5, -13) : armL(0, 8) + armR(0, -8);
+    // face: cocky half-lids, clenched chattering teeth
+    up += ovalEye(47, 50.5, 7.2, 8.2, 0.8, 0.6, { pr: 3.1, lid: 0.32, tilt: 9, lc: FR }) + ovalEye(73, 50.5, 7.2, 8.2, -0.8, 0.6, { pr: 3.1, lid: 0.32, tilt: -9, lc: FR });
+    up += strokeD('M36.5 42L55.5 46', C.plum, 4.2) + strokeD('M83.5 42L64.5 46', C.plum, 4.2);
+    up += shape('M46 60Q60 56.5 74 60L73.5 69Q60 75 46.5 69Z', W, null, { sw: 2.4 });
+    for (const x of [51, 56, 60, 64, 69]) up += strokeD(`M${x} 58.8L${x} 71`, C.plum, 1.4);
+    up += strokeD('M46.5 64.5Q60 67.5 73.5 64.5', C.plum, 1.5);
+    up += shape('M50 72Q60 78 70 72Q60 74.4 50 72Z', COL, null, { sw: 1.8 });
+    up += strokeD('M42 63Q39.5 60.5 42 58', FRD, 1.6) + strokeD('M78 63Q80.5 60.5 78 58', FRD, 1.6);
+    up += drop(98, 22, 1.1, SKY);
+    return b + bob(up);
+  }
+
+  if (f === 'tell') {
+    b += legs();
+    b += squash(60, 77, 1.07, 1.1, icicles() + torso() +
+      ovalEye(47, 50.5, 7.6, 8.8, 0, 1, { pr: 3, lid: 0.46, tilt: 15, lc: FR, sclera: COL }) + ovalEye(73, 50.5, 7.6, 8.8, 0, 1, { pr: 3, lid: 0.46, tilt: -15, lc: FR, sclera: COL }) +
+      strokeD('M35 38.5L56.5 46', C.plum, 4.6) + strokeD('M85 38.5L63.5 46', C.plum, 4.6) +
+      // roaring mouth
+      shape('M44 58.5Q60 54 76 58.5Q78.5 75 60 76Q41.5 75 44 58.5Z', C.plum, null, { sw: 2.6 }) + shape('M47 60Q60 57 73 60L72 64.5Q60 62 48 64.5Z', W, null, { sw: 1.8 }) + flat('M50 72.5Q60 65 70 72.5Q60 76.5 50 72.5Z', COL));
+    // arms flexed high and flared
+    b += limbT('M27 58Q21.5 58 22.5 49') + bicep(25.5, 59) + drumstick(22.5, 49, -14, 1.05) + limbT('M93 58Q98.5 58 97.5 49') + bicep(94.5, 59) + drumstick(97.5, 49, 14, 1.05);
+    // frost breath
+    b += dot(86, 68, 6.5, W, 2.4) + dot(95, 73, 8, W, 2.4) + dot(104, 67.5, 6.5, W, 2.4) + dot(108.5, 74.5, 5.5, W, 2.4) + dot(102, 79, 5.5, W, 2.4);
+    b += strokeD('M83.5 66.5Q85 64.5 88 65.5', FRD, 1.5) + strokeD('M92.5 72Q95.5 69.5 99 72', FRD, 1.6) + strokeD('M101 66Q104 64.5 107 66', FRD, 1.5);
+    b += strokeD('M113 61L116.5 58.5', LAV, 2.2) + strokeD('M115 69L118 69', LAV, 2.2) + strokeD('M112 83L115.5 85.5', LAV, 2.2);
+    // shake lines
+    b += strokeD('M6 60Q3.5 68 6 76', LAV, 2.6) + strokeD('M113 36Q115.5 42 113 48', LAV, 2.6);
+    return b;
+  }
+
+  // hurt: flying ice chunk, chipped shoulder, squashed and leaning, arms trembling
+  b += shape('M97 10L104 2L111 7L109 16L101 18Z', W, null, { sw: 2.2 }) + flat('M104 2L111 7L109 16L105 10Z', FRD) + strokeD('M98 13L103 9', FRD, 1.4);
+  b += strokeD('M91 22L95 19', LAV, 2) + strokeD('M90 15L95 15', LAV, 2);
+  b += shape(star(113, 26, 4, 1.8, 4), W, null, { sw: 1.6 });
+  b += icicles() + legs();
+  b += rot(squash(60, 77, 1.06, 0.93, torso(BODY_CHIP) +
+    strokeD('M37 47.5L54 54L37 60.5', C.plum, 4) + strokeD('M83 47.5L66 54L83 60.5', C.plum, 4) +
+    shape('M45 64L49 60L53 64L57 60L61 64L65 60L69 64L73 60L75 64Q74 74 60 74Q46 74 45 64Z', W, null, { sw: 2.4 }) + strokeD('M47 67L51 70L55 67L59 70L63 67L67 70L71 67L74 69', C.plum, 1.5)), -5, 60, 77);
+  // arms hang and tremble
+  b += limbT('M26 58Q17 61 15 65') + drumstick(15, 65, 168, 0.72) + limbT('M94 58Q103 61 105 65') + drumstick(105, 65, -168, 0.72);
+  b += strokeD('M6.5 36l-3 3 3 3 -3 3', LAV, 2.2) + strokeD('M113.5 40l3 3 -3 3 3 3', LAV, 2.2);
+  b += drop(24, 14, 1.15, SKY) + drop(9, 18, 1, SKY);
+  return b;
 }
 add('enemy_turkey_a', () => turkey('a'));
 add('enemy_turkey_b', () => turkey('b'));
 add('enemy_turkey_tell', () => turkey('tell'));
+add('enemy_turkey_hurt', () => turkey('hurt'));
 
-add('enemy_melon_a', () => melon('a'));
-add('enemy_melon_b', () => melon('b'));
-
+// ---------- melon slice (fast, fragile): sugar-rush kid, same fruit family as the melon ----------
+// Half-moon slice (flat cut on top, rind below): the widest region is the red flesh, so the face gets the whole width.
 function slice(f) {
-  const a = f === 'a';
-  const legs = a ? stick([[30, 52], [26, 58], [23, 62]], 3.2, 4) + stick([[44, 52], [48, 57], [52, 62]], 3.2, 4)
-    : stick([[30, 52], [31, 58], [29, 62]], 3.2, 4) + stick([[44, 52], [42, 57], [46, 62]], 3.2, 4);
+  if (f !== 'a' && f !== 'b' && f !== 'hurt') throw new Error(`slice: unknown frame "${f}"`);
+  const hurt = f === 'hurt', walkB = f === 'b';
+  const W = C.white, G = C.green, GD = C.greenD, CO = C.coral, COD = C.coralD, TE = C.teal;
+  const BODY = 'M68 7H8A30 46 0 0 0 68 7Z';
+  const PITH = 'M62.5 7H13.5A24.5 40.5 0 0 0 62.5 7Z';
+  const FLESH = 'M60 7H16A22 38 0 0 0 60 7Z';
+  const at = (t, rx, ry) => [n(38 + rx * Math.cos((t * Math.PI) / 180)), n(7 + ry * Math.sin((t * Math.PI) / 180))];
+  // slice shape: rind + pith + flesh + rind ticks + outline. bite = circles [cx, cy, r] cut out of the body
+  const sliceBody = (bite = []) => {
+    const id = `c${++uid}`;
+    let s = `<clipPath id="${id}"><path d="${BODY}"/></clipPath>`;
+    let inner = flat(BODY, G) + flat(PITH, W) + flat(FLESH, CO);
+    inner += `<g clip-path="url(#${id})">`;
+    for (const t of [20, 46, 72, 108, 134, 160]) {
+      const [x, y] = at(t, 32, 48), [x2, y2] = at(t, 25.5, 41.5);
+      inner += `<path d="M${x} ${y}L${x2} ${y2}" fill="none" stroke="${GD}" stroke-width="4"/>`;
+    }
+    inner += flat('M58 14Q58 34 45 43Q38 45 30 43Q48 42 52 28Q54 20 54 14Z', COD, 'opacity=".55"');
+    inner += '</g>' + strokeD(BODY, C.plum, 3);
+    if (!bite.length) return s + inner;
+    // bite: one evenodd clip per circle (frame minus that circle), nested so the cuts intersect and overlaps stay empty
+    const cuts = bite.map(([x, y, r]) => ({ id: `c${++uid}`, x, y, r }));
+    const frame = 'M-10 -10H90V80H-10Z';
+    for (const c of cuts) s += `<clipPath id="${c.id}"><path d="${frame}M${c.x - c.r} ${c.y}a${c.r} ${c.r} 0 1 0 ${2 * c.r} 0a${c.r} ${c.r} 0 1 0 ${-2 * c.r} 0Z" clip-rule="evenodd"/></clipPath>`;
+    const nest = (list, body) => list.reduceRight((acc, c) => `<g clip-path="url(#${c.id})">${acc}</g>`, body);
+    s += nest(cuts, inner);
+    // re-stroke each bite arc, hidden where another circle already removed that part
+    s += `<g clip-path="url(#${id})">` + cuts.map((c) => nest(cuts.filter((o) => o !== c), `<circle cx="${c.x}" cy="${c.y}" r="${c.r}" fill="none" stroke="${C.plum}" stroke-width="2.8"/>`)).join('') + '</g>';
+    return s;
+  };
+  // teal sweatband with white stripes; tails fly back when running, droop when hurt
+  const band = (limp) => {
+    let s = shape('M8 4.5H68V12.5H8Z', TE, null, { sw: 2.4 }) + strokeD('M10 7.6H66', W, 1.8) + strokeD('M10 10.2H66', W, 1.8);
+    s += limp ? shape('M8 8.5L4 14L7 19L10 16Z', TE, null, { sw: 2 }) : shape('M8 8.5L1.8 5.2L3.2 9L1.8 13.4Z', TE, null, { sw: 2 });
+    return s + `<circle cx="8" cy="8.5" r="3.1" fill="${TE}" stroke="${C.plum}" stroke-width="2"/>`;
+  };
+  // big gap-toothed grin
+  const grin = () => shape('M27.5 34.5H48.5Q48.5 43.5 38 43.5Q27.5 43.5 27.5 34.5Z', C.plum, null, { sw: 2.4 }) +
+    flat('M29.5 36H35.5V40.5H29.5Z', W) + flat('M40.5 36H46.5V40.5H40.5Z', W) + flat('M32 42.5Q38 38.5 44 42.5Q38 45 32 42.5Z', C.coralL);
   let b = '';
-  b += shape('M10 22 A28 28 0 0 0 64 22 Z', C.coral, C.coralD, { dx: 2, dy: 3 });
-  b += flat('M13 22 A25 25 0 0 0 61 22 Z', C.coral);
-  b += shape('M10 22 L64 22 L64 27 L10 27 Z', C.green, C.greenD, { dx: 0, dy: 2, sw: SWs });
-  b += `<circle cx="26" cy="34" r="1.8" fill="${C.plum}"/><circle cx="48" cy="34" r="1.8" fill="${C.plum}"/>`;
-  b += face(37, 38, 0.6, { mw: 9, mh: 5, my: 5, teeth: 2 });
-  return legs + squash(37, 62, a ? 1.03 : 0.97, a ? 0.97 : 1.03, b);
+  if (!hurt) {
+    // sprint: a plants the back leg and kicks the front one up, b swaps them; arms pump the other way; b bobs up 1 and leans 4 deg instead of 6 (the canvas has no headroom above the band); speed lines behind
+    b += walkB
+      ? limb('M30 48Q23 50 21 55', G, 6) + nub(19, 58.3, -1, TE, 1.1) + limb('M46 48L54 56', G, 6) + nub(58, 61.5, 1, TE, 1.1)
+      : limb('M30 48L22 56', G, 6) + nub(18, 61.5, -1, TE, 1.1) + limb('M46 48Q53 50 55 55', G, 6) + nub(57, 58.3, 1, TE, 1.1);
+    let up = rot(sliceBody() + band(false) +
+      ovalEye(29, 25, 6.8, 7.6, 1.8, 0.5, { sw: 3, pr: 4 }) + ovalEye(47, 25, 6.8, 7.6, 1.8, 0.5, { sw: 3, pr: 4 }) +
+      strokeD('M23 15.5Q29 13.2 35 15.2', C.plum, 3) + strokeD('M41 15.2Q47 13.2 53 15.5', C.plum, 3) +
+      melonSeed(20, 29, -20, 1.1) + melonSeed(56, 29, 20, 1.1) + melonSeed(21.5, 39, -35, 1.1) + melonSeed(54.5, 39, 35, 1.1) + grin(), walkB ? 4 : 6, 38, 28);
+    up += walkB
+      ? limb('M12 23Q6 22 7 15', G, 5) + mitt(7.5, 12, 3.6, 128, G) + limb('M64 29Q69 31 67.5 37', G, 5) + mitt(67.5, 39.5, 3.6, 118, G)
+      : limb('M12 23Q7 25 6 31', G, 5) + mitt(6, 33.5, 3.6, 0, G) + limb('M64 29Q70 28 68.5 21', G, 5) + mitt(68.5, 18, 3.6, -10, G);
+    b += walkB ? `<g transform="translate(0 -1)">${up}</g>` : up;
+    b += strokeD('M2.5 40L9.5 40', C.lav, 2.2) + strokeD('M2.5 46L8.5 46', C.lav, 2.2) + strokeD('M4 52L10.5 52', C.lav, 2.2);
+    return b;
+  }
+  // hurt: bite out of the right side, > < eyes, tear streams, wail
+  b += limb('M31 48L26 56', G, 6) + nub(22, 61.5, -1, TE, 1.1) + limb('M45 48L51 56', G, 6) + nub(53, 61.5, 1, TE, 1.1);
+  b += limb('M11 24Q5 26 5.5 35', G, 5) + mitt(5.5, 37.5, 3.6, 0, G);
+  const tear = (d) => strokeD(d, C.plum, 5.2) + strokeD(d, C.sky, 2.4);
+  b += rot(sliceBody([[66, 19, 9], [63, 32, 10], [55, 44, 9]]) + band(true) +
+    strokeD('M19 16L28 23.5L19 31', C.plum, 4) + strokeD('M47 16L38 23.5L47 31', C.plum, 4) +
+    shape('M27 37Q27 32.5 30 33.5Q33 31.5 36 33.5Q39 32.5 39 37Q39 43 33 43Q27 43 27 37Z', C.plum, null, { sw: 2.2 }) + flat('M29.5 40.5Q33 37 36.5 40.5Q33 43 29.5 40.5Z', C.coralL) +
+    tear('M21 32Q18 36 20 41') + tear('M46 32Q47 36 46 40'), -5, 38, 28);
+  b += drop(66, 3, 1.1) + shape(star(9, 8, 4.5, 2, 5), C.gold, null, { sw: 1.6 }) + `<circle cx="69.5" cy="27" r="2.4" fill="${CO}" stroke="${C.plum}" stroke-width="1.6"/><circle cx="68" cy="43" r="2" fill="${CO}" stroke="${C.plum}" stroke-width="1.6"/>`;
+  b += strokeD('M54 52L61 55', C.lav, 2.2) + strokeD('M62 48L68 50', C.lav, 2.2);
+  return b;
 }
 add('enemy_slice_a', () => slice('a'));
 add('enemy_slice_b', () => slice('b'));
+add('enemy_slice_hurt', () => slice('hurt'));
 
-// ---------- canned beans (armored) ----------
+// ---------- canned beans (tin-can knight) ----------
 function beans(f) {
-  const a = f === 'a', gy = 91;
-  const legs = a ? stick([[30, 76], [24, 84], [20, 90]], 3.5, 6) + stick([[50, 76], [54, 83], [60, 90]], 3.5, 6)
-    : stick([[30, 76], [32, 84], [31, 90]], 3.5, 6) + stick([[50, 76], [47, 82], [51, 89]], 3.5, 6);
-  const arms = a ? stick([[18, 48], [11, 54], [9, 46]], 3.5) + stick([[62, 48], [69, 42], [71, 48]], 3.5)
-    : stick([[18, 48], [11, 42], [9, 50]], 3.5) + stick([[62, 48], [69, 52], [71, 44]], 3.5);
-  let b = '';
-  b += shape([[18, 24], [62, 24], [62, 78], [18, 78]], C.chrome, C.chromeD, { dx: 5, dy: 0 }); // tin
-  b += flat([[22, 28], [27, 28], [27, 74], [22, 74]], C.chromeL, 'opacity=".7"');
-  b += shape([[18, 40], [62, 40], [62, 68], [18, 68]], C.coral, C.coralD, { dx: 4, dy: 3 }); // label
-  b += flat([[22, 44], [34, 44], [28, 50]], C.coralL, 'opacity=".6"');
-  b += shape(ellPath(40, 24, 22, 6), C.chromeL, C.chromeD, { dx: 2, dy: 1, sw: SWs }); // lid ring
-  b += `<ellipse cx="40" cy="24" rx="14" ry="3.4" fill="none" stroke="${C.chromeD}" stroke-width="1.4"/>`;
-  b += shape([[16, 74], [64, 74], [64, 80], [16, 80]], C.chromeD, null, { sw: SWs });
-  b += ell(26, 63, 3, 2, C.cream, null, { sw: 1.2 }) + ell(54, 63, 3, 2, C.cream, null, { sw: 1.2 });
-  b += shape([[50, 71], [56, 66], [58, 71]], C.chromeD, null, { sw: 1.4 }) + line([[17, 55], [22, 52], [20, 58]], C.plum, 1.2); // dents
-  b += face(40, 50, 0.95, { mw: 16, mh: 9, my: 7, eyeCol: C.cream });
-  return `${legs}${squash(40, gy, a ? 1.02 : 0.98, a ? 0.98 : 1.02, b)}${arms}`;
+  if (!['a', 'b', 'tell', 'hurt'].includes(f)) throw new Error(`beans: unknown frame "${f}"`);
+  const tell = f === 'tell', hurt = f === 'hurt', walkB = f === 'b';
+  const CH = C.chrome, CHD = C.chromeD, CHL = C.chromeL, SO = C.soda, SOD = C.sodaD, W = C.white, COL = C.coralL, CO = C.coral, COD = C.coralD,
+    GO = C.gold, BR = C.bread, BRD = C.breadD, BRL = C.breadL, PS = C.plumSoft, LAV = C.lav, PL = C.plum;
+  const SLAB = 'M18 27L18 76Q18 81 23 81L57 81Q62 81 62 76L62 27Z';
+  const SLAB_DENT = 'M18 27L18 76Q18 81 23 81L57 81Q62 81 62 76L62 67Q53 60 62 51L62 27Z';
+  const bean = (x, y, rx, ry, deg) => `<g transform="rotate(${deg} ${x} ${y})"><ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${BR}" stroke="${PL}" stroke-width="2"/>` +
+    strokeD(`M${n(x - rx * 0.6)} ${n(y - ry * 0.35)}Q${x} ${n(y - ry * 0.75)} ${n(x + rx * 0.6)} ${n(y - ry * 0.3)}`, BRL, 1.6) +
+    strokeD(`M${n(x - rx * 0.3)} ${n(y + ry * 0.5)}Q${n(x + rx * 0.2)} ${n(y + ry * 0.2)} ${n(x + rx * 0.6)} ${n(y + ry * 0.4)}`, BRD, 1.4) + `</g>`;
+  const tin = () => {
+    const d = hurt ? SLAB_DENT : SLAB;
+    let s = clipTo(d, `<rect x="16" y="25" width="48" height="58" fill="${CH}"/><rect x="16" y="36" width="48" height="34" fill="${SO}"/>` +
+      `<rect x="53" y="25" width="10" height="11" fill="${CHD}"/><rect x="53" y="36" width="10" height="34" fill="${SOD}"/><rect x="53" y="70" width="10" height="13" fill="${CHD}"/>` +
+      `<rect x="21" y="38" width="3" height="28" rx="1.5" fill="${COL}" fill-opacity=".6"/><rect x="21" y="28" width="3" height="6" rx="1.5" fill="${W}" fill-opacity=".7"/><rect x="21" y="72" width="3" height="6" rx="1.5" fill="${W}" fill-opacity=".7"/>`);
+    s += strokeD(d, PL, 3) + strokeD('M18 36L62 36M18 70L62 70', PL, 2.2) + strokeD('M18 75L62 75', PL, 1.4);
+    return s + `<circle cx="24" cy="31.5" r="1.3" fill="${PS}"/><circle cx="56" cy="31.5" r="1.3" fill="${PS}"/><circle cx="24" cy="78" r="1.3" fill="${PS}"/><circle cx="56" cy="78" r="1.3" fill="${PS}"/>`;
+  };
+  // the opened top with beans heaped over the rim
+  const topBeans = () => {
+    let s = `<ellipse cx="40" cy="27" rx="22" ry="6.5" fill="${CH}" stroke="${PL}" stroke-width="2.6"/><ellipse cx="40" cy="27.5" rx="18" ry="4.4" fill="${COD}"/>`;
+    s += bean(29, 21, 6, 4.2, -25) + bean(51, 21, 6, 4.2, 25) + bean(40, 15.5, 6.2, 4.4, 8) + bean(34, 24, 5.4, 3.8, 40) + bean(46, 24, 5.4, 3.8, -38);
+    return s + flat('M27 25Q32 28 36 25Q35 30 31 30Q27 29 27 25Z', COD) + flat('M44 26Q49 29 53 25Q53 30 49 30Q45 30 44 26Z', COD);
+  };
+  // the peeled lid as a visor: snapped down over an eye slit when lowered
+  const visor = (lowered) => {
+    let s = '';
+    if (!lowered) {
+      s += shape('M17 40Q17 29 40 29Q63 29 63 40L63 44Q40 52 17 44Z', CH, null);
+      s += flat('M20 38Q22 31 32 30Q25 33 24 40Z', W, 'fill-opacity=".75"') + flat('M58 36Q62 40 62 43Q55 46 50 46Q58 43 58 36Z', CHD);
+      s += strokeD('M24 39Q40 33 56 39', PL, 1.8) + `<ellipse cx="40" cy="35" rx="4.4" ry="2.8" fill="${CHL}" stroke="${PL}" stroke-width="2"/>`;
+    } else {
+      s += shape('M16 42Q16 29 40 29Q64 29 64 42L64 55Q40 62 16 55Z', CH, null);
+      s += flat('M19 40Q21 31 32 30Q25 33 23 42Z', W, 'fill-opacity=".75"') + flat('M58 38Q63 42 63 54Q56 57 50 58Q59 54 58 38Z', CHD);
+      s += `<ellipse cx="40" cy="35" rx="4.4" ry="2.8" fill="${CHL}" stroke="${PL}" stroke-width="2"/>` + strokeD('M24 38Q40 32 56 38', PL, 1.8);
+      s += flat('M20 44L40 49L60 44L60 52Q40 55 20 52Z', PL) + strokeD('M20 44L40 49L60 44L60 52Q40 55 20 52Z', PL, 1.8);
+      s += `<ellipse cx="30.5" cy="50" rx="5.2" ry="2.5" fill="${CO}" transform="rotate(14 30.5 50)"/><ellipse cx="49.5" cy="50" rx="5.2" ry="2.5" fill="${CO}" transform="rotate(-14 49.5 50)"/><circle cx="32" cy="50.6" r="1.3" fill="${W}"/><circle cx="48" cy="50.6" r="1.3" fill="${W}"/>`;
+      s += `<circle cx="20" cy="49" r="1.3" fill="${PS}"/><circle cx="60" cy="49" r="1.3" fill="${PS}"/>`;
+    }
+    return s;
+  };
+  const leg = (d, x, y, dir) => limb(d, CH, 5.8) + nub(x, y, dir, CHD, 1.15);
+  let pre = '', b = '', post = '';
+  if (tell) {
+    // charging: back leg kicks up behind, front leg reaches ahead
+    pre += leg('M30 79Q23 82 17 80', 14, 82, -1) + leg('M52 82L57 88', 57, 91, 1);
+    pre += rays([[4, 36, 13, 36], [3, 48, 11, 48], [5, 60, 14, 60]], LAV, 2.6);
+    b += tin() + topBeans() + visor(true) + teethRow(33, 63.5, 14, 6, 4, W);
+    b += limb('M18 52Q9 54 4 47', CH, 5.8) + mitt(2.5, 45, 4.6, -60, CH) + limb('M62 54Q69 59 66 67', CH, 5.8) + mitt(66, 69.5, 4.8, 0, CH);
+    post += rot(b, 13, 40, 80) + bean(10, 18, 4.4, 3.2, 30) + bean(20, 8, 4, 3, -20);
+    post += `<ellipse cx="12" cy="90" rx="4.5" ry="2.4" fill="${CHL}" stroke="${PL}" stroke-width="1.5"/><ellipse cx="4" cy="86" rx="3" ry="1.8" fill="${CHL}" stroke="${PL}" stroke-width="1.4"/>`;
+    return `<g transform="translate(0 -1)">${pre}${post}</g>`;
+  }
+  if (hurt) {
+    // stunned: squeezed eyes, "ow" mouth, visor swung off one hinge, beans popping out
+    pre += leg('M31 79L28 86', 27, 91, -1) + leg('M50 79L53 86', 53, 91, 1);
+    b += tin() + topBeans();
+    b += strokeD('M26 50L37 54.5L26 59', PL, 3.4) + strokeD('M54 50L43 54.5L54 59', PL, 3.4);
+    b += strokeD('M24 46L37 49', PL, 3.2) + strokeD('M56 46L43 49', PL, 3.2);
+    b += shape('M34 63Q37 60 40 63Q43 60 46 63Q47 70 40 70Q33 70 34 63Z', PL, null, { sw: 2 }) + shape('M37 67.5Q40 65.5 43 67.5Q42 70 40 70Q38 70 37 67.5Z', COL, null, { sw: 1.2 });
+    // the clang: big dent, ring, impact lines
+    b += flat('M62 51Q53 60 62 67L58 70Q46 60 56 49Z', SOD) + strokeD('M62 51Q53 60 62 67', PL, 2.4);
+    b += strokeD('M52 52L44 46M50 60L40 60M52 66L44 72', SOD, 2.2);
+    b += shape(star(58, 58, 9, 4.2, 8), GO, null, { sw: 1.8 });
+    b += rot(visor(false), -33, 20, 38);
+    b += limb('M18 52Q12 50 12 42', CH, 5.8) + mitt(12, 39, 4.6, -20, CH) + limb('M62 56Q73 52 74 42', CH, 5.8) + mitt(74, 39, 4.6, 20, CH);
+    post += bean(62, 12, 4.6, 3.2, 40) + bean(52, 6, 4.2, 3, -30) + bean(13, 14, 4.2, 3, 20);
+    post += shape(star(70, 22, 5, 2.2, 5), GO, null, { sw: 1.6 }) + shape(star(26, 8, 4.4, 2, 5), GO, null, { sw: 1.6 }) + drop(66, 30, 0.9, C.sky);
+    return `<g transform="translate(0 -1)">${pre}${rot(b, -5, 40, 86)}${post}</g>`;
+  }
+  // a = standing; b = walk partner: left foot lifted and forward, body bobbed up 1.5, arms swung the other way
+  pre += walkB ? leg('M31 78L29.5 83', 27.5, 88, -1) + leg('M50 79L51 86', 51, 91, 1) : leg('M31 79L30 86', 29, 91, -1) + leg('M50 79L51 86', 51, 91, 1);
+  b += tin() + topBeans();
+  // little dent in the label
+  b += strokeD('M21 61L26 64L22 68', SOD, 1.8) + strokeD('M26 64L30 63', SOD, 1.8);
+  b += ovalEye(31.5, 54.5, 5.2, 5.8, 1.4, 0.8, { pr: 2.8, lid: 0.34, tilt: 10, lc: SO }) + ovalEye(48.5, 54.5, 5.2, 5.8, -1.4, 0.8, { pr: 2.8, lid: 0.34, tilt: -10, lc: SO });
+  b += strokeD('M34 65.5Q40 62 46 65.5', PL, 3) + strokeD('M37 68.5Q40 67.2 43 68.5', PL, 1.5);
+  b += visor(false);
+  b += walkB ? limb('M18 52Q9 58 12 69', CH, 5.8) + mitt(12, 71.5, 4.8, 0, CH) + limb('M62 52Q73 54 72 62', CH, 5.8) + mitt(72, 64.5, 4.8, 0, CH)
+    : limb('M18 52Q8 57 11 66', CH, 5.8) + mitt(11, 68.5, 4.8, 0, CH) + limb('M62 52Q72 57 69 66', CH, 5.8) + mitt(69, 68.5, 4.8, 0, CH);
+  // the mockup stands 1px below the sprite's ground anchor (0.95 x h)
+  return `<g transform="translate(0 -1)">${pre}${walkB ? `<g transform="translate(0 -1.5)">${b}</g>` : b}</g>`;
 }
 add('enemy_beans_a', () => beans('a'));
 add('enemy_beans_b', () => beans('b'));
+add('enemy_beans_tell', () => beans('tell'));
+add('enemy_beans_hurt', () => beans('hurt'));
 
-// ---------- cereal box (shield) ----------
+// ---------- cereal box (sugar-rush mascot, cut-out flap shield) ----------
 function cereal(f) {
-  const a = f === 'a', gy = 93;
-  const legs = a ? stick([[30, 82], [25, 88], [21, 93]], 3.5, 6) + stick([[50, 82], [54, 88], [58, 93]], 3.5, 6)
-    : stick([[30, 82], [31, 88], [30, 93]], 3.5, 6) + stick([[50, 82], [48, 87], [52, 92]], 3.5, 6);
-  const arms = a ? stick([[12, 56], [6, 62], [5, 54]], 3.5) + stick([[68, 56], [74, 50], [76, 56]], 3.5)
-    : stick([[12, 56], [6, 50], [5, 58]], 3.5) + stick([[68, 56], [74, 60], [76, 52]], 3.5);
-  let b = '';
-  b += shape([[62, 18], [72, 14], [72, 78], [62, 82]], C.goldD, C.breadD, { dx: 2, dy: 0 }); // side
-  b += shape([[12, 18], [62, 18], [62, 82], [12, 82]], C.gold, C.goldD, { dx: 4, dy: 3 }); // front
-  b += shape([[12, 8], [62, 8], [72, 14], [62, 18], [12, 18]], C.cream, C.creamD, { dx: 2, dy: 3 }); // top flap
-  b += shape([[12, 66], [62, 66], [62, 82], [12, 82]], C.coral, C.coralD, { dx: 4, dy: 2 }); // base stripe
-  b += shape(star(37, 30, 17, 11, 9, -90), C.cream, C.creamD, { dx: 2, dy: 2, sw: SWs }); // flakes splash
-  b += ell(24, 74, 3.4, 2.4, C.cream, null, { sw: 1.2 }) + ell(36, 76, 3.4, 2.4, C.cream, null, { sw: 1.2 }) + ell(49, 74, 3.4, 2.4, C.cream, null, { sw: 1.2 });
-  b += face(37, 49, 1, { mw: 18, mh: 10, my: 7, teeth: 4 });
-  return `${legs}${squash(40, gy, a ? 1.01 : 0.99, a ? 0.99 : 1.01, b)}${arms}`;
+  if (!['a', 'b', 'tell', 'hurt'].includes(f)) throw new Error(`cereal: unknown frame "${f}"`);
+  const tell = f === 'tell', hurt = f === 'hurt', walkB = f === 'b';
+  const GO = C.gold, GOD = C.goldD, CO = C.coral, COD = C.coralD, COL = C.coralL, CR = C.cream, CRD = C.creamD, W = C.white, PL = C.plum,
+    PS = C.plumSoft, LAV = C.lav, LAVL = C.lavL, MINT = C.mintD, SKY = C.sky;
+  const RINGS = [CO, LAVL, GO, MINT, W, CO, LAVL];
+  const ring = (x, y, k = 0, r = 4.4, deg = 0, sy = 1) => `<g transform="rotate(${deg} ${x} ${y})"><ellipse cx="${x}" cy="${y}" rx="${r}" ry="${n(r * sy)}" fill="${RINGS[k % RINGS.length]}" stroke="${PL}" stroke-width="1.8"/><ellipse cx="${x}" cy="${y}" rx="${n(r * 0.38)}" ry="${n(r * 0.38 * sy)}" fill="${PS}"/></g>`;
+  // the cut-out flap used as a shield; local coords centred, zigzag cut along the right edge
+  const shield = (cx, cy, deg, wet = false) => {
+    let s = `<g transform="translate(${cx} ${cy}) rotate(${deg})">`;
+    s += shape('M-11 -13L11 -13L9 -9L11 -5L9 -1L11 3L9 7L11 11L9 13L-11 13Z', wet ? GOD : GO, null, { sw: 2.8 });
+    s += flat('M-8 -10L7 -10L7 10L-8 10Z', wet ? GO : CR) + strokeD('M-8 -10L7 -10L7 10L-8 10Z', PL, 1.4);
+    s += shape(star(-0.5, 0, 7.2, 3.6, 8), wet ? CRD : GO, null, { sw: 1.8 }) + `<circle cx="-.5" cy="0" r="1.8" fill="${CO}"/>`;
+    return s + '</g>';
+  };
+  const carton = () => {
+    let s = '';
+    if (hurt) {
+      // soggy: sagging walls, wet stain climbing from the bottom
+      s += shape('M49 34L60 29L61 56Q58 68 60 78L49 85Z', GOD, null);
+      s += shape('M15 34L49 34Q47 50 50 62Q48 76 49 85Q41 88 32 84Q24 88 15 84Q18 72 14 62Q17 48 15 34Z', GO, null);
+      s += flat('M16 66Q24 62 32 67Q41 62 49 66L49 85Q41 88 32 84Q24 88 15 84Z', GOD, 'fill-opacity=".75"') + flat('M49 66L60 62L60 78L49 85Z', GOD, 'fill-opacity=".5"');
+      s += strokeD('M15 34Q17 48 14 62Q18 72 15 84Q24 88 32 84Q41 88 49 85Q48 76 50 62Q47 50 49 34', PL, 3);
+    } else {
+      s += shape('M49 34L60 29L60 79L49 85Z', GOD, null);
+      s += shape('M15 34L49 34L49 85L15 83Z', GO, null);
+      s += flat('M15 74L49 74L49 85L15 83Z', CO) + flat('M49 74L60 70L60 79L49 85Z', COD) + strokeD('M15 74L49 74L60 70', PL, 2.2) + strokeD('M15 83L49 85L60 79', PL, 3);
+      s += `<circle cx="22" cy="79" r="1.8" fill="${CR}"/><circle cx="32" cy="80" r="1.8" fill="${CR}"/><circle cx="42" cy="80" r="1.8" fill="${CR}"/>`;
+      s += flat('M18 38L21 38L21 70L18 70Z', CR, 'fill-opacity=".45"');
+    }
+    // top opening
+    return s + shape('M15 34L49 34L60 29L27 29Z', hurt ? W : CRD, null, { sw: 2.6 });
+  };
+  const heap = () => {
+    if (hurt) {
+      // soggy rings drowning in a milk puddle, hair slumping down the sides
+      let s = flat('M17 33L48 33L57 30L30 30Z', W);
+      s += ring(25, 30, 0, 4.4, 10, 0.7) + ring(36, 29, 1, 4.4, -10, 0.7) + ring(46, 31, 2, 4.2, 20, 0.7) + ring(31, 33, 3, 4, 0, 0.6);
+      return s + ring(9, 36, 0, 4.2, 20) + ring(11, 45, 0, 4, -10, 0.8) + ring(57, 33, 1, 4, 30, 0.8);
+    }
+    let s = ring(24, 18, 0, 4.6) + ring(35, 15, 1, 4.6, 20) + ring(46, 17, 2, 4.6) + ring(55, 22, 3, 4.4, 10);
+    s += ring(18, 24, 3, 4.4, 30, 0.8) + ring(29, 22, 4, 4.6) + ring(40, 22, 0, 4.6, 40, 0.8) + ring(50, 26, 1, 4.4);
+    s += ring(21, 31, 2, 4.4, 0, 0.8) + ring(32, 29, 3, 4.4) + ring(43, 29, 4, 4.4, 20) + ring(54, 29, 2, 4);
+    return s + ring(10, 33, 1, 4.2, 0) + ring(13, 41, 0, 3.8, 30, 0.8);
+  };
+  const mug = () => {
+    let s = '';
+    if (hurt) {
+      s += strokeD('M19.5 41L28.5 46.5L19.5 52', PL, 3.4) + strokeD('M45.5 41L36.5 46.5L45.5 52', PL, 3.4);
+      s += strokeD('M19 37Q23 33 28 36', PL, 2.8) + strokeD('M46 37Q42 33 37 36', PL, 2.8);
+      return s + shape('M23 58Q26 55 31 58Q36 55 41 58Q43 69 32 69Q21 69 23 58Z', PL, null, { sw: 2 }) + shape('M27 65Q32 62 37 65Q35 69 32 69Q29 69 27 65Z', COL, null, { sw: 1.2 });
+    }
+    if (tell) {
+      s += ovalEye(26, 46, 6.4, 8, 1, 1, { pr: 2.4, sclera: COL, lid: 0.26, tilt: 16, lc: GO }) + ovalEye(41, 46, 6.4, 8, -1, 1, { pr: 2.4, sclera: COL, lid: 0.26, tilt: -16, lc: GO });
+      s += strokeD('M19 36L32 41', PL, 3.4) + strokeD('M48 36L35 41', PL, 3.4);
+      s += shape('M18 55Q32 50 46 55Q48 73 32 73Q16 73 18 55Z', PL, null, { sw: 2.4 }) + flat('M20 56Q32 52 44 56L43.5 62Q32 58.5 20.5 62Z', W) + strokeD('M26 54.5L26 60M32 53.5L32 59.5M38 54.5L38 60', PL, 1.5);
+      return s + shape('M23 71Q32 62 41 71Q32 74 23 71Z', CO, null, { sw: 1.6 });
+    }
+    s += ovalEye(26.5, 46.5, 6.4, 8, 1.5, -1.8, { pr: 2.3 }) + ovalEye(41, 46, 6.4, 8, -1.5, 2.2, { pr: 2.3 });
+    s += strokeD('M19 36Q25 31 32 35.5', PL, 3) + strokeD('M35 36L47 39.5', PL, 3);
+    s += shape('M19 58Q32 54 45 58Q45 71 32 71Q19 71 19 58Z', PL, null, { sw: 2.4 }) + flat('M21 58.6Q32 55.6 43 58.6L42.4 63.5Q32 60.6 21.6 63.5Z', W) + strokeD('M26.5 57L26.5 62M32 56.5L32 61.5M37.5 57L37.5 62', PL, 1.5);
+    return s + shape('M24 69Q32 62.5 40 69Q32 72 24 69Z', CO, null, { sw: 1.6 });
+  };
+  const leg = (x, y, d) => limb(`M${x} 84L${x} ${y - 4}`, GO, 5.8) + nub(x, y, d, CO, 1.15);
+  let pre = '', b = '', post = '';
+  if (hurt) {
+    pre += limb('M24 85Q22 90 24 91', GO, 5.8) + nub(23, 95, -1, CO, 1.15) + limb('M42 85Q44 90 42 91', GO, 5.8) + nub(43, 95, 1, CO, 1.15);
+    b += carton() + heap() + mug();
+    // milk dribbling down the sides, from the mouth and from the flap
+    b += shape('M12 35L17 35L16.5 46Q19 49 17.5 53Q15 57 11.5 54Q8.5 51 12 46Z', W, null, { sw: 2 }) + shape('M60 31L64 29.5L64 42Q67 45 65.5 49Q63 53 60.5 50Q58 47 60 42Z', W, null, { sw: 2 });
+    b += shape('M39 68Q43 74 41 77Q38 77 38 74Z', W, null, { sw: 1.6 });
+    b += limb('M15 56Q8 60 10 66', GO, 5.8) + mitt(10, 67, 4.4, 0, GO) + shield(15, 78, 12, true);
+    b += limb('M60 52Q67 60 64 71', GO, 5.8) + mitt(64, 73, 4.4, 0, GO);
+    post += drop(5, 60, 0.9, W) + drop(70, 56, 0.8, W) + drop(66, 22, 0.9, SKY) + shape(star(72, 12, 4.4, 2, 5), GO, null, { sw: 1.6 }) + shape(star(6, 14, 4.4, 2, 5), GO, null, { sw: 1.6 });
+    // the soggy rings at the far left would leave the canvas, so the whole frame moves 1px right
+    return `<g transform="translate(1 -1.25)">${pre}${rot(b, -5, 35, 90)}${post}</g>`;
+  }
+  if (tell) {
+    pre += leg(24, 95, -1) + leg(43, 95, 1);
+    b += carton() + heap() + mug();
+    b += limb('M60 50Q70 44 70 32', GO, 5.8) + mitt(70, 29, 4.8, 10, GO);
+    b += limb('M15 54Q8 62 10 74', GO, 5.8) + shield(12.5, 57, 4) + mitt(10, 77, 4.6, 0, GO);
+    post += rays([[66, 52, 74, 49], [67, 59, 76, 59], [66, 66, 74, 69]], LAV, 2.6);
+    post += rays([[28, 8, 28, 3], [44, 10, 48, 5], [14, 12, 10, 8]], LAV, 2.4);
+    return `<g transform="translate(0 -1.25)">${pre}${rot(b, 3, 35, 90)}${post}</g>`;
+  }
+  // a = standing; b = walk partner: right foot lifted and forward, body bobbed up 1.5, the arms swung the other way
+  pre += walkB ? leg(24, 95, -1) + leg(44, 92, 1) : leg(24, 95, -1) + leg(43, 95, 1);
+  b += carton() + heap() + mug();
+  b += walkB ? limb('M60 52Q70 51 70 42', GO, 5.8) + mitt(70, 39, 4.8, 10, GO) : limb('M60 52Q70 48 70 37', GO, 5.8) + mitt(70, 34, 4.8, 10, GO);
+  b += walkB ? limb('M15 52Q6 51 8 58', GO, 5.8) + shield(15, 70, -8) + mitt(9, 59, 4.6, 0, GO) : limb('M15 52Q6 54 7 62', GO, 5.8) + shield(14, 74, -5) + mitt(8, 63, 4.6, 0, GO);
+  post += rays([[7, 28, 3, 24], [6, 38, 2, 38]], LAV, 2.2) + shape(star(72, 22, 4.4, 2, 5), GO, null, { sw: 1.6 });
+  // the mockup stands 1.25px below the sprite's ground anchor (0.95 x h)
+  return `<g transform="translate(0 -1.25)">${pre}${walkB ? `<g transform="translate(0 -1.5)">${b}</g>` : b}${post}</g>`;
 }
 add('enemy_cereal_a', () => cereal('a'));
 add('enemy_cereal_b', () => cereal('b'));
+add('enemy_cereal_tell', () => cereal('tell'));
+add('enemy_cereal_hurt', () => cereal('hurt'));
 
-// ---------- honey jar (healer) ----------
+// ---------- honey jar (nurse grandma) ----------
 function honey(f) {
-  const a = f === 'a', gy = 91;
-  const legs = a ? stick([[30, 78], [26, 85], [22, 90]], 3.5, 6) + stick([[44, 78], [48, 84], [53, 90]], 3.5, 6)
-    : stick([[30, 78], [32, 85], [31, 90]], 3.5, 6) + stick([[44, 78], [42, 83], [46, 89]], 3.5, 6);
-  const arms = a ? stick([[14, 54], [8, 60], [6, 52]], 3.5) + stick([[60, 54], [66, 48], [68, 54]], 3.5)
-    : stick([[14, 54], [8, 48], [6, 56]], 3.5) + stick([[60, 54], [66, 58], [68, 50]], 3.5);
+  if (!['a', 'b', 'hurt'].includes(f)) throw new Error(`honey: unknown frame "${f}"`);
+  const hurt = f === 'hurt', walkB = f === 'b';
+  const W = C.white, CO = C.coral, COD = C.coralD, COL = C.coralL, GO = C.gold, GOD = C.goldD, BA = C.banana, BAL = C.bananaL,
+    BRL = C.breadL, SKY = C.sky, PL = C.plum, LAV = C.lav;
+  const limbS = (d, c) => limb(d, c, 5.6);
+  const JAR = 'M20 33L56 33Q62 36 62 44L62 74Q62 80 56 80L20 80Q14 80 14 74L14 44Q14 36 20 33Z';
+  // lid with the nurse cap and grey curls, drawn in jar coordinates so it can be moved as one piece
+  const lidAndCap = () => {
+    let s = shape('M18.5 24L57.5 24L58.5 33.5L17.5 33.5Z', CO, null) + flat('M52 24.5L57.5 24.5L58.3 33L53 33Z', COD);
+    s += strokeD('M25 25.5L25 32', COD, 1.5) + strokeD('M31 25.5L31 32', COD, 1.5) + strokeD('M37 25.5L37 32', COD, 1.5) + strokeD('M43 25.5L43 32', COD, 1.5);
+    s += dot(20.5, 24, 4.2, W, 2) + dot(55.5, 24, 4.2, W, 2);
+    s += shape('M25.5 24.5L28 10Q38 5.5 48 10L50.5 24.5Z', W, null, { sw: 2.8 });
+    s += flat('M44.5 10.6Q47.4 11 48 11.6L50 24L46.5 24Z', C.cream);
+    return s + shape('M36 11.5L40 11.5L40 14.5L43.5 14.5L43.5 18.5L40 18.5L40 21.5L36 21.5L36 18.5L32.5 18.5L32.5 14.5L36 14.5Z', CO, null, { sw: 1.8 });
+  };
+  const jarBody = () => flat(JAR, GO) + flat('M52 34L61 40Q62 42 62 44L62 74Q62 80 56 80L46 80Q54 62 52 34Z', GOD) + flat('M16 44L21 40L21 70L16 68Z', BAL) + strokeD(JAR, PL, 3) + strokeD('M18.5 46L18.5 62', W, 2.2);
+  const dipperPole = (x0, y0, x1, y1) => strokeD(`M${x0} ${y0}L${x1} ${y1}`, PL, 5.4) + strokeD(`M${x0} ${y0}L${x1} ${y1}`, BRL, 2.4);
+  const dipperHead = (x, y, deg) => `<g transform="rotate(${deg} ${x} ${y})">` + ell(x, y, 5.6, 7.2, BRL, null, { sw: 2.4 }) +
+    strokeD(`M${n(x - 5)} ${n(y - 3.5)}Q${x} ${n(y - 1.3)} ${n(x + 5)} ${n(y - 3.5)}`, PL, 1.6) + strokeD(`M${n(x - 5.5)} ${n(y + 0.5)}Q${x} ${n(y + 2.8)} ${n(x + 5.5)} ${n(y + 0.5)}`, PL, 1.6) +
+    strokeD(`M${n(x - 4.8)} ${n(y + 4.5)}Q${x} ${n(y + 6.5)} ${n(x + 4.8)} ${n(y + 4.5)}`, PL, 1.6) + `</g>`;
+  const heart = (x, y, s) => shape(`M${n(x)} ${n(y + 4.4 * s)}Q${n(x - 6.5 * s)} ${n(y - 0.5 * s)} ${n(x - 3.6 * s)} ${n(y - 3.4 * s)}Q${n(x - s)} ${n(y - 5.2 * s)} ${n(x)} ${n(y - 2.2 * s)}Q${n(x + s)} ${n(y - 5.2 * s)} ${n(x + 3.6 * s)} ${n(y - 3.4 * s)}Q${n(x + 6.5 * s)} ${n(y - 0.5 * s)} ${n(x)} ${n(y + 4.4 * s)}Z`, CO, null, { sw: 1.8 });
+  const blush = `<ellipse cx="20.5" cy="61.5" rx="5" ry="3.4" fill="${COL}"/><ellipse cx="55.5" cy="61.5" rx="5" ry="3.4" fill="${COL}"/>`;
+  // a = standing; b = walk partner: left foot lifted and forward, the rest bobbed up 1 and the arms swung the other way
+  const legs = walkB ? limbS('M28 78L27 84', GO) + limbS('M48 78L48 86', GO) + nub(24.5, 88, -1, W) + nub(50, 91, 1, W)
+    : limbS('M28 78L28 86', GO) + limbS('M48 78L48 86', GO) + nub(26, 91, -1, W) + nub(50, 91, 1, W);
   let b = '';
-  b += shape([[16, 30], [58, 30], [64, 46], [64, 74], [58, 80], [16, 80], [10, 74], [10, 46]], C.mintL, C.mintD, { dx: 4, dy: 3 }); // glass
-  b += shape([[12, 40], [62, 40], [62, 74], [57, 78], [17, 78], [12, 74]], C.gold, C.goldD, { dx: 4, dy: 3 }); // honey
-  b += flat([[15, 44], [21, 44], [21, 70], [15, 66]], C.cream, 'opacity=".5"');
-  b += shape([[20, 40], [26, 40], [26, 52], [23, 55], [20, 52]], C.gold, null, { sw: SWs }); // drip
-  b += shape([[14, 22], [60, 22], [60, 32], [14, 32]], C.coral, C.coralD, { dx: 3, dy: 3 }); // lid
-  b += line([[22, 24], [22, 30]], C.coralD, 1.6) + line([[30, 24], [30, 30]], C.coralD, 1.6) + line([[38, 24], [38, 30]], C.coralD, 1.6) + line([[46, 24], [46, 30]], C.coralD, 1.6);
-  b += shape([[24, 10], [50, 10], [50, 22], [24, 22]], C.cream, C.creamD, { dx: 2, dy: 2, sw: SWs }) + `<path d="M31 17q6-6 12 0q-6 6-12 0z" fill="${C.gold}" stroke="${C.plum}" stroke-width="1.4"/>`; // honey label tag
-  b += face(37, 56, 0.95, { mw: 16, mh: 9, my: 7 });
-  return `${legs}${squash(37, gy, a ? 1.02 : 0.98, a ? 0.98 : 1.02, b)}${arms}${a ? spark(66, 20, 7, C.gold) : spark(8, 22, 6, C.gold)}`;
+  if (hurt) {
+    b += shape(star(8, 20, 5, 2.2, 5), GO, null, { sw: 1.6 }) + shape(star(66, 12, 4.4, 1.9, 5), GO, null, { sw: 1.6 });
+    // flying lid and cap
+    b += `<g transform="translate(16 14.5) rotate(-30) scale(.62) translate(-38 -26)">${lidAndCap()}</g>`;
+    b += strokeD('M30 4L33 8', LAV, 2) + strokeD('M32 15L37 14', LAV, 2) + strokeD('M7 26L11 25', LAV, 2);
+    let j = '';
+    // limp left arm
+    j += limbS('M14 58Q9 63 11 71', GO) + mitt(11.5, 73, 4.6, 0, GO);
+    j += jarBody();
+    // open jar mouth and honey splash
+    j += shape('M16.5 33.5Q16.5 29.5 38 29.5Q59.5 29.5 59.5 33.5Q59.5 38.5 38 38.5Q16.5 38.5 16.5 33.5Z', GOD, null) + flat('M24 33Q38 31 52 33Q38 35.5 24 33Z', BA);
+    // honey splash: a gloppy mound on the rim and a fan of flying drops
+    j += shape('M17.5 33Q17 28.5 24 28Q28 25 32 28.5Q36 24.5 40 28.5Q45 25.5 48.5 28.5Q55 27.5 58.5 33Z', BA, null, { sw: 2.6 }) + flat('M24 31.5Q30 29.5 36 31.5', BAL, 'stroke="none"');
+    for (const [x, y, deg, k] of [[35, 17, -10, 1.45], [47.5, 11, 22, 1.2], [55, 24, 60, 1.05]]) {
+      j += `<g transform="translate(${x} ${y}) rotate(${deg})">${shape(`M0 ${n(-6 * k)}C${n(1.5 * k)} ${n(-3 * k)} ${n(4.4 * k)} ${n(-1.5 * k)} ${n(4.4 * k)} ${n(1.6 * k)}A${n(4.4 * k)} ${n(4.4 * k)} 0 0 1 ${n(-4.4 * k)} ${n(1.6 * k)}C${n(-4.4 * k)} ${n(-1.5 * k)} ${n(-1.5 * k)} ${n(-3 * k)} 0 ${n(-6 * k)}Z`, BA, null, { sw: 2 })}${flat(`M${n(-2 * k)} ${n(0.2 * k)}Q${n(-2 * k)} ${n(2.2 * k)} ${n(-0.4 * k)} ${n(3 * k)}`, BAL, 'stroke="none"')}</g>`;
+    }
+    j += dot(44, 3.6, 1.8, BA, 1.5) + dot(61, 16, 1.7, BA, 1.5) + dot(27, 20, 1.7, BA, 1.5);
+    // squeezed eyes, wobbly ow mouth
+    j += blush;
+    j += strokeD('M25 47L33.5 52L25 57', PL, 3.4) + strokeD('M51 47L42.5 52L51 57', PL, 3.4);
+    j += strokeD('M22 41.5Q27 37.5 33 40', PL, 2.6) + strokeD('M43 40Q49 37.5 54 41.5', PL, 2.6);
+    j += shape('M30.5 64Q33 60 35.5 63.5Q38 60 40.5 63.5Q43 60 45.5 64Q46 73 38 73Q30 73 30.5 64Z', PL, null, { sw: 2.2 }) + flat('M33.5 70.8Q38 68 42.5 70.8Q38 73.8 33.5 70.8Z', COL);
+    b += rot(squash(38, 80, 1.05, 0.94, j), -6, 38, 86);
+    // dipper knocked askew
+    b += dipperPole(66.5, 58, 62, 31) + limbS('M62 58Q69 59 67.5 51', GO) + mitt(66.5, 52, 4.6, 12, GO) + dipperHead(60.5, 25, -9);
+    b += drop(63, 38, 1.1, SKY) + drop(9, 42, 1.1, SKY);
+    return `<g transform="translate(0 -1)">${legs}${b}</g>`;
+  }
+  // waving left hand
+  b += walkB ? limbS('M14 57Q9 60 11 53', GO) + mitt(11, 49.5, 4.6, -5, GO) : limbS('M14 57Q8.5 58 10 49', GO) + mitt(10, 45.5, 4.6, -15, GO);
+  b += jarBody();
+  // honey drips over the lid rim
+  b += shape('M14.5 33.5L21 33.5L21 43Q21 48.5 17.7 48.5Q14.5 48.5 14.5 43Z', BAL, null, { sw: 2.2 }) + shape('M52 33.5L58.5 33.5L58.5 40Q58.5 45 55.2 45Q52 45 52 40Z', BAL, null, { sw: 2.2 }) + flat('M16.4 36.5L17.8 36.5L17.8 43L16.4 43Z', W);
+  b += lidAndCap();
+  // face
+  b += blush;
+  b += ovalEye(29, 52, 5.4, 6.8, 0.6, -0.6, { pr: 3.2, lid: 0.24, tilt: -8, lc: GO }) + ovalEye(47, 52, 5.4, 6.8, -0.6, -0.6, { pr: 3.2, lid: 0.24, tilt: 8, lc: GO });
+  b += strokeD('M21.5 43.5Q27.5 39.5 34 42.5', PL, 2.6) + strokeD('M42 42.5Q48.5 39.5 54.5 43.5', PL, 2.6);
+  b += shape('M31 62.5Q38 63.5 45 62.5Q43.5 71.5 38 71.5Q32.5 71.5 31 62.5Z', PL, null, { sw: 2.2 }) + flat('M34.5 69.4Q38 66.6 41.5 69.4Q38 72.2 34.5 69.4Z', COL);
+  // honey dipper wand with a heart
+  const wand = dipperPole(66.5, 56, 66.5, 24) + limbS('M62 58Q69 59 67.5 49.5', GO) + mitt(66.5, 46.5, 4.6, 0, GO) + dipperHead(66.5, 19.5, 0) +
+    heart(66.5, 7.4, 1.05) + strokeD('M59.5 10L57.5 8', COD, 1.6) + strokeD('M72 10.5L71.5 8.5', COD, 1.6);
+  b += walkB ? `<g transform="translate(0 1.2)">${rot(wand, -3, 62, 58)}</g>` : wand;
+  // the mockup stands 1px below the sprite's ground anchor (0.95 x h)
+  return `<g transform="translate(0 -1)">${legs}${walkB ? `<g transform="translate(0 -1)">${b}</g>` : b}</g>`;
 }
 add('enemy_honey_a', () => honey('a'));
 add('enemy_honey_b', () => honey('b'));
+add('enemy_honey_hurt', () => honey('hurt'));
 
 // ---------- hand sanitizer / spray bottle (aura cleanser) ----------
+// Neat-freak germophobe: pump bottle with a quiff pump head and yellow rubber gloves held up and out. a/b walk, hurt gags.
 function sanitizer(f) {
-  const a = f === 'a', gy = 91;
-  const legs = a ? stick([[30, 78], [24, 85], [20, 90]], 3.5, 6) + stick([[46, 78], [50, 84], [55, 90]], 3.5, 6)
-    : stick([[30, 78], [32, 85], [31, 90]], 3.5, 6) + stick([[46, 78], [44, 83], [48, 89]], 3.5, 6);
-  const arms = a ? stick([[14, 56], [8, 62], [6, 54]], 3.5) + stick([[62, 56], [68, 50], [70, 56]], 3.5)
-    : stick([[14, 56], [8, 50], [6, 58]], 3.5) + stick([[62, 56], [68, 60], [70, 52]], 3.5);
-  const BL = '#7CC4E8', BLD = '#4F9CC4';
-  let b = '';
-  b += shape([[16, 36], [60, 36], [66, 46], [66, 76], [60, 80], [16, 80], [10, 76], [10, 46]], BL, BLD, { dx: 4, dy: 3 }); // bottle
-  b += flat([[14, 46], [20, 46], [20, 72], [14, 68]], C.white, 'opacity=".45"'); // glass shine
-  b += shape([[16, 52], [60, 52], [60, 72], [16, 72]], C.cream, C.creamD, { dx: 3, dy: 2, sw: SWs }); // label
-  b += shape([[28, 24], [48, 24], [50, 36], [26, 36]], C.white, C.chromeD, { dx: 2, dy: 3 }); // collar
-  b += shape([[22, 8], [58, 8], [58, 24], [30, 24], [22, 20]], C.chromeL, C.chromeD, { dx: 3, dy: 3 }); // sprayer head
-  b += shape([[12, 12], [22, 10], [22, 18], [12, 18]], C.chrome, C.chromeD, { dx: 2, dy: 2, sw: SWs }); // nozzle
-  b += shape([[44, 24], [58, 24], [60, 36], [52, 38], [46, 30]], C.coral, C.coralD, { dx: 2, dy: 2, sw: SWs }); // trigger
-  b += face(38, 61, 0.78, { gap: 6, mw: 12, mh: 7, my: 6, eyeCol: C.cream });
-  const mist = a ? flat(star(6, 12, 3.4, 1, 4), C.white, 'opacity=".9"') + flat(star(2, 20, 2.4, 0.8, 4), C.white, 'opacity=".8"') : flat(star(5, 8, 3.4, 1, 4), C.white, 'opacity=".9"') + flat(star(3, 16, 2.4, 0.8, 4), C.white, 'opacity=".8"');
-  return `${legs}${squash(38, gy, a ? 1.02 : 0.98, a ? 0.98 : 1.02, b)}${arms}${mist}`;
+  if (f !== 'a' && f !== 'b' && f !== 'hurt') throw new Error(`sanitizer: unknown frame "${f}"`);
+  const W = C.white, SKY = C.sky, GO = C.gold;
+  const sh = (d, fill, w = 3) => shape(d, fill, null, { sw: w });
+  const ln = (d, w = 3, col = C.plum) => strokeD(d, col, w);
+  const oval = (cx, cy, rx, ry, fill, w = 2.2, deg = 0) => { const e = ell(cx, cy, rx, ry, fill, null, { sw: w }); return deg ? rot(e, deg, n(cx), n(cy)) : e; };
+  const limbS = (d) => limb(d, SKY, 5.6);
+  const bodyFill = (d, light, dark, w = 3, dx = -3.5, dy = -3) => shape(d, light, dark, { sw: w, dx: -dx, dy: -dy });
+  // fluffy mist puff
+  const puff = (x, y, s = 1) => {
+    const cs = [[0, 0, 5], [6.5, -2, 4], [-5.5, 2, 3.6], [3, 4.5, 4.2]].map(([a, b, r]) => [x + a * s, y + b * s, r * s]);
+    return cs.map(([a, b, r]) => `<circle cx="${n(a)}" cy="${n(b)}" r="${n(r + 1)}" fill="${C.plum}"/>`).join('') + cs.map(([a, b, r]) => `<circle cx="${n(a)}" cy="${n(b)}" r="${n(r - 0.4)}" fill="${W}"/>`).join('');
+  };
+  // yellow rubber glove: four finger bumps, thumb, flared cuff. fingers point up before deg; flip mirrors it.
+  const glove = (x, y, r, deg = 0, flip = false) => {
+    let g = sh(`M${n(x - r * 0.6)} ${n(y + r * 0.6)}L${n(x + r * 0.6)} ${n(y + r * 0.6)}L${n(x + r * 0.88)} ${n(y + r * 1.6)}L${n(x - r * 0.88)} ${n(y + r * 1.6)}Z`, C.goldD, 2.2);
+    for (const [dx, dy, a] of [[-0.68, -0.55, -16], [-0.23, -0.8, -5], [0.23, -0.8, 5], [0.68, -0.55, 16]]) g += oval(x + dx * r, y + dy * r, r * 0.27, r * 0.5, GO, 1.8, a);
+    g += oval(x - r * 0.95, y + r * 0.05, r * 0.26, r * 0.46, GO, 1.8, -40);
+    g += oval(x, y + r * 0.1, r * 0.92, r * 0.72, GO, 2.2);
+    g += flat(`M${n(x - r * 0.6)} ${n(y - r * 0.15)}Q${n(x - r * 0.55)} ${n(y - r * 0.45)} ${n(x - r * 0.2)} ${n(y - r * 0.5)}Q${n(x - r * 0.45)} ${n(y - r * 0.3)} ${n(x - r * 0.4)} ${n(y + r * 0.1)}Z`, C.cream, 'opacity=".75"');
+    return `<g transform="rotate(${deg} ${n(x)} ${n(y)})${flip ? ` translate(${n(2 * x)} 0) scale(-1 1)` : ''}">${g}</g>`;
+  };
+  const BODY = 'M26 33L50 33Q54 33 57 37L60 41Q62 43 62 47L62 72Q62 80 54 80L22 80Q14 80 14 72L14 47Q14 43 16 41L19 37Q22 33 26 33Z';
+  // the bottle: collar, stem, quiff head, body, label. The head group can be bent (hurt).
+  const bottle = (headT = '') => {
+    let head = sh('M34 19L42 19L42 28L34 28Z', C.chromeL, 2.4);
+    head += sh('M28 14.5L19.5 13L19.5 19L28 20Z', C.chrome, 2.4);
+    head += bodyFill('M26 22.5Q20 14 27 8Q35 2 47 4Q57 6 65 3Q62 12 56 16Q53 22 47 22.5Z', W, C.chrome, 2.8, -3, -2.5);
+    head += ln('M31 11.5Q38 7 47 8.5', 2, C.chromeD);
+    let b = headT ? `<g transform="${headT}">${head}</g>` : head;
+    b += sh('M28 26L48 26L50 34L26 34Z', C.chromeL, 2.8) + ln('M28.5 29.5L47.5 29.5', 1.6, C.chromeD);
+    b += bodyFill(BODY, SKY, C.blue);
+    b += flat('M18 46Q18 43 21 42L24 44Q21 46 21 56Z', W, 'opacity=".7"');
+    // label with a coral clean-cross
+    b += clipTo(BODY, `<rect x="10" y="65" width="56" height="16" fill="${C.cream}"/><path d="M50 65L66 65L66 81L42 81Z" fill="${C.creamD}"/>${ln('M10 65L66 65', 2)}`) + ln(BODY, 3);
+    b += sh('M35.6 67.2L40.4 67.2L40.4 69.6L42.8 69.6L42.8 74.4L40.4 74.4L40.4 76.8L35.6 76.8L35.6 74.4L33.2 74.4L33.2 69.6L35.6 69.6Z', C.coral, 1.8);
+    return b;
+  };
+  // nubs rest on y = 90 so their outline ends on the 0.95 x 96 = 91.2 ground line. b lifts the right foot forward.
+  const legs = f === 'b'
+    ? limbS('M28 79L27 85') + nub(25.5, 90, -1, W) + limbS('M48 79L51 83') + nub(54, 86.5, 1, W)
+    : limbS('M28 79L27 85') + nub(25.5, 90, -1, W) + limbS('M48 79L49 85') + nub(50.5, 90, 1, W);
+
+  if (f === 'hurt') {
+    let b = sh(star(66, 12, 5.5, 2.4, 5), GO, 1.6) + sh(star(10, 14, 4.6, 2, 5), GO, 1.6);
+    b += legs;
+    let g = bottle('translate(1 5) rotate(-46 38 28)');
+    g += limbS('M15 66Q12 68 12 61') + glove(12, 54.5, 6, -14);
+    g += limbS('M61 66Q62 68 62 61') + glove(62, 54.5, 6, 14, true);
+    // gagging: eyes squeezed shut, green round the gills, tongue out
+    g += flat('M17 52Q15 62 24 66Q23 58 25 52Z', C.greenL, 'opacity=".75"') + flat('M59 52Q61 62 52 66Q53 58 51 52Z', C.greenL, 'opacity=".75"');
+    g += ln('M24.5 41L35 47L24.5 53', 3.6) + ln('M51.5 41L41 47L51.5 53', 3.6);
+    g += ln('M22 37L34 39.5', 3) + ln('M54 37L42 39.5', 3);
+    g += sh('M28 59Q33 54 38 58Q43 54 48 59Q47 66 38 66.5Q29 66 28 59Z', C.plum, 2.2) + sh('M33 62.5Q38 60.5 43 62.5Q43 70 38 70.5Q33 70 33 62.5Z', C.coralL, 2);
+    g += ln('M38 63.5L38 68', 1.4, C.coralD);
+    g += drop(18, 51, 0.9, SKY) + drop(60, 38, 0.9, SKY);
+    b += `<g transform="translate(38 91) rotate(3) scale(1.05 .93) translate(-38 -91)">${g}</g>`;
+    b += rays([[4.5, 62, 2.5, 66], [71.5, 62, 73.5, 66]], C.lav, 2);
+    return b;
+  }
+  // a / b: the body bobs up 1 px on b, the feet stay put
+  let b = puff(11, 9, 0.7) + puff(8, 21, 0.48) + `<circle cx="14.5" cy="24" r="1.4" fill="${W}" stroke="${C.plum}" stroke-width="1.2"/>`;
+  // gloves up and out: don't touch me (b swings them: left down and in, right up and out)
+  b += f === 'b'
+    ? limbS('M15 58Q10 60 11 53') + glove(11, 46, 6.2, -6) + limbS('M61 58Q66 55 65 46') + glove(65, 39, 6.2, 6, true)
+    : limbS('M15 58Q10 57 11 49') + glove(11, 42, 6.2) + limbS('M61 58Q66 57 65 49') + glove(65, 42, 6.2, 0, true);
+  b += bottle();
+  // squinting disgust: slit eyes with a lowered lid, brows pinched, wobbly frown
+  b += ovalEye(30.5, 47, 4.8, 5.4, -1.6, -0.4, { lid: 0.5, tilt: 0, bl: 0.2, lc: SKY }) + ovalEye(45.5, 47, 4.8, 5.4, -1.6, -0.4, { lid: 0.5, tilt: 0, bl: 0.2, lc: SKY });
+  b += ln('M23.5 42L35.5 38', 3.2) + ln('M52.5 42L40.5 38', 3.2);
+  b += sh('M26 59.5Q38 52 50 59.5L47.5 66.5Q38 62 28.5 66.5Z', W, 2.4) + ln('M27.5 63Q38 58.4 48.5 63', 1.5) + ln('M32 56.2L32.6 64M38 55.2L38 61M44 56.2L43.6 64', 1.4) + ln('M23 55.5L26 59.5M53 55.5L50 59.5', 1.6);
+  return legs + (f === 'b' ? `<g transform="translate(0 -1)">${b}</g>` : b);
 }
 add('enemy_sanitizer_a', () => sanitizer('a'));
 add('enemy_sanitizer_b', () => sanitizer('b'));
+add('enemy_sanitizer_hurt', () => sanitizer('hurt'));
 
 // ---------- gift card (loot thief) ----------
+// Slick con artist: plastic card with a gift-bow tie, shifty eyes, tiptoeing off with a sack of coins over the shoulder.
 function giftcard(f) {
-  const a = f === 'a', gy = 88;
-  const legs = a ? stick([[34, 66], [26, 76], [20, 84]], 3.5, 6) + stick([[48, 66], [56, 74], [64, 82]], 3.5, 6)
-    : stick([[34, 66], [38, 76], [36, 86]], 3.5, 6) + stick([[48, 66], [46, 74], [52, 84]], 3.5, 6);
-  const arms = a ? stick([[14, 46], [6, 38], [4, 30]], 3.5) + stick([[70, 46], [78, 52], [80, 44]], 3.5)
-    : stick([[14, 46], [6, 52], [4, 44]], 3.5) + stick([[70, 46], [78, 38], [80, 30]], 3.5);
-  let b = '';
-  b += shape([[12, 22], [70, 22], [70, 68], [12, 68]], C.coral, C.coralD, { dx: 4, dy: 3 });
-  b += shape([[12, 30], [70, 30], [70, 38], [12, 38]], C.cream, C.creamD, { dx: 3, dy: 2, sw: SWs }); // ribbon bands
-  b += shape([[36, 22], [46, 22], [46, 68], [36, 68]], C.gold, C.goldD, { dx: 3, dy: 0, sw: SWs });
-  b += shape([[41, 24], [30, 8], [22, 14], [36, 24]], C.gold, C.goldD, { dx: 2, dy: 2, sw: SWs }) + shape([[41, 24], [52, 8], [60, 14], [46, 24]], C.gold, C.goldD, { dx: 2, dy: 2, sw: SWs }); // bow
-  b += ell(41, 24, 4, 3.4, C.goldD, null, { sw: SWs });
-  b += ell(21, 60, 4.5, 4.5, C.gold, C.goldD, { sw: 1.6 }) + line([[21, 57], [21, 63]], C.plum, 1.4);
-  b += face(41, 50, 0.85, { mw: 14, mh: 8, my: 6, eyeCol: C.cream });
-  return `${legs}${squash(41, gy, a ? 1.02 : 0.98, a ? 0.98 : 1.02, rot(b, a ? -4 : 4, 41, 68))}${arms}`;
+  if (f !== 'a' && f !== 'b' && f !== 'hurt') throw new Error(`giftcard: unknown frame "${f}"`);
+  const CO = C.coral, COD = C.coralD, COL = C.coralL, GO = C.gold, GOD = C.goldD, CR = C.cream, BR = C.bread, BRD = C.breadD;
+  const sh = (d, fill, w = 3) => shape(d, fill, null, { sw: w });
+  const ln = (d, w = 3, col = C.plum) => strokeD(d, col, w);
+  const oval = (cx, cy, rx, ry, fill, w = 2.2, deg = 0) => { const e = ell(cx, cy, rx, ry, fill, null, { sw: w }); return deg ? rot(e, deg, n(cx), n(cy)) : e; };
+  const limbS = (d) => limb(d, CO, 5.6);
+  const bodyFill = (d, light, dark, w = 3, dx = -3.5, dy = -3) => shape(d, light, dark, { sw: w, dx: -dx, dy: -dy });
+  // coin: flat disc (sq squashes it to an ellipse) with a stamped bar
+  const coin = (x, y, r = 3.8, sq = 1, deg = 0) =>
+    `<g transform="rotate(${deg} ${x} ${y})">${oval(x, y, r, r * sq, GO, 1.9)}${ln(`M${x} ${n(y - r * sq * 0.5)}L${x} ${n(y + r * sq * 0.5)}`, 1.3, GOD)}</g>`;
+  // pointe shoe: a cream spat, toe down
+  const toe = (x, y, deg = 0) => `<g transform="rotate(${deg} ${x} ${y})">${oval(x, y + 3.5, 3.4, 4.6, CR, 2.2)}</g>`;
+  const CARD = 'M19 14L47 14Q54 14 54 21L54 63Q54 70 47 70L19 70Q12 70 12 63L12 21Q12 14 19 14Z';
+  const bow = (x, y, deg = 0) => `<g transform="rotate(${deg} ${x} ${y})">` +
+    sh(`M${x} ${y}L${n(x - 14)} ${n(y - 7)}Q${n(x - 16.5)} ${y} ${n(x - 14)} ${n(y + 7)}Z`, GO, 2.6) + sh(`M${x} ${y}L${n(x + 14)} ${n(y - 7)}Q${n(x + 16.5)} ${y} ${n(x + 14)} ${n(y + 7)}Z`, GO, 2.6) +
+    ln(`M${n(x - 6)} ${n(y - 2.6)}L${n(x - 11)} ${n(y - 3.2)}M${n(x - 6)} ${n(y + 2.6)}L${n(x - 11)} ${n(y + 3.2)}M${n(x + 6)} ${n(y - 2.6)}L${n(x + 11)} ${n(y - 3.2)}M${n(x + 6)} ${n(y + 2.6)}L${n(x + 11)} ${n(y + 3.2)}`, 1.4, GOD) +
+    oval(x, y, 3.2, 4.4, GOD, 2.2) + `</g>`;
+  // card chest strip (barcode)
+  const strip = () => `<rect x="12" y="59" width="42" height="7" fill="${CR}"/>${ln('M12 59L54 59', 1.8)}${ln('M12 66L54 66', 1.8)}` +
+    [17, 20, 22.5, 26, 29, 31, 35, 38, 41, 43.5, 47, 50].map((x, i) => ln(`M${x} 60.4L${x} 64.6`, i % 3 === 0 ? 2.2 : 1.2)).join('');
+  // whole upright card: fill, sheen, strip, outline. The strip is clipped so it stays inside the corners.
+  const card = () => bodyFill(CARD, CO, COD) + flat('M16.5 22Q16.5 18.5 20 17.5L24 17.5Q19.5 20 19.5 32Z', COL, 'opacity=".85"') + clipTo(CARD, strip()) + ln(CARD, 3);
+  // coin sack: round bulb, gathered neck with a tuft, tied with coral twine. open = mouth agape (no tuft)
+  const sack = (open = false) => {
+    const bulb = 'M60 27L67 27Q68 34 74 38Q83 44 82 54Q80 66 69 67Q57 66 56 54Q56 44 62 37Q61 32 60 27Z';
+    let b = '';
+    if (!open) b += sh('M56.5 19L70.5 19L67.5 28L59.5 28Z', BR, 2.4) + ln('M60 21L61 26M64 20L64 26M68 21L66.5 26', 1.3, BRD);
+    b += bodyFill(bulb, BR, BRD, 3, -4, -3);
+    b += ln('M58.5 44Q59 52 58 58', 1.8, C.breadL);
+    b += coin(69.5, 52, 6.2);
+    if (open) b += oval(63.5, 27, 8, 3.4, C.plumSoft, 2.6);
+    else b += ln('M58.5 28.5L68.5 28.5', 4.8) + ln('M58.5 28.5L68.5 28.5', 2.4, CO);
+    return b;
+  };
+
+  if (f === 'hurt') {
+    let b = '';
+    // coins flying out of the open sack
+    b += coin(70, 22, 3.7, 0.75, 20) + coin(78, 12, 3.7, 1, 0) + coin(67, 7.5, 3.5, 0.8, -20) + coin(61, 15, 3.4, 1, 10);
+    b += rays([[75, 27, 73, 32], [64, 12, 62, 17]], C.lav, 2);
+    b += sh(star(9, 16, 5.2, 2.3, 5), GO, 1.6) + sh(star(21, 8, 4, 1.7, 5), GO, 1.6);
+    // sack knocked loose, mouth open
+    b += `<g transform="translate(-4 5) rotate(22 69 50)">${sack(true)}</g>`;
+    b += coin(79, 66, 3.4, 0.8, 0);
+    // feet flat, a little hop
+    b += limbS('M23 69Q21 76 22 80') + oval(21, 83.1, 5, 3.2, CR, 2.2) + limbS('M42 69Q44 76 44 80') + oval(45, 83.1, 5, 3.2, CR, 2.2);
+    b += limbS('M13 54Q8 55 9.5 47') + mitt(9.5, 44.5, 4.3, -20, CO);
+    b += limbS('M52 44Q58 40 59 31') + mitt(59.5, 28.5, 4.3, 20, CO);
+    // the card folds at the waist: the top half tips back, a dark wedge shows the inside
+    const LOW = 'M12 44L54 44L54 63Q54 70 47 70L19 70Q12 70 12 63Z', UP = 'M12 44L12 21Q12 14 19 14L47 14Q54 14 54 21L54 44Z';
+    b += bodyFill(LOW, CO, COD, 3) + clipTo(LOW, strip()) + ln(LOW, 3);
+    b += sh('M12 44L54 44L52.9 34.9Z', COD, 2.4) + ln('M54 44L48 47L51 50', 1.6) + ln('M12 44L18 47.5L15 51', 1.6);
+    let up = bodyFill(UP, CO, COD, 3) + flat('M16.5 22Q16.5 18.5 20 17.5L24 17.5Q19.5 20 19.5 32Z', COL, 'opacity=".85"');
+    // > < eyes, wobbly "ow" mouth
+    up += ln('M20 22.5L29 28.5L20 34.5', 3.4) + ln('M46.5 22.5L37.5 28.5L46.5 34.5', 3.4);
+    up += ln('M17 17.5L28 20', 3) + ln('M49 17.5L38 20', 3);
+    up += sh('M23 36Q26 32.5 29 36Q31.5 32.5 34 36Q37 32.5 40 36Q41.5 43 32 43.5Q22 43 23 36Z', C.plum, 2.2) + flat('M27 40.4Q32 38 37 40.4Q35 42.5 32 42.5Q29 42.5 27 40.4Z', COL);
+    b += rot(up, -12, 12, 44);
+    b += rot(bow(33, 53), -20, 33, 52);
+    b += drop(4.2, 29, 0.9, C.sky) + drop(54, 17, 1, C.sky);
+    return b;
+  }
+  // a / b: one foot planted, one lifted mid-step (b swaps them); on b the whole body bobs up 1.5 px and the free hand swings
+  const walkB = f === 'b', bob = (inner) => (walkB ? `<g transform="translate(0 -1.5)">${inner}</g>` : inner);
+  // sack over the shoulder (behind the card), tied, coins peeking
+  let b = bob(coin(60.5, 15.5, 3.6, 1, -15) + coin(67, 14.5, 3.6, 1, 12) + coin(63.5, 11.5, 3.6, 1, 0) + sack());
+  // legs on tiptoe
+  b += walkB ? limbS('M23 69Q29 73 25 76') + toe(24.5, 75, 15) + limbS('M42 69Q44 75 45 78') + toe(45, 78.1, -12)
+    : limbS('M23 69Q21 75 24 78') + toe(24, 78.1, 12) + limbS('M42 69Q50 73 46 76') + toe(45.5, 75, -15);
+  let t = walkB ? limbS('M13 52Q9 52 10 46') + mitt(10, 43.5, 4.3, 0, CO) : limbS('M13 52Q8 55 9 61') + mitt(9, 63.5, 4.3, 0, CO);
+  t += card();
+  // shifty half-lidded eyes glancing sideways, one brow cocked
+  t += ovalEye(24.8, 29, 5.5, 6.4, 3.3, 0.6, { lid: 0.4, tilt: -6, bl: 0.1, lc: CO }) + ovalEye(41, 29, 5.5, 6.4, 3.3, 0.6, { lid: 0.4, tilt: 6, bl: 0.1, lc: CO });
+  t += ln('M18.5 22.5L30.5 24.5', 3.6) + ln('M36 22.5Q41.5 17.5 47 21', 3.6);
+  // sly grin with a gold tooth
+  t += sh('M21.5 38Q33 48.5 46 35.5Q41 44.5 33 45.5Q26 45 21.5 38Z', C.plum, 2.4) + sh('M36 40.6L39.4 38L40.4 41.4L37.2 43.4Z', GO, 1.2);
+  t += bow(33, 50);
+  // right arm up, gripping the sack neck; sparkle on the loot
+  let r = limbS('M52 40Q60 41 57.5 34') + mitt(58, 31.5, 4.3, 160, CO) + rays([[77, 12, 77, 18], [74, 15, 80, 15]], GOD, 1.9);
+  b += bob(rot(t, -3, 33, 70) + r);
+  return b;
 }
 add('enemy_giftcard_a', () => giftcard('a'));
 add('enemy_giftcard_b', () => giftcard('b'));
+add('enemy_giftcard_hurt', () => giftcard('hurt'));
 
 // ---------- expired milk (teleporter) ----------
+// Zombie carton: sickly green gable-top with mould, a lav fin and hem, a crossed-out date stamp, stink lines and legs that
+// fray into wisps. Nothing here uses opacity: the game flickers this enemy's own alpha during the tell.
 function expired(f) {
-  const a = f === 'a', sq = a ? [1.02, 0.97] : [0.98, 1.03], gy = 91;
-  const legs = a ? stick([[24, 76], [18, 84], [14, 90]], 3.5, 6) + stick([[43, 76], [47, 83], [53, 90]], 3.5, 6)
-    : stick([[24, 76], [27, 84], [26, 90]], 3.5, 6) + stick([[43, 76], [40, 82], [44, 89]], 3.5, 6);
-  const arms = a ? stick([[12, 50], [7, 55], [5, 47]], 3.5) + stick([[57, 48], [63, 42], [67, 48]], 3.5)
-    : stick([[12, 50], [7, 44], [5, 52]], 3.5) + stick([[57, 48], [63, 52], [67, 44]], 3.5);
-  const MG = '#9CB88A', MGD = '#6E8E5E';
-  let b = '';
-  b += shape([[16, 20], [44, 20], [48, 34], [12, 34]], MG, MGD, { dx: 2, dy: 3 });
-  b += shape([[44, 20], [54, 17], [58, 30], [48, 34]], MGD, C.lavD, { dx: 1, dy: 3 });
-  b += shape([[17, 11], [42, 10], [43, 21], [16, 21]], C.lav, C.lavD, { dx: 2, dy: 2 });
-  b += line([[22, 12], [22, 20]], C.plum, 1.6) + line([[28, 12], [28, 20]], C.plum, 1.6) + line([[34, 12], [34, 20]], C.plum, 1.6);
-  b += shape([[48, 34], [58, 30], [58, 74], [48, 79]], MGD, C.lavD, { dx: 2, dy: 0 });
-  b += shape([[12, 34], [48, 34], [48, 79], [12, 77]], MG, MGD, { dx: 4, dy: 3 });
-  b += shape([[12, 66], [48, 67], [48, 79], [12, 77]], C.lav, C.lavD, { dx: 4, dy: 2 });
-  b += ell(20, 41, 4, 3, C.green, C.greenD, { sw: 1.4 }) + ell(42, 71, 3.5, 2.6, C.green, C.greenD, { sw: 1.4 }) + ell(16, 62, 2.6, 2, C.greenL, C.greenD, { sw: 1.2 });
-  b += shape([[32, 36], [46, 36], [46, 43], [32, 43]], C.cream, C.creamD, { dx: 1, dy: 1, sw: 1.4 }) + line([[34, 40], [38, 40]], C.coral, 1.8) + line([[40, 40], [44, 40]], C.coral, 1.8); // date stamp
-  b += face(30, 54, 1, { mw: 18, mh: 10, my: 8, eyeCol: '#E4F0C2' });
-  b += line([[24, 80], [24, 86]], C.green, 2) ;
-  return `${legs}${squash(36, gy, sq[0], sq[1], b)}${arms}${a ? line([[20, 6], [16, 0], [22, -4]], C.green, 2) : line([[50, 8], [54, 2], [48, -2]], C.green, 2)}`;
+  if (f !== 'a' && f !== 'b' && f !== 'tell' && f !== 'hurt') throw new Error(`expired: unknown frame "${f}"`);
+  const W = C.white, G = C.green, GD = C.greenD, LD = C.lavD, LV = C.lav, CO = C.coral, COL = C.coralL, MT = C.mintL, MD = C.mintD, TD = C.tealD, GO = C.gold, SKY = C.sky;
+  const sh = (d, fill, w = 3) => shape(d, fill, null, { sw: w });
+  const ln = (d, w = 3, col = C.plum) => strokeD(d, col, w);
+  const limbG = (d) => limb(d, G, 5.6);
+  // the mockup's wisp tips trail 4.8 px below the ground line; lift the carton so the tips rest on it (the stink waves and sparkles stay put so nothing leaves the top)
+  const up = (inner, dy = 4.8) => `<g transform="translate(0 ${-dy})">${inner}</g>`;
+  const FRONT = 'M12 33L48 33L48 79L12 77Z';
+  // the silhouette of the whole carton (fin, gable, body), used for the glitch echoes
+  const SILH = 'M17 10L33 11.5L42 13.5L43 21L54 18L58 30L58 74L48 79L12 77L12 33L16 21Z';
+  // side face; hurt = a bite torn out of its edge
+  const sideFace = (hurt) => (hurt ? 'M48 33L58 30L58 43L52 47L56.5 51.5L51.5 56L58 60L58 74L48 79Z' : 'M48 33L58 30L58 74L48 79Z');
+  // legs: a short stump of carton, then the leg frays into paler and thinner wisps (no opacity, only colour and width).
+  // lift = the walking b frame raises and swings forward the left leg.
+  const wisps = (lift) => {
+    const w = (d, w1, col) => ln(d, w1) + ln(d, n(w1 - 3), col);
+    const dotAt = (x, y) => `<circle cx="${x}" cy="${y}" r="1.3" fill="${MT}" stroke="${C.plum}" stroke-width="1"/>`;
+    const legL = limbG('M25 78L25 83') + w('M25 83Q21 86 24.5 89', 5.2, MD) + w('M24.5 89Q27.5 90.5 25.5 92.5', 3.8, MT) + dotAt(21, 93);
+    const legR = limbG('M42 79L42.5 83') + w('M42.5 83Q47 86 43 89', 5.2, MD) + w('M43 89Q40 90.5 42 92.5', 3.8, MT) + dotAt(46.5, 93.5);
+    return (lift ? `<g transform="translate(3 -3.5)">${legL}</g>` : legL) + legR;
+  };
+  // mood: 'idle' | 'walk' | 'tell' | 'hurt'
+  const zombie = (mood) => {
+    const T = mood === 'tell', H = mood === 'hurt', B = mood === 'walk';
+    const id = `c${++uid}`;
+    let u = '';
+    // left arm
+    if (H) u += limbG('M12 52Q4 48 6 40') + mitt(6.5, 37, 4.4, 25, G);
+    else if (T) u += limbG('M12 50Q5 47 5 38') + mitt(5, 35, 4.4, 30, G);
+    else if (B) u += limbG('M12 52Q5 50 6 43') + mitt(6.5, 40.5, 4.4, 25, G);
+    else u += limbG('M12 52Q5 60 8 70') + mitt(8.5, 72.5, 4.4, 5, G);
+    // top fin, floppy and torn, with a flap hanging off its right end
+    u += sh('M17 10L33 11.5L42 13.5L43 21L16 21Z', LV) + ln('M22 12.5L22 20', 1.6) + ln('M28 12L28 20', 1.6);
+    u += sh('M36 13L42 13.5L43 21L38 21L39 17Z', LD, 1.8);
+    // roof gable
+    u += sh('M44 21L54 18L58 30L48 33Z', GD) + sh('M16 21L44 21L48 33L12 33Z', G);
+    // body: side face, front face with mould blotches clipped to it, lav hem band
+    u += sh(sideFace(H), GD) + sh(FRONT, G);
+    u += `<clipPath id="${id}"><path d="${FRONT}"/></clipPath><g clip-path="url(#${id})">`;
+    u += `<g fill="${GD}"><circle cx="13" cy="62" r="6.6"/><circle cx="19" cy="68" r="4"/><circle cx="46" cy="64" r="6.4"/><circle cx="41" cy="70" r="3.4"/><circle cx="47" cy="37" r="5"/><circle cx="13" cy="35" r="4.6"/></g>`;
+    u += `<g fill="${TD}"><circle cx="11" cy="61" r="3.3"/><circle cx="17" cy="67" r="1.9"/><circle cx="47" cy="63" r="3.2"/><circle cx="48" cy="36" r="2.4"/><circle cx="12" cy="34" r="2.2"/></g><g fill="${MT}"><circle cx="9.5" cy="59.5" r="1.4"/><circle cx="45.5" cy="61.5" r="1.3"/><circle cx="47" cy="35" r="1"/><circle cx="13" cy="73" r="1.2"/></g></g>`;
+    // mould on the shaded side too
+    u += `<clipPath id="${id}m"><path d="${sideFace(H)}"/></clipPath><g clip-path="url(#${id}m)"><circle cx="53.4" cy="41" r="3" fill="${TD}"/><circle cx="53.6" cy="64" r="3" fill="${TD}"/><circle cx="52.6" cy="39.8" r="1" fill="${MT}"/></g>`;
+    u += sh('M12 71L48 71.5L48 79L12 77Z', LV, 2.4) + sh('M48 71.5L58 69L58 74L48 79Z', LD, 2.4);
+    u += ln(FRONT, 3);
+    // hollow sockets round the eyes
+    u += `<clipPath id="${id}s"><path d="${FRONT}"/></clipPath><g clip-path="url(#${id}s)">${flat('M13.5 45.5Q13.5 36 23 36Q32 36 32 45.5Q32 55.5 22.5 55.5Q13.5 55.5 13.5 45.5Z', GD)}${flat('M31.5 47.5Q31.5 40 38.5 40Q46 40 46 47.5Q46 55.5 38.5 55.5Q31.5 55.5 31.5 47.5Z', GD)}</g>`;
+    if (H) {
+      // squeezed eyes, "ow" mouth
+      u += ln('M16 41L27 46.5L16 52', 3.6) + ln('M44 42L34 47.5L44 53', 3.6);
+      u += sh('M20 59Q26 55.5 31 58.5Q36 55 41 59Q45 66 38 69Q31 72 24 69Q17 66 20 59Z', C.plum, 2) + flat('M25.5 65.5Q31 62 37 65.5Q34 70 31 70Q28 70 25.5 65.5Z', COL);
+    } else if (T) {
+      // wide coral eyes, angry brows, silent scream
+      u += ovalEye(23, 46, 6.2, 7.4, 0, 0, { pr: 2.8, sclera: CO }) + ovalEye(38.5, 47.5, 5.8, 6.8, 0, 0, { pr: 2.6, sclera: CO });
+      u += ln('M15 37L30 41.5', 3.2) + ln('M47 38.5L33 42', 3.2);
+      u += sh('M19 59Q31 55 42 59Q46 69 31 71Q17 69 19 59Z', C.plum, 2) + sh('M23.5 58.5L27.5 58.5L27.5 63.5L23.5 63.5Z', W, 1.4) + sh('M33 58.5L37 58.5L37 63.5L33 63.5Z', W, 1.4);
+    } else {
+      // idle: one big dead eye, one droopy half-lidded eye, slack mouth with a lolling tongue and drool
+      u += ovalEye(23, 46, 6.2, 7.4, 1.2, 2.6, { pr: 2.6, sclera: C.bananaL });
+      u += ovalEye(38.5, 48, 5.4, 6.2, 0, 1.8, { pr: 2.3, sclera: C.bananaL, lid: 0.45, tilt: -10, lc: G });
+      u += ln('M33 41.5L44 44.5', 2.4);
+      u += sh('M18.5 60Q30 55.5 41.5 60Q44 68 31 70Q19 69 18.5 60Z', C.plum, 2) + flat('M22.5 59.5L26.5 59L26.5 63L22.5 63.5Z', W) + flat('M31 58.5L35 59L35 62.5L31 62.5Z', W);
+      u += sh('M32.5 66Q41 65.5 42 73Q41 79 36.5 78Q32 77 32.5 70Z', COL, 1.9) + ln('M37 69L37 74', 1.4);
+      u += ln('M19.5 66Q17.5 70 19.5 73.5', 1.8, MT) + `<circle cx="19.5" cy="75" r="1.8" fill="${MT}" stroke="${C.plum}" stroke-width="1.2"/>`;
+    }
+    // crossed-out date stamp on the roof
+    u += `<g transform="rotate(-3 31 27)">${sh('M20.5 22.5L42 22.5L42 31L20.5 31Z', W, 1.6)}${ln('M23 25.5L26.5 25.5M23 28.5L26 28.5M36 25.5L39.5 25.5M36.5 28.5L39.5 28.5', 1.4)}${ln('M26.5 21L36 33', 4.6)}${ln('M36 21L26.5 33', 4.6)}${ln('M26.5 21L36 33', 2.4, CO)}${ln('M36 21L26.5 33', 2.4, CO)}</g>`;
+    // right arm
+    if (H) u += limbG('M57 54Q64 50 63.5 42') + mitt(63.5, 39, 4.4, -25, G);
+    else if (T) u += limbG('M57 50Q61 46 61 39') + mitt(61, 36, 4.4, -35, G);
+    else if (B) u += limbG('M57 52Q63 56 64 64') + mitt(64.5, 66.5, 4.4, -5, G);
+    else u += limbG('M57 52Q63 49 62.8 42') + mitt(63.2, 39, 4.4, -30, G);
+    // the walking b frame bobs the carton up 1.5 px; the legs stay on the floor
+    return wisps(B) + (B ? `<g transform="translate(0 -1.5)">${u}</g>` : u);
+  };
+  const stink = () => {
+    const wav = (x, y, col = GD) => ln(`M${x} ${y}Q${x - 4} ${y - 4} ${x} ${y - 8}Q${x + 4} ${y - 12} ${x} ${y - 16}`, 2.4, col);
+    return wav(7, 30) + wav(63, 21) + wav(58, 33, TD) + wav(10, 18, TD) +
+      `<circle cx="67" cy="8" r="1.6" fill="${C.plum}"/><ellipse cx="65.5" cy="6.5" rx="1.8" ry="1" fill="${W}"/><circle cx="4" cy="52" r="1.5" fill="${C.plum}"/>`;
+  };
+  // outline-only copy of the carton whose horizontal bands wobble sideways: the afterimage of the tell
+  const echo = (dx, col, sw) => {
+    let s = '';
+    for (let i = 0, y = 6; y < 96; y += 7, i++) {
+      const id = `c${++uid}`, w = dx + 2.4 * Math.sin(i * 1.3 + dx);
+      s += `<clipPath id="${id}"><rect x="-40" y="${y}" width="160" height="7.2"/></clipPath><g clip-path="url(#${id})"><g transform="translate(${n(w + 3)} 0) rotate(2 34 91)"><path d="${SILH}" fill="none" stroke="${col}" stroke-width="${sw}" stroke-linejoin="round"/></g></g>`;
+    }
+    return s;
+  };
+
+  if (f === 'tell') {
+    // Tell: glitching out before it blinks away. The body is cut into bands that slip sideways, a coral and a sky outline split
+    // off to each side, a wobbly lav afterimage trails left, glitch blocks flash round it, and wide coral eyes scream silently.
+    // Everything is fully opaque, because the game flickers the sprite's own alpha during the tell.
+    const bands = [[-10, 24, 0], [24, 31, 6], [31, 41, -3], [41, 57, 2.5], [57, 64, -6], [64, 73, 3], [73, 110, 0]];
+    let b = echo(-10, LV, 2.6) + echo(-5, SKY, 3) + echo(5.5, CO, 3);
+    for (const [y0, y1, dx] of bands) b += clipTo(`M-40 ${y0}L120 ${y0}L120 ${y1}L-40 ${y1}Z`, `<g transform="translate(${dx + 3} 0) rotate(2 34 91)">${zombie('tell')}</g>`);
+    const px = (x, y, w, h, fill) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fill}" stroke="${C.plum}" stroke-width="1.2"/>`;
+    b += px(1.5, 24, 6, 3.5, CO) + px(64, 44, 6, 3.5, SKY) + px(61, 50, 4, 3, CO) + px(2, 62, 6, 3.5, SKY) + px(58, 6, 5, 3, CO) + px(65, 66, 5, 3, CO) + px(9, 86, 5, 3, SKY) + px(6, 31, 4, 3, SKY);
+    b += px(60, 34, 9, 4, G) + px(1, 74, 8, 4, LV);
+    b += ln('M1.5 51L10 51', 2, SKY) + ln('M60 58L70 58', 2, CO) + ln('M3 41L8 41', 2, CO);
+    return up(b);
+  }
+  if (f === 'hurt') {
+    // Hurt: squashed and leaning back, eyes squeezed, "ow" mouth, a chunk bitten out of the carton's side with a puff of mould
+    // spores bursting out of the tear, arms flung up, the date stamp still crossed out.
+    let b = `<g transform="translate(3 0) rotate(-7 34 91)"><g transform="translate(34 91) scale(1.06 .93) translate(-34 -91)">${zombie('hurt')}</g></g>`;
+    const puff = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${G}" stroke="${C.plum}" stroke-width="2"/>`;
+    b += puff(59.5, 51, 5.3) + puff(65, 45, 4.4) + puff(66, 55, 3.8) + puff(61, 59, 4);
+    b += `<g fill="${GD}"><circle cx="63" cy="49" r="1.8"/><circle cx="64" cy="57" r="1.4"/></g><circle cx="58.5" cy="52" r="1.3" fill="${MT}"/>`;
+    b += `<g fill="${G}" stroke="${C.plum}" stroke-width="1.2"><circle cx="56" cy="38" r="1.9"/><circle cx="68" cy="37" r="1.6"/><circle cx="69" cy="64" r="1.6"/><circle cx="55" cy="70" r="1.4"/></g>`;
+    b += ln('M2 32L7 33', 1.8, LV) + ln('M3 24L8 27', 1.8, LV) + sh('M60 28L67 25L65 32Z', GD, 1.6) + sh('M66 72L71 68L70 74Z', G, 1.6);
+    b = up(b, 5.1) + sh(star(9, 15, 5, 2.2, 5), GO, 1.6) + sh(star(49, 7, 4, 1.8, 5), GO, 1.6) + drop(4, 58, 0.9, SKY) + drop(67, 24, 0.8, SKY);
+    // the raised left hand and the spore cloud span 76 units, wider than the 72 canvas: fit the whole pose (feet stay on the ground)
+    return `<g transform="translate(36 91.2) scale(.934) translate(-34 -91.2)">${b}</g>`;
+  }
+  return up(`<g transform="rotate(3 34 91)">${zombie(f === 'b' ? 'walk' : 'idle')}</g>`) + stink();
 }
 add('enemy_expired_a', () => expired('a'));
 add('enemy_expired_b', () => expired('b'));
+add('enemy_expired_tell', () => expired('tell'));
+add('enemy_expired_hurt', () => expired('hurt'));
 
 // ---------- bubble gum ----------
+// Rebellious teen wad: wrapper worn as a bandana, blowing a bubble, sticky strand to a floor puddle. tell: bubble about to pop.
 function gum(f) {
-  const a = f === 'a', gy = 90;
-  const PK = '#FF8FC0', PKD = '#D45A92', PKL = '#FFC2DD';
-  const legs = a ? stick([[30, 72], [24, 82], [19, 89]], 3.5, 6) + stick([[46, 72], [52, 80], [58, 89]], 3.5, 6)
-    : stick([[30, 72], [32, 82], [31, 89]], 3.5, 6) + stick([[46, 72], [44, 80], [48, 88]], 3.5, 6);
-  const arms = a ? stick([[14, 50], [8, 56], [6, 48]], 3.5) + stick([[62, 48], [68, 42], [70, 48]], 3.5)
-    : stick([[14, 50], [8, 44], [6, 52]], 3.5) + stick([[62, 48], [68, 52], [70, 44]], 3.5);
+  if (f !== 'a' && f !== 'b' && f !== 'tell' && f !== 'hurt') throw new Error(`gum: unknown frame "${f}"`);
+  const T = f === 'tell', H = f === 'hurt', walkB = f === 'b';
+  const W = C.white, TE = C.teal, CO = C.coral, COL = C.coralL, PK = C.pink, PKD = C.pinkD, PKL = C.pinkL;
+  const sh = (d, fill, w = 3) => shape(d, fill, null, { sw: w });
+  const ln = (d, w = 3, col = C.plum) => strokeD(d, col, w);
+  const limbP = (d) => strokeD(d, C.plum, 5.6) + strokeD(d, PK, 2.4);
+  const WAD = 'M38 13Q54 10 63 21Q72 29 69 41Q75 51 68 60Q66 71 56 72Q47 78 38 75Q28 79 19 72Q8 67 10 54Q3 44 10 36Q7 27 16 21Q25 13 38 13Z';
+  // taller / puffed-cheek wad for the tell
+  const WAD_T = 'M38 7Q58 3 67 16Q76 24 73 38Q77 50 72 62Q68 74 58 75Q48 82 38 78Q27 82 17 74Q4 68 6 54Q3 44 6 34Q4 22 12 15Q22 6 38 7Z';
+  const wad = (path) => flat(path, PK) + clipTo(path, flat('M58 28Q72 48 66 64Q58 78 40 80Q56 70 60 56Q62 42 58 28Z', PKD)) + flat('M17 29Q22 21 31 18Q25 27 24 39Z', PKL) + ln(path, 3);
+  // gum wrapper worn as a bandana: silver foil, coral stripe, crinkle ticks, knot + two tails on the right. y = top edge of the band at the centre
+  const bandana = (y, tilt = 0, limp = false) => {
+    const top = y, bot = y + 10;
+    const BAND = `M8 ${top + 5}Q39 ${top - 6} 70 ${top + 5}L70 ${bot + 4}Q39 ${bot - 7} 8 ${bot + 4}Z`;
+    let s = `<g transform="rotate(${tilt} 39 ${y + 5})">` + flat(BAND, C.chrome);
+    s += clipTo(BAND, ln(`M6 ${n(top + 9.6)}Q39 ${n(top - 1.4)} 72 ${n(top + 9.6)}`, 3.6, CO) + flat(`M8 ${bot + 4}Q39 ${bot - 7} 70 ${bot + 4}L70 ${bot + 6}L8 ${bot + 6}Z`, C.chromeD));
+    s += ln(`M20 ${top + 1.5}L21.5 ${top + 7}M32 ${top - 0.5}L33 ${top + 4.5}M45 ${top - 0.5}L44 ${top + 4.5}M57 ${top + 1.5}L55.5 ${top + 7}`, 1.5, C.chromeD) + ln(BAND, 2.6);
+    s += limp
+      ? sh(`M68 ${top + 8}L74 ${top + 16}L70 ${top + 20}L66 ${top + 12}Z`, C.chrome, 2) + sh(`M66 ${top + 10}L71 ${top + 22}L64 ${top + 18}Z`, CO, 2)
+      : sh(`M66 ${top + 8}L75.5 ${top + 1.5}L73.5 ${top + 8}L75.5 ${top + 14.5}Z`, C.chrome, 2) + sh(`M66 ${top + 9}L76 ${top + 18}L70 ${top + 20}Z`, CO, 2);
+    return s + `<circle cx="67" cy="${top + 9}" r="3.4" fill="${CO}" stroke="${C.plum}" stroke-width="2.2"/></g>`;
+  };
+  // pink puddles on the floor (with a glossy glint); the strand is a stretched string from the left hand into the left puddle
+  const puddle = (x, y, rx, ry = 3.8) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${PKD}" stroke="${C.plum}" stroke-width="2.2"/><ellipse cx="${n(x - rx * 0.3)}" cy="${y - 1}" rx="${n(rx * 0.3)}" ry="1.2" fill="${PKL}"/>`;
+  const sticky = (strand, hx = 9, hy = 69) => {
+    let s = puddle(14, 89.4, 11.5) + puddle(59, 89.6, 13, 3.6);
+    // gum string stuck to the left hand, stretching down into the puddle, with a drip bulge at the end
+    if (strand) s += limbP(`M${hx} ${hy}Q5 77 8.5 82Q10.5 85 10.5 86.5`) + `<circle cx="10.2" cy="86.4" r="3" fill="${PK}" stroke="${C.plum}" stroke-width="2"/><circle cx="9.3" cy="85.6" r=".9" fill="${PKL}"/>`;
+    return s;
+  };
+  // bubble: r = radius, (cx, cy) centre; crack = about to pop
+  const bubble = (cx, cy, r, crack = false) => {
+    let s = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${PKL}" fill-opacity=".92" stroke="${C.plum}" stroke-width="3"/>`;
+    s += ln(`M${n(cx - r * 0.62)} ${n(cy - r * 0.12)}Q${n(cx - r * 0.55)} ${n(cy - r * 0.6)} ${n(cx - r * 0.1)} ${n(cy - r * 0.7)}`, Math.max(2, n(r * 0.16)), W);
+    s += `<circle cx="${n(cx + r * 0.45)}" cy="${n(cy + r * 0.4)}" r="${n(r * 0.1)}" fill="${W}"/>`;
+    if (crack) s += ln(`M${n(cx + r * 0.35)} ${n(cy - r * 0.9)}L${n(cx + r * 0.5)} ${n(cy - r * 0.55)}L${n(cx + r * 0.3)} ${n(cy - r * 0.45)}L${n(cx + r * 0.62)} ${n(cy - r * 0.1)}`, 2.2) + ln(`M${n(cx - r * 0.2)} ${n(cy + r * 0.8)}L${n(cx - r * 0.05)} ${n(cy + r * 0.55)}L${n(cx - r * 0.3)} ${n(cy + r * 0.45)}`, 2.2);
+    return s;
+  };
+  const lips = (x, y, w = 4.6) => `<ellipse cx="${x}" cy="${y}" rx="${w}" ry="${n(w * 0.62)}" fill="${PKD}" stroke="${C.plum}" stroke-width="2.2"/><ellipse cx="${x}" cy="${y}" rx="${n(w * 0.38)}" ry="${n(w * 0.24)}" fill="${C.plum}"/>`;
+  // sneaker soles rest on y = 87.4 + 2.7 (sole) + 1.1 (outline) = 91.2, the 0.95 x 96 ground line
+  const FY = 87.4;
   let b = '';
-  b += shape([[38, 22], [54, 26], [66, 40], [66, 62], [56, 76], [40, 80], [22, 78], [12, 66], [10, 46], [18, 30], [28, 22]], PK, PKD, { dx: 5, dy: 4 });
-  b += flat([[22, 34], [32, 28], [34, 32], [26, 42]], PKL);
-  b += ell(58, 72, 4, 3, PK, PKD, { sw: 1.6 }) + shape([[12, 70], [18, 76], [14, 82], [10, 76]], PK, PKD, { dx: 1, dy: 1, sw: 1.6 });
-  b += face(38, 50, 0.95, { mw: 14, mh: 8, my: 7, teeth: 3 });
-  const bubble = a ? ell(52, 30, 10, 9, PKL, PK, { dx: 2, dy: 2, sw: SWs }) : ell(54, 28, 7, 6.5, PKL, PK, { dx: 1, dy: 1, sw: SWs });
-  return `${legs}${squash(38, gy, a ? 1.03 : 0.97, a ? 0.97 : 1.03, b)}${arms}${bubble}`;
+  if (T) {
+    b += sticky(false);
+    b += limbP('M24 74L17 84') + sneaker(14, FY, -1, TE, 0.9) + limbP('M54 74L61 84') + sneaker(64, FY, 1, TE, 0.9);
+    b += limbP('M9 44Q1 54 8 64') + mitt(14, 64, 4.4, 90, PK) + limbP('M69 44Q77 54 70 64') + mitt(64, 64, 4.4, -90, PK);
+    b += wad(WAD_T);
+    b += bandana(13, -2);
+    b += ovalEye(27, 37, 7.2, 8.6, 0, 0, { pr: 2.6, sclera: CO, sw: 3 }) + ovalEye(51, 37, 7.2, 8.6, 0, 0, { pr: 2.6, sclera: CO, sw: 3 });
+    b += ln('M15 26L33 31', 3.8) + ln('M63 26L45 31', 3.8);
+    b += `<ellipse cx="14" cy="52" rx="5" ry="3.4" fill="${PKD}" opacity=".7"/><ellipse cx="64" cy="52" rx="5" ry="3.4" fill="${PKD}" opacity=".7"/>`;
+    b += bubble(39, 66, 22, true) + lips(39, 46, 6);
+    // tension ticks around the bubble, pop sparks
+    b += ln('M11 80L4 84', 2.4, C.lav) + ln('M67 80L74 84', 2.4, C.lav) + ln('M60 50L69 44', 2.4, C.lav) + ln('M18 50L9 44', 2.4, C.lav);
+    b += sh(star(70, 30, 5, 2.2, 4), C.gold, 1.6) + sh(star(7, 30, 4.5, 2, 4), C.gold, 1.6);
+    return b;
+  }
+  if (H) {
+    b += sticky(false);
+    b += limbP('M28 73L24 84') + sneaker(21, FY, -1, TE, 0.9) + limbP('M52 73L56 84') + sneaker(59, FY, 1, TE, 0.9);
+    let body = limbP('M13 48Q6 42 8 30') + mitt(8, 27, 4.4, 0, PK) + limbP('M65 48Q72 42 70 30') + mitt(70, 27, 4.4, 0, PK);
+    body += wad(WAD) + bandana(22, 12, true);
+    // squeezed > < eyes, worried brows
+    body += ln('M20 38L31 44L20 50', 3.8) + ln('M58 38L47 44L58 50', 3.8);
+    body += ln('M19 32L30 35', 2.8) + ln('M59 32L48 35', 2.8);
+    // popped bubble: ragged film plastered over the lower face, wobbly "ow" under it
+    const film = 'M14 52Q18 47 23 52Q28 46 33 51Q39 45 45 51Q51 46 56 52Q61 47 65 53Q70 61 64 67Q66 74 58 74Q54 70 49 74Q44 70 39 75Q34 70 29 74Q24 71 20 74Q12 73 15 66Q10 60 14 52Z';
+    body += `<path d="${film}" fill="${PKL}" fill-opacity=".92" stroke="${C.plum}" stroke-width="2.6" stroke-linejoin="round"/>`;
+    body += sh('M31 57Q33 53 36 55Q39 52 42 55Q45 53 47 57Q49 64 45 67Q42 70 39 68Q36 70 33 67Q29 64 31 57Z', C.plum, 2.2) + flat('M35 65Q39 60 43 65Q39 68 35 65Z', COL);
+    body += ln('M24 56Q28 59 24 63', 2, W) + ln('M54 56Q50 59 54 63', 2, W);
+    b += `<g transform="translate(3 0) translate(39 91) rotate(-3) scale(1.04 .94) translate(-39 -91)">${body}</g>`;
+    // shreds + pop burst
+    b += sh('M2 56L9 53L7 60Z', PKL, 1.8) + sh('M71 58L76 54L75.5 62Z', PKL, 1.8) + sh('M62 8L69 6L66 13Z', PKL, 1.8) + sh('M8 14L14 10L13 17Z', PKL, 1.8);
+    b += sh(star(38, 7, 5, 2.2, 5), C.gold, 1.6) + drop(5, 42, 1) + drop(72, 44, 1);
+    return b;
+  }
+  // idle (a) and walk (b): slouched, blowing a bubble, sticky puddle with drips. a plants the right foot with the left lifted; b swaps them.
+  b += walkB ? sticky(true, 11, 65) : sticky(true);
+  b += walkB ? limbP('M28 73L25 84') + sneaker(22, FY, -1, TE, 0.9) + limbP('M51 70Q55 72 55 75') + sneaker(57, 81, 1, TE, 0.9)
+    : limbP('M51 73L55 84') + sneaker(58, FY, 1, TE, 0.9) + limbP('M28 70Q25 72 25 75') + sneaker(26, 81, -1, TE, 0.9);
+  let t = walkB ? limbP('M13 48Q7 52 11 60') + mitt(11, 62, 4.4, 0, PK) + limbP('M66 48Q74 56 71.5 67') + mitt(71.5, 69, 4.4, 0, PK)
+    : limbP('M13 48Q6 54 9 64') + mitt(9, 66, 4.4, 0, PK) + limbP('M66 48Q75 54 72 64') + mitt(72, 66, 4.4, 0, PK);
+  t += wad(WAD) + bandana(23, -3);
+  t += ovalEye(29, 44, 5.8, 7.2, 2, 0.6, { lid: 0.36, tilt: -8, lc: PK, pr: 3.4 }) + ovalEye(49, 44, 5.8, 7.2, 2, 0.6, { lid: 0.36, tilt: 8, lc: PK, pr: 3.4 });
+  t += ln('M20 34L34 38.5', 3.2) + ln('M58 34L44 38.5', 3.2);
+  t += `<ellipse cx="17" cy="54" rx="4" ry="2.8" fill="${PKD}" opacity=".6"/><ellipse cx="61" cy="54" rx="4" ry="2.8" fill="${PKD}" opacity=".6"/>`;
+  t += bubble(39, 62, 13) + lips(39, 51, 4.4);
+  return b + `<g transform="${walkB ? 'translate(0 -1.5) ' : ''}rotate(-3 39 85)">${t}</g>`;
 }
 add('enemy_gum_a', () => gum('a'));
 add('enemy_gum_b', () => gum('b'));
+add('enemy_gum_tell', () => gum('tell'));
+add('enemy_gum_hurt', () => gum('hurt'));
 
-// ---------- boss: possessed checkout register ----------
+// ---------- boss: the Store Manager, a possessed checkout register (food-limbed) ----------
+const MGR_SCREEN = '#1E1028', MGR_TELL = '#4A1D2A';
+const rrect = (x, y, w, h, r) => `M${x + r} ${y}L${x + w - r} ${y}Q${x + w} ${y} ${x + w} ${y + r}L${x + w} ${y + h - r}Q${x + w} ${y + h} ${x + w - r} ${y + h}L${x + r} ${y + h}Q${x} ${y + h} ${x} ${y + h - r}L${x} ${y + r}Q${x} ${y} ${x + r} ${y}Z`;
+const dot = (cx, cy, r, fill, w = 2.2) => `<circle cx="${cx}" cy="${cy}" r="${n(r)}" fill="${fill}" stroke="${C.plum}" stroke-width="${w}"/>`;
+const clipTo = (d, inner) => { const id = `c${++uid}`; return `<clipPath id="${id}"><path d="${d}"/></clipPath><g clip-path="url(#${id})">${inner}</g>`; };
+const coinAt = (x, y, r) => dot(x, y, r, C.gold, 1.8) + `<circle cx="${x}" cy="${y}" r="${n(r * 0.55)}" fill="none" stroke="${C.goldD}" stroke-width="1.4"/>`;
+const keyRow = (x, y, k, step, w, h, off = 0) => Array.from({ length: k }, (_, i) => `<rect x="${x + i * step}" y="${y}" width="${w}" height="${h}" rx="1" fill="${[C.gold, C.coralL, C.cream, C.teal, C.lavL][(i + off) % 5]}"/>`).join('');
+const ruled = (x, y, w, rows, step = 6) => Array.from({ length: rows }, (_, i) => line([[x, y + i * step], [x + w - (i % 3) * 3, y + i * step]], C.lavD, 1.3)).join('');
+const sweat = (x, y, s = 1) => shape(`M${x} ${y}Q${n(x + 4 * s)} ${n(y + 5 * s)} ${x} ${n(y + 7 * s)}Q${n(x - 4 * s)} ${n(y + 5 * s)} ${x} ${y}Z`, C.sky, null, { sw: 1.8 });
+const rays = (segs, col, w = 2.5) => segs.map(([x1, y1, x2, y2]) => line([[x1, y1], [x2, y2]], col, w)).join('');
+const mgrTie = (x, y, deg) => `<g transform="translate(${x} ${y}) rotate(${deg})">` + shape('M-5 0L5 0L4 7L-4 7Z', C.teal, null, { sw: 2.2 }) +
+  shape('M-4 7L4 7L8 27L0 33L-8 27Z', C.teal, C.tealD, { sw: 2.4, dx: 3, dy: 3 }) + line([[-3, 16], [4, 14]], C.tealD, 1.4) + line([[-5, 22], [6, 20]], C.tealD, 1.4) + `</g>`;
+
+// Shared frame wrapper for the food-limbed bosses: per-frame squash, and the 5px drop because they are drawn on a y=185 ground while the sprite anchors at y=190.
+const BOSS_SQUASH = { a: [1, 1], b: [0.99, 1.01], tell: [1.03, 0.97], hurt: [1.04, 0.96] };
+function foodBoss(name, f, inner) {
+  const sq = BOSS_SQUASH[f];
+  if (!sq) throw new Error(`${name}: unknown frame "${f}"`);
+  return squash(100, 190, sq[0], sq[1], `<g transform="translate(0 5)">${inner}</g>`);
+}
+
 function boss(f) {
-  const tell = f === 'tell', a = f === 'a', dy = f === 'b' ? -2 : 0;
-  const wheel = (x, y) => `<circle cx="${x}" cy="${y}" r="8" fill="${C.plumSoft}" stroke="${C.plum}" stroke-width="3"/><circle cx="${x}" cy="${y}" r="3" fill="${C.lavL}" stroke="${C.plum}" stroke-width="1.5"/>`;
-  let s = tube([[52, 170], [52, 180]], 3, C.chromeD, 1.5) + tube([[148, 170], [148, 180]], 3, C.chromeD, 1.5);
-  s += a ? wheel(52, 184) + wheel(148, 184) + wheel(100, 186) : wheel(54, 185) + wheel(146, 185) + wheel(100, 184);
-  let b = '';
-  // screen housing
-  b += shape([[46, 14], [154, 12], [159, 66], [41, 68]], C.coral, C.coralD, { dx: 5, dy: 5 });
-  b += shape([[55, 23], [147, 22], [150, 58], [52, 60]], tell ? '#4A1D2A' : C.plum, null, { sw: SWs });
-  const eyeCol = tell ? C.coral : C.gold, eyeHi = tell ? '#FFC0A8' : C.cream;
-  b += shape([[60, 33], [88, 29], [90, 46], [64, 50]], eyeCol, tell ? C.coralD : C.goldD, { sw: SWs, dx: 2, dy: 2 }) +
-    shape([[140, 33], [112, 29], [110, 46], [136, 50]], eyeCol, tell ? C.coralD : C.goldD, { sw: SWs, dx: 2, dy: 2 });
-  b += flat([[64, 34], [78, 32], [78, 35], [65, 38]], eyeHi, 'opacity=".9"') + flat([[136, 34], [122, 32], [122, 35], [135, 38]], eyeHi, 'opacity=".9"');
-  b += `<circle cx="80" cy="42" r="3.4" fill="${C.plum}"/><circle cx="120" cy="42" r="3.4" fill="${C.plum}"/>`;
-  b += brow(56, 26, 92, 38, 5.5).replace(C.plum, C.cream) + brow(144, 26, 108, 38, 5.5).replace(C.plum, C.cream);
-  b += brow(56, 27, 92, 39, 3) + brow(144, 27, 108, 39, 3);
-  b += flat([[60, 54], [92, 55], [92, 57], [60, 57]], tell ? C.coral : C.goldD, 'opacity=".5"') + flat([[108, 55], [140, 54], [140, 57], [108, 57]], tell ? C.coral : C.goldD, 'opacity=".5"');
-  // keyboard deck
-  b += shape([[30, 100], [170, 100], [158, 68], [42, 68]], C.plumSoft, C.plum, { dx: 3, dy: 4 });
-  for (let r = 0; r < 2; r++) for (let i = 0; i < 9; i++) {
-    const y = 74 + r * 12, x = 52 + i * 11 - r * 3;
-    b += shape(rect(x, y, 8, 7), [C.cream, C.coralL, C.gold][(i + r) % 3], null, { sw: 1.5 });
+  const tell = f === 'tell', hurt = f === 'hurt', walkB = f === 'b';
+  const scr = tell ? MGR_TELL : MGR_SCREEN, hd = { a: 4, b: 4, tell: -3, hurt: -4 }[f];
+  const [cdx, cdy, cdeg] = { a: [0, 2, -9], b: [3, -5, -4], tell: [4, -38, -24], hurt: [2, 2, -18] }[f];
+  const [mx, my] = { a: [166, 78], b: [170, 92], tell: [168, 54], hurt: [168, 60] }[f];
+
+  // feet: planted ones sit on y=185, which the +5 shift below puts on the 190 ground line
+  const feet = {
+    a: [['M88 148Q82 164 84 178', 86, 185, -1], ['M112 148Q126 158 124 171', 126, 178, 1]],
+    b: [['M88 148Q74 158 76 171', 78, 178, -1], ['M112 148Q122 164 118 178', 116, 185, 1]],
+    tell: [['M88 148Q76 164 78 178', 80, 185, -1], ['M112 148Q126 164 124 178', 122, 185, 1]],
+    hurt: [['M88 148Q78 162 76 178', 78, 185, -1], ['M112 148Q128 160 130 172', 132, 179, 1]],
+  }[f].map(([d, x, y, dir]) => nub(x, y, dir, C.coral, 1.8) + limb(d, C.coral, 9) + nub(x, y, dir, C.coral, 1.8)).join('');
+
+  const clipboard = `<g transform="translate(${cdx} ${cdy}) rotate(${cdeg} 52 138)">` +
+    (hurt ? '' : shape('M24 154L34 154C36 162 30 168 34 176L28 173L22 177L18 171C20 164 22 160 24 154Z', C.cream, null, { sw: 2.2 }) + ruled(24, 160, 8, 3)) +
+    shape(rrect(14, 110, 40, 50, 4), C.bread, C.breadD, { sw: 3, dx: 4, dy: 4 }) +
+    (hurt ? shape('M20 118L48 118L48 124L43 121L37 125L31 121L25 125L20 122Z', C.cream, null, { sw: 1.6 })
+      : `<path d="${rrect(19, 118, 30, 37, 2)}" fill="${C.cream}" stroke="${C.plum}" stroke-width="1.6"/>` +
+        [0, 1, 2, 3].map((i) => `<rect x="22" y="${123 + i * 8}" width="4" height="4" fill="${C.white}" stroke="${C.plum}" stroke-width="1.1"/>` + line([[29, 125 + i * 8], [45 - (i % 2) * 5, 125 + i * 8]], C.lavD, 1.4)).join('') +
+        line([[22.5, 125], [24, 127], [27, 121.5]], C.coral, 1.6) + line([[22.5, 133], [24, 135], [27, 129.5]], C.coral, 1.6)) +
+    shape(rrect(26, 105, 16, 9, 2), C.chrome, null, { sw: 2.2 }) + `</g>`;
+
+  let up = limb(`M68 116Q${46 + cdx} ${118 + cdy / 2} ${50 + cdx} ${138 + cdy}`, C.coral, 9);
+  // torso, key deck, cash drawer belly, tie
+  up += shape(rrect(64, 106, 72, 50, 10), C.coral, C.coralD, { sw: 4, dx: 5, dy: 5 });
+  up += shape('M68 92L132 92L141 108L59 108Z', C.plumSoft, null, { sw: 3 }) + keyRow(70, 95, 7, 9, 6.5, 3.5, 1) + keyRow(65, 101, 7, 9.6, 7.5, 3.5, 3);
+  up += shape(rrect(76, 134, 48, 16, 4), C.chrome, C.chromeD, { sw: 2.6, dx: 3, dy: 3 }) + line([[92, 142], [108, 142]], C.plum, 3) + coinAt(117, 142, 4);
+  up += mgrTie(100, 98, { a: 3, b: -3, tell: -8, hurt: 14 }[f]);
+  up += clipboard + mitt(52 + cdx, 138 + cdy, 8, 5, C.coral);
+  // raised arm with wrist watch
+  up += limb(`M134 116Q${mx + 6} 116 ${mx} ${my + 10}`, C.coral, 9);
+  up += line([[mx - 6, my + 18], [mx + 6, my + 16]], C.plum, 3.6) + dot(mx, my + 17, 5.4, C.chrome, 2) + line([[mx, my + 17], [mx, my + 13.5]], C.plum, 1.3) + line([[mx, my + 17], [mx + 2.6, my + 18.5]], C.plum, 1.3);
+  up += mitt(mx, my, tell ? 10 : 9, tell ? -10 : 10, C.coral);
+  if (!tell && !hurt) up += rays([[mx + 13, my - 6, mx + 19, my - 10], [mx + 15, my + 4, mx + 22, my + 4], [mx + 10, my - 14, mx + 14, my - 20]], C.lav);
+
+  // head: the screen
+  let h = shape(rrect(52, 14, 96, 78, 14), C.coral, C.coralD, { sw: 4, dx: 6, dy: 6 }) + flat(rrect(58, 18, 18, 4, 2), C.coralL);
+  h += `<path d="${rrect(59, 21, 82, 64, 8)}" fill="${scr}" stroke="${C.plum}" stroke-width="2.5"/>` + flat('M63 25L82 25L63 44Z', C.white, 'opacity=".12"');
+  if (hurt) {
+    h += line([[80, 35], [96, 46], [80, 57]], C.cream, 4.2) + line([[120, 35], [104, 46], [120, 57]], C.cream, 4.2);
+    const ow = 'M86 68Q84 60 92 60Q98 56 104 60Q110 56 116 60Q124 60 122 68Q127 76 119 80Q113 85 104 81Q95 85 89 80Q81 76 86 68Z';
+    h += shape(ow, C.chrome, null, { sw: 2.4 }) + `<path d="${ow}" fill="${MGR_TELL}" transform="translate(104 70) scale(0.62) translate(-104 -70)"/>`;
+  } else if (tell) {
+    const eyeCol = '#FF9A82';
+    h += ovalEye(87, 46, 10, 14, 4, 3, { sclera: eyeCol, lid: 0.36, tilt: 15, lc: scr }) + ovalEye(113, 46, 10, 14, -4, 3, { sclera: eyeCol, lid: 0.36, tilt: -15, lc: scr });
+    h += strokeD('M72 24Q86 26 99 37', C.cream, 3.8) + strokeD('M128 24Q114 26 101 37', C.cream, 3.8);
+    const mo = rrect(87, 65, 36, 22, 8);
+    h += shape(rrect(82, 61, 46, 30, 12), C.chrome, null, { sw: 2.6 }) + `<path d="${mo}" fill="${MGR_SCREEN}"/>`;
+    h += clipTo(mo, [91, 99, 107, 115, 122].map((x) => coinAt(x, 65, 4)).join('') + [95, 103, 111, 119].map((x) => coinAt(x, 87, 3.6)).join('') + ell(105, 86, 9, 6, C.coralL, null, { sw: 1.8 }));
+    h += `<path d="${mo}" fill="none" stroke="${C.plum}" stroke-width="2.2"/>`;
+  } else {
+    h += ovalEye(87, 46, 10, 14, 5.5, 1.5, { lid: 0.3, tilt: 6, lc: scr }) + ovalEye(113, 46, 10, 14, 5.5, 1.5, { lid: 0.22, tilt: -4, lc: scr });
+    h += strokeD('M76 27Q86 23 97 29', C.cream, 3.2) + strokeD('M105 25Q118 15 128 22', C.cream, 3.2);
+    const mo = 'M91 66L117 66L117 70Q117 74 113 74L95 74Q91 74 91 70Z';
+    h += shape(rrect(88, 63, 32, 14, 6), C.chrome, null, { sw: 2.4 }) + `<path d="${mo}" fill="${MGR_TELL}"/>` + clipTo(mo, [95, 101.5, 108, 114.5].map((x) => coinAt(x, 66, 3.4)).join(''));
+    h += ell(104, 80, 11, 4.6, C.chrome, null, { sw: 2.2 }) + flat('M96 79Q99 77 104 77', C.chromeL) + strokeD('M121 64Q125 66 123 71', C.plum, 1.8);
   }
-  b += shape([[34, 98], [166, 98], [170, 106], [30, 106]], C.lav, C.lavD, { dx: 0, dy: 3, sw: SWs + 0.5 });
-  // front body
-  b += shape([[26, 105], [174, 105], [169, 172], [31, 172]], C.coral, C.coralD, { dx: 6, dy: 4 });
-  b += flat([[32, 112], [38, 112], [37, 160], [34, 164]], C.coralL, 'opacity=".5"');
-  b += shape(rect(36, 150, 22, 9), C.cream, C.creamD, { dx: 0, dy: 2, sw: SWs }) + line([[40, 154], [54, 154]], C.chromeD, 1.6); // name badge
-  b += shape([[26, 168], [174, 168], [170, 174], [30, 174]], C.plum, null, { sw: SWs });
-  // mouth: cash drawer
-  const mo = tell ? 18 : 0; // drawer flung open
-  const jaw = tell ? [[24, 132 + mo], [176, 132 + mo], [184, 160 + mo * 0.3], [16, 160 + mo * 0.3]] : [[38, 132], [162, 132], [168, 148], [32, 148]];
-  b += shape(tell ? [[42, 108], [158, 108], [162, 140 + mo], [38, 140 + mo]] : [[44, 110], [156, 110], [152, 135], [48, 135]], '#1E1028', null, { sw: SWs });
-  const coinTooth = (x, y) => `<circle cx="${x}" cy="${y}" r="6.2" fill="${C.gold}" stroke="${C.plum}" stroke-width="2"/><circle cx="${x}" cy="${y}" r="3" fill="none" stroke="${C.goldD}" stroke-width="1.6"/>`;
-  for (let i = 0; i < 7; i++) b += coinTooth(55 + i * 15, 115);
-  b += shape(jaw, tell ? C.chrome : C.chrome, C.chromeD, { dx: 2, dy: 3 });
-  for (let i = 0; i < 6; i++) b += coinTooth(62 + i * 15, 132 + mo - (tell ? -1 : 2));
-  b += flat([[tell ? 30 : 42, jaw[0][1] + 3], [tell ? 80 : 90, jaw[0][1] + 3], [tell ? 76 : 86, jaw[0][1] + 6], [tell ? 30 : 40, jaw[0][1] + 6]], C.white, 'opacity=".8"');
-  // tie
-  b += shape([[74, 148 + mo * 0.3], [90, 148 + mo * 0.3], [88, 156 + mo * 0.3], [76, 156 + mo * 0.3]], C.teal, C.tealD, { sw: SWs, dx: 2, dy: 2 });
-  b += shape([[76, 156 + mo * 0.3], [88, 156 + mo * 0.3], [95, 182], [82, 188], [70, 182]], C.teal, C.tealD, { dx: 3, dy: 3 });
-  b += flat([[77, 164], [90, 162], [91, 166], [76, 168]], C.cream) + flat([[75, 174], [92, 172], [93, 176], [74, 178]], C.cream);
-  // receipt tongue
-  const t0 = jaw[0][1];
-  const tongue = tell
-    ? [[104, t0 - 18], [140, t0 - 18], [166, t0 + 10], [184, t0 + 34], [150, t0 + 30], [136, t0 + 40], [118, t0 + 22], [104, t0 + 34], [96, t0 + 16]]
-    : a ? [[112, t0 - 18], [140, t0 - 18], [146, t0 + 10], [156, t0 + 30], [150, t0 + 44], [134, t0 + 36], [124, t0 + 28], [116, t0 + 12]]
-      : [[112, t0 - 18], [140, t0 - 18], [144, t0 + 14], [140, t0 + 34], [150, t0 + 44], [130, t0 + 44], [120, t0 + 26], [116, t0 + 10]];
-  b += shape(tongue, C.cream, C.creamD, { dx: 3, dy: 3 });
-  for (let i = 0; i < 4; i++) { const yy = t0 + 2 + i * 9; b += line([[118 + i * 2, yy], [136 + i * 3, yy - 1]], C.chromeD, 1.8); }
-  b += flat([[114, t0 - 14], [120, t0 - 14], [120, t0 + 10]], C.white, 'opacity=".8"');
-  if (tell) b += spark(30, 40, 11) + spark(172, 36, 11) + line([[14, 70], [20, 78]], C.coral, 3) + line([[186, 66], [180, 74]], C.coral, 3);
-  const sq = tell ? [1.03, 0.97] : a ? [1, 1] : [0.99, 1.01];
-  return s + squash(100, 176, sq[0], sq[1], `<g transform="translate(0 ${dy})">${b}</g>`);
+  up += rot(h, hd, 100, 94);
+
+  // headset with a mic boom; the hit knocks it askew
+  let hs = limb('M52 42C50 -2 150 -2 148 42', C.chrome, 7);
+  hs += ell(50, 52, 8, 13, C.chromeD, null, { sw: 2.6 }) + ell(47.5, 52, 4.6, 8.5, C.teal, null, { sw: 1.8 });
+  hs += ell(150, 52, 8, 13, C.chromeD, null, { sw: 2.6 }) + ell(152.5, 52, 4.6, 8.5, C.teal, null, { sw: 1.8 });
+  hs += limb('M48 64Q44 90 66 86Q76 85 80 78', C.chromeD, 5) + dot(82, 76, 5, C.plumSoft, 2.2) + `<circle cx="80.6" cy="74.6" r="1.6" fill="${C.lavL}"/>`;
+  up += rot(hurt ? `<g transform="translate(-8 -2)">${rot(hs, -20, 100, 40)}</g>` : hs, hd, 100, 94);
+
+  up = `<g transform="translate(0 ${walkB ? -2 : 0})">${up}</g>`;
+  if (hurt) up = rot(up, -8, 100, 156);
+
+  let fx = '';
+  if (tell) {
+    fx += spark(26, 30, 11) + spark(176, 26, 11);
+    fx += rays([[42, 52, 30, 46], [40, 66, 28, 68], [44, 38, 36, 28]], C.coral, 3) + rays([[158, 40, 170, 34], [160, 56, 172, 56]], C.coral, 3);
+  }
+  if (hurt) {
+    fx += `<g transform="rotate(-26 30 108)">` + shape(rrect(16, 92, 28, 34, 2), C.cream, null, { sw: 2.2 }) + ruled(20, 100, 18, 4, 6) + `</g>`;
+    fx += rays([[48, 112, 58, 116], [46, 122, 54, 128], [48, 100, 56, 100]], C.lav);
+    fx += sweat(44, 36, 1.7) + sweat(34, 52, 1.4) + sweat(152, 30, 1.5);
+    fx += shape(star(160, 12, 8, 3, 4), C.gold, null, { sw: 1.6 });
+  }
+  return foodBoss('boss', f, `${feet}${up}${fx}`);
 }
 add('boss_a', () => boss('a'));
 add('boss_b', () => boss('b'));
 add('boss_tell', () => boss('tell'));
+add('boss_hurt', () => boss('hurt'));
 
-// ---------- per-theme bosses (aisle 8): same 200x200 frame, ground ~y176, a/b walk + tell ----------
-const bossWheel = (x, y) => `<circle cx="${x}" cy="${y}" r="8" fill="${C.plumSoft}" stroke="${C.plum}" stroke-width="3"/><circle cx="${x}" cy="${y}" r="3" fill="${C.lavL}" stroke="${C.plum}" stroke-width="1.5"/>`;
-const bossFrame = (f, wheels, inner) => {
-  const a = f === 'a', dy = f === 'b' ? -2 : 0, sq = f === 'tell' ? [1.03, 0.97] : a ? [1, 1] : [0.99, 1.01];
-  return wheels + squash(100, 176, sq[0], sq[1], `<g transform="translate(0 ${dy})">${inner}</g>`);
-};
-const bossWheels = (f) => (f === 'a' ? bossWheel(52, 184) + bossWheel(148, 184) + bossWheel(100, 186) : bossWheel(54, 185) + bossWheel(146, 185) + bossWheel(100, 184));
+// ---------- per-theme bosses (aisle 8): same 200x200 frame and foodBoss wrapper as the Manager, a/b walk + tell + hurt ----------
 
-// Walk-In Freezer (frozen): frosty cabinet, icicle teeth, cold breath.
+// Walk-In Freezer (frozen): drawn on the y=185 ground like the Manager; foodBoss shifts it onto the sprite's 190 line.
 function bossFrozen(f) {
-  const tell = f === 'tell', a = f === 'a';
-  const eyeCol = tell ? C.coral : C.sky, eyeDk = tell ? C.coralD : C.blueD, eyeHi = tell ? '#FFC0A8' : C.white;
-  let b = shape([[32, 38], [168, 38], [172, 172], [28, 172]], C.frost, C.frostD, { dx: 6, dy: 5 });
-  b += flat([[36, 46], [43, 46], [42, 160], [38, 164]], C.white, 'opacity=".6"');
-  b += shape([[48, 54], [152, 54], [152, 162], [48, 162]], C.white, C.frostD, { dx: 3, dy: 3, sw: SWs + 0.5 });
-  b += shape([[154, 70], [163, 70], [163, 128], [154, 128]], C.chrome, C.chromeD, { dx: 2, dy: 2, sw: SWs });
-  // compressor cap with vent slats + LED
-  b += shape([[42, 14], [158, 14], [168, 42], [32, 42]], C.chrome, C.chromeD, { dx: 4, dy: 4 });
-  for (let i = 0; i < 5; i++) b += line([[64 + i * 18, 20], [61 + i * 18, 36]], C.chromeD, 3);
-  b += `<circle cx="148" cy="26" r="4.2" fill="${tell ? C.coral : C.teal}" stroke="${C.plum}" stroke-width="1.6"/>`;
-  // eyes
-  b += shape([[58, 78], [90, 70], [92, 90], [62, 94]], eyeCol, eyeDk, { sw: SWs, dx: 2, dy: 2 }) + shape([[142, 78], [110, 70], [108, 90], [138, 94]], eyeCol, eyeDk, { sw: SWs, dx: 2, dy: 2 });
-  b += flat([[63, 79], [78, 74], [78, 78], [64, 83]], eyeHi, 'opacity=".9"') + flat([[137, 79], [122, 74], [122, 78], [136, 83]], eyeHi, 'opacity=".9"');
-  b += `<circle cx="78" cy="84" r="3.4" fill="${C.plum}"/><circle cx="122" cy="84" r="3.4" fill="${C.plum}"/>`;
-  b += brow(54, 66, 92, 78, 5.5).replace(C.plum, C.white) + brow(146, 66, 108, 78, 5.5).replace(C.plum, C.white) + brow(54, 67, 92, 79, 3) + brow(146, 67, 108, 79, 3);
-  // icicle-toothed mouth
-  const mo = tell ? 10 : 0;
-  b += shape([[56, 112 - mo], [144, 112 - mo], [140, 152 + mo], [60, 152 + mo]], '#1E1028', null, { sw: SWs });
-  for (let i = 0; i < 6; i++) {
-    const x = 62 + i * 15;
-    b += shape([[x, 112 - mo], [x + 13, 112 - mo], [x + 6.5, 126 + (i % 2) * 5]], C.white, C.frostD, { sw: SWs, dx: 1, dy: 1 });
-    b += shape([[x + 1, 152 + mo], [x + 13, 152 + mo], [x + 7, 140 - (i % 2) * 5 - mo * 0.4]], C.white, C.frostD, { sw: SWs, dx: 1, dy: 1 });
+  const tell = f === 'tell', hurt = f === 'hurt', walkB = f === 'b';
+  const INSIDE = '#4A1D2A', EYE_TELL = '#FF9A82';
+  const mir = (cx, s) => `<g transform="translate(${2 * cx} 0) scale(-1 1)">${s}</g>`;
+  const icicle = (x, y, w, len, lean = 0) => {
+    const d = `M${x - w / 2} ${y}L${x + w / 2} ${y}L${x + lean} ${y + len}Z`;
+    return flat(d, C.white) + flat(`M${x + w * 0.08} ${y}L${x + w / 2} ${y}L${x + lean} ${y + len}Z`, C.frostD) + strokeD(d, C.plum, 2);
+  };
+  const fang = (x0, x1, y, len) => shape(`M${x0} ${y}L${x1} ${y}L${(x0 + x1) / 2} ${y + len}Z`, C.white, null, { sw: 1.2 });
+  const gape = (d, inner, w = 2.2) => `<path d="${d}" fill="${INSIDE}"/>` + clipTo(d, inner) + `<path d="${d}" fill="none" stroke="${C.plum}" stroke-width="${w}" stroke-linejoin="round"/>`;
+  // one merged outline over overlapping circles
+  const cloud = (parts) => parts.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r + 1.3}" fill="${C.plum}"/>`).join('') +
+    parts.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${C.white}"/>`).join('') +
+    parts.map(([x, y, r]) => strokeD(`M${n(x - r * 0.6)} ${n(y + r * 0.25)}Q${n(x - r * 0.55)} ${n(y - r * 0.5)} ${n(x + r * 0.1)} ${n(y - r * 0.62)}`, C.frostD, 1.8)).join('');
+
+  const legs = {
+    a: [['M86 148Q85 166 81 178', 82, 185, -1], ['M110 148Q122 156 126 168', 128, 175, 1]],
+    b: [['M86 148Q74 156 72 168', 70, 175, -1], ['M110 148Q112 166 116 178', 117, 185, 1]],
+    tell: [['M86 148Q78 166 74 178', 75, 185, -1], ['M110 148Q118 166 124 178', 125, 185, 1]],
+    hurt: [['M86 148Q80 164 70 176', 71, 185, -1], ['M110 148Q124 156 130 164', 132, 172, 1]],
+  }[f].map(([d, x, y, dir]) => limb(d, C.frost, 9) + nub(x, y, dir, C.frost, 1.8)).join('');
+
+  const lowL = limb('M60 112Q42 116 38 138', C.frost, 9) + mir(38, mitt(38, 142, 9.5, 0, C.frost));
+  const highR = limb('M140 104Q170 108 174 88', C.frost, 9) + mitt(174, 82, 10, 10, C.frost);
+  const upL = limb('M60 108Q32 112 30 86', C.frost, 9) + mir(30, mitt(30, 80, 11, 0, C.frost));
+  const arms = { a: mir(100, lowL + highR), b: lowL + highR, tell: upL + mir(100, upL),
+    hurt: limb('M60 112Q40 116 28 134', C.frost, 9) + mir(28, mitt(28, 138, 9.5, 20, C.frost)) + limb('M140 104Q168 104 168 80', C.frost, 9) + mitt(168, 74, 10, 25, C.frost) }[f];
+
+  let up = arms;
+  up += shape(rrect(60, 44, 80, 108, 12), C.frost, C.frostD, { sw: 4, dx: 6, dy: 6 });
+  up += shape(rrect(66, 52, 58, 94, 8), C.white, C.frost, { sw: 2.6, dx: 4, dy: 4 });
+  up += shape(rrect(128, 84, 7, 36, 3.5), C.chrome, null, { sw: 2.4 }) + strokeD('M131 89L131 112', C.chromeL, 1.6);
+
+  if (hurt) {
+    up += strokeD('M77 65L91 76L77 87', C.plum, 4.6) + strokeD('M113 65L99 76L113 87', C.plum, 4.6);
+    const ow = 'M82 98Q85 92 90 97Q95 91 100 97Q105 92 108 98Q112 108 103 113Q95 119 87 113Q78 108 82 98Z';
+    up += gape(ow, ell(95, 116, 9, 5.5, C.coralL, null, { sw: 1.6 }) + fang(86, 91, 95, 6), 2.4);
+  } else if (tell) {
+    up += ovalEye(84, 76, 9.5, 14, 3, 2, { sclera: EYE_TELL, lid: 0.38, tilt: 14, lc: C.frost, pr: 5 }) + ovalEye(106, 76, 9.5, 14, -3, 2, { sclera: EYE_TELL, lid: 0.38, tilt: -14, lc: C.frost, pr: 5 });
+    up += strokeD('M70 61Q84 60 96 69', C.plum, 4) + strokeD('M120 61Q106 60 94 69', C.plum, 4);
+    const mo = 'M81 97Q95 90 109 97Q113 115 95 116Q77 115 81 97Z';
+    const teeth = [0, 1, 2, 3].map((i) => fang(82 + i * 6.6, 88.6 + i * 6.6, 91, 10 + (i % 2) * 3)).join('') + [0, 1, 2].map((i) => fang(85 + i * 7.5, 92.5 + i * 7.5, 118, -8)).join('');
+    up += gape(mo, `<ellipse cx="95" cy="107" rx="10" ry="7" fill="${C.sky}"/><ellipse cx="95" cy="107" rx="5" ry="3.6" fill="${C.frost}"/>` + teeth, 2.4);
+  } else {
+    up += ovalEye(84, 76, 9.5, 14, -4.5, 3, { lid: 0.34, lc: C.frost, pr: 5.4 }) + ovalEye(106, 76, 9.5, 14, -4.5, 3, { lid: 0.34, lc: C.frost, pr: 5.4 });
+    up += gape('M88 101Q95 98 102 101Q103 109 95 110Q87 109 88 101Z', fang(89.5, 93.5, 98, 6) + fang(96.5, 100.5, 98, 6));
+    up += ell(95, 111.5, 7.5, 3.8, C.coralL, null, { sw: 2 }) + flat('M90 110.5Q93 109.5 96 110.5', C.white, 'opacity=".7"');
   }
-  b += snowflake(46, 148, 7, C.sky, 2) + snowflake(158, 150, 6, C.sky, 1.8);
-  // icicles under the cap
-  for (const [x, h] of [[44, 14], [70, 22], [100, 16], [130, 24], [156, 12]]) b += shape([[x - 6, 40], [x + 6, 40], [x + 0.5, 42 + h + (a ? 0 : 3)]], C.white, C.frostD, { sw: SWs, dx: 1, dy: 1 });
-  if (tell) { // cold breath
-    for (const [x, y, r] of [[40, 142, 11], [24, 128, 8], [160, 142, 11], [176, 128, 8]]) b += `<circle cx="${x}" cy="${y}" r="${r}" fill="${C.frost}" stroke="${C.plum}" stroke-width="2" opacity=".95"/>`;
-    b += spark(26, 40, 11, C.sky) + spark(176, 38, 11, C.sky);
+
+  up += shape(rrect(54, 118, 92, 14, 6), C.coral, C.coralD, { sw: 3, dx: 3, dy: 3 });
+  up += [66, 80, 94, 108, 122, 136].map((x) => strokeD(`M${x} 120L${x} 130`, C.cream, 3)).join('');
+  if (hurt) {
+    const fl = 'M128 126Q150 112 176 122L174 138Q150 130 128 142Z';
+    up += shape(fl, C.coral, C.coralD, { sw: 3, dx: 3, dy: 3 }) + strokeD('M144 120L143 136M158 122L157 134', C.cream, 3);
+    up += [128, 134].map((y) => strokeD(`M176 ${y - 4 + (y - 128) * 0.1}L184 ${y - 7}`, C.plum, 3.8) + strokeD(`M176 ${y - 4 + (y - 128) * 0.1}L184 ${y - 7}`, C.coral, 1.6)).join('');
+  } else {
+    up += `<g transform="rotate(-5 128 130)">${shape(rrect(121, 126, 16, 34, 3), C.coral, C.coralD, { sw: 3, dx: 3, dy: 3 })}${strokeD('M123 137L135 137M123 147L135 147', C.cream, 3)}` +
+      [124, 129, 134].map((x) => strokeD(`M${x} 160L${x} 166`, C.plum, 3.8) + strokeD(`M${x} 160L${x} 166`, C.coral, 1.6)).join('') + `</g>`;
   }
-  return bossFrame(f, bossWheels(f), b);
+
+  up += shape('M64 24L136 24L146 50L54 50Z', C.chrome, C.chromeD, { sw: 3.5, dx: 5, dy: 5 }) + strokeD('M67 27.2L133 27.2', C.chromeL, 2);
+  for (let i = 0; i < 3; i++) {
+    const t = 0.4 + i * 0.2, y = 24 + 26 * t, xl = 54 + 10 * (1 - t) + 8, xr = 146 - 10 * (1 - t) - 16;
+    up += strokeD(`M${n(xl)} ${n(y)}L${n(xr)} ${n(y)}`, C.chromeD, 3) + strokeD(`M${n(xl)} ${n(y + 2.4)}L${n(xr)} ${n(y + 2.4)}`, C.chromeL, 1.2);
+  }
+  if (tell) up += `<circle cx="134" cy="38" r="8" fill="${C.coral}" opacity=".4"/>`;
+  up += dot(134, 38, 3.4, tell ? C.coral : C.teal, 1.8) + `<circle cx="133" cy="37" r="1" fill="${C.white}"/>`;
+  // the hit snaps the left icicle off (the shard is drawn falling in fx)
+  const ics = [[70, 7, hurt ? 2 : 8], [82, 8, 11, -1], [98, 7, 7], [112, 9, 12, 1], [124, 7, 8]];
+  up += ics.map(([x, w, len, lean]) => icicle(x, 50, w, len + (tell ? 4 : 0), lean ?? 0)).join('');
+
+  // the band is drawn over the cap; the hit knocks it askew
+  let em = limb('M51 70L51 42Q51 21 72 21L128 21Q149 21 149 42L149 70', C.chromeD, 6.5);
+  for (const px of [51, 149]) {
+    for (let i = 0; i < 9; i++) { const a = (i * Math.PI * 2) / 9; em += dot(n(px + Math.cos(a) * 9), n(70 + Math.sin(a) * 9), 3.6, C.coral, 1.8); }
+    em += `<circle cx="${px}" cy="70" r="9" fill="${C.coral}"/>` + strokeD(`M${px - 5} 66Q${px - 2} 62 ${px + 2} 62`, C.coralL, 2);
+  }
+  up += hurt ? `<g transform="translate(3 -5)">${rot(em, -11, 100, 44)}</g>` : em;
+
+  up = `<g transform="translate(0 ${walkB ? -2 : 0})">${up}</g>`;
+  if (hurt) up = rot(up, -6, 100, 156);
+  else if (tell) up = rot(up, -4, 100, 156);
+
+  let fx = '';
+  if (tell) {
+    fx += spark(24, 36, 11, C.sky) + spark(176, 34, 11, C.sky);
+    const cl = [[32, 148, 9], [20, 137, 6.5], [40, 158, 5.5]];
+    fx += cloud(cl) + cloud(cl.map(([x, y, r]) => [200 - x, y, r]));
+    fx += snowflake(40, 114, 6, C.sky, 1.8) + snowflake(160, 114, 6, C.sky, 1.8);
+    fx += shape(star(50, 12, 6, 2, 4), C.sky, null, { sw: 1.6 }) + shape(star(150, 10, 6, 2, 4), C.sky, null, { sw: 1.6 });
+  }
+  if (hurt) {
+    fx += `<g transform="translate(34 100) rotate(22)">${icicle(0, 0, 10, 24, 0.5)}</g>` + rays([[26, 78, 30, 90], [36, 80, 38, 90]], C.lav);
+    fx += sweat(40, 34, 1.5) + sweat(30, 52, 1.3) + sweat(166, 30, 1.4);
+    fx += sweat(152, 166, 1.1) + sweat(58, 160, 1.2) + shape('M22 116L27 112L25 119Z', C.white, null, { sw: 1.4 }) + shape('M44 104L49 108L43 110Z', C.white, null, { sw: 1.4 });
+    fx += shape(star(160, 12, 8, 3, 4), C.sky, null, { sw: 1.6 });
+  }
+  return foodBoss('boss_frozen', f, `${legs}${up}${fx}`);
 }
 add('boss_frozen_a', () => bossFrozen('a'));
 add('boss_frozen_b', () => bossFrozen('b'));
 add('boss_frozen_tell', () => bossFrozen('tell'));
+add('boss_frozen_hurt', () => bossFrozen('hurt'));
 
-// Industrial Oven (bakery): brick-orange cabinet, glowing door window with an angry face, smokestack.
-function bossBakery(f) {
-  const tell = f === 'tell', a = f === 'a';
-  let b = '';
-  // smokestack + puffs
-  b += shape([[46, 22], [76, 22], [80, 66], [42, 66]], C.chrome, C.chromeD, { dx: 4, dy: 3 }) + shape([[42, 18], [80, 18], [80, 26], [42, 26]], C.chromeD, null, { sw: SWs });
-  const puff = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${C.lavL}" stroke="${C.plum}" stroke-width="2" opacity=".9"/>`;
-  b += a ? puff(60, 10, 8) + puff(70, 1, 6) : puff(64, 9, 9) + puff(54, 0, 6);
-  // body + top panel with dials
-  b += shape([[28, 62], [172, 62], [176, 172], [24, 172]], C.bread, C.breadD, { dx: 6, dy: 5 });
-  b += flat([[32, 70], [39, 70], [38, 160], [34, 164]], C.breadL, 'opacity=".6"');
-  b += shape([[30, 62], [170, 62], [166, 76], [34, 76]], C.chrome, C.chromeD, { dx: 2, dy: 3, sw: SWs + 0.5 });
-  for (const x of [56, 84, 116, 144]) b += `<circle cx="${x}" cy="69" r="4" fill="${C.gold}" stroke="${C.plum}" stroke-width="1.8"/>`;
-  // door frame + glowing window
-  b += shape([[40, 84], [160, 84], [164, 156], [36, 156]], C.chromeD, C.plum, { dx: 3, dy: 3 });
-  const glow = tell ? C.coral : C.gold, glowD = tell ? C.coralD : C.goldD;
-  b += shape([[48, 92], [152, 92], [155, 148], [45, 148]], glow, glowD, { sw: SWs, dx: 3, dy: 3 });
-  b += flat([[52, 96], [74, 96], [58, 120]], tell ? C.coralL : '#FFE08A', 'opacity=".8"');
-  b += face(100, 112, 2.2, { gap: 9, tilt: 6, my: 7, mw: 17, mh: 9, teeth: 5, eyeCol: tell ? '#FFD6C8' : C.cream });
-  // door handle + lower drawer
-  b += tube([[52, 160], [148, 160]], 5, C.chrome, 2);
-  b += shape([[34, 168], [166, 168], [170, 176], [30, 176]], C.plum, null, { sw: SWs });
-  // baguette on top of the stack
-  b += shape([[120, 30], [158, 22], [162, 34], [124, 44]], C.bread, C.breadD, { sw: SWs + 0.5, dx: 2, dy: 3 }) + line([[130, 34], [134, 28]], C.breadD, 2) + line([[142, 31], [146, 25]], C.breadD, 2);
-  if (tell) { // flames from the door seam + sparks
-    for (const x of [58, 86, 114, 142]) b += shape([[x - 7, 88], [x + 7, 88], [x + 2, 66 - (x % 3) * 4], [x - 1, 78]], C.gold, C.coral, { sw: SWs, dx: 1, dy: 2 });
-    b += spark(20, 44, 11) + spark(180, 40, 11);
+// Industrial Oven (bakery): a slim brick oven on bread noodle limbs, chef's toque, glowing door window, handlebar moustache.
+const bakeryPanel = (x, y, w, h, r, fill, dark, light, sw = 3, sd = 8) =>
+  shape(rrect(x, y, w, h, r), fill, dark, { sw, dx: sd, dy: sd }) +
+  (light && h - r - sd > 4 ? flat(rrect(x + sw / 2 + 0.5, y + r, sd * 0.5, h - r - sd - 1, 1), light) : '');
+const bakeryBricks = (x, y, w, h) => {
+  let d = '';
+  for (let i = 0; i * 11 < h; i++) {
+    const y0 = y + i * 11, y1 = Math.min(y0 + 11, y + h);
+    if (i) d += `M${x} ${y0}L${x + w} ${y0}`;
+    for (let v = x + (i % 2 ? 11 : 22); v < x + w - 1; v += 22) d += `M${v} ${y0}L${v} ${y1}`;
   }
-  return bossFrame(f, bossWheels(f), b);
+  return strokeD(d, C.breadD, 1.2);
+};
+const bakeryDial = (x, y, r) => dot(x, y, r, C.gold, 2) + strokeD(`M${x} ${y}L${n(x + r * 0.5)} ${n(y - r * 0.55)}`, C.plum, 1.5);
+const bakerySmoke = (pts, col = C.lavL) => pts.map(([x, y, r]) => dot(x, y, r, col, 2.2) + `<circle cx="${n(x - r * 0.38)}" cy="${n(y - r * 0.38)}" r="${n(r * 0.26)}" fill="${C.white}" opacity=".8"/>`).join('');
+const bakeryBaguette = (cx, cy, L, deg, w = 12) => {
+  const h = w / 2, a = -L / 2, b = L / 2, k = Math.max(3, Math.round(L / 13));
+  const d = `M${a + h} ${-h}L${b - h} ${-h}A${h} ${h} 0 0 1 ${b - h} ${h}L${a + h} ${h}A${h} ${h} 0 0 1 ${a + h} ${-h}Z`;
+  let cuts = '';
+  for (let i = 0; i < k; i++) { const x = a + 9 + (i * (L - 18)) / (k - 1); cuts += `M${n(x - 2.6)} ${-h * 0.5}L${n(x + 2.6)} ${h * 0.5}`; }
+  return `<g transform="translate(${cx} ${cy}) rotate(${deg})">${shape(d, C.breadL, C.bread, { sw: 2.8, dx: 0, dy: 2.4 })}${strokeD(cuts, C.breadD, 2)}</g>`;
+};
+const bakeryFlame = (x, y, s, deg = 0) => `<g transform="translate(${x} ${y}) rotate(${deg}) scale(${s})">` +
+  shape('M0 0Q-8 -4 -6 -13Q-3 -10 -2 -10Q-5 -18 1 -25Q2 -16 7 -12Q10 -5 0 0Z', C.coral, null, { sw: 2 / s }) +
+  flat('M0 -1Q-4 -4 -2.5 -9Q0 -7 1 -10Q5 -5 0 -1Z', C.gold) + `</g>`;
+// one dark cloud: the plum stroke goes under every lobe, so only the outer rim shows
+const bakerySoot = (pts) => pts.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${C.plum}" stroke="${C.plum}" stroke-width="5"/>`).join('') +
+  pts.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${C.plumSoft}"/><circle cx="${n(x - r * 0.4)}" cy="${n(y - r * 0.4)}" r="${n(r * 0.28)}" fill="${C.lavD}"/>`).join('');
+// (x, y) is where the hand grips it
+const bakeryPin = (x, y, deg) => `<g transform="translate(${x} ${y}) rotate(${deg}) translate(0 -14)">` +
+  shape(rrect(-4, -22, 8, 8, 2), C.bread, null, { sw: 2.2 }) + shape(rrect(-4, 14, 8, 8, 2), C.bread, null, { sw: 2.2 }) +
+  shape(rrect(-7, -16, 14, 32, 5), C.creamD, null, { sw: 2.6 }) + flat('M-4.5 -12L-2.2 -12L-2.2 12L-4.5 12Z', C.cream) + `</g>`;
+// union-outline trick: the plum stroke is drawn under all four lobes so they read as one hat
+const bakeryToque = (dx = 0, dy = 0, deg = -6) => {
+  const lobes = '<circle cx="88" cy="31" r="9"/><circle cx="100" cy="24" r="10"/><circle cx="112" cy="31" r="9"/><rect x="88" y="31" width="24" height="14"/>';
+  return `<g transform="translate(${dx} ${dy}) rotate(${deg} 100 50)"><g stroke="${C.plum}" stroke-width="5.6" stroke-linejoin="round" fill="${C.white}">${lobes}</g><g fill="${C.white}">${lobes}</g>` +
+    flat('M104 31Q116 29 114 40L112 44L106 44Z', C.cream) + strokeD('M94 36L94 44M100 34L100 44M106 36L106 44', C.creamD, 1.6) +
+    bakeryPanel(86, 43, 28, 9, 2, C.white, C.cream, null, 2.8, 3) + `</g>`;
+};
+
+function bossBakery(f) {
+  const tell = f === 'tell', hurt = f === 'hurt', walkB = f === 'b';
+  const MOUTH = '#4A1D2A';
+  const glow = tell ? C.coral : C.gold, glowD = tell ? C.coralD : C.goldD, glowL = tell ? C.coralL : C.bananaL;
+
+  // planted feet sit on y=185, which foodBoss drops onto the 190 ground line
+  const feet = {
+    a: [['M88 150Q93 166 86 180', 88, 185, -1], ['M112 150Q121 160 121 172', 119, 178, 1]],
+    b: [['M88 150Q79 160 79 172', 81, 178, -1], ['M112 150Q107 166 114 180', 112, 185, 1]],
+    tell: [['M88 150Q80 166 80 180', 82, 185, -1], ['M112 150Q120 166 120 180', 118, 185, 1]],
+    hurt: [['M88 150Q80 164 79 180', 81, 185, -1], ['M112 150Q126 158 130 170', 128, 177, 1]],
+  }[f].map(([d, x, y, dir]) => limb(d, C.bread, 9) + nub(x, y, dir, C.bread, 1.8)).join('');
+
+  // [hip arm path, hand x, y, deg], [raised arm path, grip x, y, pin deg]
+  const [hipArm, hipHand, pinArm, grip] = {
+    a: ['M65 92Q40 98 48 116Q50 127 59 130', [59, 131, 20], 'M135 94Q160 92 162 70', [162, 66, 30]],
+    b: ['M65 92Q54 98 59 111Q62 120 67 122', [67, 123, 20], 'M135 94Q152 100 156 86', [156, 82, 44]],
+    tell: ['M65 92Q36 90 40 114', [40, 117, 10], 'M135 94Q162 96 156 56', [156, 54, 12]],
+    hurt: ['M65 92Q40 82 33 98', [32, 102, -20], 'M135 96Q156 104 160 120', [161, 124, 30]],
+  }[f];
+  const smoke = {
+    a: bakerySmoke([[68, 18, 5.5], [59, 10, 6.3], [47, 13, 5]]),
+    b: bakerySmoke([[67, 16, 6], [56, 8.5, 6.8], [44, 9, 5.4]]),
+    tell: bakerySmoke([[68, 17, 6.5], [58, 8, 7.5], [45, 11, 6], [34, 20, 4.5]]),
+    hurt: bakerySoot([[66, 15, 7], [52, 9, 8.5], [38, 15, 7], [57, 23, 5]]),
+  }[f];
+
+  let up = limb(hipArm, C.bread, 9) + limb(pinArm, C.bread, 9);
+  up += smoke + bakeryPanel(62, 28, 12, 26, 2, C.chrome, C.chromeD, C.chromeL, 3, 5) + bakeryPanel(58, 23, 20, 9, 3, C.chrome, C.chromeD, C.chromeL, 3, 4);
+  up += bakeryPanel(64, 58, 72, 92, 8, C.bread, C.breadD, C.breadL, 4, 8) + bakeryBricks(68, 62, 64, 84);
+  up += shape(rrect(60, 147, 80, 11, 4), C.plum, null, { sw: 3 }) + strokeD('M66 150.6L134 150.6', C.plumSoft, 1.6);
+  if (tell) up += bakeryFlame(77, 149, 0.95) + bakeryFlame(123, 149, 0.95);
+  up += bakeryBaguette(137, 44, 42, hurt ? 4 : -10, 11);
+  up += bakeryPanel(58, 50, 84, 13, 4, C.chrome, C.chromeD, C.chromeL, 3, 4) + [70, 82, 118, 130].map((x) => bakeryDial(x, 56.5, 3.8)).join('');
+  up += tell ? bakeryToque(0, -4, -12) : hurt ? bakeryToque(12, -10, 26) : bakeryToque();
+  up += bakeryPanel(70, 65, 60, 40, 8, C.chrome, C.chromeD, C.chromeL, 3, 4) + bakeryPanel(74, 69, 52, 32, 5, glow, glowD, glowL, 2.2, 6);
+  if (hurt) {
+    up += strokeD('M83 74L96 85L83 96', C.plum, 4.2) + strokeD('M117 74L104 85L117 96', C.plum, 4.2);
+  } else if (tell) {
+    up += ovalEye(89, 85, 9.5, 14, 1.5, 2, { pr: 4.2, sclera: '#FFC4B0', lid: 0.4, tilt: 20, lc: glow }) + ovalEye(111, 85, 9.5, 14, -1.5, 2, { pr: 4.2, sclera: '#FFC4B0', lid: 0.4, tilt: -20, lc: glow });
+  } else {
+    up += ovalEye(89, 85, 9.5, 14, 4, 1, { pr: 5.4, lid: 0.28, tilt: 14, lc: glow }) + ovalEye(111, 85, 9.5, 14, 4, 1, { pr: 5.4, lid: 0.28, tilt: -14, lc: glow });
+  }
+  const mu = hurt ? 'M1 1C8 3 14 5 18 10Q20 13 18 15' : tell ? 'M1 1C8 4 17 4 23 -2Q28 -7 26 -11Q23 -12 22 -9' : 'M1 1C8 5 17 5 23 0Q28 -5 25 -9Q22 -11 21 -8';
+  up += `<g transform="translate(100 ${tell ? 112 : hurt ? 112 : 114}) scale(1.1)">${strokeD(mu, C.plum, 5.6)}<g transform="scale(-1 1)">${strokeD(mu, C.plum, 5.6)}</g><ellipse cx="0" cy="1.2" rx="4.6" ry="3.6" fill="${C.plum}"/></g>`;
+  if (tell) {
+    const mo = 'M85 121Q100 117 115 121Q119 133 112 140Q100 145 88 140Q81 133 85 121Z';
+    up += `<path d="${mo}" fill="${MOUTH}"/>` + clipTo(mo, flat(rrect(89, 117, 10, 8, 1), C.white) + flat(rrect(101, 117, 10, 8, 1), C.white) + ell(100, 143, 11, 6, C.coral, null, { sw: 1.8 })) +
+      `<path d="${mo}" fill="none" stroke="${C.plum}" stroke-width="2.4" stroke-linejoin="round"/>`;
+  } else if (hurt) {
+    up += shape('M91 126Q89 123 94 124Q100 121 106 124Q111 123 109 128Q113 133 108 136Q104 141 100 138Q95 141 92 136Q87 133 91 126Z', MOUTH, null, { sw: 2 }) + clipTo('M95 138Q100 130 105 138Z', ell(100, 139, 6, 5, C.coral, null, { sw: 1 }));
+  } else {
+    up += shape('M91 125Q100 121 109 125Q108 130 100 130Q92 130 91 125Z', MOUTH, null, { sw: 2 }) + shape('M92 130.5Q100 135 108 130.5Q105 137 100 137Q95 137 92 130.5Z', C.coralL, null, { sw: 1.8 });
+  }
+  if (!tell && !hurt) up += shape(rrect(78, 140, 44, 5, 2.5), C.chrome, null, { sw: 2.2 });
+  up += mitt(hipHand[0], hipHand[1], tell ? 10 : 8.5, hipHand[2], C.bread);
+  up += (hurt ? bakeryPin(160, 56, 72) : bakeryPin(grip[0], grip[1], grip[2])) + mitt(grip[0], grip[1], tell ? 10 : 8.5, 20, C.bread);
+
+  if (hurt) up += rays([[138, 68, 148, 64], [142, 77, 154, 71]], C.lav);
+  up = `<g transform="translate(0 ${walkB ? -2 : 0})">${up}</g>`;
+  if (hurt) up = rot(up, -8, 100, 156);
+
+  let fx = '';
+  if (tell) {
+    fx += spark(24, 34, 11) + spark(181, 32, 10);
+    fx += rays([[44, 60, 32, 54], [42, 76, 30, 78]], C.coral, 3) + rays([[170, 62, 182, 58], [168, 80, 180, 82]], C.coral, 3);
+  }
+  if (hurt) {
+    fx += sweat(46, 52, 1.6) + sweat(40, 70, 1.3) + sweat(150, 66, 1.4);
+    fx += shape(star(156, 14, 8, 3, 4), C.gold, null, { sw: 1.6 });
+    fx += dot(26, 20, 2.6, C.plumSoft, 1.6) + dot(30, 33, 2, C.plumSoft, 1.4);
+  }
+  return foodBoss('boss_bakery', f, `${feet}${up}${fx}`);
 }
 add('boss_bakery_a', () => bossBakery('a'));
 add('boss_bakery_b', () => bossBakery('b'));
 add('boss_bakery_tell', () => bossBakery('tell'));
+add('boss_bakery_hurt', () => bossBakery('hurt'));
 
-// Smart-TV Wall (electronics): a trolley of mismatched screens, the big one has the face; live cables dangle.
+// Smart-TV Wall (electronics, food-limbed): a big face-TV on a plum chassis, lav noodle limbs, a remote held up like a wand.
 function bossElectronics(f) {
-  const tell = f === 'tell', a = f === 'a';
-  const r = rng(7);
-  let b = '';
-  // cables behind
-  b += tube([[40, 150], [22, 160], [a ? 14 : 20, 176]], 3.5, C.teal, 1.8) + tube([[162, 150], [180, 162], [a ? 186 : 178, 176]], 3.5, C.coral, 1.8);
-  // antennas
-  b += line([[84, 30], [70, 6]], C.plum, 3) + line([[116, 30], [132, 4]], C.plum, 3) + `<circle cx="70" cy="6" r="4" fill="${tell ? C.coral : C.gold}" stroke="${C.plum}" stroke-width="2"/><circle cx="132" cy="4" r="4" fill="${tell ? C.coral : C.gold}" stroke="${C.plum}" stroke-width="2"/>`;
-  // chassis
-  b += shape([[22, 26], [178, 26], [178, 164], [22, 164]], C.plumSoft, C.plum, { dx: 5, dy: 5 });
-  // big face screen
-  b += shape([[32, 34], [168, 34], [168, 100], [32, 100]], C.blueD, null, { sw: SWs + 0.5 });
-  b += shape([[38, 40], [162, 40], [162, 94], [38, 94]], tell ? '#4A1D2A' : '#14213D', null, { sw: SWs });
-  const eyeCol = tell ? C.coral : C.sky;
-  b += shape([[50, 54], [88, 48], [90, 68], [54, 72]], eyeCol, tell ? C.coralD : C.blue, { sw: SWs, dx: 2, dy: 2 }) + shape([[150, 54], [112, 48], [110, 68], [146, 72]], eyeCol, tell ? C.coralD : C.blue, { sw: SWs, dx: 2, dy: 2 });
-  b += `<circle cx="72" cy="62" r="3.6" fill="${C.plum}"/><circle cx="128" cy="62" r="3.6" fill="${C.plum}"/>`;
-  b += brow(46, 46, 90, 58, 5.5).replace(C.plum, C.cream) + brow(154, 46, 110, 58, 5.5).replace(C.plum, C.cream);
-  // equalizer mouth
-  for (let i = 0; i < 11; i++) {
-    const h = tell ? 12 + ((i * 7) % 5) * 3 : 5 + ((i * 5 + (a ? 0 : 3)) % 6) * 2;
-    b += flat(rect(60 + i * 8, 90 - h, 5, h), i % 3 === 0 ? C.coral : i % 3 === 1 ? C.gold : C.teal);
-  }
-  b += flat([[42, 44], [62, 42], [48, 56]], C.white, 'opacity=".25"');
-  // three smaller TVs along the bottom
-  const tvs = [[34, C.teal], [78, C.coral], [122, C.gold]];
-  tvs.forEach(([x, col], i) => {
-    b += shape(rect(x, 108, 44, 46), C.plum, null, { sw: SWs });
-    for (let k = 0; k < 7; k++) { const rx = x + 3 + r() * 34, ry = 111 + r() * 38; b += flat(rect(rx, ry, 4 + r() * 6, 3 + r() * 5), [col, C.cream, C.sky][k % 3], 'opacity=".85"'); }
-    if (i === 1) b += line([[x + 8, 116], [x + 36, 146]], C.cream, 2.4) + line([[x + 36, 116], [x + 8, 146]], C.cream, 2.4);
+  const tell = f === 'tell', hurt = f === 'hurt', walkB = f === 'b';
+  const SCR = '#14213D', RED = '#4A1D2A';
+  const limbCol = C.lav; // plumSoft limbs vanish into the plum outline on the mint floor
+  const slab = (x, y, w, h, r, fill, dark, sw = 3, off = 3) => shape(rrect(x, y, w, h, r), fill, dark, { sw, dx: off, dy: off });
+  const bars = (x, base, w, hs, gap = 1.2) => {
+    const bw = (w - gap * (hs.length - 1)) / hs.length;
+    return hs.map((bh, i) => `<rect x="${n(x + i * (bw + gap))}" y="${n(base - bh)}" width="${n(bw)}" height="${bh}" fill="${[C.coral, C.gold, C.teal, C.sky][i % 4]}"/>`).join('');
+  };
+  const noise = (seed, cols) => (ix, iy, iw, ih) => {
+    const r = rng(seed);
+    return Array.from({ length: 10 }, (_, i) => `<rect x="${n(ix + 1 + r() * (iw - 5))}" y="${n(iy + 1 + r() * (ih - 5))}" width="3" height="3" fill="${cols[i % cols.length]}"/>`).join('');
+  };
+  // small TV: blue shell, dark glass, content painted by inner(ix, iy, iw, ih)
+  const stv = (x, y, w, h, inner, glass = SCR) => {
+    const ix = x + 3.5, iy = y + 3.5, iw = w - 7, ih = h - 8;
+    return slab(x, y, w, h, 4, C.blue, C.blueD, 2.6, 2.5) + `<path d="${rrect(ix, iy, iw, ih, 2.5)}" fill="${glass}" stroke="${C.plum}" stroke-width="1.8"/>` + inner(ix, iy, iw, ih);
+  };
+  const plug = (x, y, deg) => rot(line([[x - 2, y + 6], [x - 2, y + 10]], C.plum, 1.8) + line([[x + 2, y + 6], [x + 2, y + 10]], C.plum, 1.8) +
+    shape(`M${x - 4.5} ${y}H${x + 4.5}V${y + 7}H${x - 4.5}Z`, C.chrome, null, { sw: 2 }), deg, x, y);
+  const ant = (d, tx, ty, col) => strokeD(d, C.plum, 3.4) + dot(tx, ty, 4.6, col, 2.2);
+  const bolt = (d) => limb(d, C.gold, 5.4);
+  // hand (hx, hy) grips the bottom of the remote
+  const remote = (hx, hy, deg) => rot(shape(rrect(hx - 6.5, hy - 40, 13, 40, 3), C.chrome, null, { sw: 2.6 }) + dot(hx, hy - 32, 2.6, C.coral, 1.4) + dot(hx, hy - 24, 2.2, C.teal, 1.2) +
+    dot(hx, hy - 17, 2.2, C.gold, 1.2) + line([[hx - 3.5, hy - 11], [hx + 3.5, hy - 11]], C.plum, 1.6), deg, hx, hy);
+
+  // legs: planted feet sit on y=185, which foodBoss shifts onto the 190 ground line; the limb ends 2 px behind the nub
+  const feet = {
+    a: [['M80 152Q80 168 70 178', 72, 185, -1], ['M120 152Q130 160 130 171', 132, 178, 1]],
+    b: [['M80 152Q74 160 70 171', 72, 178, -1], ['M120 152Q120 168 128 178', 130, 185, 1]],
+    tell: [['M80 152Q80 168 66 178', 68, 185, -1], ['M120 152Q120 168 134 178', 136, 185, 1]],
+    hurt: [['M80 152Q82 168 76 178', 78, 185, -1], ['M120 152Q132 160 138 172', 140, 179, 1]],
+  }[f].map(([d, x, y, dir]) => nub(x, y, dir, limbCol, 1.8) + limb(d, limbCol, 9) + nub(x, y, dir, limbCol, 1.8)).join('');
+
+  const [lx, ly, lrot] = { a: [26, 78, -15], b: [24, 94, -10], tell: [28, 74, -25], hurt: [40, 72, -30] }[f];
+  const [rx, ry, rdeg] = { a: [172, 112, 12], b: [176, 100, 8], tell: [162, 96, 30], hurt: [170, 92, 18] }[f];
+
+  let up = '';
+  // antennas curled like hair; the tell stiffens them, the hit bends one
+  if (tell) up += ant('M90 34Q88 22 74 12', 72, 10, C.coral) + ant('M110 34Q112 22 126 12', 128, 10, C.gold);
+  else if (hurt) up += ant('M92 34Q90 16 70 18Q58 20 56 30', 56, 31, C.coral) + ant('M108 34L110 12L128 4L136 18', 137, 20, C.gold);
+  else if (walkB) up += ant('M92 34Q92 14 78 11Q66 10 64 22', 64, 22, C.coral) + ant('M108 34Q108 14 122 11Q134 10 136 22', 136, 22, C.gold);
+  else up += ant('M92 34Q92 12 76 12Q64 12 64 24', 64, 24, C.coral) + ant('M108 34Q108 12 124 12Q136 12 136 24', 136, 24, C.gold);
+
+  // arms hang behind the chassis so the shoulder roots are hidden
+  up += limb(`M58 126Q22 134 ${lx - 4} ${ly + 26}Q${lx - 5} ${ly + 12} ${lx} ${ly + 3}`, limbCol, 9);
+  up += limb(tell ? `M142 124Q166 124 ${rx} ${ry + 4}` : `M142 126Q${rx} 134 ${rx} ${ry + 4}`, limbCol, 9);
+
+  // chassis with three small TVs
+  up += slab(54, 104, 92, 48, 8, C.plumSoft, C.plum, 4, 3);
+  const lGlass = hurt ? C.frost : SCR;
+  const lTv = hurt
+    ? rot(stv(58, 109, 26, 28, (ix, iy, iw) => `<rect x="${ix}" y="${iy + 6}" width="${iw}" height="4" fill="${C.coral}"/>` +
+      line([[ix + 1, iy + 3], [ix + iw - 1, iy + 3]], C.plum, 1.4) + line([[ix + 1, iy + 13], [ix + iw - 1, iy + 13]], C.plum, 1.4) + line([[ix + 1, iy + 17], [ix + iw - 5, iy + 17]], C.plum, 1.4), lGlass), -10, 71, 123)
+    : stv(60, 112, 26, 28, noise(tell ? 3 : walkB ? 11 : 7, tell ? [C.coral, C.gold] : [C.teal, C.coral, C.gold, C.sky, C.lavL, C.white]));
+  const eqHs = { a: [8, 13, 7, 15], b: [13, 7, 15, 9], tell: [16, 15, 16, 15], hurt: [4, 6, 3, 5] }[f];
+  const mTv = stv(87, 112, 26, 28, (ix, iy, iw, ih) => bars(ix + 1.5, iy + ih - 1.5, iw - 3, eqHs));
+  const rTv = stv(114, 112, 26, 28, (ix, iy, iw) => {
+    if (hurt) {
+      return line([[ix + 3, iy + 3.5], [ix + 7.5, iy + 8]], C.white, 1.8) + line([[ix + 7.5, iy + 3.5], [ix + 3, iy + 8]], C.white, 1.8) +
+        line([[ix + iw - 7.5, iy + 3.5], [ix + iw - 3, iy + 8]], C.white, 1.8) + line([[ix + iw - 3, iy + 3.5], [ix + iw - 7.5, iy + 8]], C.white, 1.8) +
+        line([[ix + 4, iy + 15], [ix + 7.5, iy + 12.5], [ix + 11, iy + 15], [ix + 14.5, iy + 12.5]], C.white, 1.6);
+    }
+    if (tell) {
+      return line([[ix + 2.5, iy + 3], [ix + 8, iy + 6.5]], C.coral, 2) + line([[ix + iw - 2.5, iy + 3], [ix + iw - 8, iy + 6.5]], C.coral, 2) +
+        dot(ix + 5.5, iy + 8, 1.4, C.coral, 0.8) + dot(ix + iw - 5.5, iy + 8, 1.4, C.coral, 0.8) +
+        line([[ix + 3.5, iy + 15], [ix + 7, iy + 12], [ix + 10.5, iy + 15], [ix + 14, iy + 12], [ix + iw - 3.5, iy + 15]], C.white, 1.8);
+    }
+    return dot(ix + 5, iy + 7, 2, C.sky, 1) + dot(ix + iw - 5, iy + 7, 2, C.sky, 1) + line([[ix + 5, iy + 14], [ix + iw - 5, iy + 14]], C.white, 1.8);
   });
-  b += shape([[26, 156], [174, 156], [170, 172], [30, 172]], C.lav, C.lavD, { dx: 0, dy: 3, sw: SWs + 0.5 });
-  if (tell) b += spark(16, 40, 11, C.gold) + spark(184, 36, 11, C.gold) + line([[8, 120], [20, 112], [12, 104]], C.gold, 3) + line([[192, 118], [180, 110], [188, 102]], C.gold, 3);
-  return bossFrame(f, bossWheels(f), b);
+  up += lTv + mTv + rTv;
+
+  // cables hang between the legs: [teal end x, coral end x, teal plug tilt, coral plug tilt]
+  const [tx, cx, tdeg, cdeg] = { a: [91, 109, 4, -4], b: [95, 113, -4, -8], tell: [85, 115, -14, 14], hurt: [88, 108, 10, 2] }[f];
+  up += limb(`M94 154Q${tx - 3} 162 ${tx} 171`, C.teal, 6) + plug(tx, 171, tdeg) + limb(`M106 154Q${cx + 3} 162 ${cx} 171`, C.coral, 6) + plug(cx, 171, cdeg);
+  up += slab(50, 148, 100, 10, 5, C.lav, C.lavD, 3, 2.5);
+
+  // head: the big TV
+  up += slab(50, 32, 100, 76, 12, C.blue, C.blueD, 4, 4);
+  const scrPath = rrect(58, 40, 84, 60, 7);
+  let h = `<path d="${scrPath}" fill="${tell ? RED : SCR}" stroke="${C.plum}" stroke-width="2.6" stroke-linejoin="round"/>` + flat('M64 45H81L64 65Z', C.white, 'fill-opacity=".12"');
+  if (hurt) {
+    h += line([[79, 47], [95, 57], [79, 67]], C.cream, 4.2) + line([[121, 47], [105, 57], [121, 67]], C.cream, 4.2);
+    // glitch band tearing across the glass
+    h += clipTo(scrPath, `<rect x="58" y="69" width="50" height="3.4" fill="${C.sky}"/><rect x="100" y="69" width="42" height="3.4" fill="${C.coral}"/>` +
+      `<rect x="66" y="73.5" width="34" height="2" fill="${C.cream}" fill-opacity=".85"/><rect x="108" y="73.5" width="22" height="2" fill="${C.teal}"/>`);
+    const ow = 'M90 81Q94 77 100 80Q106 77 110 81Q116 87 110 92Q100 98 90 92Q84 87 90 81Z';
+    h += shape(ow, RED, null, { sw: 2.4, stroke: C.cream }) + shape('M92 91Q100 98 108 91Q100 94 92 91Z', C.coral, null, { sw: 1.6 });
+  } else if (tell) {
+    const eyeCol = '#FF8A78';
+    h += ovalEye(87, 57, 10, 14, 4, 3, { sclera: eyeCol, lid: 0.34, tilt: 15, lc: RED }) + ovalEye(113, 57, 10, 14, -4, 3, { sclera: eyeCol, lid: 0.34, tilt: -15, lc: RED });
+    h += strokeD('M72 45L98 54', C.cream, 3.4) + strokeD('M128 45L102 54', C.cream, 3.4);
+    const mo = 'M85 79Q100 75 115 79Q117 96 100 96Q83 96 85 79Z';
+    h += `<path d="${mo}" fill="${SCR}"/>` + clipTo(mo, [0, 1, 2, 3].map((i) => `<rect x="${86 + i * 7.4}" y="74" width="7.4" height="8" fill="${C.white}" stroke="${C.plum}" stroke-width="1.2"/>`).join('') + ell(100, 98, 11, 6, C.coral, null, { sw: 1.8 })) +
+      `<path d="${mo}" fill="none" stroke="${C.plum}" stroke-width="2.2" stroke-linejoin="round"/>`;
+  } else {
+    h += ovalEye(87, 57, 10, 14, 4.5, 1) + ovalEye(113, 57, 10, 14, 4.5, 1);
+    // small mouth with a coral lower lip
+    h += shape('M88 83Q100 79 112 83Q110 93 100 93Q90 93 88 83Z', RED, null, { sw: 1.8 });
+    h += shape('M89 90Q100 102 111 90Q100 95 89 90Z', C.coral, null, { sw: 1.8 }) + strokeD('M91 83.5Q100 81 109 83.5', C.coralL, 1.8);
+  }
+  up += h;
+
+  // headband with coral ear cups; the hit knocks it askew
+  let hb = limb('M47 74Q45 28 100 28Q155 28 153 74', C.teal, 8);
+  hb += ell(47, 74, 8.5, 15, C.coral, null, { sw: 3 }) + flat('M43 66Q43 60 47 59Q44 64 44 68Z', C.coralL);
+  hb += ell(153, 74, 8.5, 15, C.coral, null, { sw: 3 }) + flat('M149 66Q149 60 153 59Q150 64 150 68Z', C.coralL);
+  up += hurt ? `<g transform="translate(-4 -2)">${rot(hb, -18, 100, 60)}</g>` : hb;
+
+  // hands, the remote and its signal
+  up += mitt(lx, ly, 11, lrot, limbCol) + remote(rx, ry, rdeg) + mitt(rx, ry, 11, 15, limbCol);
+  const tipX = rx + 40 * Math.sin(rdeg * Math.PI / 180), tipY = ry - 40 * Math.cos(rdeg * Math.PI / 180);
+  if (!tell && !hurt) up += limb(`M${n(tipX - 6)} ${n(tipY - 9)}Q${n(tipX)} ${n(tipY - 16)} ${n(tipX + 6)} ${n(tipY - 9)}`, C.gold, 5.4) + limb(`M${n(tipX - 11)} ${n(tipY - 15)}Q${n(tipX)} ${n(tipY - 26)} ${n(tipX + 11)} ${n(tipY - 15)}`, C.gold, 5.4);
+
+  if (walkB) up = `<g transform="translate(0 -2)">${up}</g>`;
+  if (hurt) up = rot(up, -8, 100, 156);
+
+  let fx = '';
+  if (tell) {
+    fx += bolt('M64 12L56 8L59 16L49 14') + bolt('M136 12L144 8L141 16L151 14');
+    fx += bolt(`M${n(tipX + 1)} ${n(tipY - 7)}L${n(tipX + 7)} ${n(tipY - 14)}L${n(tipX + 2)} ${n(tipY - 17)}L${n(tipX + 8)} ${n(tipY - 26)}`);
+    fx += spark(24, 46, 10, C.gold) + spark(84, 182, 5, C.gold) + spark(116, 182, 5, C.gold);
+  }
+  if (hurt) {
+    fx += bolt('M52 112L46 118L51 121L44 128');
+    fx += sweat(28, 36, 1.6) + sweat(20, 54, 1.3) + sweat(178, 30, 1.5);
+    fx += shape(star(168, 14, 8, 3, 4), C.gold, null, { sw: 1.6 });
+  }
+  return foodBoss('boss_electronics', f, `${feet}${up}${fx}`);
 }
 add('boss_electronics_a', () => bossElectronics('a'));
 add('boss_electronics_b', () => bossElectronics('b'));
 add('boss_electronics_tell', () => bossElectronics('tell'));
+add('boss_electronics_hurt', () => bossElectronics('hurt'));
 
-// Self-Checkout Kiosk (checkout): teal kiosk, scanner glare, card-reader mouth, receipt tongue, bagging-platform base.
+// Self-Checkout Kiosk (checkout): slim teal kiosk with tall close-set eyes, one hand up "please wait", the other holding a scanner gun (food-limbed).
 function bossCheckout(f) {
-  const tell = f === 'tell', a = f === 'a';
-  let b = '';
-  // bagging platform base with belt stripes
-  b += shape([[18, 150], [182, 150], [190, 174], [10, 174]], C.chrome, C.chromeD, { dx: 0, dy: 4 });
-  for (let i = 0; i < 9; i++) b += line([[28 + i * 18 + (a ? 0 : 6), 154], [24 + i * 18 + (a ? 0 : 6), 170]], C.chromeD, 3);
-  // body
-  b += shape([[40, 30], [160, 30], [166, 150], [34, 150]], C.teal, C.tealD, { dx: 6, dy: 5 });
-  b += flat([[44, 38], [51, 38], [50, 140], [46, 144]], C.mintL, 'opacity=".5"');
-  // hood + scanner light
-  b += shape([[34, 14], [166, 14], [160, 34], [40, 34]], C.tealD, null, { sw: SW });
-  b += shape(rect(70, 20, 60, 8), tell ? C.coral : '#FF6B5C', null, { sw: SWs }) + flat(rect(74, 22, 52, 2.5), '#FFC0A8', 'opacity=".9"');
-  // screen
-  b += shape([[50, 42], [150, 42], [150, 104], [50, 104]], C.plum, null, { sw: SWs + 0.5 });
-  const eyeCol = tell ? C.coral : C.gold;
-  b += shape([[58, 58], [90, 52], [92, 72], [62, 76]], eyeCol, tell ? C.coralD : C.goldD, { sw: SWs, dx: 2, dy: 2 }) + shape([[142, 58], [110, 52], [108, 72], [138, 76]], eyeCol, tell ? C.coralD : C.goldD, { sw: SWs, dx: 2, dy: 2 });
-  b += `<circle cx="78" cy="66" r="3.4" fill="${C.plum}"/><circle cx="122" cy="66" r="3.4" fill="${C.plum}"/>`;
-  b += brow(54, 50, 92, 62, 5.5).replace(C.plum, C.cream) + brow(146, 50, 108, 62, 5.5).replace(C.plum, C.cream);
-  b += flat(rect(64, 86, 72, 5), tell ? C.coral : C.mint, 'opacity=".7"') + flat(rect(64, 95, 40, 4), tell ? C.coral : C.mint, 'opacity=".5"');
-  // card-reader mouth + keypad
-  b += shape([[56, 112], [144, 112], [144, 134], [56, 134]], '#1E1028', null, { sw: SWs });
-  for (let i = 0; i < 7; i++) b += flat([[60 + i * 12, 112], [70 + i * 12, 112], [65 + i * 12, 121]], C.cream);
-  b += flat(rect(60, 128, 80, 3), tell ? C.coral : C.sky);
-  for (let i = 0; i < 4; i++) b += shape(rect(46 + i * 14, 138, 10, 8), [C.cream, C.coralL, C.gold, C.mintL][i], null, { sw: 1.5 });
-  // receipt tongue
-  const t0 = 134;
-  const tongue = tell ? [[112, t0 - 4], [146, t0 - 4], [160, t0 + 24], [174, t0 + 40], [144, t0 + 34], [132, t0 + 44], [118, t0 + 24]]
-    : [[116, t0 - 4], [144, t0 - 4], [148, t0 + 18], [146, t0 + 32], [158, t0 + 38], [136, t0 + 36], [124, t0 + 22]];
-  b += shape(tongue, C.cream, C.creamD, { dx: 3, dy: 3 });
-  for (let i = 0; i < 3; i++) b += line([[122 + i * 2, t0 + 6 + i * 8], [138 + i * 2, t0 + 5 + i * 8]], C.chromeD, 1.8);
-  if (tell) b += spark(24, 44, 11) + spark(178, 40, 11) + line([[14, 74], [22, 82]], C.coral, 3) + line([[188, 70], [180, 78]], C.coral, 3);
-  return bossFrame(f, '', b);
+  const tell = f === 'tell', hurt = f === 'hurt', walkB = f === 'b';
+  const T = C.teal, TD = C.tealD, scr = tell ? MGR_TELL : C.plum;
+  const keys = (x, y) => Array.from({ length: 6 }, (_, i) => `<rect x="${x + (i % 3) * 10}" y="${y + Math.floor(i / 3) * 10}" width="7" height="7" rx="1.5" fill="${[C.coral, C.gold, C.mint, C.white, C.greenL, C.coralL][i]}" stroke="${C.plum}" stroke-width="1.5"/>`).join('');
+  const receipt = (x, y, w, h, deg = 0) => {
+    const k = Math.max(2, Math.round(w / 5));
+    let d = `M${x} ${y}H${x + w}V${y + h - 4}`, t = '';
+    for (let i = 0; i < k; i++) d += `L${n(x + w - (w * (i + 0.5)) / k)} ${y + h}L${n(x + w - (w * (i + 1)) / k)} ${y + h - 4}`;
+    for (let yy = y + 7, j = 0; yy < y + h - 8; yy += 6, j++) t += `M${x + 3} ${yy}H${x + w - 3 - (j % 3) * 3}`;
+    return rot(shape(d + 'Z', C.cream, null, { sw: 2.4 }) + (t ? strokeD(t, C.creamD, 1.6) : ''), deg, x + w / 2, y);
+  };
+  const shelf = (x1, y1, x2, y2, ins) => {
+    const d = `M${x1 + ins} ${y1}L${x2 - ins} ${y1}L${x2} ${y2}L${x1} ${y2}Z`;
+    let st = '';
+    for (let x = x1 - 6; x < x2 + 6; x += 11) st += `M${x + 7} ${y1}L${x} ${y2}`;
+    return flat(d, C.chrome) + clipTo(d, strokeD(st, C.chromeD, 3.2) + flat(`M${x1} ${y2 - 4}H${x2}V${y2}H${x1}Z`, C.chromeD) + flat(`M${x1} ${y1}H${x2}V${y1 + 3}H${x1}Z`, C.chromeL)) + shape(d, 'none', null, { sw: 3 });
+  };
+  const badge = (x, y, deg) => `<g transform="translate(${x} ${y}) rotate(${deg} 15 10)">` + shape(rrect(0, 0, 30, 21, 3), C.cream, null, { sw: 2.2 }) +
+    flat(rrect(1, 1, 28, 6, 2), C.coral) + dot(9, 13, 3.6, C.mint, 1.6) + flat('M4 20Q9 14 14 20Z', C.mint, `stroke="${C.plum}" stroke-width="1.4"`) +
+    strokeD('M18 11H26M18 16H24', C.plum, 1.6) + shape(rrect(10, -3, 10, 5, 1.5), C.chromeD, null, { sw: 1.6 }) + `</g>`;
+  // scanner gun in its own coordinates (nose to +x, grip hand at (-2 15)), placed so the hand lands on (hx, hy)
+  const gun = (hx, hy, deg, beam, held = true) => {
+    let g = '';
+    if (beam === 'tell') g += flat('M25 -17L46 -33L46 6L25 -9Z', C.coralL, 'opacity=".9"') + flat('M25 -15.5L46 -23L46 -4L25 -11Z', C.cream) + rays([[30, -13, 45, -13], [30, -15, 44, -26], [30, -11, 44, 0]], C.coral, 1.8);
+    else if (beam) g += flat('M25 -16L38 -22L38 -5L25 -11Z', C.coralL, 'opacity=".9"') + rays([[27, -13.5, 37, -13.5]], C.coral, 1.6);
+    g += shape('M4 -3L11 -3L10 4Q9 6.5 7 5Z', C.chromeD, null, { sw: 1.8 });
+    g += shape('M5 -4L-9 -4L-12 24Q-12 28 -8 28L-1 28Q3 28 3 24Z', C.plumSoft, null, { sw: 2.4 }) + strokeD('M-8 9H-1M-9 14H-2M-10 19H-3', C.lavD, 1.5);
+    g += shape('M-16 -26H12L26 -20V-7L12 -2H-16Q-20 -2 -20 -6V-22Q-20 -26 -16 -26Z', C.coral, C.coralD, { sw: 2.6, dx: 3, dy: 3 });
+    g += shape(rrect(-16, -22, 17, 11, 1.5), C.cream, null, { sw: 1.4 }) + strokeD('M-13.5 -19.5V-13.5M-9.5 -19.5V-13.5M-6.5 -19.5V-13.5M-3 -19.5V-13.5', C.plum, 1.1) + strokeD('M-11.5 -19.5V-13.5M-1 -19.5V-13.5', C.plum, 2);
+    g += shape('M11 -23L24 -18V-9L11 -4Z', MGR_SCREEN, null, { sw: 2 }) + flat('M13.5 -19.5L22 -16.2V-10.4L13.5 -7Z', tell ? '#FFC0A8' : '#FF4A3D');
+    if (held) g += mitt(-2, 15, 9.5, 0, T);
+    return `<g transform="translate(${hx} ${hy}) rotate(${deg}) translate(2 -15)">${g}</g>`;
+  };
+
+  // feet: planted ones sit on y=185, which foodBoss's +5 shift puts on the 190 ground line
+  const feet = {
+    a: [['M83 150Q80 167 76 180', 76, 185, -1], ['M117 150Q129 160 130 172', 132, 178, 1]],
+    b: [['M83 150Q71 160 70 172', 68, 178, -1], ['M117 150Q120 167 124 180', 124, 185, 1]],
+    tell: [['M83 150Q78 167 72 180', 72, 185, -1], ['M117 150Q122 167 128 180', 128, 185, 1]],
+    hurt: [['M83 150Q76 166 70 180', 70, 185, -1], ['M117 150Q130 160 134 171', 134, 178, 1]],
+  }[f].map(([d, x, y, dir]) => nub(x, y, dir, T, 1.8) + limb(d, T, 8.5) + nub(x, y, dir, T, 1.8)).join('');
+
+  const [ra, rhx, rhy, rdeg, rrad] = { a: ['M63 104Q42 108 38 84', 38, 76, 10, 11], b: ['M63 104Q38 100 35 68', 35, 60, -10, 11],
+    tell: ['M63 104Q34 100 30 68', 30, 60, -12, 12.5], hurt: ['M63 104Q40 108 34 84', 34, 76, -20, 11] }[f];
+  const [ga, ghx, ghy, gdeg] = { a: ['M137 104Q148 104 150 120', 150, 126, -6], b: ['M137 104Q146 112 148 130', 148, 136, 6],
+    tell: ['M137 106Q144 106 146 114', 146, 120, -4], hurt: ['M137 104Q158 100 164 118', 166, 124, 0] }[f];
+
+  let up = limb(ra, T, 8.5) + limb(ga, T, 8.5);
+  up += shape('M64 42L136 42L141 146L59 146Z', T, TD, { sw: 4, dx: 5, dy: 5 }) + flat('M67 52L70 52L72 98L69 98Z', C.mintL, 'opacity=".5"');
+  up += shape(rrect(61, 15, 78, 28, 12), T, TD, { sw: 3.5, dx: 5, dy: 5 });
+  if (tell) up += `<rect x="69" y="19" width="62" height="17" rx="8.5" fill="${C.coralL}" opacity=".7"/>`;
+  up += `<rect x="73" y="23" width="54" height="9" rx="4.5" fill="${tell ? '#FF8A70' : C.coral}" stroke="${C.plum}" stroke-width="2.4"/>` +
+    strokeD('M77 26H98', tell ? C.cream : C.coralL, tell ? 2.6 : 1.8) + strokeD('M104 30H122', C.coralD, 1.6);
+  up += shape(rrect(66, 46, 68, 60, 9), C.mint, null, { sw: 3 }) + flat(rrect(71, 51, 58, 50, 5), scr);
+  if (hurt) {
+    up += strokeD('M82 58L97 68L82 78', C.cream, 4.2) + strokeD('M118 58L103 68L118 78', C.cream, 4.2);
+    const ow = 'M89 85Q88 79 94 79Q97 76 100 79Q103 76 106 79Q112 79 111 85Q114 91 108 93Q104 96 100 93Q96 96 92 93Q86 91 89 85Z';
+    up += `<path d="${ow}" fill="${MGR_SCREEN}"/>` + clipTo(ow, ell(100, 94, 6, 4, C.coralL, null, { sw: 1.6 })) + shape(ow, 'none', null, { sw: 2.4, stroke: C.cream });
+  } else if (tell) {
+    const eyeCol = '#FF9A82';
+    up += ovalEye(90, 69, 9.5, 13, 4, 2, { sclera: eyeCol, lid: 0.36, tilt: 15, lc: scr }) + ovalEye(110, 69, 9.5, 13, -4, 2, { sclera: eyeCol, lid: 0.36, tilt: -15, lc: scr });
+    up += strokeD('M77 55Q89 57 100 65', C.cream, 3.8) + strokeD('M123 55Q111 57 100 65', C.cream, 3.8);
+    const mo = 'M82 85Q100 99 118 85Q114 99 100 99Q86 99 82 85Z';
+    up += `<path d="${mo}" fill="${MGR_SCREEN}"/>` + clipTo(mo, flat(rect(80, 84, 40, 7), C.cream) + strokeD('M88 84V91M94 84V91M100 84V91M106 84V91M112 84V91', C.plum, 1.3) + flat(rect(80, 90.5, 40, 1.6), C.plum)) + shape(mo, 'none', null, { sw: 2.2, stroke: C.cream });
+  } else {
+    up += ovalEye(90, 69, 9.5, 13, 4.6, 2, { lid: 0.3, lc: T }) + ovalEye(110, 69, 9.5, 13, 4.6, 2, { lid: 0.2, lc: T });
+    up += strokeD('M80 55Q90 54 99 57', C.cream, 3.8) + strokeD('M102 56Q112 50 121 53', C.cream, 3.8);
+    up += flat('M91 88Q100 85 110 86Q112 94 101 95.5Q92 94 91 88Z', C.coralL) + flat('M93 93Q101 97 109 92Q106 96 101 95.5Q96 95.5 93 93Z', C.coral) +
+      strokeD('M91.5 88.4Q101 91.6 111 86', MGR_SCREEN, 1.8) + strokeD('M111 86Q113 86 113.4 88.4', C.coral, 1.5);
+  }
+  up += shape(rrect(86, 109, 28, 6, 3), MGR_SCREEN, null, { sw: 2 }) + dot(121, 112, 2.6, tell ? C.coral : C.green, 1.5);
+  if (!hurt) up += badge(65, 120, 0);
+  up += keys(108, 121);
+  up += shelf(52, 142, 148, 154, 8);
+  if (tell) up += receipt(94, 113, 14, 50, -6);
+  else if (hurt) up += shape('M93 114L109 114L112 120L108 126L113 133L106 139L99 135L94 140L92 131L96 125L91 119Z', C.cream, null, { sw: 2.2 }) + strokeD('M96 122L104 125M99 130L108 132M97 119L100 126', C.creamD, 1.5);
+  else up += receipt(97, 113, 9, 12, 0);
+  if (!hurt) up += gun(ghx, ghy, gdeg, tell ? 'tell' : 'idle');
+  up += `<g transform="translate(${2 * rhx} 0) scale(-1 1)">${mitt(rhx, rhy, rrad, rdeg, T)}</g>`;
+  if (hurt) up += mitt(ghx, ghy, 10, -20, T);
+  if (!tell && !hurt) up += rays([[rhx - 15, rhy - 5, rhx - 22, rhy - 9], [rhx - 16, rhy + 5, rhx - 23, rhy + 6], [rhx - 8, rhy - 15, rhx - 12, rhy - 21]], C.lav);
+
+  up = `<g transform="translate(0 ${walkB ? -2 : 0})">${up}</g>`;
+  if (tell) up = rot(up, 4, 100, 150);
+  if (hurt) up = rot(up, -8, 100, 156);
+
+  let fx = '';
+  if (tell) {
+    fx += spark(26, 26, 11) + spark(176, 34, 11);
+    fx += rays([[84, 11, 80, 3], [100, 10, 100, 1], [116, 11, 120, 3]], C.coral, 3) + rays([[22, 50, 15, 45], [21, 64, 14, 67]], C.coral, 3);
+    fx += receipt(118, 148, 8, 14, 24) + receipt(70, 156, 7, 12, -30);
+  }
+  if (hurt) {
+    fx += badge(20, 116, -30);
+    fx += gun(144, 48, 35, false, false) + rays([[116, 34, 124, 38], [114, 48, 123, 50]], C.lav);
+    fx += sweat(48, 26, 1.6) + sweat(38, 42, 1.3) + sweat(150, 72, 1.3);
+    fx += shape(star(160, 108, 7, 2.6, 4), C.gold, null, { sw: 1.6 });
+  }
+  return foodBoss('boss_checkout', f, `<g transform="translate(${tell ? -7 : hurt ? -2 : -4} 0)">${feet}${up}${fx}</g>`);
 }
 add('boss_checkout_a', () => bossCheckout('a'));
 add('boss_checkout_b', () => bossCheckout('b'));
 add('boss_checkout_tell', () => bossCheckout('tell'));
+add('boss_checkout_hurt', () => bossCheckout('hurt'));
 
 // =====================================================================================
 // ITEM ICONS (192x192, outline 5)
