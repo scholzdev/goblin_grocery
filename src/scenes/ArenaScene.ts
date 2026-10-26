@@ -827,7 +827,7 @@ export class ArenaScene extends Phaser.Scene {
     this.tweens.killTweensOf(e.sprite);
     e.sprite.clearTint();
     this.tweens.add({
-      targets: e.sprite, scaleX: e.sprite.scaleX * 1.35, scaleY: e.sprite.scaleY * 0.3, alpha: 0, angle: Phaser.Math.Between(-25, 25), duration: 240, ease: 'Back.In',
+      targets: e.sprite, y: e.y, scaleX: e.sprite.scaleX * 1.35, scaleY: e.sprite.scaleY * 0.3, alpha: 0, angle: Phaser.Math.Between(-25, 25), duration: 240, ease: 'Back.In',
       onComplete: () => { e.sprite.destroy(); e.shadow.destroy(); this.enemies = this.enemies.filter((x) => x !== e); },
     });
     this.tweens.add({ targets: e.shadow, alpha: 0, duration: 240 });

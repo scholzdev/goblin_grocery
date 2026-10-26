@@ -6,6 +6,8 @@ import type { EnemyDef, EnemyHitHow, EnemyId, HitSource } from '../types';
 import { cleanseAura, healTargets, newStatus, slowFactor, tickBurn, tickPoison, toughRegen, type StatusFx } from '../systems/combat';
 import { enemyTexture } from '../systems/enemyFrame';
 import { pushOutCircle } from '../systems/obstacles';
+import { poisonHop } from '../systems/poisonHop';
+import { settings } from '../state/settings';
 import { lang, t } from '../i18n';
 import { play } from '../audio/sfx';
 import { DEPTH } from './fx';
@@ -284,10 +286,12 @@ export function updateEnemy(scene: ArenaScene, e: Enemy, dt: number, now: number
   const tex = enemyTexture({ id: d.id, telling: e.state === 'tell' || (e.state === 'attack' && d.behavior !== 'chase'), now, hurtAt: e.hurtAt, step: (Math.floor(e.animT) % 2) as 0 | 1 });
   if (e.sprite.texture.key !== tex) e.sprite.setTexture(tex);
   const s = d.scale * (e.elite ? ELITE.scale : 1) * (e.small || 1) * (e.mini ? MINI_BOSS.scale : 1);
-  const squash = e.state === 'tell' ? 0.06 * Math.sin(now * 40) : Math.sin(e.animT * Math.PI) * 0.035;
+  // Poisoned enemies hop: only the sprite lifts; e.x/e.y, the shadow and every hit test stay on the ground. Not in the spawn grow-in, nor inside the Frost set's ice block.
+  const hop = poisonHop({ now, id: e.id, radius: d.radius, boss: d.behavior === 'boss', poisoned: e.status.poisonUntil > now && e.state !== 'spawn' && !(e.frozenT && e.frozenT > 0), reducedMotion: settings.reducedMotion });
+  const squash = (e.state === 'tell' ? 0.06 * Math.sin(now * 40) : Math.sin(e.animT * Math.PI) * 0.035) + hop.squash;
   e.sprite.setScale(s * e.facing * (1 + squash), s * (1 - squash));
-  e.sprite.setPosition(e.x + (e.state === 'tell' ? Math.sin(now * 70) * 1.5 : 0), e.y).setDepth(DEPTH.world + e.y);
-  e.shadow.setPosition(e.x, e.y + 2);
+  e.sprite.setPosition(e.x + (e.state === 'tell' ? Math.sin(now * 70) * 1.5 : 0), e.y - hop.lift).setDepth(DEPTH.world + e.y);
+  e.shadow.setPosition(e.x, e.y + 2).setDisplaySize(d.radius * 2.6 * hop.shadow, d.radius * 0.9 * hop.shadow);
   if (e.flashT > 0) {
     e.flashT -= dt;
     if (e.flashT <= 0) e.sprite.clearTint();

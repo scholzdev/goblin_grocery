@@ -451,11 +451,11 @@ function starterHtml(): string {
         <div class="lbl"><b>${t('pickTheme')}</b> <kbd>T</kbd></div>
         <div class="stack">${THEMES.map(themeBtn).join('')}</div>
         <div class="hint">${t('enemies')}: ${deptT(pickedTheme).enemiesText}</div>
-        <div class="lbl"><b>${t('startWeapon')}</b> <kbd>W</kbd></div>
-        <div class="weapon-row">${WEAPONS.map(wpn).join('')}</div>
         <div class="lbl"><b>${t('shiftLabel')}</b></div>
         <div class="pills">${pills}</div>
         <div class="hint"><b>${shiftT(pickedShift).name}</b> · ${shiftT(pickedShift).blurb}</div></section>
+      <section class="col weapons"><div class="lbl"><b>${t('startWeapon')}</b> <kbd>W</kbd></div>
+        <div class="weapon-row">${WEAPONS.map(wpn).join('')}</div></section>
     </div>
     <div class="bar"><button class="btn small" data-act="close-starter">${t('back')} <kbd>Esc</kbd></button>
       <span class="why">${reason ? `🔒 ${reason}` : ''}</span>
