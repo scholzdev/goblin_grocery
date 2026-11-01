@@ -24,7 +24,7 @@ import { initShop, shopKey, shopPad, gridHtml, combosHtml, starsHtml, rarityClas
 import { DEPARTMENTS, THEMES } from '../data/departments';
 import { MODIFIERS, type DoorId, type ModifierId } from '../data/modifiers';
 import { CART_SKINS, GOBLIN_SKINS, UNLOCKS, type CartSkin, type GoblinSkin } from '../data/unlocks';
-import { COUPON_COINS, STAMPS_PER_CARD, cartUnlocked, dailyBestToday, discoverRecipe, goblinUnlocked, isNew, markSeen, newCount, profile, saveProfile, shiftUnlocked, starterUnlocked, unlockProgress, unlockedItems } from '../state/profile';
+import { COUPON_COINS, STAMPS_PER_CARD, cartUnlocked, dailyBestToday, discoverRecipe, goblinUnlocked, isNew, markSeen, newCount, profile, saveProfile, shiftUnlocked, starterUnlocked, themeUnlocked, unlockProgress, unlockedItems } from '../state/profile';
 import { ITEM_IDS } from '../data/items';
 import type { DepartmentId, EnemyId, ItemTypeId, LabOpts, Perk, RecipeId, SetId, StarterId, StarterWeapon } from '../types';
 import type { Fresh } from '../state/profile';
@@ -59,7 +59,7 @@ let pickedWeapon: StarterWeapon = (() => {
 })();
 /** Run theme highlighted on the starter screen (remembered between runs). */
 let pickedTheme: DepartmentId = (() => {
-  try { const v = JSON.parse(localStorage.getItem(PICK_KEY) ?? '{}').theme; return THEMES.includes(v) ? v : 'main'; } catch { return 'main'; }
+  try { const v = JSON.parse(localStorage.getItem(PICK_KEY) ?? '{}').theme; return THEMES.includes(v) && themeUnlocked(v) ? v : 'main'; } catch { return 'main'; }
 })();
 /** Character highlighted on the starter screen (remembered between runs; falls back to the toaster goblin if still locked). */
 let pickedStarter: StarterId = (() => {
@@ -70,7 +70,7 @@ const savePick = (): void => {
 };
 const pickStarter = (id: StarterId): void => { pickedStarter = id; savePick(); };
 const pickWeapon = (w: StarterWeapon): void => { pickedWeapon = w; savePick(); };
-const pickTheme = (d: DepartmentId): void => { pickedTheme = d; savePick(); };
+const pickTheme = (d: DepartmentId): void => { if (!themeUnlocked(d)) return; pickedTheme = d; savePick(); };
 const modT = (id: ModifierId) => ({ name: t(`modName_${id}` as UIKey), short: t(`modShort_${id}` as UIKey), fx: t(`modFx_${id}` as UIKey), rw: t(`modRw_${id}` as UIKey) });
 
 /** Dev/test builds only: every unlock plus every shift for every starter. */
@@ -247,7 +247,7 @@ function render(): void {
 
 /** Start the run with the highlighted loadout (the Start button is disabled while character or shift is locked). */
 function startPicked(): void {
-  if (!starterUnlocked(pickedStarter) || !shiftUnlocked(pickedStarter, pickedShift)) return;
+  if (!starterUnlocked(pickedStarter) || !shiftUnlocked(pickedStarter, pickedShift) || !themeUnlocked(pickedTheme)) return;
   startMusic();
   flow.startRun(pickedStarter, pickedShift, pickedWeapon, pickedTheme);
 }
@@ -436,8 +436,9 @@ function starterHtml(): string {
   }).join(' ');
   const themeBtn = (did: DepartmentId) => {
     const d = DEPARTMENTS[did], dt = deptT(did);
-    return `<button class="btn weapon-pick ${did === pickedTheme ? 'coral' : ''}" data-act="theme" data-theme="${did}" aria-pressed="${did === pickedTheme}">
-      <img src="${svg(d.theme.icon)}" alt=""><span class="wp-text"><span class="wp-head"><b>${dt.short}</b></span><span class="wp-stat">${dt.blurb}</span></span></button>`;
+    const locked = !themeUnlocked(did);
+    return `<button class="btn weapon-pick ${did === pickedTheme ? 'coral' : ''} ${locked ? 'locked' : ''}" data-act="theme" data-theme="${did}" aria-pressed="${did === pickedTheme}" ${locked ? 'disabled' : ''}>
+      <img src="${svg(d.theme.icon)}" alt=""><span class="wp-text"><span class="wp-head"><b>${dt.short}</b>${locked ? '<span class="lk">🔒</span>' : ''}</span><span class="wp-stat">${locked ? t('themeLocked') : dt.blurb}</span></span></button>`;
   };
   const detail = `<div class="detail"><span class="who">${portrait(id)}</span><div class="dtxt"><div class="dn display">${stT.name}</div><div class="blurb">${stT.blurb}</div><div class="sig"><b>${t('sigLabel')}</b> ${t(`sig_${id}` as UIKey)}</div>
       ${away ? `<div class="need">🔒 ${gate ? `${unlockNeedT(gate.id)} (${unlockProgress(gate).join('/')})` : t('charLocked')}</div>`
@@ -856,7 +857,7 @@ function onKey(e: KeyboardEvent): void {
   if (choosingStarter && s.phase === 'title') {
     if (e.key === 'Escape') { choosingStarter = false; render(); e.preventDefault(); return; }
     if (e.key.toLowerCase() === 'w') { pickWeapon(WEAPONS[(WEAPONS.indexOf(pickedWeapon) + 1) % WEAPONS.length]); play('click'); screens.starter.innerHTML = starterHtml(); return; }
-    if (e.key.toLowerCase() === 't') { pickTheme(THEMES[(THEMES.indexOf(pickedTheme) + 1) % THEMES.length]); play('click'); screens.starter.innerHTML = starterHtml(); return; }
+    if (e.key.toLowerCase() === 't') { const open = THEMES.filter(themeUnlocked); pickTheme(open[(open.indexOf(pickedTheme) + 1) % open.length] ?? 'main'); play('click'); screens.starter.innerHTML = starterHtml(); return; }
     const pick = STARTERS[Number(e.key) - 1];
     if (pick) { pickStarter(pick); play('click'); screens.starter.innerHTML = starterHtml(); return; }
     if (e.key === 'Enter' && !(e.target as HTMLElement).closest('[data-act="start-run"],[data-act="close-starter"]')) { startPicked(); e.preventDefault(); }

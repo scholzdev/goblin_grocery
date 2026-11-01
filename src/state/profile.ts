@@ -3,6 +3,7 @@ import { STARTING_ITEMS, UNLOCKS, type CartSkin, type GoblinSkin, type ProfileSt
 import { BOSS_WAVE, SHIFTS } from '../data/waves';
 import { setLevels } from '../data/sets';
 import type { ModifierId } from '../data/modifiers';
+import { THEME_ORDER } from '../engine/define';
 
 // Persistent meta-progression (localStorage). Every access is guarded: a blocked storage just means
 // progress isn't kept between sessions; the game itself never depends on it.
@@ -47,7 +48,7 @@ export const dailyBestToday = (): number => (profile.daily.date === todayKey() ?
 const KEY = 'goblin-grocery.profile.v1';
 const fresh = (): Profile => ({
   v: 1,
-  stats: { runs: 0, wins: 0, losses: 0, kills: 0, coins: 0, bestWave: 0, combos: 0, deptClears: {}, bestShift: {}, bestOvertime: 0 },
+  stats: { runs: 0, wins: 0, losses: 0, kills: 0, coins: 0, bestWave: 0, combos: 0, deptClears: {}, themeWins: {}, bestShift: {}, bestOvertime: 0 },
   recipes: [], unlocked: [], goblin: 'classic', cart: 'chrome', enemies: {}, seen: [],
   history: [], stamps: 0, coupons: 0, daily: { date: '', best: 0, tries: 0 }, goalBest: {},
 });
@@ -58,7 +59,7 @@ function load(): Profile {
     if (!raw) return fresh();
     const p = JSON.parse(raw) as Profile;
     const f = fresh();
-    return { ...f, ...p, stats: { ...f.stats, ...p.stats, deptClears: { ...p.stats?.deptClears }, bestShift: { ...p.stats?.bestShift } }, enemies: { ...p.enemies }, seen: [...(p.seen ?? [])], history: [...(p.history ?? [])], daily: { ...f.daily, ...p.daily } };
+    return { ...f, ...p, stats: { ...f.stats, ...p.stats, deptClears: { ...p.stats?.deptClears }, themeWins: { ...p.stats?.themeWins }, bestShift: { ...p.stats?.bestShift } }, enemies: { ...p.enemies }, seen: [...(p.seen ?? [])], history: [...(p.history ?? [])], daily: { ...f.daily, ...p.daily } };
   } catch {
     return fresh();
   }
@@ -154,6 +155,7 @@ export function recordRun(s: RunState, won: boolean): Unlock[] {
   s.route.map((d, i) => ({ d, m: s.mods[i], aisle: i + 1 })).filter((a) => a.d !== 'boss' && !s.skippedAisles?.includes(a.aisle)).slice(0, s.stats.wavesCleared)
     .forEach(({ d, m }) => countClear(d, m));
   if (won) {
+    (st.themeWins ??= {})[s.theme] = (st.themeWins?.[s.theme] ?? 0) + 1;
     st.deptClears.boss = (st.deptClears.boss ?? 0) + 1;
     st.bestShift[s.starter] = Math.max(st.bestShift[s.starter] ?? 0, s.shift);
   }
@@ -162,6 +164,12 @@ export function recordRun(s: RunState, won: boolean): Unlock[] {
 
 /** Shift `n` (0-based) is open for a starter once the previous shift was won with it. */
 export const shiftUnlocked = (starter: string, n: number): boolean => n <= 0 || n < SHIFTS.length && (profile.stats.bestShift[starter] ?? -1) >= n - 1;
+
+/** Themes unlock in order: winning one theme opens the next department. */
+export const themeUnlocked = (theme: DepartmentId): boolean => {
+  const i = THEME_ORDER.indexOf(theme as (typeof THEME_ORDER)[number]);
+  return i <= 0 || (profile.stats.themeWins?.[THEME_ORDER[i - 1]] ?? 0) > 0;
+};
 
 /** Overtime defeat. The run was recorded at victory, so this adds only the kills, coins and aisle clears since, plus the overtime best. */
 export function recordOvertime(s: RunState): Unlock[] {

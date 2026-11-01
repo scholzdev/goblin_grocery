@@ -121,6 +121,9 @@ export class ArenaScene extends Phaser.Scene {
   private animT = 0;
   private ending: '' | 'checkout' | 'victory' | 'defeat' = '';
   private boss: Enemy | null = null;
+  /** Mouse target: hover chooses a grocery; clicking locks that grocery for auto-aim. */
+  private mouseTarget: Enemy | null = null;
+  private mouseTargetLocked = false;
   /** Mid-shift boss while alive; `miniDue` holds the aisle open until its loot is picked. */
   private mini: Enemy | null = null;
   /** Conveyor Kiosk shove: horizontal player push (px/s) and seconds left. */
@@ -152,6 +155,8 @@ export class ArenaScene extends Phaser.Scene {
     this.enraged = false;
     this.ending = '';
     this.boss = null;
+    this.mouseTarget = null;
+    this.mouseTargetLocked = false;
     this.mini = null;
     this.bossPush.t = 0;
     this.miniDue = false;
@@ -180,6 +185,7 @@ export class ArenaScene extends Phaser.Scene {
     this.arsenal = new Arsenal(this);
     this.overlay = new PlayerOverlay(this);
     this.buildPlayer();
+    this.initMouseTargeting();
     this.arsenal.setBuild(s.build.weapons);
     this.ctx = new PhaserCtx(this);
     this.rebuildHooks();
@@ -630,6 +636,9 @@ export class ArenaScene extends Phaser.Scene {
   // ───────────────────────────── combat helpers ─────────────────────────────
 
   nearestEnemy(range: number): Enemy | null {
+    const focused = this.mouseTarget;
+    if (focused && focused.alive && focused.state !== 'spawn' && !focused.dummy &&
+      (focused.x - this.player.x) ** 2 + (focused.y - this.player.y) ** 2 < range * range) return focused;
     return this.nearestEnemyFrom(this.player.x, this.player.y, range);
   }
 
@@ -1262,6 +1271,12 @@ export class ArenaScene extends Phaser.Scene {
     for (const e of this.enemies) drawTelegraph(g, e, this);
     const b = this.bars;
     b.clear();
+    const focus = this.mouseTarget;
+    if (focus?.alive && focus.state !== 'spawn' && !focus.dummy) {
+      const pulse = 0.8 + 0.2 * Math.sin(this.time.now / 120);
+      b.lineStyle(this.mouseTargetLocked ? 4 : 2, this.mouseTargetLocked ? 0xf5bd45 : 0xfff2d5, pulse);
+      b.strokeEllipse(focus.x, focus.y - focus.sprite.displayHeight * 0.25, focus.def.radius * 2.5, focus.def.radius * 1.35);
+    }
     for (const e of this.enemies) {
       if (!e.alive || e.mini || (!e.elite && (e.hp >= e.maxHp || !SHOW_HP_BAR.includes(e.def.id)))) continue; // mini uses the HUD boss bar
       const w = 40, x = e.x - w / 2, y = e.y - e.sprite.displayHeight - 8;
@@ -1319,6 +1334,37 @@ export class ArenaScene extends Phaser.Scene {
         b.fillCircle(x, y + 0.5, 2.8);
       }
     }
+  }
+
+  /** Mouse aim assist: hover a grocery to preview it, click to lock/unlock auto-aim. */
+  private initMouseTargeting(): void {
+    this.input.on('pointermove', (p: Phaser.Input.Pointer) => {
+      if (!this.combatActive() || store.state.labSandbox) return;
+      const hit = this.enemyAt(p.worldX, p.worldY);
+      if (!this.mouseTargetLocked) this.mouseTarget = hit;
+    });
+    this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
+      if (!this.combatActive() || store.state.labSandbox || p.button !== 0) return;
+      const hit = this.enemyAt(p.worldX, p.worldY);
+      if (hit) {
+        if (this.mouseTargetLocked && this.mouseTarget === hit) this.mouseTargetLocked = false;
+        else { this.mouseTarget = hit; this.mouseTargetLocked = true; }
+      } else if (this.mouseTargetLocked) {
+        this.mouseTargetLocked = false;
+        this.mouseTarget = null;
+      }
+    });
+    this.input.on('pointerout', () => {
+      if (!this.mouseTargetLocked) this.mouseTarget = null;
+    });
+  }
+
+  private enemyAt(x: number, y: number): Enemy | null {
+    return this.enemies
+      .filter((e) => e.alive && e.state !== 'spawn' && !e.dummy)
+      .map((e) => ({ e, d: Math.hypot(e.x - x, e.y - e.sprite.displayHeight * 0.4 - y) }))
+      .filter(({ e, d }) => d <= Math.max(e.def.radius, e.sprite.displayWidth * 0.55))
+      .sort((a, b) => a.d - b.d)[0]?.e ?? null;
   }
 
   private idleRig(dt: number): void {

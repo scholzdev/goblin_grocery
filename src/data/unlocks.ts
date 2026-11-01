@@ -39,6 +39,7 @@ export interface ProfileStats {
   bestShift: Partial<Record<string, number>>; // starter id -> highest shift index won
   bestOvertime: number;    // most aisles survived past the boss
   deptClears: Partial<Record<DepartmentId | 'clearance', number>>; // 'clearance' = cleared Clearance Sale aisles (the door modifier, not a department)
+  themeWins?: Partial<Record<DepartmentId, number>>; // ordered theme progression
 }
 
 export interface RunSummary {
