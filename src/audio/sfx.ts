@@ -21,7 +21,6 @@ const BASE_VOL: Partial<Record<AudioKey, number>> = {
 let game: Phaser.Game | null = null;
 const lastPlayed = new Map<AudioKey, number>();
 const voices = new Map<AudioKey, number>();
-let wheel: Phaser.Sound.BaseSound | null = null;
 let fallbackCtx: AudioContext | null = null;
 
 export function initAudio(g: Phaser.Game): void {
@@ -68,14 +67,6 @@ function blip(volume: number): void {
   }
 }
 
-/** Cart wheel rattle, volume follows player speed (0..1). Single instance for the whole session. */
-export function setWheel(speed01: number): void {
-  if (!game || !game.cache.audio.exists('wheel_loop')) return;
-  wheel ??= game.sound.add('wheel_loop', { loop: true, volume: 0 });
-  if (!wheel.isPlaying && speed01 > 0.05) wheel.play();
-  (wheel as Phaser.Sound.WebAudioSound).setVolume(sfxVol() * 0.35 * speed01);
-}
-
 export function startMusic(): void {
   playMusic('music_main');
 }
@@ -85,5 +76,5 @@ export function refreshVolumes(): void {
 }
 
 export function stopLoops(): void {
-  wheel?.stop();
+  // Kept as a lifecycle hook for callers; continuous cart audio is intentionally disabled.
 }

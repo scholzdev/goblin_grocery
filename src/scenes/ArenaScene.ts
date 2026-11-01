@@ -13,7 +13,7 @@ import { addCoins, damagePlayer, payPunchCard, takeStockroomItem } from '../stat
 import { hitArmor, newHitTracker, shredGain, shredStacks, tryHit, weakenedDamage, weakenMult, type HitTracker } from '../systems/combat';
 import { isWet, wetElectricMult } from '../engine/wet';
 import type { EnemyId, HitSource, ShopOffer, WaveDef, WeaponStats } from '../types';
-import { play, setWheel } from '../audio/sfx';
+import { play } from '../audio/sfx';
 import { musicFor, playMusic } from '../audio/music';
 import { settings } from '../state/settings';
 import { hud, showBanner } from '../ui/hud';
@@ -1209,7 +1209,6 @@ export class ArenaScene extends Phaser.Scene {
       this.clampToArena(p, p.radius * 2);
       this.pushPlayerOut();
     }
-    setWheel(p.shoveT > 0 ? 1 : Math.hypot(inp.x, inp.y));
   }
 
   private overlapsObstacle(): boolean {
@@ -1433,7 +1432,6 @@ export class ArenaScene extends Phaser.Scene {
     store.changed();
     showBanner(t('checkoutBanner'), t('checkoutSub'));
     play('ding');
-    setWheel(0);
     this.arsenal.clearAll(true);
     this.groups.forEach((g) => (g.done = true));
     const alive = this.enemies.filter((e) => e.alive);
@@ -1481,7 +1479,6 @@ export class ArenaScene extends Phaser.Scene {
     const p = this.player;
     p.dead = true;
     this.ending = 'defeat';
-    setWheel(0);
     this.fx.puff(p.x, p.y - 40, 10);
     this.tweens.add({ targets: this.rig, angle: p.facing * 18, y: p.y + 6, duration: 400, ease: 'Bounce.Out' });
     showBanner(t('wipedBanner'), t('wipedSub'));
