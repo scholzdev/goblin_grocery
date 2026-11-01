@@ -35,7 +35,7 @@ export function stepWeapons(h: PatternHost, dt: number, firing: boolean): void {
     w.cd -= dt * (w.electrical ? sc.dept.electricalRate * sc.aisleEvent.electricRate() : 1);
     if (!firing || w.cd > 0) continue;
     if (p.blind) { w.cd = w.stats.cooldown; p.fire(h, w, null); continue; }
-    const target = sc.nearestEnemy(w.stats.range);
+    const target = sc.targetForWeapon(w.stats.range, w.targetMode);
     if (!target) { w.cd = 0.05; continue; }
     w.cd = w.stats.cooldown;
     p.fire(h, w, target);
@@ -62,4 +62,4 @@ export { beamOnce } from './laser';
 export { boltFx } from './zap';
 export { removePuddle, spawnFirePool } from './puddle';
 export { updateShots } from './projectile';
-export type { Pattern, PatternEnemy, PatternHost, PatternScene, Puddle, Pot, Shot, Sprite, WeaponRt } from './types';
+export type { Pattern, PatternEnemy, PatternHost, PatternScene, Puddle, Pot, Shot, Sprite, TargetMode, WeaponRt } from './types';

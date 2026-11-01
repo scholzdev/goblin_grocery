@@ -1,0 +1,5 @@
+  shop 1 lv1: hp=40/40 game=60s fps=61 peakAlive=10@51s money=28 kills=24 cells=2/20 shelf=0 
+  door: none
+  shop 2 lv1: hp=40/40 game=120s fps=59 peakAlive=8@107s money=33 kills=53 cells=6/20 shelf=0 
+  door: event
+run 0: reached wave=3 hp=40/50 kills=53 toastMode+fiveAlarm [toaster fan hotsauce fortune sparklers fuel ice] time=124s game=120s fps=60

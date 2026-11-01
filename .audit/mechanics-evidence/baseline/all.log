@@ -1,0 +1,2 @@
+npm notice run goblin-grocery@0.1.0 buildlab
+npm notice run node tools/buildlab.mjs --runs 50 --seed 1 --starter all --weapon all --pool all --quiet --out /private/tmp/claude-501/-Users-scholzf-dev-goblin-grocery/a0007cf2-762c-44b4-85e3-3eb518ab8d10/scratchpad/baseline/all.json

@@ -1,0 +1,5 @@
+  shop 1 lv1: hp=40/40 game=38s fps=61 peakAlive=8@32s money=17 kills=15 cells=2/20 shelf=0 
+  door: event
+  shop 2 lv1: hp=40/40 game=76s fps=61 peakAlive=7@67s money=27 kills=33 cells=5/20 shelf=0 
+  door: coldRoom
+run 0: reached wave=3 hp=40/40 kills=33  [toaster hotsauce fan sample magnet] time=81s game=76s fps=61

@@ -1,0 +1,5 @@
+  shop 1 lv1: hp=40/40 game=60s fps=61 peakAlive=7@46s money=26 kills=27 cells=2/20 shelf=0 
+  door: event
+  shop 2 lv1: hp=40/40 game=120s fps=61 peakAlive=7@107s money=41 kills=57 cells=8/20 shelf=0 
+  door: quiet
+run 0: reached wave=3 hp=40/40 kills=57 smashBank [toaster hotsauce pan fan*2 piggy] time=124s game=120s fps=61

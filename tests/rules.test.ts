@@ -394,6 +394,20 @@ describe('shop rolls', () => {
       expect(new Set(o.map((x) => x.type)).size).toBe(4);
     }
   });
+  it('leans toward the selected weapon\'s combo parts and away from unowned alternate weapons', () => {
+    const pool = ['pan', 'toaster', 'fizz', 'bell', 'fuel', 'piggy', 'lunchbox', 'sample'] as ItemTypeId[];
+    const pan = { ...createRun(1, 'toaster', 0, 'pan'), pool };
+    const toaster = { ...createRun(1, 'toaster', 0, 'toaster'), pool };
+    const count = (s: RunState, types: ItemTypeId[]) => {
+      let n = 0;
+      for (let seed = 0; seed < 500; seed++) n += rollOffers(s, mulberry32(seed), 2, false).filter((o) => types.includes(o.type)).length;
+      return n;
+    };
+    // Pan's dedicated parts are pulled above the neutral support weight.
+    expect(count(pan, ['bell', 'fuel', 'piggy', 'lunchbox'])).toBeGreaterThan(count(toaster, ['bell', 'fuel', 'piggy', 'lunchbox']));
+    // The same unowned weapon is less attractive when it is not the selected opener.
+    expect(count(toaster, ['toaster'])).toBeGreaterThan(count(pan, ['toaster']));
+  });
 });
 
 describe('hit policy', () => {
@@ -532,7 +546,7 @@ describe('tiers', () => {
     const w = w0(inv(it_('blender', 0, 0), it_('ice', 1, 0)));
     expect(w.recipes).toContain('brainFreeze');
     expect(w.slow).toEqual({ pct: 0.4, duration: 0.6 });
-    expect(w.range).toBeCloseTo(85 * 1.25);
+    expect(w.range).toBeCloseTo(100 * 1.25);
   });
   it('tvDinner exact', () => {
     const ok = w0(inv(it_('microwave', 1, 1), it_('lunchbox', 1, 0), it_('battery', 3, 1)));

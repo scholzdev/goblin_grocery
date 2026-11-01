@@ -1,6 +1,6 @@
 import { DEPTH } from '../../data/depth';
 import { newHitTracker, tryHit } from '../../systems/combat';
-import { origin } from './common';
+import { aimAngle, origin } from './common';
 import type { Pattern, PatternEnemy, PatternHost, WeaponRt } from './types';
 
 /**
@@ -18,12 +18,16 @@ export function beamOnce(h: PatternHost, w: WeaponRt, target: PatternEnemy, echo
   // Aim down the line that crosses the most groceries; the nearest target is tried first, so it wins ties.
   // ponytail: O(n²) over live enemies every ~1.6 s (n ≤ ~70); sweep sorted angles if counts ever grow.
   const live = sc.enemies.filter((e) => e.alive && e.state !== 'spawn');
-  let a = Math.atan2(target.y - o.y, target.x - o.x), best = -1;
-  for (const t of [target, ...live]) {
-    if (Math.hypot(t.x - o.x, t.y - o.y) > st.range) continue;
-    const ta = Math.atan2(t.y - o.y, t.x - o.x), tx = Math.cos(ta), ty = Math.sin(ta);
-    const n = live.reduce((k, e) => k + (inBeam(e, tx, ty) ? 1 : 0), 0);
-    if (n > best) { best = n; a = ta; }
+  let a = aimAngle(h, target, w.targetMode), best = -1;
+  // Mouse aim takes control of the beam direction. Without it, keep the laser's
+  // special behavior of choosing the line that crosses the most groceries.
+  if (w.targetMode !== 'cursor' || sc.aimAngle === null) {
+    for (const t of [target, ...live]) {
+      if (Math.hypot(t.x - o.x, t.y - o.y) > st.range) continue;
+      const ta = Math.atan2(t.y - o.y, t.x - o.x), tx = Math.cos(ta), ty = Math.sin(ta);
+      const n = live.reduce((k, e) => k + (inBeam(e, tx, ty) ? 1 : 0), 0);
+      if (n > best) { best = n; a = ta; }
+    }
   }
   const cx = Math.cos(a), cy = Math.sin(a);
   const beam = sc.add.image(o.x, o.y - 30, 'fx_laser').setOrigin(0, 0.5).setRotation(a).setDepth(DEPTH.fx)

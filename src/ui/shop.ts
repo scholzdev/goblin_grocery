@@ -186,7 +186,7 @@ export function combosHtml(build: Build, preview?: Build | null, relevant: ItemT
   const next = preview ? new Set(preview.recipes.map((r) => r.id)) : null;
   const inv = store.state.inventory;
   const owned = new Set([...inv.placed.map((i) => i.type), ...inv.shelf.flatMap((i) => (i ? [i.type] : []))]);
-  // Only four fit: active / previewed first, then the combos you're closest to completing.
+  // Group by the cart's weapon order so every weapon reads as its own build path.
   const have = new Set(relevant);
   const open = new Set(unlockedItems());
   const score = (id: RecipeId) => (now.has(id) ? 100 : 0) + (next?.has(id) ? 50 : 0) +
@@ -194,10 +194,27 @@ export function combosHtml(build: Build, preview?: Build | null, relevant: ItemT
   // Only combos already in the Catalog are shown; an undiscovered one only appears as a mystery while a drop would trigger it.
   const known = (id: RecipeId) => discovered(id, build);
   // ...and only if every component item is unlocked (or the combo is live / about to trigger).
-  const shown = (id: RecipeId) => now.has(id) || next?.has(id) || (known(id) && recipeParts(RECIPES[id]).every((ty) => open.has(ty)));
-  const ids = [...RECIPE_ORDER].filter(shown).sort((a, b) => score(b) - score(a)).slice(0, 4);
-  if (!ids.length) return `<div class="combo empty"><div class="eff">${t('noCombos')}</div><div class="hint">${t('noCombosHint')}</div></div>`;
-  return ids.map((id) => {
+  const weaponTypes = new Set(build.weapons.map((w) => w.type));
+  const shown = (id: RecipeId) => {
+    const r = RECIPES[id];
+    const belongsToCartWeapon = r.weapon ? weaponTypes.has(r.weapon) : r.supports.some((ty) => owned.has(ty));
+    return now.has(id) || next?.has(id) || (belongsToCartWeapon && recipeParts(r).every((ty) => open.has(ty)));
+  };
+  const weaponOrder = [...build.weapons.map((w) => w.type), ...ITEM_IDS.filter((id) => ITEMS[id].kind === 'weapon')];
+  const groups = new Map<string, RecipeId[]>();
+  for (const id of [...RECIPE_ORDER].filter(shown)) {
+    const key = RECIPES[id].weapon ?? '__cart__';
+    const list = groups.get(key) ?? [];
+    list.push(id);
+    groups.set(key, list);
+  }
+  const orderedGroups = [...groups.entries()].sort(([a], [b]) => {
+    if (a === '__cart__') return 1;
+    if (b === '__cart__') return -1;
+    return weaponOrder.indexOf(a as ItemTypeId) - weaponOrder.indexOf(b as ItemTypeId);
+  });
+  if (!orderedGroups.length) return `<div class="combo empty"><div class="eff">${t('noCombos')}</div><div class="hint">${t('noCombosHint')}</div></div>`;
+  const render = (id: RecipeId) => {
     if (!known(id)) {
       const r = RECIPES[id];
       return `<div class="combo preview mystery"><div class="ch"><span class="name">???</span><span class="chip">${t('dropDiscover')}</span></div>
@@ -216,6 +233,12 @@ export function combosHtml(build: Build, preview?: Build | null, relevant: ItemT
       <div class="ch"><span class="name">${recipeT(id).name}</span><span class="chip">${chip}</span></div>
       <div class="icons">${icons}</div>
       <div class="eff">${esc(recipeT(id).short)}</div></div>`;
+  };
+  return orderedGroups.map(([weapon, ids]) => {
+    const ordered = ids.sort((a, b) => score(b) - score(a)).slice(0, 3);
+    const title = weapon === '__cart__' ? 'Cart Effects' : itemT(weapon as ItemTypeId).name;
+    const icon = weapon === '__cart__' ? '' : `<img src="${svg(`icon_${weapon}`)}" alt="">`;
+    return `<section class="combo-group"><div class="combo-group-head">${icon}<b>${title}</b><span>${ordered.length}</span></div>${ordered.map(render).join('')}</section>`;
   }).join('');
 }
 
@@ -462,20 +485,6 @@ export function inspectorHtml(type: ItemTypeId, uid: string | null, offer?: Shop
     const col = (lv: number) => `c${lv}${lv === tier ? ' cur' : ''}`;
     body += `<h5>${t('perLevel')}</h5><div class="scal"><span></span>${[1, 2, 3].map((lv) => `<em class="${col(lv)}"><b class="lv t${lv}">★${lv}</b>${lv === tier ? `<u>${t('current')}</u>` : ''}</em>`).join('')}${scale.map((r, ri) =>
       `<span>${wd ? (ROW_ICONS[ri]?.(16) ?? '') : ''}${r.label}</span>${r.values.map((v, i) => `<i class="${col(i + 1)}${ri === scale.length - 1 ? ' last' : ''}">${v}</i>`).join('')}`).join('')}</div>`;
-  }
-
-  // Combos this item belongs to: compact rows (partner icons · name · effect). Undiscovered ones are not shown at all.
-  const combos = RECIPE_ORDER.filter((id) => recipeParts(RECIPES[id]).includes(type));
-  const live = (id: RecipeId) => !!uid && s.build.recipes.some((x) => x.id === id && (x.weaponUid === uid || x.supportUids.includes(uid)));
-  const seen = combos.filter((id) => profile.recipes.includes(id) || live(id));
-  if (seen.length) {
-    body += `<h5>${t('combos')}</h5>` + seen.map((id) => {
-      const r = RECIPES[id], rt = recipeT(id);
-      const on = live(id);
-      const partners = recipeParts(r).filter((ty) => ty !== type);
-      const icons = partners.map((ty) => `<img src="${svg(`icon_${ty}`)}" alt="" title="${itemT(ty).name}">`).join('');
-      return `<div class="combo-row ${on ? 'on' : ''}" title="${t('needsTouching', { names: esc(partners.map((ty) => itemT(ty).name).join(' + ')) })}"><span class="ci">${icons}</span><span><b>${rt.name}</b><small>${esc(rt.short)}</small></span>${on ? `<em>${t('on')}</em>` : ''}</div>`;
-    }).join('');
   }
 
   // Footer: combine (the only way to level up) — one click when a partner exists.

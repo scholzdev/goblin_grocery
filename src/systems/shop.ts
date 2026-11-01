@@ -33,11 +33,20 @@ const ENHANCES: Partial<Record<ItemTypeId, (own: Set<ItemTypeId>) => boolean>> =
   coupon: (o) => o.has('fizz'),
 };
 
-function weight(t: ItemTypeId, own: Set<ItemTypeId>, mergeable: Set<ItemTypeId>): number {
-  if (mergeable.has(t)) return ECONOMY.ownedWeight;
-  if (ITEMS[t].kind === 'weapon') return 1.1;
-  if (Object.values(RECIPES).some((r) => (r.weapon ? own.has(r.weapon) : r.supports.some((s) => s !== t && own.has(s))) && r.supports.includes(t))) return 1.2;
-  return ENHANCES[t]?.(own) ? 1.1 : 1;
+function weight(t: ItemTypeId, own: Set<ItemTypeId>, mergeable: Set<ItemTypeId>, focusWeapon?: ItemTypeId): number {
+  let w: number;
+  if (mergeable.has(t)) w = ECONOMY.ownedWeight;
+  else if (ITEMS[t].kind === 'weapon') w = 1.1;
+  else if (Object.values(RECIPES).some((r) => (r.weapon ? own.has(r.weapon) : r.supports.some((s) => s !== t && own.has(s))) && r.supports.includes(t))) w = 1.2;
+  else w = ENHANCES[t]?.(own) ? 1.1 : 1;
+
+  if (!focusWeapon) return w;
+  // Keep the chosen starting weapon viable through the run: its combo parts get a gentle pull,
+  // while alternate weapons remain possible but lose some of their early-shop appeal.
+  const focusParts = new Set(Object.values(RECIPES).filter((r) => r.weapon === focusWeapon).flatMap((r) => r.supports));
+  if (t !== focusWeapon && focusParts.has(t)) w *= 1.35;
+  if (ITEMS[t].kind === 'weapon' && t !== focusWeapon && !own.has(t)) w *= 0.85;
+  return w;
 }
 
 export function currentRerollCost(state: RunState): number {
@@ -68,7 +77,7 @@ export function rollOffers(state: RunState, rng: Rng, shopIndex: number, guarant
   while (offers.length < ECONOMY.offerCount) {
     const needLegend = !!opts.forceLegendary && offers.length === ECONOMY.offerCount - 1 && !offers.some((o) => ITEMS[o.type].legendary);
     if (legends.length && (needLegend || (shopIndex >= 2 && rng() < lv.legendary + bonus))) { add(legends.splice(Math.floor(rng() * legends.length), 1)[0], 1); continue; }
-    const ws = regular.map((t) => (guarantee ? 1 : weight(t, own, mergeable)) * (bias.includes(t) ? DEPT_TUNING.biasWeight : 1));
+    const ws = regular.map((t) => (guarantee ? 1 : weight(t, own, mergeable, state.weapon)) * (bias.includes(t) ? DEPT_TUNING.biasWeight : 1));
     let r = rng() * ws.reduce((a, b) => a + b, 0), i = 0;
     while (i < regular.length - 1 && (r -= ws[i]) >= 0) i++;
     add(regular.splice(i, 1)[0], rng() < lv.tier3 ? 3 : rng() < lv.tier2 ? 2 : 1);

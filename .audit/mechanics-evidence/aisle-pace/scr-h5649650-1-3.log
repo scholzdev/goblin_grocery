@@ -1,0 +1,5 @@
+  shop 1 lv1: hp=31/40 game=44s fps=61 peakAlive=10@38s money=20 kills=18 cells=2/20 shelf=0 
+  door: none
+  shop 2 lv1: hp=32/40 game=88s fps=61 peakAlive=9@82s money=26 kills=39 cells=5/20 shelf=0 
+  door: none
+run 0: reached wave=3 hp=32/40 kills=39 toastMode+fiveAlarm [fan hotsauce toaster*2 fuel] time=93s game=88s fps=61

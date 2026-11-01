@@ -6,6 +6,8 @@ import type { CombatEnemy, FxApi, PlayerView } from '../ctx';
 import type { HitOpts, HookTable, WeaponLook } from '../hooks';
 import type { AppliedStatus } from '../reactions';
 
+export type TargetMode = 'auto' | 'cursor' | 'focus';
+
 // What the pattern code (engine/patterns/*) needs from the arena. Types only: Phaser is imported as a type, never at runtime, so the
 // patterns run headless against `FakeArsenal` (fakeHost.ts) and against the real `Arsenal` (scenes/weapons.ts) alike.
 
@@ -37,6 +39,8 @@ export interface PatternScene {
   time: Pick<Phaser.Time.Clock, 'now' | 'delayedCall'>;
   readonly enemies: PatternEnemy[];
   readonly player: PlayerView;
+  /** Mouse aim direction in world space; null when no mouse aim is active. */
+  readonly aimAngle: number | null;
   readonly hooks: HookTable;
   readonly fx: FxApi;
   /** Department perk: electrical weapons cycle this much faster. */
@@ -47,6 +51,7 @@ export interface PatternScene {
   /** The nearest live enemy within `range` of the goblin (Honey Jars count double). */
   nearestEnemy(range: number): PatternEnemy | null;
   nearestEnemyFrom(x: number, y: number, range: number, exclude?: Set<number>): PatternEnemy | null;
+  targetForWeapon(range: number, mode: TargetMode): PatternEnemy | null;
   damageEnemy(e: PatternEnemy, dmg: number, stats: WeaponStats | null, opts: HitOpts): void;
   /** A burn or poison the pattern applied directly (a burning pool's tick): tell the element reactions, as `ctx.ignite` does. */
   reactionApplied(e: PatternEnemy, kind: AppliedStatus): void;
@@ -80,6 +85,7 @@ export interface Shot {
 /** The runtime of one weapon of the cart. */
 export interface WeaponRt {
   stats: WeaponStats;
+  targetMode: TargetMode;
   cd: number;
   burstLeft: number;
   burstT: number;

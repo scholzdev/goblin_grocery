@@ -14,13 +14,13 @@ describe('Rotten Tomato', () => {
     a.run(35, 0.02);
     expect(a.spawned[0].key).toBe('proj_tomato');
     expect(e.hp).toBe(98);
-    expect(e.status.poisonDps).toBe(4);
+    expect(e.status.poisonDps).toBe(5);
     e.x = 1000;
     fake.advance(4);
     const damage = tickPoison(e.status, fake.now());
-    expect(damage).toBe(16);
+    expect(damage).toBe(20);
     fake.hit(e, damage, null, { isDot: true, poison: true });
-    expect(e.hp).toBe(82);
+    expect(e.hp).toBe(78);
   });
 
   it('prefers an unpoisoned enemy, then falls back when every target is poisoned', () => {
@@ -38,17 +38,17 @@ describe('Rotten Tomato', () => {
 
   it('uses each firing instance tier and refreshes poison without stacking', () => {
     const { fake, b } = arena([at('tomato', 1), at('tomato', 3)]);
-    const lowDps = b.weapons[0].damage * 2, highDps = b.weapons[1].damage * 2;
+    const lowDps = 5.3, highDps = 15.9;
     const e = fake.spawnEnemy({ hp: 1000 });
     fake.hit(e, 2, b.weapons[0]);
-    expect(e.status.poisonDps).toBe(lowDps);
+    expect(e.status.poisonDps).toBeCloseTo(lowDps);
     fake.advance(1);
     fake.hit(e, 4, b.weapons[1]);
-    expect(e.status.poisonDps).toBe(highDps);
+    expect(e.status.poisonDps).toBeCloseTo(highDps);
     fake.advance(1);
     fake.hit(e, 2, b.weapons[0]);
-    expect(e.status.poisonDps).toBe(highDps);
-    expect(e.status.poisonUntil).toBe(6);
+    expect(e.status.poisonDps).toBeCloseTo(highDps);
+    expect(e.status.poisonUntil).toBe(8);
   });
 
   it('★3 spreads only the remaining poison on a DoT kill, without a second generation', () => {
@@ -59,8 +59,8 @@ describe('Rotten Tomato', () => {
     fake.hit(original, 4, stats);
     fake.advance(1.5);
     fake.hit(original, 1000, null, { isDot: true, poison: true });
-    expect(next.status.poisonDps).toBe(8);
-    expect(next.status.poisonUntil).toBe(4);
+    expect(next.status.poisonDps).toBe(15);
+    expect(next.status.poisonUntil).toBe(6);
     expect(outside.status.poisonDps).toBe(0);
     outside.x = 180;
     fake.hit(next, 1000, null, { isDot: true, poison: true });
@@ -73,7 +73,7 @@ describe('Rotten Tomato', () => {
       const e = fake.spawnEnemy({ hp: 1000 });
       const next = fake.spawnEnemy({ x: 30, hp: 1000 });
       fake.hit(e, 2, stats);
-      if (tier === 3) fake.advance(5);
+      if (tier === 3) fake.advance(7);
       fake.hit(e, 10000, null);
       expect(next.status.poisonDps).toBe(0);
     }
@@ -95,8 +95,8 @@ describe('Rotten Tomato', () => {
   });
 
   it('shows poison scaling and localized rules, including the ★3 spread', () => {
-    expect(tierScaling('tomato').at(-1)).toEqual({ label: 'Poison', values: ['4/s', '6/s', '8/s'] });
-    expect(itemRules('tomato', 1)).toContain('4/s');
+    expect(tierScaling('tomato').at(-1)).toEqual({ label: 'Poison', values: ['5/s', '10/s', '15/s'] });
+    expect(itemRules('tomato', 1)).toContain('5/s');
     expect(itemRules('tomato', 1)).not.toContain('★3');
     expect(itemRules('tomato', 3)).toContain('Spread poison cannot spread again');
     setLang('de');

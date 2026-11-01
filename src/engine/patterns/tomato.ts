@@ -1,4 +1,4 @@
-import { degToRad, emitFire, origin } from './common';
+import { aimAngle, degToRad, emitFire, origin } from './common';
 import type { Pattern } from './types';
 
 /** Throw at the nearest unpoisoned grocery, falling back to the usual target when all are poisoned. */
@@ -9,7 +9,7 @@ export const tomato: Pattern = {
     const poisoned = new Set(h.sc.enemies.filter((e) => e.status.poisonUntil > now).map((e) => e.id));
     const fresh = h.sc.nearestEnemyFrom(p.x, p.y, st.range, poisoned);
     const aim = fresh ?? target!;
-    const base = Math.atan2(aim.y - o.y, aim.x - o.x), spread = degToRad(st.spreadDeg || 12);
+    const base = aimAngle(h, aim, w.targetMode), spread = degToRad(st.spreadDeg || 12);
     for (let i = 0; i < st.count; i++) {
       const angle = base + (i - (st.count - 1) / 2) * spread;
       if (emitFire(h, st, o.x, o.y, angle, i === 0)) continue;

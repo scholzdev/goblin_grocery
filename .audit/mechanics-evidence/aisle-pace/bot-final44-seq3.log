@@ -1,0 +1,13 @@
+  shop 1 lv1: hp=40/40 game=44s fps=60 peakAlive=8@38s money=22 kills=20 cells=2/20 shelf=0 
+  door: quiet
+  shop 2 lv1: hp=40/40 game=88s fps=61 peakAlive=5@70s money=22 kills=36 cells=5/20 shelf=0 
+  door: none
+run 0: reached wave=3 hp=40/40 kills=36  [hotsauce fan ice toaster*2] time=93s game=88s fps=61
+  shop 1 lv1: hp=40/40 game=44s fps=61 peakAlive=9@38s money=20 kills=20 cells=2/20 shelf=0 
+  door: quiet
+  shop 2 lv1: hp=40/40 game=88s fps=61 peakAlive=5@77s money=19 kills=37 cells=5/20 shelf=0 
+  door: none
+run 1: reached wave=3 hp=40/40 kills=37  [toaster hotsauce fan*2] time=93s game=88s fps=61
+  shop 1 lv1: hp=36/40 game=44s fps=61 peakAlive=8@35s money=19 kills=19 cells=2/20 shelf=0 
+  door: none
+run 2: defeat wave=2 hp=0 kills=36  [toaster fan hotsauce] time=83s game=81s fps=61 peakAlive=7@68s alive=5

@@ -1,6 +1,7 @@
 import { SVG_ASSETS } from './assets';
 // Arena geometry shared by the scene, hazards and obstacle layouts (kept Phaser-free so tests can import it).
-export const ARENA = { w: 1280, h: 800, left: 78, right: 1202, top: 196, bottom: 758 };
+// Leave a small visual margin below the cart while keeping the full front floor walkable.
+export const ARENA = { w: 1280, h: 800, left: 78, right: 1202, top: 196, bottom: 790 };
 export const PLAYER_START = { x: 640, y: 500 };
 
 /** Where groceries walk in: two top aisles, two side aisles, two front gaps. */

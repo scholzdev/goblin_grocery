@@ -1,0 +1,14 @@
+# balance unit todo (uncommitted, scratchpad)
+- [x] m0 measure: stock/starting/s1/s2 on integration 038fff7
+- [x] Restock decision: skip (merges 2.94 >= 2.0); recheck after hardening
+- [ ] SET_THRESHOLDS [2,4,6] + tests + pips screenshot
+- [ ] Vacuum ★3 replacement (read weapon-star3-common.md, coldStorage)
+- [ ] Curve: aisle 1-2 duration 38 s (+ wet floor clamp, docs line 100)
+- [ ] Curve: spread spitter/expired -> a3, turkey/cereal -> a5 (+ rules.test 1203 pin, codex order)
+- [ ] Retune total/hpScale/dmgScale/MINI hp, one knob per commit, to win 20-35, a4 share <28, starting <=55
+- [ ] Cooker check (write reasoning); Pan check (★3 pan count)
+- [ ] Shifts: Evening >= 12
+- [ ] Goals recalibration 10-30% + goldstar maxTier-1 + EN/DE
+- [ ] TSV rows + docs/buildlab.md hillclimb section + line 100
+- [ ] deslop, tsc, vitest
+- [ ] golden regenerate last; prefixes via script

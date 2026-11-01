@@ -8694,19 +8694,19 @@
   "items.blender.de": {
     "blurb": "Surrende Klingen rund um den Wagen.",
     "name": "Mixer",
-    "rules": "Schreddert alle {1} jeden Gegner im Umkreis von 85 für {0} Schaden (jeden Gegner einmal pro Tick). Elektrisch.",
+    "rules": "Schreddert alle {1} jeden Gegner im Umkreis von 100 für {0} Schaden (jeden Gegner einmal pro Tick). Elektrisch.",
     "rulesByTier": {
-      "1": "Schreddert alle 0,3 s jeden Gegner im Umkreis von 85 für 2 Schaden (jeden Gegner einmal pro Tick). Elektrisch.",
-      "2": "Schreddert alle 0,27 s jeden Gegner im Umkreis von 85 für 3 Schaden (jeden Gegner einmal pro Tick). Elektrisch.",
-      "3": "Schreddert alle 0,24 s jeden Gegner im Umkreis von 85 für 4 Schaden (jeden Gegner einmal pro Tick). Elektrisch. ★3: Die Klingen ziehen Gegner heran, statt sie wegzustoßen."
+      "1": "Schreddert alle 0,3 s jeden Gegner im Umkreis von 100 für 5 Schaden (jeden Gegner einmal pro Tick). Elektrisch.",
+      "2": "Schreddert alle 0,27 s jeden Gegner im Umkreis von 100 für 7,5 Schaden (jeden Gegner einmal pro Tick). Elektrisch.",
+      "3": "Schreddert alle 0,24 s jeden Gegner im Umkreis von 100 für 10 Schaden (jeden Gegner einmal pro Tick). Elektrisch. ★3: Die Klingen ziehen Gegner heran, statt sie wegzustoßen."
     },
     "tierScaling": [
       {
         "label": "Schaden",
         "values": [
-          "2",
-          "3",
-          "4"
+          "5",
+          "7,5",
+          "10"
         ]
       },
       {
@@ -8722,19 +8722,19 @@
   "items.blender.en": {
     "blurb": "Whirring blades around the cart.",
     "name": "Blender",
-    "rules": "Shreds every enemy within 85 for {0} damage every {1} (each enemy once per tick). Electrical.",
+    "rules": "Shreds every enemy within 100 for {0} damage every {1} (each enemy once per tick). Electrical.",
     "rulesByTier": {
-      "1": "Shreds every enemy within 85 for 2 damage every 0.3 s (each enemy once per tick). Electrical.",
-      "2": "Shreds every enemy within 85 for 3 damage every 0.27 s (each enemy once per tick). Electrical.",
-      "3": "Shreds every enemy within 85 for 4 damage every 0.24 s (each enemy once per tick). Electrical. ★3: The blades pull enemies in instead of pushing them away."
+      "1": "Shreds every enemy within 100 for 5 damage every 0.3 s (each enemy once per tick). Electrical.",
+      "2": "Shreds every enemy within 100 for 7.5 damage every 0.27 s (each enemy once per tick). Electrical.",
+      "3": "Shreds every enemy within 100 for 10 damage every 0.24 s (each enemy once per tick). Electrical. ★3: The blades pull enemies in instead of pushing them away."
     },
     "tierScaling": [
       {
         "label": "Damage",
         "values": [
-          "2",
-          "3",
-          "4"
+          "5",
+          "7.5",
+          "10"
         ]
       },
       {
@@ -11430,11 +11430,11 @@
   "items.tomato.de": {
     "blurb": "Ihre besten Tage sind vorbei. Deine bald auch.",
     "name": "Faule Tomate",
-    "rules": "Wirft alle {1} eine Tomate (400 Reichweite): {0} Trefferschaden und {2} Gift für 4 s. Bevorzugt unvergiftete Gegner. Gift erneuert sich, stapelt sich nie.",
+    "rules": "Wirft alle {1} eine Tomate (400 Reichweite): {0} Trefferschaden und {2} Gift für 6 s. Bevorzugt unvergiftete Gegner. Gift erneuert sich, stapelt sich nie.",
     "rulesByTier": {
-      "1": "Wirft alle 1,4 s eine Tomate (400 Reichweite): 2 Trefferschaden und 4/s Gift für 4 s. Bevorzugt unvergiftete Gegner. Gift erneuert sich, stapelt sich nie.",
-      "2": "Wirft alle 1,26 s eine Tomate (400 Reichweite): 3 Trefferschaden und 6/s Gift für 4 s. Bevorzugt unvergiftete Gegner. Gift erneuert sich, stapelt sich nie.",
-      "3": "Wirft alle 1,12 s eine Tomate (400 Reichweite): 4 Trefferschaden und 8/s Gift für 4 s. Bevorzugt unvergiftete Gegner. Gift erneuert sich, stapelt sich nie. ★3: Stirbt ein vergifteter Gegner, breitet sich sein verbleibendes Tomatengift im Umkreis von 75 aus. Verbreitetes Gift breitet sich nicht erneut aus."
+      "1": "Wirft alle 1 s eine Tomate (400 Reichweite): 2 Trefferschaden und 5/s Gift für 6 s. Bevorzugt unvergiftete Gegner. Gift erneuert sich, stapelt sich nie.",
+      "2": "Wirft alle 0,9 s eine Tomate (400 Reichweite): 3 Trefferschaden und 10/s Gift für 6 s. Bevorzugt unvergiftete Gegner. Gift erneuert sich, stapelt sich nie.",
+      "3": "Wirft alle 0,8 s eine Tomate (400 Reichweite): 4 Trefferschaden und 15/s Gift für 6 s. Bevorzugt unvergiftete Gegner. Gift erneuert sich, stapelt sich nie. ★3: Stirbt ein vergifteter Gegner, breitet sich sein verbleibendes Tomatengift im Umkreis von 75 aus. Verbreitetes Gift breitet sich nicht erneut aus."
     },
     "tierScaling": [
       {
@@ -11448,17 +11448,17 @@
       {
         "label": "Intervall",
         "values": [
-          "1,4 s",
-          "1,26 s",
-          "1,12 s"
+          "1 s",
+          "0,9 s",
+          "0,8 s"
         ]
       },
       {
         "label": "Gift",
         "values": [
-          "4/s",
-          "6/s",
-          "8/s"
+          "5/s",
+          "10/s",
+          "15/s"
         ]
       }
     ]
@@ -11466,11 +11466,11 @@
   "items.tomato.en": {
     "blurb": "Past its best. Coming for yours.",
     "name": "Rotten Tomato",
-    "rules": "Throws a tomato every {1} (400 range): {0} impact damage and {2} poison for 4 s. Prefers unpoisoned groceries. Poison refreshes, never stacks.",
+    "rules": "Throws a tomato every {1} (400 range): {0} impact damage and {2} poison for 6 s. Prefers unpoisoned groceries. Poison refreshes, never stacks.",
     "rulesByTier": {
-      "1": "Throws a tomato every 1.4 s (400 range): 2 impact damage and 4/s poison for 4 s. Prefers unpoisoned groceries. Poison refreshes, never stacks.",
-      "2": "Throws a tomato every 1.26 s (400 range): 3 impact damage and 6/s poison for 4 s. Prefers unpoisoned groceries. Poison refreshes, never stacks.",
-      "3": "Throws a tomato every 1.12 s (400 range): 4 impact damage and 8/s poison for 4 s. Prefers unpoisoned groceries. Poison refreshes, never stacks. ★3: When a poisoned grocery dies, its remaining tomato poison spreads within 75. Spread poison cannot spread again."
+      "1": "Throws a tomato every 1 s (400 range): 2 impact damage and 5/s poison for 6 s. Prefers unpoisoned groceries. Poison refreshes, never stacks.",
+      "2": "Throws a tomato every 0.9 s (400 range): 3 impact damage and 10/s poison for 6 s. Prefers unpoisoned groceries. Poison refreshes, never stacks.",
+      "3": "Throws a tomato every 0.8 s (400 range): 4 impact damage and 15/s poison for 6 s. Prefers unpoisoned groceries. Poison refreshes, never stacks. ★3: When a poisoned grocery dies, its remaining tomato poison spreads within 75. Spread poison cannot spread again."
     },
     "tierScaling": [
       {
@@ -11484,17 +11484,17 @@
       {
         "label": "Interval",
         "values": [
-          "1.4 s",
-          "1.26 s",
-          "1.12 s"
+          "1 s",
+          "0.9 s",
+          "0.8 s"
         ]
       },
       {
         "label": "Poison",
         "values": [
-          "4/s",
-          "6/s",
-          "8/s"
+          "5/s",
+          "10/s",
+          "15/s"
         ]
       }
     ]

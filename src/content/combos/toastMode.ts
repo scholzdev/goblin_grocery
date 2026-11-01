@@ -5,7 +5,7 @@ import { Combo, Item } from '../../engine/ids';
 // The flame trail, the amber hit sparks and the lower pop are this combo's `pattern:look` (cosmetic only; the toast pattern and damageEnemy read the look).
 export default defineCombo({
   id: Combo.toastMode, requires: [Item.toaster, Item.fan, Item.fuel],
-  tune: { count: 3, damageMult: 0.75, spreadDeg: 22 },
+  tune: { count: 2, damageMult: 0.75, spreadDeg: 25 },
   text: {
     en: {
       name: 'Toast Mode', short: '{count} flaming toasts per shot',

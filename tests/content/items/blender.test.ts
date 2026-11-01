@@ -23,7 +23,7 @@ describe('Blender: content', () => {
     expect(def.tags).toEqual(['melee', 'area']);
     expect(def.legendary).toBeUndefined();
     expect(def.cells).toEqual([{x: 0, y: 0}, {x: 0, y: 1}]);
-    expect(def.weapon).toEqual({ pattern: 'aura', damage: 2, cooldown: 0.3, range: 85, projectileSpeed: 0, count: 1, burstInterval: 0, arcDeg: 0, pull: 0, tick: 0, duration: 0, bounces: 0, chain: 0, aoe: 0 });
+    expect(def.weapon).toEqual({ pattern: 'aura', damage: 5, cooldown: 0.3, range: 100, projectileSpeed: 0, count: 1, burstInterval: 0, arcDeg: 0, pull: 0, tick: 0, duration: 0, bounces: 0, chain: 0, aoe: 0 });
   });
 
   it('keeps its position in the item order', () => {
@@ -32,24 +32,24 @@ describe('Blender: content', () => {
 
   it('renders its text for every level, EN and DE', () => {
     expect([1, 2, 3].map((t) => itemRules('blender', t))).toEqual([
-      'Shreds every enemy within 85 for 2 damage every 0.3 s (each enemy once per tick). Electrical.',
-      'Shreds every enemy within 85 for 3 damage every 0.27 s (each enemy once per tick). Electrical.',
-      'Shreds every enemy within 85 for 4 damage every 0.24 s (each enemy once per tick). Electrical. ★3: The blades pull enemies in instead of pushing them away.',
+      'Shreds every enemy within 100 for 5 damage every 0.3 s (each enemy once per tick). Electrical.',
+      'Shreds every enemy within 100 for 7.5 damage every 0.27 s (each enemy once per tick). Electrical.',
+      'Shreds every enemy within 100 for 10 damage every 0.24 s (each enemy once per tick). Electrical. ★3: The blades pull enemies in instead of pushing them away.',
     ]);
     expect(itemT('blender')).toMatchObject({ name: 'Blender', blurb: 'Whirring blades around the cart.' });
     setLang('de');
-    expect([1, 3].map((t) => itemRules('blender', t))).toEqual(['Schreddert alle 0,3 s jeden Gegner im Umkreis von 85 für 2 Schaden (jeden Gegner einmal pro Tick). Elektrisch.', 'Schreddert alle 0,24 s jeden Gegner im Umkreis von 85 für 4 Schaden (jeden Gegner einmal pro Tick). Elektrisch. ★3: Die Klingen ziehen Gegner heran, statt sie wegzustoßen.']);
+    expect([1, 3].map((t) => itemRules('blender', t))).toEqual(['Schreddert alle 0,3 s jeden Gegner im Umkreis von 100 für 5 Schaden (jeden Gegner einmal pro Tick). Elektrisch.', 'Schreddert alle 0,24 s jeden Gegner im Umkreis von 100 für 10 Schaden (jeden Gegner einmal pro Tick). Elektrisch. ★3: Die Klingen ziehen Gegner heran, statt sie wegzustoßen.']);
     expect(itemT('blender')).toMatchObject({ name: 'Mixer', blurb: 'Surrende Klingen rund um den Wagen.' });
   });
 
   it('generates the shop scaling rows', () => {
     expect(tierScaling('blender')).toEqual([
-      { label: 'Damage', values: ['2', '3', '4'] },
+      { label: 'Damage', values: ['5', '7.5', '10'] },
       { label: 'Interval', values: ['0.3 s', '0.27 s', '0.24 s'] },
     ]);
     setLang('de');
     expect(tierScaling('blender')).toEqual([
-      { label: 'Schaden', values: ['2', '3', '4'] },
+      { label: 'Schaden', values: ['5', '7,5', '10'] },
       { label: 'Intervall', values: ['0,3 s', '0,27 s', '0,24 s'] },
     ]);
   });
@@ -68,24 +68,24 @@ describe('Blender: build', () => {
       expect(w.damage).toBe(tune.damage[t - 1] * kitchen(t));
       expect(w.cooldown).toBe(tune.cooldown[t - 1]);
     }
-    expect([1, 2, 3].map((t) => stats([at('blender', t)]).damage)).toEqual([2.0, 3.0, 4.0].map((d, i) => d * kitchen(i + 1)));
+    expect([1, 2, 3].map((t) => stats([at('blender', t)]).damage)).toEqual([5.0, 7.5, 10.0].map((d, i) => d * kitchen(i + 1)));
   });
 
   it('carries the base shape of the pattern into the build', () => {
-    expect(stats([at('blender')])).toMatchObject({ pattern: 'aura', range: 85, projectileSpeed: 0, count: 1, burstInterval: 0, arcDeg: 0, pull: 0, tick: 0, duration: 0, bounces: 0, chain: 0, aoe: 0 });
+    expect(stats([at('blender')])).toMatchObject({ pattern: 'aura', range: 100, projectileSpeed: 0, count: 1, burstInterval: 0, arcDeg: 0, pull: 0, tick: 0, duration: 0, bounces: 0, chain: 0, aoe: 0 });
   });
 });
 
 describe('Blender: pattern aura', () => {
   it('shreds every enemy within range + radius once per tick (x1.1 from its own Kitchen L1) with a quiet push of 20 (out, below ★3)', () => {
     const { a, fake } = arsenal([at('blender', 2)]);
-    const trigger = fake.spawnEnemy({ x: 70, hp: 1000 }); // inside 85, so the blender fires
-    const rim = fake.spawnEnemy({ x: 0, y: -100, hp: 1000 }); // beyond 85 but inside 85 + 20
-    const out = fake.spawnEnemy({ x: -106, hp: 1000 });
+    const trigger = fake.spawnEnemy({ x: 70, hp: 1000 }); // inside 100, so the blender fires
+    const rim = fake.spawnEnemy({ x: 0, y: -115, hp: 1000 }); // beyond 100 but inside 100 + 20
+    const out = fake.spawnEnemy({ x: -130, hp: 1000 });
     a.step(0.45);
     const hits = fake.callsOf('damage');
     expect(hits.map((c) => c.enemy)).toEqual([trigger.id, rim.id]);
-    expect(hits.every((c) => c.dmg === 3 * setTuneAt('kitchen', 2)!.damageMult)).toBe(true);
+    expect(hits.every((c) => c.dmg === 7.5 * setTuneAt('kitchen', 2)!.damageMult)).toBe(true);
     expect(hits.map((c) => c.opts)).toEqual([{ kb: 20, kbX: 1, kbY: 0, quiet: true }, { kb: 20, kbX: 0, kbY: -1, quiet: true }]);
     expect(hits.some((c) => c.enemy === out.id)).toBe(false);
     expect(a.sounds).toEqual(['blender']);
@@ -119,7 +119,7 @@ describe('Blender: pattern aura', () => {
 
   it('does nothing without an enemy inside 85 (the target search uses the stat range)', () => {
     const { a, fake } = arsenal([at('blender', 3)]);
-    fake.spawnEnemy({ x: 95, hp: 1000 });
+    fake.spawnEnemy({ x: 110, hp: 1000 });
     a.step(0.5);
     expect(fake.callsOf('damage')).toHaveLength(0);
   });

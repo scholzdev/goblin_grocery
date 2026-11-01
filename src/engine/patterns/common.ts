@@ -1,7 +1,7 @@
 import type { WeaponStats } from '../../types';
 import { resolveTune, type ItemContent } from '../define';
 import type { HookTable, WeaponLook } from '../hooks';
-import type { PatternHost, Sprite, WeaponRt } from './types';
+import type { PatternHost, Sprite, TargetMode, WeaponRt } from './types';
 
 // Helpers every pattern shares.
 
@@ -15,6 +15,13 @@ export const CART_STANDOFF = 12;
 export function origin(h: PatternHost): { x: number; y: number } {
   const p = h.sc.player;
   return { x: p.x + p.facing * 18, y: p.y };
+}
+
+/** Directional weapons follow the mouse when active, otherwise their selected target. */
+export function aimAngle(h: PatternHost, target: { x: number; y: number } | null, mode: TargetMode = 'auto'): number {
+  if (mode === 'cursor' && h.sc.aimAngle !== null) return h.sc.aimAngle;
+  const o = origin(h);
+  return Math.atan2((target?.y ?? h.sc.player.y) - o.y, (target?.x ?? o.x) - o.x);
 }
 
 /** Multipack on sweeps/cones/mortars: the attack repeats (count - 1) more times, `repeatDelay` apart, while the aisle is still being fought. */
@@ -38,7 +45,7 @@ export function emitFire(h: PatternHost, st: WeaponStats, x: number, y: number, 
 /** The runtime of the cart's `index`th weapon (`item` is its content file): its cooldown starts staggered (0.4 s + 0.17 s per weapon), its pattern parameters are resolved at its tier. */
 export function weaponRt(stats: WeaponStats, index: number, blades: Sprite | null, item: ItemContent): WeaponRt {
   return {
-    stats, cd: 0.4 + index * 0.17, burstLeft: 0, burstT: 0, blades,
+    stats, targetMode: 'auto', cd: 0.4 + index * 0.17, burstLeft: 0, burstT: 0, blades,
     base: item.weapon!,
     tune: resolveTune(item.tune, stats.tier),
     electrical: !!item.electrical,

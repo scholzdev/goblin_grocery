@@ -1,0 +1,11 @@
+{
+    "schema_version": 1,
+    "commit": "fbfe2ad63907428c534a3b651086451e1323000c",
+    "indexed_at": "2026-11-01T23:53:22Z",
+    "project": "Users-scholzf-dev-goblin_grocery",
+    "nodes": 10221,
+    "edges": 19492,
+    "original_size": 20774912,
+    "compressed_size": 3444225,
+    "compression_level": 3
+}

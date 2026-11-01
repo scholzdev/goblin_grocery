@@ -1,0 +1,3 @@
+  shop 1 lv1: hp=26/40 game=38s fps=55 peakAlive=9@32s money=16 kills=15 cells=2/20 shelf=0 
+  door: event
+run 0: defeat wave=2 hp=0 kills=42  [toaster hotsauce] time=100s game=97s fps=60 peakAlive=8@80s alive=5

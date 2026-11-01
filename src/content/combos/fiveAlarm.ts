@@ -5,7 +5,7 @@ import { Combo, Item } from '../../engine/ids';
 // mark rule and the crit roll (Five-Alarm, then mark, then crit; `order` 10 is the slot docs/item-hooks-refactor.md §4c reserved).
 export default defineCombo({
   id: Combo.fiveAlarm, requires: [Item.toaster, Item.hotsauce, Item.fuel],
-  tune: { vsBurning: 1.8 },
+  tune: { vsBurning: 1.25 },
   text: {
     en: {
       name: 'Five-Alarm Toast', short: '+{vsBurning|pctup}% vs burning',

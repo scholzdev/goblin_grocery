@@ -1,0 +1,5 @@
+  shop 1 lv1: hp=16/40 game=60s fps=60 peakAlive=8@51s money=22 kills=26 cells=2/20 shelf=0 
+  door: quiet
+  shop 2 lv1: hp=32/40 game=120s fps=60 peakAlive=5@108s money=27 kills=49 cells=3/20 shelf=0 
+  door: none
+run 0: reached wave=3 hp=32/40 kills=49  [toaster battery hotsauce*2] time=125s game=120s fps=61

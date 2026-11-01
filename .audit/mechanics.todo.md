@@ -1,0 +1,23 @@
+# Mechanics implementation (figure-it-out)
+
+- [x] Read the Principles section of the poteto-mode skill.
+- [x] Phase A: Frame. Predicate, scope, rigor (high).
+- [x] Phase B: Design the workflow (below).
+- [ ] Phase C: Run the loop.
+  - [ ] W1 scaffold: P1 build-lab fidelity, P2 metrics script (parallel worktrees, reviewed)
+  - [ ] Merge P1+P2 into mechanics/integration, full suite green
+  - [ ] Baseline capture on fixed proxy, current mechanics (seed 1, 600 runs, full + starting pool)
+  - [ ] W2 build: F1 stock+dupes+shop1, F2 sets-by-tier, F3 interest, F4 doors, F5 death recap, F6 goal unlocks, F7a/F7b weapon star-3 (parallel worktrees, reviewed, max 1 fix round)
+  - [ ] Integrate W2 branches, regenerate golden once, declared-keys gate, full suite green
+  - [ ] W3: F8 progressive disclosure (#11) and B1 balance (#5 curve reshape + retune + Restock decision) in parallel
+  - [ ] Integrate W3, full suite green
+- [ ] Phase D: decision trail rows as each step lands (.audit/mechanics.tsv)
+- [ ] Phase E: Verify and hand back.
+  - [ ] Metrics after vs baseline (judgment targets)
+  - [ ] verify-shot captures EN + DE of every changed screen
+  - [ ] botrun crash smoke
+  - [ ] deslop + no-comments on the integrated diff
+  - [ ] Cross-model review of the trail
+  - [ ] Remove worktrees, keep branches, report spend
+- skip: Opening a PR. Not pushing or opening a PR until the user asks.
+- skip: #10 directional modules. Audit pairs it with #11 and it adds a rule to a crowded system.

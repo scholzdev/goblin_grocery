@@ -1,14 +1,14 @@
 import { AFFINITY, defineItem, weaponBase, weaponTiers, WEAPON_ROWS } from '../../engine/define';
 import { Item, Set } from '../../engine/ids';
 
-const W = weaponBase({ pattern: 'tomato', damage: 2, cooldown: 1.4, range: 400, projectileSpeed: 430 });
+const W = weaponBase({ pattern: 'tomato', damage: 2, cooldown: 1.0, range: 400, projectileSpeed: 430 });
 // Only a direct tomato hit arms a spread. Transferred poison can never propagate again.
 interface Rot { dps: number; until: number; spread: boolean }
 
 export default defineItem({
   id: Item.tomato, kind: 'weapon', sets: [Set.snacks], shape: '1x2', price: 13, tags: ['ranged'],
   weapon: W,
-  tune: { ...weaponTiers(W), range: W.range, dps: [4, 6, 8], duration: 4, spreadRadius: 75 },
+  tune: { ...weaponTiers(W), range: W.range, dps: [5, 10, 15], duration: 6, spreadRadius: 75 },
   rows: [...WEAPON_ROWS, { label: { en: 'Poison', de: 'Gift' }, key: 'dps', fmt: 'ps' }],
   text: {
     en: { name: 'Rotten Tomato', blurb: 'Past its best. Coming for yours.', rules: 'Throws a tomato every {cooldown|s} ({range} range): {damage} impact damage and {dps|ps} poison for {duration|s}. Prefers unpoisoned groceries. Poison refreshes, never stacks.', star3: '★3: When a poisoned grocery dies, its remaining tomato poison spreads within {spreadRadius}. Spread poison cannot spread again.' },

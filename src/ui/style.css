@@ -97,6 +97,23 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .chip.slot-chip { background: #30203F; color: #fff; }
 .chip.slot-none { background: #F45F52; color: #fff; }
 #hud .actives { display: flex; gap: 8px; margin-top: 6px; }
+.combat-tools { display: flex; align-items: center; gap: 8px; pointer-events: auto; }
+.hud-tool, .target-chip { border: 2px solid var(--plum); border-radius: 8px; background: var(--cream); color: var(--plum); box-shadow: 0 3px 0 var(--plum); font: 800 12px/1 var(--ui); cursor: pointer; }
+.hud-tool { padding: 6px 10px; font-family: var(--display); font-size: 15px; }
+.targeting { display: flex; gap: 5px; }
+.target-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 6px; min-width: 72px; justify-content: center; }
+.target-chip img { width: 22px; height: 22px; }
+.target-chip.cursor { background: var(--gold); }
+.target-chip.focus { background: var(--coral); color: var(--cream); }
+.map-panel { position: absolute; right: 0; top: 62px; width: 310px; padding: 10px 12px 12px; pointer-events: auto; z-index: 20; }
+.map-title { font: 400 20px/1 var(--display); text-align: center; margin-bottom: 6px; }
+.map-panel svg { display: block; width: 100%; height: auto; border: 3px solid var(--plum); border-radius: 10px; background: #30203f; }
+.map-floor { fill: #b8ded2; stroke: #fff2d5; stroke-width: 8; }
+.map-panel svg rect:not(.map-floor) { fill: #f45f52; stroke: #c9443b; stroke-width: 5; opacity: 0.9; }
+.map-cart { fill: #f5bd45; stroke: #30203f; stroke-width: 6; }
+.map-legend { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 7px; font-size: 12px; font-weight: 800; }
+.map-legend i { width: 12px; height: 12px; display: inline-block; border: 2px solid var(--plum); border-radius: 3px; }
+.map-legend .walk { background: var(--mint); }.map-legend .blocked { background: var(--coral); }
 .active-item { display: flex; align-items: center; gap: 6px; padding: 3px 8px; background: #FFF2D5; border: 3px solid #30203F; border-radius: 10px; }
 .active-item img { width: 28px; height: 28px; }
 .active-item kbd { font: 700 12px/1 inherit; padding: 2px 5px; border: 2px solid #30203F; border-radius: 5px; background: #fff; }
@@ -243,6 +260,10 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .item.ghost.bad { border-color: var(--coral); }
 
 #shop .combos { margin: 14px auto 0; width: 488px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.combo-group { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.combo-group-head { grid-column: 1 / -1; display: flex; align-items: center; gap: 7px; padding: 3px 6px 0; font-family: var(--display); font-size: 17px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--plum-soft); }
+.combo-group-head img { width: 26px; height: 26px; object-fit: contain; }
+.combo-group-head span { margin-left: auto; font: 800 11px/1 var(--ui); opacity: 0.65; }
 #shop .featured { margin: 8px auto 0; width: 488px; text-align: center; font-size: 13px; font-weight: 700; line-height: 1.3; }
 #shop .featured b { font-weight: 800; }
 #shop .change-line { margin: 10px auto 0; width: fit-content; max-width: 488px; text-align: center; background: var(--plum); color: var(--cream); border-radius: 12px; padding: 5px 14px; font-size: 14px; font-weight: 800; line-height: 1.3; }
@@ -509,6 +530,11 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .tab { font: 400 18px var(--display); border: 3px solid var(--plum); border-radius: 999px; padding: 6px 16px 3px; background: var(--cream); }
 .tab.on { background: var(--plum); color: var(--gold); }
 .codex-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; overflow-y: auto; text-align: left; padding: 2px; }
+.codex-combo-groups { overflow-y: auto; text-align: left; padding: 2px; }
+.codex-combo-group { margin-bottom: 14px; }
+.codex-combo-group h3 { display: flex; align-items: center; gap: 8px; margin: 4px 2px 6px; font: 400 24px/1 var(--display); text-transform: uppercase; color: var(--plum-soft); }
+.codex-combo-group h3 img { width: 30px; height: 30px; object-fit: contain; }
+.codex-combo-group h3 span { margin-left: auto; font: 800 12px/1 var(--ui); opacity: 0.6; }
 .codex-card { border: 3px dashed rgba(48, 32, 63, 0.35); border-radius: 12px; padding: 10px 12px; background: rgba(48, 32, 63, 0.04); }
 .codex-card.known { border: 3px solid var(--plum); background: #fff6dc; box-shadow: 0 4px 0 var(--plum); }
 .codex-card .icons { display: flex; align-items: center; gap: 3px; }

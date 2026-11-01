@@ -36,6 +36,7 @@ import { Enemy as EnemyIds } from '../engine/ids';
 import { PhaserCtx } from './phaserCtx';
 import { attackBy, createEnemy, drawTelegraph, updateEnemy, type Enemy } from './enemies';
 import { Arsenal } from './weapons';
+import type { TargetMode } from '../engine/patterns';
 import { PlayerOverlay } from './playerOverlay';
 import { Hazards } from './hazards';
 import { AisleEvents } from './events';
@@ -124,6 +125,8 @@ export class ArenaScene extends Phaser.Scene {
   /** Mouse target: hover chooses a grocery; clicking locks that grocery for auto-aim. */
   private mouseTarget: Enemy | null = null;
   private mouseTargetLocked = false;
+  /** Cursor direction for directional weapons; null until the mouse enters the arena. */
+  aimAngle: number | null = null;
   /** Mid-shift boss while alive; `miniDue` holds the aisle open until its loot is picked. */
   private mini: Enemy | null = null;
   /** Conveyor Kiosk shove: horizontal player push (px/s) and seconds left. */
@@ -157,6 +160,7 @@ export class ArenaScene extends Phaser.Scene {
     this.boss = null;
     this.mouseTarget = null;
     this.mouseTargetLocked = false;
+    this.aimAngle = null;
     this.mini = null;
     this.bossPush.t = 0;
     this.miniDue = false;
@@ -642,6 +646,16 @@ export class ArenaScene extends Phaser.Scene {
     return this.nearestEnemyFrom(this.player.x, this.player.y, range);
   }
 
+  targetForWeapon(range: number, mode: TargetMode): Enemy | null {
+    if (mode === 'auto') return this.nearestEnemyFrom(this.player.x, this.player.y, range);
+    return this.nearestEnemy(range);
+  }
+
+  setWeaponTargetMode(uid: string, mode: TargetMode): void {
+    const w = this.arsenal.weaponOf(uid);
+    if (w) w.targetMode = mode;
+  }
+
   nearestEnemyFrom(x: number, y: number, range: number, exclude?: Set<number>): Enemy | null {
     let best: Enemy | null = null;
     let bd = range * range;
@@ -668,8 +682,8 @@ export class ArenaScene extends Phaser.Scene {
   }
 
   clampToArena(o: { x: number; y: number }, r: number): boolean {
-    const x = Phaser.Math.Clamp(o.x, ARENA.left + r * 0.5, ARENA.right - r * 0.5);
-    const y = Phaser.Math.Clamp(o.y, ARENA.top, ARENA.bottom);
+    const x = Phaser.Math.Clamp(o.x, ARENA.left + r, ARENA.right - r);
+    const y = Phaser.Math.Clamp(o.y, ARENA.top + r, ARENA.bottom - r);
     const hit = x !== o.x || y !== o.y;
     o.x = x; o.y = y;
     return hit;
@@ -1082,6 +1096,8 @@ export class ArenaScene extends Phaser.Scene {
         timeLeft: this.timeLeft(),
         elapsed: this.waveTime,
         actives: activeSlots(s.inventory).filter((a) => a.slot).map((a) => ({ slot: a.slot!, type: a.inst.type, left: a.left, max: a.max })),
+        weapons: this.arsenal.weapons.map((w) => ({ uid: w.stats.uid, type: w.stats.type, mode: w.targetMode })),
+        map: { department: s.department, player: { x: this.player.x, y: this.player.y }, obstacles: this.obstacles },
         shoveCd: this.player.chainT > 0 ? 0 : Math.max(0, this.player.shoveCd), shoveMax: s.build.shoveCooldown,
         boss: this.boss ? { hp: Math.max(0, this.boss.hp), max: this.boss.maxHp, enraged: this.enraged, name: enemyT(this.boss.def.id).name.toUpperCase() }
           : this.mini ? { hp: Math.max(0, this.mini.hp), max: this.mini.maxHp, enraged: this.enraged, name: t('miniBossBar', { name: enemyT(this.mini.def.id).name.toUpperCase() }) } : null,
@@ -1337,13 +1353,25 @@ export class ArenaScene extends Phaser.Scene {
 
   /** Mouse aim assist: hover a grocery to preview it, click to lock/unlock auto-aim. */
   private initMouseTargeting(): void {
+    window.addEventListener('gg-target-mode', (e) => {
+      const d = (e as CustomEvent<{ uid?: string; mode?: TargetMode }>).detail;
+      if (d.uid && (d.mode === 'auto' || d.mode === 'cursor' || d.mode === 'focus')) this.setWeaponTargetMode(d.uid, d.mode);
+    });
+    window.addEventListener('gg-target-mode-cycle', (e) => {
+      const uid = (e as CustomEvent<{ uid?: string }>).detail.uid;
+      if (!uid) return;
+      const w = this.arsenal.weaponOf(uid);
+      if (w) this.setWeaponTargetMode(uid, w.targetMode === 'auto' ? 'cursor' : w.targetMode === 'cursor' ? 'focus' : 'auto');
+    });
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => {
       if (!this.combatActive() || store.state.labSandbox) return;
-      const hit = this.enemyAt(p.worldX, p.worldY);
+      this.aimAngle = Math.atan2(p.worldY - this.player.y, p.worldX - this.player.x);
+      const hit = this.mouseAimTarget(p.worldX, p.worldY);
       if (!this.mouseTargetLocked) this.mouseTarget = hit;
     });
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
       if (!this.combatActive() || store.state.labSandbox || p.button !== 0) return;
+      this.aimAngle = Math.atan2(p.worldY - this.player.y, p.worldX - this.player.x);
       const hit = this.enemyAt(p.worldX, p.worldY);
       if (hit) {
         if (this.mouseTargetLocked && this.mouseTarget === hit) this.mouseTargetLocked = false;
@@ -1354,7 +1382,7 @@ export class ArenaScene extends Phaser.Scene {
       }
     });
     this.input.on('pointerout', () => {
-      if (!this.mouseTargetLocked) this.mouseTarget = null;
+      if (!this.mouseTargetLocked) { this.mouseTarget = null; this.aimAngle = null; }
     });
   }
 
@@ -1363,6 +1391,29 @@ export class ArenaScene extends Phaser.Scene {
       .filter((e) => e.alive && e.state !== 'spawn' && !e.dummy)
       .map((e) => ({ e, d: Math.hypot(e.x - x, e.y - e.sprite.displayHeight * 0.4 - y) }))
       .filter(({ e, d }) => d <= Math.max(e.def.radius, e.sprite.displayWidth * 0.55))
+      .sort((a, b) => a.d - b.d)[0]?.e ?? null;
+  }
+
+  /** Prefer a grocery crossed by the cursor ray; otherwise mark the grocery nearest the cursor. */
+  private mouseAimTarget(x: number, y: number): Enemy | null {
+    const dx = x - this.player.x, dy = y - this.player.y, len = Math.hypot(dx, dy);
+    const valid = this.enemies.filter((e) => e.alive && e.state !== 'spawn' && !e.dummy);
+    if (len > 1) {
+      let best: Enemy | null = null, bestPerp = Infinity, bestAlong = Infinity;
+      for (const e of valid) {
+        const ex = e.x - this.player.x, ey = e.y - this.player.y;
+        const along = (ex * dx + ey * dy) / len;
+        if (along < 0) continue;
+        const perp = Math.abs(ex * dy - ey * dx) / len;
+        const tolerance = Math.max(e.def.radius, e.sprite.displayWidth * 0.55, 24);
+        if (perp <= tolerance && (perp < bestPerp || perp === bestPerp && along < bestAlong)) {
+          best = e; bestPerp = perp; bestAlong = along;
+        }
+      }
+      if (best) return best;
+    }
+    return valid
+      .map((e) => ({ e, d: Math.hypot(e.x - x, e.y - e.sprite.displayHeight * 0.4 - y) }))
       .sort((a, b) => a.d - b.d)[0]?.e ?? null;
   }
 

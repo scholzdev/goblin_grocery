@@ -1,0 +1,5 @@
+  shop 1 lv1: hp=40/40 game=60s fps=61 peakAlive=7@50s money=25 kills=26 cells=2/20 shelf=0 
+  door: event
+  shop 2 lv1: hp=27/40 game=120s fps=60 peakAlive=9@110s money=31 kills=54 cells=7/20 shelf=0 
+  door: none
+run 0: reached wave=3 hp=37/40 kills=54 coldStorage [toaster hotsauce fan ice vacuum] time=124s game=120s fps=61

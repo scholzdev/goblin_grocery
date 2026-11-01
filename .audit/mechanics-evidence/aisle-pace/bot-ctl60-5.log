@@ -1,0 +1,5 @@
+  shop 1 lv1: hp=40/40 game=60s fps=61 money=19 kills=26 cells=2/20 shelf=0 
+  door: quiet
+  shop 2 lv1: hp=40/40 game=120s fps=61 money=20 kills=48 cells=5/20 shelf=0 
+  door: none
+run 0: reached wave=3 hp=40/55 kills=48  [toaster fan hotsauce*2 lunchbox] time=124s game=120s fps=61

@@ -1,5 +1,5 @@
 import type { WeaponStats } from '../../types';
-import { degToRad, emitFire, origin } from './common';
+import { aimAngle, degToRad, emitFire, origin } from './common';
 import type { Pattern, PatternHost } from './types';
 
 function throwToast(h: PatternHost, st: WeaponStats, o: { x: number; y: number }, a: number, first: boolean): void {
@@ -12,7 +12,7 @@ export const toast: Pattern = {
   id: 'toast',
   fire(h, w, target) {
     const o = origin(h), st = w.stats, p = h.sc.player;
-    const base = Math.atan2(target!.y - o.y, target!.x - o.x);
+    const base = aimAngle(h, target, w.targetMode);
     // Multipack can add projectiles without a recipe spread: fan them out a little so they don't overlap.
     const spread = degToRad(st.spreadDeg || 12);
     for (let i = 0; i < st.count; i++) throwToast(h, st, o, base + (st.count > 1 ? (i - (st.count - 1) / 2) * spread : 0), i === 0);

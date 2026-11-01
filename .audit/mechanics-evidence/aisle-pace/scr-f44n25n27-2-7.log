@@ -1,0 +1,5 @@
+  shop 1 lv1: hp=26/40 game=44s fps=60 peakAlive=9@35s money=20 kills=19 cells=2/20 shelf=0 
+  door: none
+  shop 2 lv1: hp=21/40 game=88s fps=60 peakAlive=8@79s money=27 kills=41 cells=4/20 shelf=0 
+  door: vipAisle
+run 0: reached wave=3 hp=31/40 kills=41  [toaster fan popcorn] time=93s game=88s fps=60

@@ -221,9 +221,9 @@ describe('combo sims', () => {
   const ACTIVE: Partial<Record<RecipeId, RecipeId[]>> = { tailwind: ['sugarRush', 'tailwind'], sourMist: ['mistMachine', 'sourMist'] };
 
   it('there is one sim for every combo', () => {
-    expect(RECIPE_ORDER).toHaveLength(38);
+    expect(RECIPE_ORDER).toHaveLength(60);
     for (const [id, simId] of Object.entries(COMBO_SIMS)) expect(simRegistry.get(simId), `${id} -> ${simId}`).toBeDefined();
-    expect(simRegistry.ids.filter((i) => i.startsWith('combo-'))).toHaveLength(38);
+    expect(simRegistry.ids.filter((i) => i.startsWith('combo-'))).toHaveLength(60);
   });
   it('each sim activates its combo, and exactly the combos listed in ACTIVE besides it', () => {
     for (const [id, simId] of Object.entries(COMBO_SIMS) as [RecipeId, string][]) {
@@ -368,7 +368,7 @@ describe('affinity sims', () => {
       // the electric sim is the one with several weapons: the arcs need an Electric set (L3), made of the Laser and the Blender (both declare `electric`)
       if (id === 'affinity-electric') expect(run.build.weapons.map((w) => w.type)).toEqual(['laser', 'blender']);
       else expect(run.build.weapons, id).toHaveLength(1);
-      expect(run.build.recipes.map((r) => r.id), id).toEqual(id === 'affinity-frost' ? ['slushie'] : []); // the frost sim's Fizz Cannon + Ice Pack is Slushie
+      expect(run.build.recipes.map((r) => r.id), id).toEqual(id === 'affinity-frost' ? ['slushie'] : id === 'affinity-electric' ? ['neonSmoothie'] : []); // the frost sim's Fizz Cannon + Ice Pack is Slushie; electric also has Blender + Battery
     }
   });
 

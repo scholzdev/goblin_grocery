@@ -3,7 +3,7 @@ import { Item, Set, Tag } from '../../engine/ids';
 
 // Pattern `aura` (engine/patterns/aura.ts): everything within `range` takes a tick of damage and a small push out; the blade ring spins while fighting. Smoothie Shield hooks `pattern:aura`,
 // Brain Freeze's pale, slower blades are its `pattern:look`.
-const W = weaponBase({ pattern: 'aura', damage: 2, cooldown: 0.3, range: 85 });
+const W = weaponBase({ pattern: 'aura', damage: 5, cooldown: 0.3, range: 100 });
 
 export default defineItem({
   id: Item.blender, kind: 'weapon', sets: [Set.kitchen], shape: '1x2', price: 15, tags: ['melee', 'area'], electrical: true, elements: [Tag.electric],

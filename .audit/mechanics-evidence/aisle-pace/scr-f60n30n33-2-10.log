@@ -1,0 +1,5 @@
+  shop 1 lv1: hp=40/40 game=60s fps=61 peakAlive=7@50s money=24 kills=26 cells=2/20 shelf=0 
+  door: none
+  shop 2 lv1: hp=9/40 game=120s fps=59 peakAlive=8@107s money=36 kills=54 cells=5/20 shelf=0 
+  door: none
+run 0: reached wave=3 hp=19/40 kills=54  [toaster hotsauce fan nailgun] time=124s game=120s fps=60

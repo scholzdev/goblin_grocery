@@ -1,0 +1,5 @@
+  shop 1 lv1: hp=40/40 game=44s fps=60 peakAlive=9@31s money=25 kills=19 cells=2/20 shelf=0 
+  door: event
+  shop 2 lv1: hp=41/55 game=88s fps=61 peakAlive=8@79s money=19 kills=39 cells=7/20 shelf=0 
+  door: quiet
+run 0: reached wave=3 hp=51/55 kills=39  [toaster hotsauce fan lunchbox] time=94s game=88s fps=61

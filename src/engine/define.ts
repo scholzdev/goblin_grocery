@@ -47,6 +47,10 @@ export const RECIPE_ORDER = [
   'fiveAlarm', 'sizzlingSkillet', 'chickenDinner', 'frostbiteNails', 'staticCling', 'reheat', 'smoothieShield', 'confettiCannon', 'blackIce', 'shrapnel',
   'pressureWasher', 'powerSurge', 'potSlam', 'priceCheck', 'sugarRush', 'smashBank', 'bagIt', 'sourMist', 'sparksFly', 'rayGun', 'tailwind', 'crackOpen',
   'fireworksShow', 'kettleCorn', 'freshBread', 'liveWire', 'thunderstorm', 'slushie',
+  'scaldingClean', 'foamGuard', 'stickyMop', 'luckyFizz', 'sodaShield', 'magneticFizz', 'neonSmoothie', 'prepLine', 'thickSmoothie',
+  'bloodyMary', 'tomatoToll', 'tomatoHelmet', 'salsaSplash', 'acidTomato',
+  'polarArc', 'frostArmor', 'coldDiscount', 'frozenKernels',
+  'goldenKernels', 'butteredPopcorn', 'blanketBarrage', 'chillKernels',
 ] as const;
 
 /**

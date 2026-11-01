@@ -2,7 +2,7 @@ import { DEPTH } from '../../data/depth';
 import { newHitTracker, tryHit } from '../../systems/combat';
 import { applyWet } from '../wet';
 import { hasStar3, weaponDamageMult, wrapAngle } from '../define';
-import { degToRad, repeat } from './common';
+import { aimAngle, degToRad, repeat } from './common';
 import type { Pattern, PatternEnemy, PatternHost, WeaponRt } from './types';
 
 /**
@@ -13,9 +13,9 @@ function coneOnce(h: PatternHost, w: WeaponRt): void {
   const sc = h.sc;
   const p = sc.player;
   const st = w.stats;
-  const t = sc.nearestEnemy(st.range + 40);
+  const t = sc.targetForWeapon(st.range + 40, w.targetMode);
   if (!t) return;
-  const a = Math.atan2(t.y - p.y, t.x - p.x);
+  const a = aimAngle(h, t, w.targetMode);
   const half = degToRad(st.arcDeg / 2);
   const blow = w.tune.blow !== undefined ? w.tune.blow * weaponDamageMult(st.tier) : undefined;
   const blowStun = hasStar3(st.tier) ? w.tune.slamStun : undefined;

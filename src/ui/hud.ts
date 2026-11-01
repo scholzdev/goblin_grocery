@@ -7,6 +7,7 @@ import { fmtNum, t, type UIKey } from '../i18n';
 import { settings } from '../state/settings';
 import { ACTIVE_KEYS, bindingLabel } from '../state/keymap';
 import { initPunchCard, renderPunchCard } from './punchcard';
+import type { TargetMode } from '../engine/patterns';
 
 // Compact receipt-strip combat HUD. Built once; per-frame values only touch changed text.
 export const svg = (key: string): string => `${import.meta.env.BASE_URL}assets/svg/${key}.svg`;
@@ -40,7 +41,9 @@ export function initHud(ui: HTMLElement): void {
       <div class="barcode"></div>
     </div>
     <div class="recipes"></div>
-    <div class="actives"></div>`;
+    <div class="actives"></div>
+    <div class="combat-tools"><div class="targeting"></div></div>
+    <div class="map-panel receipt hidden" aria-label="Walkable map"></div>`;
   const boss = document.createElement('div');
   boss.id = 'bossbar';
   boss.className = 'receipt hidden';
@@ -62,6 +65,11 @@ export function initHud(ui: HTMLElement): void {
     shove: hud.querySelector('.shove')!, ring: hud.querySelector('.shove .ring')!, recipes: hud.querySelector('.recipes')!, actives: hud.querySelector('.actives')!,
     bossfill: boss.querySelector('.bar > i')!,
   };
+  hud.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-target-mode]');
+    if (!b) return;
+    window.dispatchEvent(new CustomEvent('gg-target-mode', { detail: { uid: b.dataset.uid, mode: b.dataset.targetMode as TargetMode } }));
+  });
   store.on('change', render);
   relabelHud();
 }
@@ -95,7 +103,7 @@ function render(): void {
 }
 
 export const hud = {
-  tick(o: { timeLeft: number; elapsed: number; actives?: { slot: number; type: string; left: number; max: number }[]; shoveCd: number; shoveMax: number; boss: { hp: number; max: number; enraged: boolean; name: string } | null }): void {
+  tick(o: { timeLeft: number; elapsed: number; actives?: { slot: number; type: string; left: number; max: number }[]; weapons?: { uid: string; type: string; mode: TargetMode }[]; map?: { department: string; player: { x: number; y: number }; obstacles: { x: number; y: number; w: number; h: number }[] }; shoveCd: number; shoveMax: number; boss: { hp: number; max: number; enraged: boolean; name: string } | null }): void {
     if (!els.t) return;
     const t = o.timeLeft >= 0 ? `${Math.ceil(o.timeLeft)}s` : `${Math.floor(o.elapsed)}s`;
     set('t', t);
@@ -112,6 +120,19 @@ export const hud = {
     if (last.actives !== act) { // one chip per active slot, in slot order: icon, its key, and one pip per charge (spent pips are hollow)
       last.actives = act;
       els.actives.innerHTML = (o.actives ?? []).map((a) => `<span class="active-item${a.left <= 0 ? ' spent' : ''}" title="${itemT(a.type as ItemTypeId).name}"><img src="${svg(`icon_${a.type}`)}" alt=""><kbd>${bindingLabel(settings.keys, ACTIVE_KEYS[a.slot - 1])}</kbd><span class="pips">${Array.from({ length: a.max }, (_, i) => `<i class="${i < a.left ? 'on' : ''}"></i>`).join('')}</span></span>`).join('');
+    }
+    const weapons = o.weapons ?? [];
+    const wk = weapons.map((w) => `${w.uid}:${w.mode}`).join('|');
+    if (last.targeting !== wk) {
+      last.targeting = wk;
+      const names: Record<TargetMode, string> = { auto: 'AUTO', cursor: 'CURSOR', focus: 'FOCUS' };
+      const next: Record<TargetMode, TargetMode> = { auto: 'cursor', cursor: 'focus', focus: 'auto' };
+      els.hud.querySelector('.targeting')!.innerHTML = weapons.map((w) => `<button class="target-chip ${w.mode}" data-uid="${w.uid}" data-target-mode="${next[w.mode]}" title="Click to switch targeting"><img src="${svg(`icon_${w.type}`)}" alt=""><b>${names[w.mode]}</b></button>`).join('');
+    }
+    if (o.map && last.map !== `${o.map.department}:${o.map.player.x.toFixed(0)}:${o.map.player.y.toFixed(0)}:${o.map.obstacles.length}`) {
+      last.map = `${o.map.department}:${o.map.player.x.toFixed(0)}:${o.map.player.y.toFixed(0)}:${o.map.obstacles.length}`;
+      const obs = o.map.obstacles.map((r) => `<rect x="${r.x - r.w / 2}" y="${r.y - r.h / 2}" width="${r.w}" height="${r.h}" rx="8"/>`).join('');
+      els.hud.querySelector('.map-panel')!.innerHTML = `<div class="map-title">${o.map.department} · WALKABLE</div><svg viewBox="0 0 1280 800" role="img" aria-label="Walkable area map"><rect class="map-floor" x="78" y="196" width="1124" height="562" rx="18"/>${obs}<circle class="map-cart" cx="${o.map.player.x}" cy="${o.map.player.y}" r="18"/></svg><div class="map-legend"><i class="walk"></i>walkable <i class="blocked"></i>blocked</div>`;
     }
     els.boss.classList.toggle('hidden', !o.boss);
     if (o.boss) {

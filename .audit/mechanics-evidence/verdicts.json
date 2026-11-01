@@ -1,0 +1,665 @@
+{
+ "verified": [
+  {
+   "id": "scenes-1",
+   "sev": "critical",
+   "report": "scenes.md",
+   "line": 9,
+   "title": "Player death followed by a boss kill runs both flow.defeat and flow.victory",
+   "verdicts": [
+    {
+     "id": "scenes-1",
+     "verdict": "confirmed",
+     "severity": "high",
+     "method": "trace",
+     "evidence": "ArenaScene.ts:1419-1431 playerDied sets ending='defeat', does not call arsenal.clearAll, and schedules flow.defeat() at 1300ms. update() (line 1040) still calls updateEnemy for all non-dying enemies, with dt=0 but absolute `now`. enemies.ts:145-156 calls tickBurn/tickPoison (systems/combat.ts:27-33, time-based, not dt-based) and then scene.damageEnemy(e, burn, null, {isDot:true}). damageEnemy (line 666) has only an `!e.alive` guard, no ending/phase guard. killEnemy with credit=true reaches line 873 `if (e === this.boss) this.bossDefeated()`. bossDefeated (line 1392) has no `if (this.ending) return` guard. It sets ending='victory' and schedules flow.victory() at 2200ms. flow.victory/defeat (flow.ts:205-257) have no phase guard and both call finish(), which calls submitRun and recordRun again (non-lab, non-overtime), so the profile is written twice. arsenal.update (line 1050) also keeps running after death, so shots, puddles and pots can finish the boss too. The only thing that stops it is the player restarting the scene before the 2.2s victory timer fires.",
+     "correction": "Severity is overstated. The profile is double-counted (two recorded runs, one loss and one win, doubled kills and coins, boss clear credited on a lost run), but the save is not corrupted and nothing crashes or softlocks. The trigger is a narrow window: the boss must die from a burn or poison tick or an in-flight shot or puddle after the player has died, and the player must not restart before the 2.2s victory timer fires. I rate it high (wrong rule plus stat inflation). The \"Keep going\" overtime consequence follows from the victory card replacing the defeat card, but I did not trace the overtime path in detail.",
+     "lens": "trace",
+     "model": "sonnet"
+    },
+    {
+     "id": "scenes-1",
+     "verdict": "confirmed",
+     "severity": "critical",
+     "method": "both",
+     "evidence": "Every cited line matches the current code. src/scenes/ArenaScene.ts:1419-1431 playerDied sets ending='defeat', stops hazards, events and gum, never calls arsenal.clearAll, and calls flow.defeat() after 1300 ms. :1040 still calls updateEnemy for every non-dying enemy, with dt=0 when ending='defeat'. src/scenes/enemies.ts:145-156 tickBurn and tickPoison run on the absolute `now`, so they deal damage even with dt=0. combat.ts:27-33 depends only on now/nextBurnAt, and applyBurn has no boss exemption.\ndamageEnemy (:666) only checks e.alive, and its kill path (:752-753) calls killEnemy(e, true). At :873 that calls bossDefeated (:1392), which has no `if (this.ending) return` guard (miniDefeated has one at :501). bossDefeated sets ending='victory' and calls flow.victory() after 2200 ms.\nNothing pauses the Arena clock at run end. A grep for time.paused finds nothing, and flow.pause (flow.ts:270) refuses outside combat/checkout. flow.ts:205-257: victory() and defeat() both call finish() without an idempotency check.\nVitest repro (tests/_audit/verify-scenes-1.test.ts, now deleted), 2/2 passed:\n(a) applyBurn at t=10, then tickBurn(t=11) > 0, so a burn tick lands with no dt.\n(b) createRun, damagePlayer(9999) (phase 'defeat'), then flow.defeat() and flow.victory() leave profile.stats.runs up by 2: one loss and one win are recorded, and deptClears.boss and bestShift are credited.\nArenaScene cannot run headless (tests/miniboss.test.ts:122), so I traced the scene half of the path instead of running it.",
+     "correction": "The core claim holds, but some parts overstate it or are unverified. A burn or poison tick on the boss is enough to trigger it. I did not verify the other carriers the report names: in-flight shots, puddles and pots under arsenal.update(dt, combat=false). The claim that \"Keep going\" continues a dead goblin's run is also unverified. The window is narrow: the boss must die from a DoT after the goblin dies, and the player must not leave the end card (restart or title) before the 2.2 s victory timer fires. In a real run this is an edge case, not a common event. Critical fits only because of the persistent profile corruption (a phantom win, deptClears.boss and bestShift credited, so the next shift can unlock), not because the game crashes or softlocks. The report's `this.ending ? dt : dt` no-op at :1050 is real, but the bug happens without it.",
+     "lens": "repro",
+     "model": "opus"
+    }
+   ]
+  },
+  {
+   "id": "scenes-2",
+   "sev": "high",
+   "report": "scenes.md",
+   "line": 52,
+   "title": "Pickpocket loot vanishes whenever the Pickpocket dies without kill credit",
+   "verdicts": [
+    {
+     "id": "scenes-2",
+     "verdict": "confirmed",
+     "severity": "high",
+     "method": "trace",
+     "evidence": "ArenaScene.ts:830 `if (!credit) return;` precedes the Pickpocket loot loop at :854. beginCheckout (:1383-1384), miniDefeated (:514) and bossDefeated (:1411) all call killEnemy(e,false) on every living enemy, so any elite carrying e.loot>0 skips the drop.\nabsorbCoin (:894-902) sets c.active=false and hides the coin, so it is no longer on the floor and the checkout sweep (:1385-1388, active coins only) does not pay it out. The coins are lost.\nReachable in a real run: the wave clock ending with a Pickpocket elite alive is the normal checkout path, not a sim-only one.\nAbsorption during the stagger: updateEnemy is called at :1040 with dt=0 once `ending` is set, and affixTick (enemies.ts:313-316) takes no dt/ending guard, so the elite can still absorb coins until its delayed kill.\nNo guard or reset in between was found.",
+     "correction": "Minor: the loss is limited to Pickpocket elites alive at wave end (loot coins at 1 each). The \"worse during stagger\" part rests on affixTick running with dt=0, which I read but did not run. Severity high is defensible but is on the lower side of high, since the amount is small coins per elite.",
+     "lens": "trace",
+     "model": "sonnet"
+    },
+    {
+     "id": "scenes-2",
+     "verdict": "confirmed",
+     "severity": "medium",
+     "method": "both",
+     "evidence": "The cited code matches the source as it stands today. src/scenes/ArenaScene.ts:830 has `if (!credit) return;`, and that line comes before the Pickpocket loot loop at :854 (`for (let i = 0; i < e.loot; i++) this.dropCoin(...)`).\nThe trigger happens in real runs. At :1035, beginCheckout() fires when `waveTime >= wave.duration` on any non-boss, non-mini, non-stockroom aisle, whether or not enemies are still alive. :1384 then kills every living enemy with killEnemy(e, false). miniDefeated (:514) and bossDefeated (:1411) also call killEnemy(e, false).\nPickpocket elites are normal spawns: createEnemy uses pickAffix (enemies.ts:99), and e.loot++ in affixTick (enemies.ts:312-316) is the only place loot is stored.\nNothing else drops or credits e.loot. The sweep at :1386 credits only coins still on the floor, and absorbCoin (:894-902) already set the absorbed coins to inactive.\nRepro under vitest: with Phaser mocked and location/window/localStorage stubbed, I called the real ArenaScene.prototype.killEnemy on a stub scene, passing an enemy with loot=12 and affix=pickpocket and credit=false. The test passed with 0 dropCoin calls and e.alive=false. All 12 coins were lost.\nThe stagger detail also holds: :1040 calls updateEnemy with dt=0 during checkout, and affixTick (enemies.ts:162) is gated only on state!=='spawn'. absorbCoin does not depend on dt, so a stationary Pickpocket keeps absorbing coins that are in its radius and on the ground (z<=4).\nI deleted the repro file (tests/_audit/verify-scenes-2.test.ts) afterwards.",
+     "correction": "I would rate this medium, not high. It only happens when a Pickpocket elite, which is just one of the five elite affixes, is still alive at aisle end, a mini-boss kill or a boss kill. The loss is limited to the coins it absorbed, and a player is unlikely to notice them missing. It is a silent currency leak, not a rule players run into regularly.\nThe stagger part is overstated. With dt=0 the Pickpocket can't move. During checkout, no-credit kills don't drop coins, and absorbCoin skips coins that are airborne (z>4) or being pulled. So the only coins it can pick up during the stagger are ones already on the ground within about 26 px plus its own radius. That window lasts at most 40 ms per enemy.\nIn miniDefeated and bossDefeated the kill happens synchronously, so there is no stagger at all. The loot is still lost on those paths, though.",
+     "lens": "repro",
+     "model": "opus"
+    }
+   ]
+  },
+  {
+   "id": "ui-1",
+   "sev": "critical",
+   "report": "ui-flow.md",
+   "line": 21,
+   "title": "Gamepad-only players cannot pick from the stockroom or the mini-boss crates: softlock",
+   "verdicts": [
+    {
+     "id": "ui-1",
+     "verdict": "confirmed",
+     "severity": "high",
+     "method": "trace",
+     "evidence": "ui.ts:~887 mode() returns 'combat' while phase is combat and not paused. gamepad.ts frame(): in combat mode, A only queues a shove and the function returns, so there is no DOM focus or click. Start pauses and switches to 'menu' mode, but padScope() (ui.ts:867-872) only returns screens.starter/pause/loadout/end/route/title, never the .stockroom overlay. activate() therefore only clicks inside that scope. stockroom.ts:20-57 picks only via click, Enter on a focused card, or keys 1-3. No pad code references the stockroom (grep of src/input and ui.ts found nothing).\nArenaScene.ts:516 (mini-boss offerCrates) and :1349 (openStockroom via offerCrates, showStockroom at 1359) both run in the combat phase. The aisle only ends in the onPick callback (done, then beginCheckout). Timer ends are blocked while miniDue is set or the modifier is 'stockroom' (ArenaScene.ts:1035, 1077). So a pad-only player cannot leave the aisle.",
+     "correction": "The mechanism is real, but \"critical\" overstates it. It only affects players with no mouse, keyboard or touch input, since the 1-3 keys, a click and a tap all work. Any other input device frees the run, so this is a missing pad context for one overlay, not a general softlock. I rate it high. The report also cites two showStockroom call sites, but there is only one (ArenaScene.ts:1359), reached through offerCrates from both flows. I did not verify the claim that a mini-boss comes in every run.",
+     "lens": "trace",
+     "model": "sonnet"
+    },
+    {
+     "id": "ui-1",
+     "verdict": "confirmed",
+     "severity": "critical",
+     "method": "both",
+     "evidence": "src/ui/ui.ts:887-888: mode() returns 'combat' when phase is combat or checkout and the game is not paused. src/input/gamepad.ts:125-129: in combat mode A only sets shoveQueued and the frame returns, so it never focuses or clicks anything.\nThe overlay opens while phase is still 'combat'. offerCrates (ArenaScene.ts:1353-1366) calls showStockroom and is reached in two ways: the mini-boss loot (ArenaScene.ts:516, armed at :425 on MINI_BOSS.aisle=4 in every run unless the modifier is stockroom) and the stockroom room (:199 -> :1348-1349). miniDefeated sets this.ending but never changes the phase. Only onPick ends the aisle: the done callback calls beginCheckout. There is no timer, because of :1035 (!miniDue, modifier !== 'stockroom') and :1077.\nThe pause path does not help. padScope (ui.ts:867-871) only returns screens.* or the title settings modal, never the .stockroom element appended to uiRoot. activate() and navigate() (gamepad.ts:176-187, 158-175) work only inside that scope.\nstockroom.ts:44-53 shows the cards respond only to a mouse click, pointer events, keydown Enter or the 1-3 keys. Nothing in src/input refers to the stockroom.\nRepro: tests/_audit/verify-ui-1.test.ts stubbed window, navigator.getGamepads, rAF and document, then drove the real initGamepad/frame. With an unpaused combat-mode overlay, A queued a shove and never clicked the card. After Start paused the game, D-pad plus A did not click the card either, because the scope was the pause screen. Both tests passed. The file has been deleted.",
+     "correction": "Minor line drift. showStockroom is called at ArenaScene.ts:1359; :1349 is openStockroom, which leads there. Being stuck on the pad does not lock the whole game. A keyboard (1-3 or Enter on a focused card), the mouse or touch picks a card, and from the pause menu the player can still quit or restart, but that throws the run away. 'Critical' holds only for players using just a controller. For them it is a guaranteed run-blocker at aisle 4. I did not check whether Steam Input would map the pad to keyboard or mouse in a packaged build.",
+     "lens": "repro",
+     "model": "opus"
+    }
+   ]
+  },
+  {
+   "id": "ui-2",
+   "sev": "high",
+   "report": "ui-flow.md",
+   "line": 39,
+   "title": "Restart run from the pause menu turns a daily run into a normal random run and spends a voucher",
+   "verdicts": [
+    {
+     "id": "ui-2",
+     "verdict": "confirmed",
+     "severity": "high",
+     "method": "trace",
+     "evidence": "src/ui/ui.ts:368 renders the pause-menu button data-act=\"restart\" for every non-lab run, daily included.\nsrc/ui/ui.ts:594: case 'restart': flow.startRun(); with no opts.\nsrc/flow.ts:51-57: with opts.daily undefined, seed = Date.now()^Math.random() (random, not dailySeed()). createRun builds a fresh state, so state.daily is unset. noteDailyStart() is skipped. The else-if branch runs useCoupon() and grants COUPON_COINS plus state.voucher when BOT is false.\nThe \"again\" branch (ui.ts:585) explicitly passes { daily: true }, so the contrast the report draws is correct.\nsrc/state/profile.ts:230-235: useCoupon() decrements profile.coupons and saves, but only when coupons > 0.\nNo guard was found in the restart path; the pause menu offers Restart during a daily and nothing blocks it.",
+     "correction": "Slightly overstated. The voucher is spent only if the player holds a coupon (profile.coupons > 0). The spend is also not purely a loss, because the coupon gives COUPON_COINS and state.voucher. The core bug is real: Restart during a daily silently becomes a random non-daily run, which loses daily tracking and the history badge. It is also lost as a retry. Severity high is defensible as a wrong rule a player will hit, but medium is arguable. The state.daily flag was not re-read from the previous run, as the report says.",
+     "lens": "trace",
+     "model": "sonnet"
+    },
+    {
+     "id": "ui-2",
+     "verdict": "confirmed",
+     "severity": "high",
+     "method": "both",
+     "evidence": "src/ui/ui.ts:368 pauseHtml shows the \"restart\" button for every run that is not a lab run. Nothing hides it in a daily run.\nsrc/ui/ui.ts:594 `case 'restart': flow.startRun(); break;` passes no opts. Compare 'again' at :585 and the title 'daily' at :634, which both pass { daily: true }.\nsrc/flow.ts:51-57 startRun: without opts.daily it uses seed = (Date.now() ^ random) and never sets state.daily or calls noteDailyStart. It then takes the `else if (!BOT && useCoupon())` branch, and profile.ts:230-234 decrements profile.coupons and saves the profile.\nprofile.ts:197 and :212 add the daily badge to history and update profile.daily only when s.daily is set, so the restarted run is recorded as a normal run.\nRepro: tests/_audit/verify-ui-2.test.ts (since deleted) used the existing labSlotSync fakeGame pattern. It called flow.startRun(..., {daily:true}), set profile.coupons=1, then called flow.startRun() as ui.ts:594 does. The test passed: state.daily was falsy, coupons went from 1 to 0, voucher was true, money rose by COUPON_COINS and profile.daily.tries did not change.\nStarter, shift, weapon and theme still match the daily values (toaster/0/toaster/main), because the restart copies them from the daily state. Only the seed, the daily flag and the voucher are wrong.\nBOT is the only guard and it is dev-only (lab.ts:14), so a real player can hit this.",
+     "correction": "The report is accurate. Restart keeps the daily loadout (forced toaster/shift 0/main) because it copies those fields from the daily state, so the new run looks like the daily and differs only in its seed and missing daily flag. The repro called flow.startRun() directly and did not go through the DOM onClick handler, since ui.ts needs a DOM. That handler is a one-line switch case, so this does not change the result. The voucher is only lost when one is pending. On severity, high is defensible but arguably at the line with medium: nothing crashes or corrupts, and the cost is one lost voucher plus a run missing from the daily board.",
+     "lens": "repro",
+     "model": "opus"
+    }
+   ]
+  },
+  {
+   "id": "scenes-3",
+   "sev": "medium",
+   "report": "scenes.md",
+   "line": 79,
+   "title": "Every status timer runs on wall-clock time and keeps expiring through pause, blur and slow frames",
+   "verdicts": [
+    {
+     "id": "scenes-3",
+     "verdict": "confirmed",
+     "severity": "medium",
+     "method": "trace",
+     "evidence": "src/scenes/phaserCtx.ts:31 now() = sc.time.now/1000, and ArenaScene.ts:559, 668, 1009, 1176 use time.now directly.\nnode_modules/phaser/src/time/Clock.js:358-362: update() sets this.now = time, and the scene Clock only updates while the scene runs.\nsrc/flow.ts:266-280: pause() calls game.scene.pause('Arena'), so the clock freezes while the main loop keeps running. src/ui/ui.ts:149-150 wires window blur and visibilitychange to flow.pause('blur').\nTimeStep.js:671/722: loop.time += rawDelta every frame. After a hidden tab, resume() calls resetDelta(), which sets time = performance.now(). Either way the first resumed frame sees a time jump equal to the pause length.\nAbsolute *Until timestamps (marks, slow, slide, blown) therefore expire across a pause. Nothing in the repo compensates; I found no pause-duration adjustment.\nsrc/systems/combat.ts:27-33: tickBurn is capped at burnUntil, so the remaining burn ticks all fire in one frame on resume.",
+     "correction": "The core claim holds for the pause and blur path. Two overstatements:\n- The burn catch-up burst conserves total damage. It is not extra damage, only a spike, and it can be a burst kill.\n- The low-fps drift is speculative (inferred from the dt cap, not measured).\nSeverity is medium at most, leaning toward low-medium. The effect is a pause-dependent loss of timed buffs and debuffs. It is not a crash or softlock.",
+     "lens": "trace",
+     "model": "sonnet"
+    }
+   ]
+  },
+  {
+   "id": "scenes-4",
+   "sev": "medium",
+   "report": "scenes.md",
+   "line": 104,
+   "title": "Burn and poison keep killing with full credit after the aisle has ended, and melon slices spawned then survive into the shop",
+   "verdicts": [
+    {
+     "id": "scenes-4",
+     "verdict": "confirmed",
+     "severity": "low",
+     "method": "trace",
+     "evidence": "ArenaScene.ts:1040 calls updateEnemy for every non-dying enemy each frame with dt 0 when not in combat. enemies.ts:145-156 runs tickBurn and tickPoison, which depend only on `now` and not on dt, then damageEnemy(isDot). damageEnemy (ArenaScene.ts:752-753) calls killEnemy(e, true, hit) when hp reaches 0.\nNothing in beginCheckout (1371-1384), bossDefeated (1395-1411) or playerDied (1425-1433) clears status effects. arsenal.clearAll does not touch enemy status.\nkillEnemy with credit=true (about 860-871) increments stats.kills, runs punchKill, fires onKill hooks and drops coins. The splitter branch is guarded by !this.ending, but the melon branch (about 864-870) is not, so three 'slice' enemies spawn.\nbeginCheckout (1381-1382) captures `alive` before those slices exist, so they get no scheduled kill. With dt 0 they stay in 'spawn' state.\nA defeat does the same: dt is 0 and the credit kills continue until flow.defeat at 1.3 s.\nI did not check how long slices linger after endWave or whether they show behind the shop. I did not run a test.",
+     "correction": "Severity is overstated. The effects are small: a few extra kills or coins during the 1.2 s checkout sweep, and possibly stray slices left in the arena until restartArena. They need a burn or poison kill, and for the slices a melon, to land in that window. Nothing crashes, and no run-breaking rule is hit. Slice visibility behind the shop overlay is inferred, as the report itself says. The punchKill and onKill credit is real but minor.",
+     "lens": "trace",
+     "model": "sonnet"
+    }
+   ]
+  },
+  {
+   "id": "scenes-5",
+   "sev": "medium",
+   "report": "scenes.md",
+   "line": 124,
+   "title": "Key and pad presses made during an ending window fire at the start of the next aisle",
+   "verdicts": [
+    {
+     "id": "scenes-5",
+     "verdict": "confirmed",
+     "severity": "low",
+     "method": "trace",
+     "evidence": "src/ui/ui.ts:883 initKeyboard(active = phase==='combat' && !paused). keyboard.ts:14-17 latches presses whenever the predicate holds. ArenaScene.ts:1011 and 798 show consumption (updatePlayer, takePressed at :1118/:1124) only runs while combat && !ending. bossDefeated (ArenaScene.ts:1395) sets ending='victory' and phase stays 'combat' for 2.2 s until flow.victory() (flow.ts:207) sets phase='victory'. Presses in that window are latched and never consumed. The checkout sweep (ending='checkout', ArenaScene.ts:505/1375, ~1.7 s+) does the same before endWave. resetKeyboard is only wired to the RESUME event (ArenaScene.ts:188) and window blur (keyboard.ts:20). flow.overtime() and the next wave go through restartArena() -> scene.restart() (flow.ts:174-177), which does not clear it, so the stale press fires in the first updatePlayer of the next aisle. Gamepad: gamepad.ts:126-127 queues A/X/LB/RB whenever mode is 'combat' (phase combat or checkout, ui.ts:887). Queues are cleared only in stop() (line 91), so they carry over the same way. Gamepad is confirmed by trace.",
+     "correction": "The bug is real, but it is broader than reported. It is not limited to Keep going, because the checkout sweep before every shop leaves stale presses too (the shop phase does not latch or clear them). The impact is small. A stale active press only wastes one charge, and a stale dash only moves the goblin once at aisle start. The player has to press the key during a roughly 2 s ending window. Nothing crashes and nothing is corrupted. Severity is low to medium, so I put it at low. The gamepad is confirmed by trace, not just plausible: gamepad.ts:126-127 queues and takePad* consumes only in updatePlayer.",
+     "lens": "trace",
+     "model": "sonnet"
+    }
+   ]
+  },
+  {
+   "id": "ui-3",
+   "sev": "medium",
+   "report": "ui-flow.md",
+   "line": 54,
+   "title": "Tab is swallowed everywhere, so keyboard-only menu navigation dead-ends",
+   "verdicts": [
+    {
+     "id": "ui-3",
+     "verdict": "confirmed",
+     "severity": "low",
+     "method": "trace",
+     "evidence": "src/ui/ui.ts:846-848: the `matches(settings.keys,'loadout',e.code)` branch calls e.preventDefault() with no phase check, then toggleLoadout() (ui.ts:853-856), which only acts when phase==='combat' or when paused with reason 'loadout'.\nsrc/state/keymap.ts:17: the default for loadout is ['Tab',''].\nonKey is a window keydown listener (ui.ts:146). The only earlier returns are listening, shopKey, the lab bench, F9, F11, route digits 1-3 and the starter screen. None of them stop Tab on the title, pause or end screens.\nsrc/input/keyboard.ts:16 only prevents default during active combat, so it does not rescue Tab elsewhere.\nNo ArrowUp/ArrowDown focus handling exists in src (grep). Keyboard-only users therefore have no way to move focus between menu buttons. Gamepad navigation does exist (initGamepad with scope padScope).",
+     "correction": "The code path is real. The impact is overstated. \"Dead-ends\" and \"cannot reach Catalog, Daily, Settings or Wardrobe\" hold only for a pure-keyboard player. Mouse and touch clicks work normally, and so does a gamepad. A player can also rebind the loadout key, though doing that needs Settings. This is an accessibility and polish issue and never blocks a run, so it is low severity rather than medium. The suggested fix of restricting the Tab intercept to combat or a loadout pause is sound.",
+     "lens": "trace",
+     "model": "sonnet"
+    }
+   ]
+  },
+  {
+   "id": "ui-4",
+   "sev": "medium",
+   "report": "ui-flow.md",
+   "line": 65,
+   "title": "The fourth door (Staff Only at loyalty 3) shows key 4, but pressing 4 does nothing",
+   "verdicts": [
+    {
+     "id": "ui-4",
+     "verdict": "confirmed",
+     "severity": "low",
+     "method": "trace",
+     "evidence": "src/ui/ui.ts:826 uses /^[1-3]$/, so key 4 is ignored. ui.ts:503 renders a hint with one kbd per door (1..doors.length), so the hint says 4 when there are four doors. ui.ts:598 is the click handler and still works for the fourth door, as the report said. src/systems/shop.ts:86 gives 3 doors at shopLevel >= 3 (departments.ts:64 sets threeDoorsAtLoyalty to 3). shop.ts:94 pushes 'shortcut' when canShortcut() is true (shortcut.ts:18-21: not overtime, not the mini-boss aisle, not before the boss, key held). Both conditions occur in a normal run, so the shop-screen hint \"4\" is reachable. No other handler reads key 4 (grep of chooseDoor/Digit4 found nothing). No guard blocks the path. I did not check isReserved in keymap.ts, since src/ui/keymap.ts does not exist at that path.",
+     "correction": "Severity is low, not medium: the mouse click and the Enter/focus path still work, and only a keyboard shortcut for one optional door is missing. Also, the fourth door only appears when the player holds a key (the door is always the 'shortcut' door, never random), so it is rarer than \"loyalty 3\" alone suggests. The cited keymap.ts:33 path does not exist (src/ui/keymap.ts is missing), so that supporting claim is unverified.",
+     "lens": "trace",
+     "model": "sonnet"
+    }
+   ]
+  },
+  {
+   "id": "ui-5",
+   "sev": "medium",
+   "report": "ui-flow.md",
+   "line": 76,
+   "title": "The stockroom/crate overlay draws above the pause menu, and 1-3 picks while paused",
+   "verdicts": [
+    {
+     "id": "ui-5",
+     "verdict": "confirmed",
+     "severity": "medium",
+     "method": "trace",
+     "evidence": "src/ui/stockroom.ts:51-54: the onKey handler on window has no flow.paused check, so keys 1-3 call pick() even while paused.\nsrc/ui/stockroom.ts:35-39: the click handler has no pause check either.\nsrc/ui/style.css:139: .overlay is position:absolute with no z-index. .stockroom (style.css:912) has z-index:40, top:96px, class \"interactive\" (pointer-events:auto, style.css:24). The pause overlay is created at init (ui.ts:94-98) and toggled with the 'hidden' class, so it sits earlier in the DOM. The stockroom is appended to uiRoot later (stockroom.ts:56), so it paints above the pause panel.\nsrc/ui/ui.ts:841-856: the pause key / Escape calls flow.pause('menu') while phase==='combat'. The stockroom and mini-boss crates run in combat (ArenaScene.ts:199, 516, 1359).\nsrc/flow.ts:266-274: pause() only pauses the Arena scene and loops. It does not hide the stockroom DOM.\nArenaScene.ts:1359-1370: the pick callback runs takeStockroomItem + store.changed() + play('ding') synchronously while paused. The delayedCall(1100, done) and the crate puffs run on the scene clock, which is paused, so they fire after resume. This matches the claim.",
+     "correction": "Minor overstatements. (1) The pick is a free item the player was about to pick anyway, so this is a UI layering and consistency glitch rather than a rule break or exploit. (2) The stockroom overlay does cover part of the pause panel, but the pause panel's own buttons remain reachable below it (top:96px, centered), so the pause menu is not fully blocked. The label \"not reproduced visually\" is accurate: I traced only the stacking and listener, with no pixel check. Severity medium-to-low (visible glitch / edge case); not run-breaking.",
+     "lens": "trace",
+     "model": "sonnet"
+    }
+   ]
+  },
+  {
+   "id": "ui-6",
+   "sev": "medium",
+   "report": "ui-flow.md",
+   "line": 88,
+   "title": "Starting a pointer drag while the gamepad holds an item leaves an orphan ghost on screen",
+   "verdicts": [
+    {
+     "id": "ui-6",
+     "verdict": "confirmed",
+     "severity": "low",
+     "method": "trace",
+     "evidence": "src/ui/shop.ts:661-678 onPointerDown has no `drag` guard. The only reset it does is padOff() (998-1002), which clears padKey and the .pad-cur classes and never touches `drag`.\nbeginDrag (682) overwrites `drag` with ghost:null. The pad path shopPad.confirm (1044) calls startGhost (685-700), which appends a ghost to document.body and creates a hint.\nAfter a pointer press on another item, onPointerUp (842-849) calls endDrag (836-840) on the NEW drag, so the old ghost element is never removed.\nIf the mouse moves 5px or more, startGhost runs again (749), overwrites `hint` and leaks that bubble too.\nNo other cleanup exists: grep finds no sweep for .ghost or .drag-hint elsewhere.\nThe 'change' handler (72) only re-renders root, and ghost/hint live in body.\nThe trigger is reachable: mixed pad and mouse input in a real shop.",
+     "correction": "The trace holds. Severity should be low rather than medium. It needs mixed pad and mouse input mid-hold, it is cosmetic, and no game state is corrupted. The report understates the leak slightly: a leaked drag-hint bubble can occur too. I did not verify the claim that the ghost stays for the rest of the session. I found no cleanup, but I did not check whether leaving the shop hides body-level elements. The cause is the missing `drag` guard in onPointerDown, so the suggested fix (cancel any existing drag first) is right.",
+     "lens": "trace",
+     "model": "sonnet"
+    }
+   ]
+  },
+  {
+   "id": "ui-7",
+   "sev": "medium",
+   "report": "ui-flow.md",
+   "line": 102,
+   "title": "A key swap can hand Escape to loadout or rotate, and that action then goes dead; Escape itself can never be rebound",
+   "verdicts": [
+    {
+     "id": "ui-7",
+     "verdict": "partly",
+     "severity": "low",
+     "method": "trace",
+     "evidence": "The cited code matches the report.\n- keymap.ts:80-91: `rebind` swaps, so the displaced action gets the old key of the slot being bound.\n- ui.ts:841-848: the bare `else if (e.key === 'Escape')` branch only does preventDefault and sits before the loadout check.\n- shop.ts:87 and 89: the Escape drag-cancel runs before the rotate check.\n- ui.ts:341: `listenKey` treats Escape as cancel, so Escape can never be bound.\nTrace of the mechanism: DEFAULT_KEYS has pause ['Escape',''] and loadout ['Tab','']. Binding pause slot 0 to Tab (or to R for rotate) makes `rebind` hand 'Escape' to loadout (or rotate). Keyboard Escape then hits the no-op branch, so Tab-less loadout is unreachable from the keyboard. R-less rotate is cancelled by the drag Escape.\nRotate on a drag is dead from the keyboard. Escape-while-listening cancels, so Escape can't be rebound.\nThe report's exact repro does not work. Binding pause SLOT 1 (empty) to Tab gives old = '', so loadout becomes ['',''] and `rebind` returns ok:false with reason 'last' (keymap.ts:92). No swap happens.\nMitigations the report omitted: the player can bind loadout or rotate to another key via slot 2 or by rebinding. The swap note names the displaced action. Pad Y still works. \"Goes dead\" is only true until the player rebinds it. The \"Reset controls\" remedy is not the only recovery.",
+     "correction": "The repro is wrong: it is slot 0 (the Escape slot), not slot 1, that has to be rebound. Slot 1 is empty, so binding it to Tab is refused with 'last'. \"Dead\" overstates it: loadout and rotate can be rebound to any other key, and the Reset-only recovery claim is untrue. The defect is real but a rare, self-inflicted, recoverable edge case, so low rather than medium.",
+     "lens": "trace",
+     "model": "sonnet"
+    }
+   ]
+  },
+  {
+   "id": "setgains",
+   "sev": "medium",
+   "report": "engine-combat.md",
+   "line": 11,
+   "title": "setGains preview disagrees with the real set count when a cart holds two copies of a type (double packs)",
+   "extra": "A second auditor reported the same root cause in state-economy.md line 43 ('Set badge on a double pack promises +1 when a double of that type is already in the cart'); read that section too and check both scenarios.",
+   "verdicts": [
+    {
+     "id": "setgains",
+     "verdict": "confirmed",
+     "severity": "medium",
+     "method": "trace",
+     "evidence": "src/data/sets.ts:42-52 (setGains) matches the cited code. Line 44 adds weightIn of the first copy per type. setCount (l.24-28) and setLevels (l.31-37) take Math.max per type. Line 46 lets a double offer of an already-seen type through, and line 48 then adds +1 without checking whether the owned copy is already a double.\nScenario B (state-economy): placed [bell(double), pricegun], double-bell offer. have=3, to=4, levelUp is true. setCount stays 3 after buying, so the level-up is false.\nScenario A (engine-combat): placed [bell, bell(double)], offer pricegun. The first bell gives weight 1, so have=1 and to=2. The real count is 2 going to 3. The from/to is off by one.\nReachable: buyOffer (state/run.ts:268-279) puts the item on the shelf with no auto-merge, so unmerged duplicates sit in the cart. Merging is a manual drag (run.ts:203-216, 219-222). Two copies of the same type at different tiers cannot merge at all, and legendaries do not merge either.\nDoubles are rolled for real in rollOffers (systems/shop.ts:74, shopIndex>=2). Offers of already-owned types are allowed by the weighting, and the pool only excludes types already in the current offers.\nThe preview is used in the live UI at ui/shop.ts:224, 252 and 382. No guard blocks it.",
+     "correction": "Both reports are right, and they are the same root cause with two symptoms. Scenario A is the first-copy-weight bug. Scenario B is the missing already-a-double check. The impact is only a wrong badge or preview: the engine counting is correct and nothing breaks. The effect is cosmetic or misleading, so medium is the upper bound (low to medium). It needs a duplicate of a type in the cart, with at least one copy a double, and a shop at index 2 or later. The claim that the shop 'sells a level-up that never happens' is accurate, but the player only loses coins on a x1.5 pack. The suggested fix of diffing setCount(placed + hypothetical) against setCount(placed) is sound.",
+     "lens": "trace",
+     "model": "sonnet"
+    }
+   ]
+  },
+  {
+   "id": "state-1",
+   "sev": "medium",
+   "report": "state-economy.md",
+   "line": 11,
+   "title": "Merging drops the consumed copy's per-instance counters (Basil kills, Scoby age); a stinking Fresh Fish can be made fresh again",
+   "verdicts": [
+    {
+     "id": "state-1",
+     "verdict": "confirmed",
+     "severity": "medium",
+     "method": "trace",
+     "evidence": "src/state/run.ts:211-214 (applyMerge): the consumed copy a is removed; only b.inst.tier++ and a.inst.double carry over. kills/age/binderSold/slot are not transferred. No guard or reset elsewhere. Reachable in a real run: src/ui/shop.ts:866 commitDrop calls mergeItems(s, d.uid, tg.uid), and :774 sets the merge target for any same-type, same-tier item under the drag, so dragging a cart item onto a shelf copy makes the cart copy the consumed one. src/ui/shop.ts:600 (Combine button) also consumes the partner. The counters are real per-instance state: basil.ts:25 increments p.kills, and src/types.ts:96 says kills \"persists across aisles\". Fish and avocado read inst.age (fish.ts:16/27/35, avocado.ts:15), so a merge onto a fresh copy resets rot. I did not run a repro test; this is traced only.",
+     "correction": "The core claim holds. Medium is right because it needs a specific drag direction and mismatched counters, and the player loses only a counter. Two overstatements: the \"stinks for good\" fish text was not checked, and the Scoby example needs the Scoby to be in the cart or owned-aged, which was not shown. Part 2 (the Combine button) is outside the id scope. The \"confirmed (repro test)\" label was not re-run here.",
+     "lens": "trace",
+     "model": "sonnet"
+    }
+   ]
+  },
+  {
+   "id": "state-2",
+   "sev": "medium",
+   "report": "state-economy.md",
+   "line": 29,
+   "title": "The inspector's Combine button on a shelf item consumes the cart copy",
+   "verdicts": [
+    {
+     "id": "state-2",
+     "verdict": "confirmed",
+     "severity": "medium",
+     "method": "trace",
+     "evidence": "src/ui/shop.ts:626-632 onContext: right-click on any .item[data-uid] sets selectedUid. Shelf items are rendered via itemEl (shop.ts:298), so they have data-uid. shop.ts:373 loc = findItem(...), which covers the shelf. Footer (shop.ts:446-453) calls mergePartner(loc.inst) and renders the Combine button with data-uid=inspected, data-partner=partner.\nmergePartner (shop.ts:338-346) looks at the shelf first (excluding the inspected uid), then the cart, so a lone shelf copy plus a cart copy returns the cart copy.\nClick handler (shop.ts:~597-600): mergeItems(s, partner, uid). The first argument is the one removed and the second is the target (state/run.ts:224, applyMerge 203-216). So the cart copy is removed via placed.splice, and the shelf copy gets tier+1.\nNo guard blocks this: applyMerge only checks type, tier, legendary, max tier and fit (the fit check only runs when the target is on the grid). The phase is 'shop', which is the normal flow. The result is a hole in the cart and a tier-2 item on the shelf.",
+     "correction": "Mechanism and lines are accurate. The \"counters on the cart copy are lost (bug 1)\" part depends on a different claim that I did not check. The bug is a layout and UX annoyance: the player has to re-place the upgraded item, and nothing is lost permanently, so medium is generous and low-to-medium is fair. The proposed fix (swap the roles so the cart copy is the target) is right, but note that applyMerge's fit check then applies to the grid target.",
+     "lens": "trace",
+     "model": "sonnet"
+    }
+   ]
+  },
+  {
+   "id": "visual-1",
+   "sev": "medium",
+   "report": "visual.md",
+   "line": 31,
+   "title": "Double-pack chip is clipped in the item inspector, hiding the price penalty",
+   "extra": "Screenshot evidence is at scratchpad/shots/shop-hover-offer.png (Read renders PNGs); check the CSS cause too.",
+   "verdicts": [
+    {
+     "id": "visual-1",
+     "verdict": "confirmed",
+     "severity": "medium",
+     "method": "trace",
+     "evidence": "src/ui/shop.ts:383 builds `<span class=\"chip dbl\">` with t('setDouble') whenever offerDouble or loc.inst.double. It is placed in `.chips` (shop.ts:~389).\nsrc/i18n/ui.ts:465 (EN) and :1104 (DE) hold the long strings, including \"(costs 1.5×)\" / \"(kostet 1,5×)\".\nsrc/ui/style.css:781 `.inspector .chip {white-space: nowrap; flex: 1; ...}` applies to it. The `.chip.dbl` rule at :594 only sets colour and weight, so nothing overrides nowrap. `.inspector` has `overflow: hidden` (:441), so the overflowing text is cut at the card edge.\nThe screenshot shop-hover-offer.png shows the chip reading \"Double pack: counts as 2 items for the Tools set (cost\" and cut off. The other chips on that card (tier, 1×1, price) are unaffected.\nThe trigger is a normal shop hover on any 2-PACK offer, and it also occurs on placed double items. No guard was found. The 1.5x price is still visible on the offer card itself (price tag), so the player is not left without the information.",
+     "correction": "The report's cause and outcome hold. It is slightly overstated: the price and the 2-PACK sticker are still shown on the offer card, so only the inspector's explanatory note is truncated. It is a cosmetic text clip, which puts it at the low end of medium. The line number for style.css:781 is correct, and the `.chip.dbl` rule is at :594.",
+     "lens": "trace",
+     "model": "sonnet"
+    }
+   ]
+  },
+  {
+   "id": "visual-2",
+   "sev": "medium",
+   "report": "visual.md",
+   "line": 45,
+   "title": "German item names in the cart overflow their cell and the cart frame",
+   "extra": "Screenshot evidence is at scratchpad/shots/shop-de.png.",
+   "verdicts": [
+    {
+     "id": "visual-2",
+     "verdict": "confirmed",
+     "severity": "medium",
+     "method": "trace",
+     "evidence": "src/ui/shop.ts:125 renders `<span class=\"tag\">${itemT(type).name}</span>` for every cart item with the localized name. This is the real shop path, not lab-only. src/ui/style.css:226 and :329 (the same override text sits at both 326 and 329) set `.item .tag` to absolute, `left/right:4px`, `width:fit-content`, and no word-break rule. `#shop .slot .item .tag{display:none}` only hides tags in the offer slots, not in the cart. A single German compound has no break opportunity, so it cannot wrap. shop-de.png shows \"EINKAUFSKLINGEL\" running past the right edge of the cart frame (about x=865 against a frame edge near 838). \"TISCHVEN\", \"RENNSTIE\" and \"BENZINKANISTER\" are cut off or spill into the neighbouring cell. src/ui/ui.ts:81 and :779 do set documentElement.lang to the locale, so the report's hint to make `<html lang>` follow the locale is already satisfied at runtime (index.html:2 only has the static default \"en\"). Hyphenation would still work with `hyphens:auto`.",
+     "correction": "The bug is real. Small overstatement: the report says to make `<html lang>` follow the locale, but ui.ts already updates it. Only `overflow-wrap:anywhere` and `hyphens:auto` are missing. Cells that clip (TISCHVEN, RENNSTIE) are cut by the tag/item box, not overflowing. Only the Einkaufsklingel tag visibly crosses the cart frame. This is cosmetic, so low to medium. It only affects the German locale and 1x1 items with long names.",
+     "lens": "trace",
+     "model": "sonnet"
+    }
+   ]
+  },
+  {
+   "id": "content-1",
+   "sev": "medium",
+   "report": "content.md",
+   "line": 22,
+   "title": "Adjacency hooks use the tier of the best copy anywhere in the cart, so Gold Star does not reach the Scoby",
+   "verdicts": [
+    {
+     "id": "content-1",
+     "verdict": "confirmed",
+     "severity": "medium",
+     "method": "trace",
+     "evidence": "src/engine/hooks.ts:312-314: top = max over all copies of (tier+boost), so the owner's tier is the best copy anywhere in the cart. Line 323: that tier goes into the source. hooks.ts:277-279: tune = resolveTune(s.tune, s.tier) is computed once per source, and c.tune() returns it for every weapon. touching(uid) returns bare ItemInstance[] (hooks.ts:207, 279), with no effective tier.\n(a) decaf.ts:19-21 checks c.touches(stats.uid), which is true if any copy touches that weapon. It then uses c.tune(), the best-copy tune. With a ★1 Decaf touching and a ★3 Decaf elsewhere, the weaken is 25% where 15% is expected. No guard or reset intervenes.\n(b) scoby.ts:21 uses the raw p.tier ?? 1 and never adds tierBoostOf(...). Gold Star's boost is only applied in hookSourcesFor (hooks.ts:314) and in computeBuild's eff(), so a boosted Scoby gets the unboosted dps. The Gold Star lift is lost for the poison.\nReachable in a real run: duplicate copies and Gold Star are ordinary shop content, and nothing is test-only.",
+     "correction": "Nothing material is overstated. Two details of scope: I did not run the repro, and I did not read can opener, sparklers or moldybread, so the extra items in (a) are unchecked. Needing a second copy of the same module at a different tier makes (a) fairly niche, which fits medium or low-medium. (b) is a missed Gold Star bonus on one item.",
+     "lens": "trace",
+     "model": "sonnet"
+    }
+   ]
+  },
+  {
+   "id": "content-2",
+   "sev": "medium",
+   "report": "content.md",
+   "line": 70,
+   "title": "Active-item tooltips still say E after PR #13 moved actives to Q/E/F slots",
+   "verdicts": [
+    {
+     "id": "content-2",
+     "verdict": "confirmed",
+     "severity": "low",
+     "method": "trace",
+     "evidence": "The tooltip strings are still hard-coded to \"E\". They are at airhorn.ts:8-9 (en and de), bubblewrap.ts:8, vacuum.ts:15 and fireextinguisher.ts:9.\nThe keymap (src/state/keymap.ts:20-22) now gives Q to slot 1, E to slot 2 and F to slot 3.\nactiveSlots (src/engine/actives.ts:~28-50) fills slots in reading order, so a lone active takes slot 1 (Q).\nfireActive(cart, ctx, slot) finds only the item in that slot and returns false when the slot is empty, so pressing E does nothing for a single-active cart.\nThe comment at src/engine/define.ts:241 (\"the E key spends one charge of every instance\") is stale.\nThe actives.ts header comment also says \"key 1/2/3\", which is likewise outdated.\nOnly the player's first active is mislabeled. Items in slot 2 really are fired by E.",
+     "correction": "The impact is overstated as medium. This is only wrong text, and the cart UI's slot chips show the real key. A player holding one active would see the \"E\" in the tooltip as wrong, and the item would still work once they press Q. This is polish, so low severity. The report also left out the German strings, which have the same \"E\" problem. Rebinding is a secondary reason to remove the hard-coded letter.",
+     "lens": "trace",
+     "model": "sonnet"
+    }
+   ]
+  },
+  {
+   "id": "content-3",
+   "sev": "medium",
+   "report": "content.md",
+   "line": 95,
+   "title": "Items that do not scale with tier are still offered at 2/3 stars and can be upgraded for coins",
+   "extra": "The mechanics auditor (mechanics.md) claims upgradeItem (src/state/run.ts:241) has no UI caller and that combine is the only way to level up. Settle whether a player can pay coins to upgrade at all, and adjust this claim accordingly.",
+   "verdicts": [
+    {
+     "id": "content-3",
+     "verdict": "partly",
+     "severity": "low",
+     "method": "trace",
+     "evidence": "Shop offers: src/systems/shop.ts:72 rolls tier 2/3 for any non-legendary pool item, including shortcut (price 12, shortcut.ts:7, no noShop) and binder (price 14). Tiered price = TIER.value, so a pricier star-2/3 offer with an identical effect is reachable in a real run.\nMerge path: applyMerge (run.ts:205-220) and mergeTargetFor (run.ts:228) only block legendary and max tier. ui/shop.ts:868 and :601 call mergeItems, so two star-1 Binders can be combined for no gain.\nCoin upgrade: upgradeItem (run.ts:241) is called only from src/buildlab/run.ts:76 and the bot (src/bot/bot.ts:392, weapons only). grep finds no caller in src/ui or src/scenes; ui/shop.ts imports mergeItems, upgradeShop, upgradeCart and upgradeShelf, not upgradeItem or upgradeCost. A player cannot pay coins to upgrade an item. Combine is the only way to level up, so the mechanics auditor is right.",
+     "correction": "Drop the claim that items 'can be upgraded for coins' and the '14 coins upgrade a star-1 Binder' scenario. The upgrade button does not exist. Only the shop-offer half holds: star-2/3 Shortcut Key and Binder offers cost 2-4x the base price for the same effect, and merging two copies wastes both. That is a wasted-coins trap, not a rule bug. Severity is low (a minor value trap), not medium. The fix of a tierless flag in rollOffers and the merge checks still applies, but upgradeCost does not need it for the UI.",
+     "lens": "trace",
+     "model": "sonnet"
+    }
+   ]
+  }
+ ],
+ "lows": [
+  {
+   "report": "scenes.md",
+   "results": [
+    {
+     "title": "6. Hazard activation consumed by a contact the player was immune to",
+     "verdict": "confirmed",
+     "severity": "low",
+     "evidence": "hazards.ts:133 and :143 set h.hitPlayer = true before hurtPlayer. ArenaScene.ts:964-965 returns true early on invulnT, protectT or labGod, before any damage, so the activation is spent without a hit. Reachable on a dash or after a hit; the effect is only a free pass through one vent or cable activation."
+    },
+    {
+     "title": "7. RESUME listener added on every arena restart and never removed",
+     "verdict": "confirmed",
+     "severity": "low",
+     "evidence": "ArenaScene.ts:188 calls events.on(RESUME, resetKeyboard) with no off. Systems.js:771-786 (shutdown) removes only the transition listeners. removeAllListeners runs only in destroy (Systems.js:810), not on restart, so listeners accumulate. The handler is idempotent, so the effect is a small leak."
+    }
+   ]
+  },
+  {
+   "report": "ui-flow.md",
+   "results": [
+    {
+     "title": "8. Pad Start resumes while keybind listening",
+     "verdict": "confirmed",
+     "severity": "low",
+     "evidence": "ui.ts:854-857 togglePause only calls flow.resume(); stopListening() only in padBack (ui.ts:876) and click path (:580). After resume, onKey (:814) routes the next key to listenKey and rebinds."
+    },
+    {
+     "title": "9. HUD/Punch Card caches stale after settings change",
+     "verdict": "confirmed",
+     "severity": "low",
+     "evidence": "hud.ts:111-115 cache key `act` omits bindingLabel/settings.keys. punchcard.ts:28-30 key omits language and relabelHud only resets hud `last`, not the punch card's."
+    },
+    {
+     "title": "10. Fullscreen setting drifts from real window state",
+     "verdict": "confirmed",
+     "severity": "low",
+     "evidence": "main.cjs:36-37 has is-fullscreen but no enter/leave-full-screen events; ui.ts:41 desktop type lacks isFullscreen; F11 (ui.ts:820-823) flips settings.fullscreen blindly, so a stale true gives a no-op first press. Desktop-only, cosmetic."
+    },
+    {
+     "title": "11. Daily run crossing midnight booked on new day",
+     "verdict": "confirmed",
+     "severity": "low",
+     "evidence": "profile.ts:213 resets daily to {date: todayKey(), tries:1} at finish when date differs from the start-of-run date (tries++ at :224-225); score is booked to a seed that was not played. Needs a run spanning midnight, so rare."
+    },
+    {
+     "title": "12. Test Lab modal swallows first Escape (LAB only)",
+     "verdict": "confirmed",
+     "severity": "low",
+     "evidence": "ui.ts:617-623 lab-open/sim-start never remove .settings-modal (openTitleModal :677-681 appends to screens.title); render() skips hidden title (:780); Escape at :831 hits closeTitleSettings (:754-762), which removes it and returns true before pause. LAB builds only."
+    },
+    {
+     "title": "13. Persisted data trusted without validation",
+     "verdict": "partly",
+     "severity": "low",
+     "evidence": "Real in code: settings.ts:45-47 setLang(settings.language) unchecked (LANGS in lang.ts:3); profile.ts:53-63 load() has no id/array validation. Needs corrupted or hand-edited storage or a future id rename, so it is latent only, as the finding itself says."
+    },
+    {
+     "title": "14. Tutorial bubble above pause menu",
+     "verdict": "partly",
+     "severity": "low",
+     "evidence": "style.css:697 #tutorial z-index:5; tutorial.ts:91-104 tick() keeps render(pk) while paused (only shownMs stops). Real in code, but the pause overlay's own stacking (.overlay at :139 has no z-index) was not visually confirmed, so the visible overlap is inferred. Cosmetic."
+    },
+    {
+     "title": "15. Overtime kills/coins never reach lifetime unlocks",
+     "verdict": "confirmed",
+     "severity": "low",
+     "evidence": "flow.ts:238-247 overtime branch calls only recordOvertime (profile.ts:143-145, bestOvertime) and recordFinish. profile.ts:123-124 adds s.stats.kills/coinsEarned only in recordRun at victory. data/unlocks.ts:54,59,65 check lifetime s.kills/s.coins, so overtime progress is lost. Real but minor."
+    }
+   ]
+  },
+  {
+   "report": "engine-combat.md",
+   "results": [
+    {
+     "title": "2. Kitchen set L3 heal floater shows +3 but heals 4",
+     "verdict": "confirmed",
+     "severity": "low",
+     "evidence": "ArenaScene.ts:766 prints contentSetTune('kitchen',1).heal (3); kitchen.ts:7 heal [3,3,4], kitchen.ts:38 heals t.heal (4 at L3) and healFx carries no amount. Cosmetic only."
+    },
+    {
+     "title": "3. Fire pools re-apply burn every frame (tick 0)",
+     "verdict": "confirmed",
+     "severity": "low",
+     "evidence": "puddle.ts:48 advances nextTick by pd.stats.tick; pan.ts:6, microwave.ts:5, cooker.ts:6 use weaponBase with tick default 0 (define.ts:128), no override anywhere, so burn and reactionApplied run each frame (puddle.ts:~57). Burn numbers don't stack, so only reaction cadence is affected."
+    },
+    {
+     "title": "4. Kitchen comment claims popper kills count but code ignores them",
+     "verdict": "confirmed",
+     "severity": "low",
+     "evidence": "kitchen.ts:32 comment vs ArenaScene.ts:792 damageEnemy(o, pop.damage, null, {fromPopper}) gives stats null, so kitchen.ts:35 returns early. Comment is stale or the rule is lost; no runtime crash."
+    },
+    {
+     "title": "5. FakeCtx armored computed against stale hit.dmg",
+     "verdict": "confirmed",
+     "severity": "low",
+     "evidence": "fakeCtx.ts:391 uses hit.dmg (only updated after modifyDamage/crit, not after affinity, wet or mark at 380-385), whereas ArenaScene.ts:710 compares soaked to the current dmg. Tests only."
+    }
+   ]
+  },
+  {
+   "report": "state-economy.md",
+   "results": [
+    {
+     "title": "4. Shop offers legendaries the player already owns",
+     "verdict": "confirmed",
+     "severity": "low",
+     "evidence": "src/systems/shop.ts:65 legends filter has no owned check, unlike rollMiniCrates (shop.ts:108 `!owned.has(t)`). Reachable via forceLegendary/shopIndex>=2 roll; run.ts:206 blocks merging legendaries."
+    },
+    {
+     "title": "5. Shortcut Key once per run can be reused by buying another key",
+     "verdict": "confirmed",
+     "severity": "low",
+     "evidence": "src/systems/shortcut.ts:11-12,18-21 findKey/canShortcut only look for an unspent 'shortcut'; spendKey turns the key into 'spentkey'. Item text (content/items/shortcut.ts:10) says 'Once per run'; shop.ts:64 pool has no exclusion and canShortcut ignores state.skippedAisles (run.ts:432). Design call."
+    },
+    {
+     "title": "6. Test Lab sandbox trips age perishables and actives never refill",
+     "verdict": "confirmed",
+     "severity": "low",
+     "evidence": "flow.ts:155 labToShop -> openShop -> ageItems (run.ts:330-337, no labSandbox guard). labToArena (flow.ts:162-171) has no refill; refillCharges is only called at run.ts:403 (startNextWave). Test Lab only."
+    },
+    {
+     "title": "7. Cart upgrade can shrink an off-ladder cart (sims)",
+     "verdict": "partly",
+     "severity": "low",
+     "evidence": "run.ts:463,484: an 8x4 cart gives findIndex -> [6,5], shrinking cols. Real in code and cartSize 1..12 is allowed (_sim.ts:171), but needs a hand-authored off-ladder sim; default is [7,5] (maxed) and example.ts uses [6,4]. Latent only."
+    },
+    {
+     "title": "8. Victory credits a skipped aisle as cleared",
+     "verdict": "confirmed",
+     "severity": "low",
+     "evidence": "flow.ts:209 sets wavesCleared = BOSS_WAVE-1 unconditionally. takeShortcut (run.ts:425-435) skips finishWave (the only increment, run.ts:394), so a skip run is overstated by 1; scoreOf (flow.ts:286) gives +250 and ui.ts:555 shows full count."
+    }
+   ]
+  },
+  {
+   "report": "content.md",
+   "results": [
+    {
+     "title": "4. Pressure Washer cancels Mist Machine cone",
+     "verdict": "confirmed",
+     "severity": "low",
+     "evidence": "pressureWasher.ts:25 sets w.arcDeg = t.arcDeg + tapeArc (absolute), overriding mistMachine.ts:26 (+=); tests/rules.test.ts:1131-1133 pins arcDeg 25 with both recipes active. Deliberate but undocumented in the Mist Machine text; no `replaces`."
+    },
+    {
+     "title": "5. Sparklers/Confetti/Fireworks use Blast L1 radiusMult",
+     "verdict": "confirmed",
+     "severity": "low",
+     "evidence": "sparklers.ts:24 uses c.tuneOf(Set.blast) (level defaults to 1; hooks.ts:216) while blast.ts:7 has radiusMult [1.15,1.15,1.25]. confettiCannon.ts:5 and fireworksShow.ts:5 document L1-only as intentional; sparklers.ts has no such comment."
+    },
+    {
+     "title": "6. Ray Gun tooltip understates red bolt splash",
+     "verdict": "confirmed",
+     "severity": "low",
+     "evidence": "rayGun.ts:16/:21 text '+{bigMult|pctup}%' renders +20%, but rayGun.ts:31 sets splash m = bigMult = 1.2 and :41 damages shot.damage * sp.m (120% vs 60% normal). Text mismatch is real."
+    },
+    {
+     "title": "7. Sparklers 'Every 3th direct hit'",
+     "verdict": "confirmed",
+     "severity": "low",
+     "evidence": "sparklers.ts:10 EN rules 'Every {every}th direct hit' with tune every: [6,4,3] (sparklers.ts:8) renders '3th' at star 3. DE text uses '{every}.' and is fine."
+    },
+    {
+     "title": "8. Electric set text says 'Electric hits' but follows electrical flag",
+     "verdict": "confirmed",
+     "severity": "low",
+     "evidence": "electric.ts build hook gates on def.electrical (toaster, nailgun, vacuum, blender, laser carry it) while afterHit skips pattern 'aura'/'puddle' (electric.ts ~line 40); text at electric.ts:14-16 says 'Electric hits'. Wording mismatch is real, minor."
+    },
+    {
+     "title": "9. German text errors on Honey and Egg enemies",
+     "verdict": "confirmed",
+     "severity": "low",
+     "evidence": "honey.ts:16 'Klebrig; zuerst platzieren.' (platzieren = place) and egg.ts:15 'Platz ihn zuerst.' (noun, ungrammatical) are wrong German for 'pop it first'."
+    },
+    {
+     "title": "10. Enemy and item share name 'Expired Milk'",
+     "verdict": "confirmed",
+     "severity": "low",
+     "evidence": "enemies/expired.ts:15-16 and items/expiredmilk.ts:10-11 both use name 'Expired Milk' / 'Abgelaufene Milch'. Cosmetic/ambiguity only."
+    }
+   ]
+  },
+  {
+   "report": "visual.md",
+   "results": [
+    {
+     "title": "Victory receipt always says Store Manager returned",
+     "verdict": "confirmed",
+     "severity": "low",
+     "evidence": "src/ui/ui.ts:551 uses t('managerReturned') whenever won; src/i18n/ui.ts:167 and :828 hardcode the Store Manager, and src/scenes/ArenaScene.ts:471 uses bossFor(theme), so themed bosses are beaten in real runs."
+    },
+    {
+     "title": "HUD subtitle reads MANAGER in every boss fight",
+     "verdict": "confirmed",
+     "severity": "low",
+     "evidence": "src/state/run.ts:436 and :451 set department='boss'; src/ui/hud.ts:86 prints deptT(department).short, which is 'MANAGER' (src/data/departments.ts:48). Not overridden by a zone, because the zone is null on the boss aisle (run.ts:435)."
+    },
+    {
+     "title": "Dev only: simnote draws under 2-PACK sticker",
+     "verdict": "confirmed",
+     "severity": "low",
+     "evidence": "src/ui/style.css:967 #simnote z-index 3 vs .card .dblpack z-index 4 at :584. .card (:247) and #shop (:195) create no stacking context when idle, so the sticker wins. The note exists only under `if (LAB)` (src/ui/ui.ts:106) and shows for 12 s (simTag.ts:31), so it is dev-only as described."
+    }
+   ]
+  }
+ ],
+ "gaps": {
+  "findings": [
+   {
+    "id": "gap-1",
+    "title": "Buildlab proxy drops every hook-spawned shot, fire pool and beam echo, and does not list the affected combos as unmodelled. Ray Gun makes the Nail Gun deal 0 damage.",
+    "severity": "medium",
+    "location": "src/engine/fakeCtx.ts:319-327 (spawnShot pushes to fake.playerShots, which nothing moves; spawnPool only logs), src/engine/fakeCtx.ts:337 (beam/sweep/explode only log), src/buildlab/combat.ts:454-455 (the step loop reads only dropCoin calls, then fake.clear()), src/buildlab/balance.ts:35-37 (UNMODELLED_COMBOS lists only the dash/pickup combos)",
+    "scenario": "In the game, src/scenes/phaserCtx.ts:100-105 sends ctx.spawnShot to arsenal.spawn, ctx.spawnPool to spawnFirePool(arsenal, ...) and ctx.beam to beamOnce. In the buildlab, playAisle runs the same hooks on a FakeCtx. Its spawnShot puts the shot in fake.playerShots, which no code ever advances or collides. Its spawnPool and beam only append to fake.calls, and the buildlab loop discards those calls each step. FakeArsenal.spawn (fakeHost.ts) is a separate path and never sees them.\n\nRepro, run in a throwaway vitest with playAisle, mode 'clear', 20 milk and hp 5000. Nail Gun alone: 312 dealt, 20 kills, cleared. Nail Gun + Battery + Magnet (Nailstorm): 345 dealt, cleared. Nail Gun + Battery + Tin Foil Hat + Magnet (Ray Gun): dealt=0, kills=0, cleared=false, bySource={}. The cause is that rayGun's 'pattern:fire' sets ev.handled = true and replaces the nail with a ctx.spawnShot bolt that never flies. Cooker + Tape (Shrapnel): 18 fragments spawned, 0 of them ever moved. Microwave + Fuel (Reheat): 4 pools spawned, and spawnPool only logs them, so they never burn.\n\nAffected combos, all by the same mechanism: Ray Gun (the whole weapon goes silent), Shrapnel, Kettle Corn (spawnShot), Reheat, Pressure Point, Sizzling Skillet (spawnPool), and Power Surge's echo (beam). None of them is in UNMODELLED_COMBOS. The balance report therefore treats them as modelled ('Combos no top build formed', dominance and lift), and the fitness and greedy scoring reward forming them while the proxy gives them no payoff.\n\nImpact today: the current buildlab-out/run.json mentions sizzlingSkillet 53 times, reheat 51 times and shrapnel 8 times. These Fuel and weapon combos do form, so their missing pool and fragment damage biases the current reports. The release checklist has Fuel in 88% of runs. Ray Gun is latent: its parts include passives, and the mechanics report shows that greedy placement never forms such combos. Once that placement artifact is fixed, Ray Gun will look like a trap in the proxy (it wipes out Nail Gun damage) while it is a strong combo in the game. docs/buildlab.md says the item hooks run on the FakeCtx and lists what is skipped. This gap is not in that list.",
+    "fix": "Connect the FakeCtx effect stubs to the FakeArsenal that playAisle builds. FakeArsenal implements PatternHost, so spawnFirePool(arsenal, ...), arsenal.spawn(...), and beamOnce, sweepOnce and explodeAt (as phaserCtx.ts:100-105 calls them) can all run against it. For example, give FakeCtx an optional host and forward spawnShot, spawnPool, beam, sweep and explode to it when one is set, then have playAisle set it to its arsenal. Until then, add rayGun, shrapnel, kettleCorn, reheat, pressurePoint, sizzlingSkillet and powerSurge to UNMODELLED_COMBOS, and mention the gap in docs/buildlab.md. Add a buildlab test asserting that a Ray Gun cart deals more than 0 damage."
+   },
+   {
+    "id": "gap-2",
+    "title": "Punch Card never rolls in the buildlab proxy: its own effect is zero there, but the balance report treats it as modelled",
+    "severity": "low",
+    "location": "src/buildlab/combat.ts (no rollPunchCard, punchKill, punchTick or payPunchCard anywhere in src/buildlab), compared with src/scenes/ArenaScene.ts:194, 836, 1024 and 1081-1082; src/buildlab/balance.ts:29-34 (UNMODELLED does not list punchcard)",
+    "scenario": "The punchcard item has no build stats and no hooks (src/content/items/punchcard.ts). All of its value comes from ArenaScene: rollPunchCard at aisle start, progress through punchKill and punchTick, then payPunchCard for 5/8/12 coins plus the next shop's free reroll. playAisle in the buildlab never sets state.punch, so a Punch Card in the cart earns nothing in the proxy and only adds a Checkout set count. balance.ts flags an item as 'dead' only when it is modelled (`modelled = !(id in UNMODELLED)`). Punch Card can therefore be reported as a dead or weak item, and the economy curve the hillclimb tunes leaves out its coins. docs/buildlab.md's list of skipped features does not mention punch cards.",
+    "fix": "Roll the punch card at the start of playAisle, count kills and ticks with the shared punchKill and punchTick from systems/contracts, and call payPunchCard when the card is done. Otherwise, add `punchcard: 'aisle goal not simulated'` to UNMODELLED and mention it in docs/buildlab.md."
+   }
+  ],
+  "coverage": "Checked and found clean, no reports filed:\n\n- **Audio** (src/audio/music.ts, sfx.ts):\n  - Music crossfade and interval lifecycle; playMusic dedupe across ArenaScene restarts; shop-open → music_main.\n  - SFX per-key voice counters: no stopAll, removeAll or stopByKey callers, so 'complete' always decrements.\n  - Wheel loop: one instance per session, stopped on pause and wave end.\n  - Volume slider path: onInput → saveSettings → refreshVolumes. The wheel volume is set every frame.\n- **Long-session growth:** profile.history is capped at HISTORY_MAX = 10. seen, enemies and recipes are bounded by the catalog size. settings.tutorialSeen is bounded. Store listeners are registered only in the UI, once. The Outage canvas brush is guarded with textures.exists, and its RenderTexture is destroyed in stop(). Phaser cleans up the 140 coin images per restart.\n- **Profile and settings migration:** nothing new beyond ui-flow #13.\n- **Profile isolation:** lab, bot and sim runs stay out of the profile and best receipts. The guards are in flow.finish, noteEnemy and the UI's discoverRecipe listener; createSimRun goes through createLabRun, which sets lab = true.\n- **Assets:** every SVG_ASSETS key, every icon_<item> file and every AUDIO_KEYS wav exists under public/assets. The static UI icons exist too: coin, heart, icon_punchcard, icon_shortcut, loyalty_card.\n- **Release and build:**\n  - electron/main.cjs: the app:// path guard, the navigation and window-open blocks, and the IPC bridge. The missing single-instance lock was already reported by ui-flow.\n  - electron/preload.cjs.\n  - tools/app.mjs: `--lab` bakes in VITE_DEV_KEYS only for lab:app, and every release and dist script rebuilds dist.\n  - tools/electron-check.mjs, vite.config.ts (base './'), index.html and its favicon.\n  - Dev gating in src/lab.ts and main.ts: DEV_BUILD, LAB, BOT and __gg are dev-only.\n- **Buildlab vs game seams also checked:**\n  - Kill coins, bread, splitter and melon spawns match ArenaScene.killEnemy.\n  - The stockroom and mini-crate flow mirrors flow.ts.\n  - Hook-dropped coins are credited.\n  - The Tough regen, Pickpocket and aisle-event omissions are already documented in docs/buildlab.md.\n  - Laser alone works in the proxy, so the checklist's Laser note is not this bug.\n- **Throwaway test:** tests/_audit/verify-gap.test.ts was created, run and deleted. The working tree is unchanged.",
+  "verdicts": [
+   {
+    "id": "gap-1",
+    "verdict": "confirmed",
+    "severity": "medium",
+    "method": "both",
+    "evidence": "fakeCtx.ts:319-327: spawnShot pushes to playerShots, spawnPool only logs. fakeCtx.ts:337: beam/sweep/explode only log. combat.ts:454-455: the loop only counts dropCoin calls, then fake.clear(). balance.ts:35-37: UNMODELLED_COMBOS lists only expressCheckout, potSlam, sugarRush, tailwind and bagIt, and it is used only at balance.ts:134. phaserCtx.ts:100-105 routes these calls to real arsenal code in the game. rayGun.ts 'pattern:fire' calls ctx.spawnShot and sets ev.handled = true.\n\nRepro via playAisle (mode clear, 20 milk, hp 5000): Nail Gun alone dealt 312, 20 kills, cleared. Nail Gun + Battery + Magnet dealt 345.07, cleared. Nail Gun + Battery + Tin Foil Hat + Magnet dealt 0, 0 kills, cleared=false. This matches the report's numbers. I did not run the Shrapnel or Reheat repros, but they use the same code path (spawnShot / spawnPool).",
+    "correction": "Minor: the report says the bug is hidden from the balance report, which is true, but Ray Gun stays latent as stated because greedy placement rarely forms it. I did not re-check the run.json counts (53, 51, 8) or the 88% Fuel figure. Severity medium is reasonable: this is a proxy-fidelity gap, not a game bug."
+   }
+  ]
+ }
+}

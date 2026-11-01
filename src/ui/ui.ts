@@ -431,7 +431,9 @@ function starterHtml(): string {
       <img src="${svg(`icon_${wid}`)}" alt=""><span class="wp-text"><span class="wp-head"><b>${itemT(wid).name}</b>${it.tags?.[0] ? `<span class="tagchip ${it.tags[0]}">${tagT(it.tags[0])}</span>` : ''}</span><span class="wp-stat">${stat}</span></span></button>`;
   };
   const pills = SHIFTS.map((_sh, i) => {
-    const locked = !STARTERS.some((s2) => shiftUnlocked(s2, i));
+    // Shift progression belongs to the selected goblin: a clear with another
+    // starter must not make this shift appear available for the current one.
+    const locked = !shiftUnlocked(id, i);
     return `<button class="btn small ${i === pickedShift ? 'coral' : ''}" data-act="shift" data-shift="${i}" ${locked ? `disabled title="${t('winShiftUnlock', { n: i })}"` : `title="${shiftT(i).name}"`}>${locked ? '🔒' : i + 1}</button>`;
   }).join(' ');
   const themeBtn = (did: DepartmentId) => {
@@ -740,15 +742,32 @@ function codexTab(tab: 'combos' | 'items' | 'enemies'): string {
     return `<h2>${t('catalog')}</h2>${tabs}<div class="codex-items" style="display:block"><div class="det" style="margin:6px 0;font-size:13px;font-weight:700">${t('eliteNote', { hp: ELITE.hpMult, coin: ELITE.coinMult })}</div><div class="codex-grid">${cards}</div></div>`;
   }
   if (tab === 'combos') {
-    const cards = ids.map((id) => {
+    const card = (id: RecipeId) => {
       const r = RECIPES[id], rt = recipeT(id);
       const known = profile.recipes.includes(id);
       const icons = recipeParts(r).map((ty, i) => (known || i === 0 || unlocked.has(ty)) ? `<img src="${svg(`icon_${ty}`)}" alt="${itemT(ty).name}" data-card="${ty}">` : '<span class="q">?</span>').join('<b>+</b>');
       return known
         ? `<div class="codex-card known">${newTag(`recipe:${id}`)}<div class="icons">${icons}</div><div class="nm">${rt.name}</div><div class="eff">${rt.short}</div><div class="det">${rt.detail}</div></div>`
         : `<div class="codex-card"><div class="icons">${icons}</div><div class="nm">???</div><div class="det">${recipeParts(r).length === 2 ? t('comboHintOne', { item: itemT(recipeIcon(r)).name }) : t('comboHintMany', { item: itemT(recipeIcon(r)).name, n: recipeParts(r).length - 1 })}</div></div>`;
+    };
+    const groups = new Map<string, RecipeId[]>();
+    for (const id of ids) {
+      const key = RECIPES[id].weapon ?? '__cart__';
+      const list = groups.get(key) ?? [];
+      list.push(id);
+      groups.set(key, list);
+    }
+    const weaponOrder = ITEM_IDS.filter((id) => ITEMS[id].kind === 'weapon');
+    const grouped = [...groups.entries()].sort(([a], [b]) => {
+      if (a === '__cart__') return 1;
+      if (b === '__cart__') return -1;
+      return weaponOrder.indexOf(a as ItemTypeId) - weaponOrder.indexOf(b as ItemTypeId);
+    }).map(([weapon, group]) => {
+      const title = weapon === '__cart__' ? 'Cart Effects' : itemT(weapon as ItemTypeId).name;
+      const icon = weapon === '__cart__' ? '' : `<img src="${svg(`icon_${weapon}`)}" alt="">`;
+      return `<section class="codex-combo-group"><h3>${icon}${title}<span>${group.length}</span></h3><div class="codex-grid">${group.map(card).join('')}</div></section>`;
     }).join('');
-    return `<h2>${t('catalog')}</h2>${tabs}<div class="codex-grid">${cards}</div>`;
+    return `<h2>${t('catalog')}</h2>${tabs}<div class="codex-combo-groups">${grouped}</div>`;
   }
   const tiles = ITEM_IDS.map((ty) => {
     if (unlocked.has(ty)) return `<div class="codex-item ${ITEMS[ty].legendary ? 'legendary' : ''}" data-card="${ty}">${newTag(`item:${ty}`)}<img src="${svg(`icon_${ty}`)}" alt=""><span>${itemT(ty).name}</span></div>`;
@@ -841,6 +860,14 @@ function onKey(e: KeyboardEvent): void {
   if (LAB && labBenchKey(e)) { e.preventDefault(); return; }
   if (e.key === 'F9' && flow.sim) { e.preventDefault(); play('click'); flow.restartSim(); return; } // restart the sim from scratch, same seed
   const s = store.state;
+  if (s.phase === 'combat' && !flow.paused && /^Digit[1-9]$/.test(e.code)) {
+    const weapon = s.build.weapons[Number(e.code.slice(5)) - 1];
+    if (weapon) {
+      window.dispatchEvent(new CustomEvent('gg-target-mode-cycle', { detail: { uid: weapon.uid } }));
+      e.preventDefault();
+      return;
+    }
+  }
   if (e.key === 'F11' && desktop) {
     e.preventDefault();
     settings.fullscreen = !settings.fullscreen;

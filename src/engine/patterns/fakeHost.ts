@@ -6,7 +6,7 @@ import type { HookTable, WeaponLook } from '../hooks';
 import { contentItem } from '../registry';
 import { collectLooks, weaponRt } from './common';
 import { stepArsenal } from './index';
-import type { PatternEnemy, PatternHost, PatternScene, Pot, Puddle, Shot, Sprite, WeaponRt } from './types';
+import type { PatternEnemy, PatternHost, PatternScene, Pot, Puddle, Shot, Sprite, TargetMode, WeaponRt } from './types';
 
 // The pattern code's host for tests: the weapons of a computed build, run against a `FakeCtx` (its enemies, clock, rng, hooks, damage
 // pipeline and call log). No Phaser: sprites are stubs that record what the pattern asked of them.
@@ -79,6 +79,7 @@ export class FakeArsenal implements PatternHost {
       },
       get enemies() { return f.enemies as PatternEnemy[]; },
       player: f.player,
+      aimAngle: null,
       get hooks() { return f.hooks; },
       fx: f.fx,
       dept: { get electricalRate() { return self.electricalRate; } },
@@ -87,6 +88,7 @@ export class FakeArsenal implements PatternHost {
       combatActive: () => f.combatActive(),
       nearestEnemy: (range) => f.nearest(f.player, range) as PatternEnemy | null,
       nearestEnemyFrom: (x, y, range, exclude) => f.nearest({ x, y }, range, exclude) as PatternEnemy | null,
+      targetForWeapon: (range, _mode: TargetMode) => f.nearest(f.player, range) as PatternEnemy | null,
       damageEnemy: (e, dmg, stats, opts) => f.damage(e, dmg, stats, opts),
       reactionApplied: (e, kind) => f.reactor.applied(e, kind),
       recoil: (uid) => { self.recoils.push(uid); },

@@ -1,0 +1,154 @@
+# Mechanics metrics
+
+- A = /private/tmp/claude-501/-Users-scholzf-dev-goblin-grocery/a0007cf2-762c-44b4-85e3-3eb518ab8d10/scratchpad/balance/tsv-50472ea-d1.json: 600 runs, seed 1, starter all, weapon toaster,pan,nailgun, shift 0, theme main, pool stock, policy greedy, rev 50472ea
+- B = /private/tmp/claude-501/-Users-scholzf-dev-goblin-grocery/a0007cf2-762c-44b4-85e3-3eb518ab8d10/scratchpad/aisle-pace/lab-5649650-d1.json: 600 runs, seed 1, starter all, weapon toaster,pan,nailgun, shift 0, theme main, pool stock, policy greedy, rev 5649650
+
+## Overview
+
+| metric | A | B | B - A |
+| --- | ---: | ---: | ---: |
+| runs | 600 | 600 | 0 |
+| win rate | 28.3% | 31.0% | +2.7 pts |
+| win rate standard error | 1.8% | 1.9% | 0.0 pts |
+| average aisle reached | 6.45 | 6.53 | +0.07 |
+| merges per run | 2.73 | 2.81 | +0.08 |
+| ★2 items at run end | 1860 | 1916 | +56 |
+| ★2 items per run | 3.10 | 3.19 | +0.09 |
+| ★3 items at run end | 133 | 130 | -3 |
+| ★3 items per run | 0.22 | 0.22 | -0.01 |
+| combos at run end per run | 2.41 | 2.48 | +0.06 |
+| distinct combos at run end | 32 | 34 | +2 |
+| weapons at run end per run | 2.44 | 2.40 | -0.04 |
+| rerolls per run | 0.00 | 0.00 | 0.00 |
+| sells per run | 0.00 | 0.00 | 0.00 |
+
+## Runs that reached the aisle
+
+| aisle | A | B | B - A |
+| --- | ---: | ---: | ---: |
+| 1 | 600 | 600 | 0 |
+| 2 | 600 | 600 | 0 |
+| 3 | 600 | 600 | 0 |
+| 4 | 593 | 592 | -1 |
+| 5 | 493 | 498 | +5 |
+| 6 | 420 | 437 | +17 |
+| 7 | 337 | 343 | +6 |
+| 8 | 227 | 245 | +18 |
+
+## Share of all deaths, by aisle
+
+| aisle | A | B | B - A |
+| --- | ---: | ---: | ---: |
+| 1 | 0.0% | 0.0% | 0.0 pts |
+| 2 | 0.0% | 0.0% | 0.0 pts |
+| 3 | 1.6% | 1.9% | +0.3 pts |
+| 4 | 23.3% | 22.7% | -0.6 pts |
+| 5 | 16.7% | 14.7% | -2.0 pts |
+| 6 | 19.3% | 22.7% | +3.4 pts |
+| 7 | 25.8% | 23.7% | -2.1 pts |
+| 8 | 13.3% | 14.3% | +1.0 pts |
+
+## Death rate among runs that reached the aisle
+
+| aisle | A | B | B - A |
+| --- | ---: | ---: | ---: |
+| 1 | 0.0% | 0.0% | 0.0 pts |
+| 2 | 0.0% | 0.0% | 0.0 pts |
+| 3 | 1.2% | 1.3% | +0.2 pts |
+| 4 | 16.9% | 15.9% | -1.0 pts |
+| 5 | 14.6% | 12.2% | -2.4 pts |
+| 6 | 19.8% | 21.5% | +1.7 pts |
+| 7 | 32.9% | 28.6% | -4.4 pts |
+| 8 | 25.1% | 24.1% | -1.0 pts |
+
+## HP lost by aisle (fights only)
+
+| aisle | A | B | B - A |
+| --- | ---: | ---: | ---: |
+| 1 | 4.07 | 2.45 | -1.62 |
+| 2 | 1.11 | 0.32 | -0.79 |
+| 3 | 7.18 | 6.68 | -0.49 |
+| 4 | 12.84 | 12.02 | -0.82 |
+| 5 | 17.40 | 16.91 | -0.49 |
+| 6 | 20.42 | 22.36 | +1.94 |
+| 7 | 26.27 | 26.79 | +0.52 |
+| 8 | 23.05 | 23.03 | -0.02 |
+
+## Coins at shop entry
+
+| shop | A | B | B - A |
+| --- | ---: | ---: | ---: |
+| 1 | 25.47 | 25.55 | +0.08 |
+| 2 | 30.44 | 29.89 | -0.55 |
+| 3 | 41.29 | 41.84 | +0.55 |
+| 4 | 42.13 | 41.70 | -0.44 |
+| 5 | 70.40 | 67.99 | -2.41 |
+| 6 | 81.35 | 77.71 | -3.64 |
+| 7 | 99.58 | 90.15 | -9.43 |
+
+## Combo formation (share of runs with the combo active at run end)
+
+| combo | A | B | B - A |
+| --- | ---: | ---: | ---: |
+| freshBread | 29.5% | 32.0% | +2.5 pts |
+| expressCheckout | 27.8% | 26.5% | -1.3 pts |
+| frostbiteNails | 26.8% | 27.2% | +0.3 pts |
+| chickenDinner | 25.5% | 26.8% | +1.3 pts |
+| crackOpen | 25.3% | 25.2% | -0.2 pts |
+| smashBank | 24.8% | 24.8% | 0.0 pts |
+| sizzlingSkillet | 24.0% | 22.7% | -1.3 pts |
+| nailstorm | 11.2% | 13.8% | +2.7 pts |
+| toastMode | 6.7% | 7.7% | +1.0 pts |
+| fiveAlarm | 6.2% | 7.0% | +0.8 pts |
+| mistMachine | 4.0% | 4.0% | 0.0 pts |
+| pressureWasher | 3.8% | 3.8% | 0.0 pts |
+| rayGun | 3.3% | 3.8% | +0.5 pts |
+| slushie | 3.7% | 3.0% | -0.7 pts |
+| blackIce | 3.3% | 2.3% | -1.0 pts |
+| brainFreeze | 3.3% | 3.2% | -0.2 pts |
+| greaseFire | 2.3% | 2.2% | -0.2 pts |
+| liveWire | 1.8% | 1.0% | -0.8 pts |
+| kettleCorn | 0.5% | 1.5% | +1.0 pts |
+| coldStorage | 0.7% | 1.2% | +0.5 pts |
+| staticCling | 1.2% | 1.0% | -0.2 pts |
+| smoothieShield | 0.7% | 1.0% | +0.3 pts |
+| confettiCannon | 0.8% | 0.5% | -0.3 pts |
+| reheat | 0.8% | 0.7% | -0.2 pts |
+| potSlam | 0.3% | 0.7% | +0.3 pts |
+| pressurePoint | 0.7% | 0.7% | 0.0 pts |
+| sourMist | 0.0% | 0.7% | +0.7 pts |
+| fireworksShow | 0.5% | 0.5% | 0.0 pts |
+| shrapnel | 0.3% | 0.5% | +0.2 pts |
+| sparksFly | 0.3% | 0.5% | +0.2 pts |
+| tailwind | 0.3% | 0.5% | +0.2 pts |
+| sugarRush | 0.3% | 0.2% | -0.2 pts |
+| tvDinner | 0.2% | 0.3% | +0.2 pts |
+| bagIt | 0.0% | 0.2% | +0.2 pts |
+
+## Sets at level 2 or more at run end
+
+| set | A | B | B - A |
+| --- | ---: | ---: | ---: |
+| kitchen | 48.2% | 49.2% | +1.0 pts |
+| tools | 48.5% | 49.2% | +0.7 pts |
+| heat | 31.8% | 31.2% | -0.7 pts |
+| checkout | 18.8% | 19.5% | +0.7 pts |
+| electric | 19.2% | 19.5% | +0.3 pts |
+| snacks | 14.8% | 15.7% | +0.8 pts |
+| frost | 9.5% | 7.0% | -2.5 pts |
+| blast | 6.3% | 8.7% | +2.3 pts |
+| cleaning | 6.0% | 5.8% | -0.2 pts |
+
+## Sets at level 3 at run end
+
+| set | A | B | B - A |
+| --- | ---: | ---: | ---: |
+| tools | 22.2% | 22.7% | +0.5 pts |
+| kitchen | 18.5% | 18.7% | +0.2 pts |
+| heat | 7.5% | 7.5% | 0.0 pts |
+| checkout | 4.3% | 5.5% | +1.2 pts |
+| snacks | 3.2% | 4.5% | +1.3 pts |
+| electric | 2.5% | 3.8% | +1.3 pts |
+| blast | 1.2% | 0.5% | -0.7 pts |
+| frost | 0.7% | 0.5% | -0.2 pts |
+| cleaning | 0.5% | 0.3% | -0.2 pts |

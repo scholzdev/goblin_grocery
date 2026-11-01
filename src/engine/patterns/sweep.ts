@@ -1,7 +1,7 @@
 import { DEPTH } from '../../data/depth';
 import { newHitTracker, tryHit } from '../../systems/combat';
 import { hasStar3, wrapAngle } from '../define';
-import { degToRad, repeat } from './common';
+import { aimAngle, degToRad, repeat } from './common';
 import type { Pattern, PatternEnemy, PatternHost, WeaponRt } from './types';
 
 /**
@@ -44,8 +44,8 @@ export const sweep: Pattern = {
   fire(h, w) {
     const sc = h.sc;
     repeat(h, w, () => {
-      const t = sc.nearestEnemy(w.stats.range);
-      if (t) sweepOnce(h, w, Math.atan2(t.y - sc.player.y, t.x - sc.player.x));
+      const t = sc.targetForWeapon(w.stats.range, w.targetMode);
+      if (t) sweepOnce(h, w, aimAngle(h, t, w.targetMode));
     });
   },
 };

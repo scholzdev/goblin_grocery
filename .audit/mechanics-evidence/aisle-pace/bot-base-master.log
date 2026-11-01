@@ -1,0 +1,19 @@
+  shop 1 lv1: hp=26 money=27 kills=27 cells=2/20 shelf=0 
+  door: none
+  shop 2 lv1: hp=28 money=22 kills=53 cells=5/20 shelf=0 
+  door: quiet
+  shop 3 lv1: hp=10 money=15 kills=66 cells=5/20 shelf=0 
+  door: quiet
+run 0: defeat wave=4 hp=0 kills=69  [toaster fortune fan*2] time=206s game=199s
+  shop 1 lv1: hp=36 money=20 kills=26 cells=2/20 shelf=0 
+  door: event
+  shop 2 lv1: hp=28 money=45 kills=52 cells=6/20 shelf=0 toastMode
+  door: quiet
+  shop 3 lv1: hp=30 money=18 kills=68 cells=7/20 shelf=0 toastMode
+  door: event
+run 1: defeat wave=4 hp=0 kills=70 toastMode [toaster fan fuel expiredcoupon bell] time=206s game=199s
+  shop 1 lv1: hp=40 money=21 kills=25 cells=2/20 shelf=0 
+  door: none
+  shop 2 lv1: hp=31 money=22 kills=53 cells=6/20 shelf=0 toastMode
+  door: event
+run 2: defeat wave=3 hp=0 kills=67 toastMode [fan fuel toaster*2 bell] time=160s game=155s
