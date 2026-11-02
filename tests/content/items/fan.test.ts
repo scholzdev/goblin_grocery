@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { ITEMS, TIER } from '../../../src/data/items';
+import { ITEMS } from '../../../src/data/items';
 import fan from '../../../src/content/items/fan';
 import { contentItem } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
@@ -11,14 +11,14 @@ import { around, at, gilded, stats } from '../helpers';
 
 afterEach(() => setLang('en'));
 
-// The legacy numbers: +30% range/reach and +30% projectile speed at ★1, scaled by TIER.mult. Toaster (kitchen / heat / electric) shares no set with
+// +10% / +15% / +20% range/reach and projectile speed at ★1 / ★2 / ★3. Toaster (kitchen / heat / electric) shares no set with
 // the fan (cleaning) and has no combo with it alone; the Pan (a sweep) is the non-projectile case.
 const toaster = ITEMS.toaster.weapon!, pan = ITEMS.pan.weapon!, spray = ITEMS.spray.weapon!;
 const gun = at('toaster');
 
 describe('Desk Fan: build', () => {
-  it('adds +30% / +45% / +60% range and projectile speed to a projectile weapon at ★1 / ★2 / ★3', () => {
-    for (const [tier, bonus] of [[1, 0.3], [2, 0.45], [3, 0.6]] as const) {
+  it('adds +10% / +15% / +20% range and projectile speed to a projectile weapon at ★1 / ★2 / ★3', () => {
+    for (const [tier, bonus] of [[1, 0.1], [2, 0.15], [3, 0.2]] as const) {
       const w = stats([gun, at('fan', tier)]);
       expect(w.range).toBeCloseTo(toaster.range * (1 + bonus));
       expect(w.projectileSpeed).toBeCloseTo(toaster.projectileSpeed * (1 + bonus));
@@ -27,7 +27,7 @@ describe('Desk Fan: build', () => {
 
   it('gives a non-projectile weapon the range only (no projectile speed to speed up)', () => {
     const w = stats([at('pan'), at('fan', 3)]);
-    expect(w.range).toBeCloseTo(pan.range * 1.6);
+    expect(w.range).toBeCloseTo(pan.range * 1.2);
     expect(w.projectileSpeed).toBe(pan.projectileSpeed);
   });
 
@@ -49,14 +49,13 @@ describe('Desk Fan: build', () => {
 
   it('does not stack: the highest touching tier counts once', () => {
     const w = stats([gun, at('fan', 1), at('fan', 3, { near: [0] })]);
-    expect(w.range).toBeCloseTo(toaster.range * 1.6);
+    expect(w.range).toBeCloseTo(toaster.range * 1.2);
   });
 
-  it('Gold Star lifts it one tier (★3 -> effective ★4 = +75%), range and speed alike', () => {
+  it('Gold Star lifts it one tier (★3 -> effective ★4 = +25%), range and speed alike', () => {
     const w = stats([gun, at('fan', 3), gilded(1)]);
-    expect(w.range).toBeCloseTo(toaster.range * (1 + 0.3 * TIER.mult(4)));
-    expect(w.projectileSpeed).toBeCloseTo(toaster.projectileSpeed * (1 + 0.3 * TIER.mult(4)));
-    expect(1 + 0.3 * TIER.mult(4)).toBe(1.75);
+    expect(w.range).toBeCloseTo(toaster.range * 1.25);
+    expect(w.projectileSpeed).toBeCloseTo(toaster.projectileSpeed * 1.25);
   });
 
   it('is replaced by the Mist Machine on a Spray Bottle: no fan buff, the combo range plus the Cleaning set instead', () => {
@@ -64,7 +63,7 @@ describe('Desk Fan: build', () => {
     const [w] = computeBuild(inv).weapons;
     expect(w.recipes).toEqual(['mistMachine']);
     expect(w.buffs).toEqual([]);
-    expect(w.range).toBeCloseTo(spray.range * 1.4 * 1.15); // Mist Machine x1.4, Cleaning L2 x1.15 (1 + 3 points from the ★3 fan); no x1.6 from the fan
+    expect(w.range).toBeCloseTo(spray.range * 1.4 * 1.15); // Mist Machine x1.4, Cleaning L2 x1.15 (1 + 3 points from the ★3 fan); no x1.2 from the fan
   });
 });
 
@@ -85,19 +84,19 @@ describe('Desk Fan: content', () => {
 
   it('renders its text for every level, EN and DE', () => {
     expect([1, 2, 3].map((t) => itemRules('fan', t))).toEqual([
-      'Any adjacent weapon gains +30% range or reach and +30% projectile speed.',
-      'Any adjacent weapon gains +45% range or reach and +45% projectile speed.',
-      'Any adjacent weapon gains +60% range or reach and +60% projectile speed.',
+      'Any adjacent weapon gains +10% range or reach and +10% projectile speed.',
+      'Any adjacent weapon gains +15% range or reach and +15% projectile speed.',
+      'Any adjacent weapon gains +20% range or reach and +20% projectile speed.',
     ]);
     setLang('de');
-    expect(itemRules('fan', 3)).toBe('Jede angrenzende Waffe erhält +60% Reichweite und +60% Projektiltempo.');
+    expect(itemRules('fan', 3)).toBe('Jede angrenzende Waffe erhält +20% Reichweite und +20% Projektiltempo.');
     expect(itemT('fan')).toEqual({ name: 'Tischventilator', blurb: 'Wuusch. Mehr Reichweite für alles, was er berührt.' });
   });
 
   it('generates the shop scaling rows', () => {
     expect(tierScaling('fan')).toEqual([
-      { label: 'Range / reach', values: ['+30%', '+45%', '+60%'] },
-      { label: 'Projectile speed', values: ['+30%', '+45%', '+60%'] },
+      { label: 'Range / reach', values: ['+10%', '+15%', '+20%'] },
+      { label: 'Projectile speed', values: ['+10%', '+15%', '+20%'] },
     ]);
     setLang('de');
     expect(tierScaling('fan').map((r) => r.label)).toEqual(['Distanz / Reichweite', 'Projektiltempo']);
@@ -109,8 +108,8 @@ describe('Desk Fan: content', () => {
       inv.placed[1].tier = tier;
       return describeBuffs(computeBuild(inv).weapons[0], inv)[0];
     };
-    expect(lines('toaster', 1)).toBe('+30% speed & range (Desk Fan)');
-    expect(lines('toaster', 3)).toBe('+60% speed & range (Desk Fan ★3)');
-    expect(lines('pan', 2)).toBe('+45% reach (Desk Fan ★2)');
+    expect(lines('toaster', 1)).toBe('+10% speed & range (Desk Fan)');
+    expect(lines('toaster', 3)).toBe('+20% speed & range (Desk Fan ★3)');
+    expect(lines('pan', 2)).toBe('+15% reach (Desk Fan ★2)');
   });
 });

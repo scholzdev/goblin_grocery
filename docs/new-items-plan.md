@@ -10,9 +10,9 @@ Status: draft. Every number here is a first guess, sized against the current val
 | Dash | 6 dmg, 130 px, 3 s cooldown | `src/data/items.ts:49` |
 | Running Boot dash damage | +6 / +9 / +12 | `src/content/items/boot.ts:9` |
 | Slam Bumper landing blast | 8 / 12 / 16, radius 90 | `src/content/items/bumper.ts:6` |
-| Fuel Can burn | 2.5 / 3.75 / 5 dps for 2 s, refreshes | `src/content/items/fuel.ts:8` |
+| Fuel Can burn | 3 / 5 / 7 dps for 3 s, refreshes | `src/content/items/fuel.ts:8` |
 | Oven vent / live cable hit on player | 6 / 5 | `src/data/departments.ts:66-67` |
-| Pan ★1 | 9 dmg every 1.15 s | `src/content/items/pan.ts:6` |
+| Pan ★1 | 9 dmg every 1.12 s | `src/content/items/pan.ts:6` |
 | Tier multipliers | dmg x1 / x1.5 / x2, cooldown x1 / x0.9 / x0.8 | `src/engine/define.ts:74-75` |
 | Coins in aisle 1 | about 12 from kills + 12 clear bonus | `src/data/waves.ts:63-87` |
 | Repair | 6 + 2 x shop coins for 10 HP | `src/systems/shop.ts:16` |

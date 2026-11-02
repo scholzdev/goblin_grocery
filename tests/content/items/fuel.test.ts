@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { ITEMS, TIER } from '../../../src/data/items';
+import { ITEMS } from '../../../src/data/items';
 import fuel from '../../../src/content/items/fuel';
 import { contentItem, contentSetTune, contentTune } from '../../../src/engine/registry';
 import { itemRules, itemT } from '../../../src/i18n/data';
@@ -10,17 +10,17 @@ import { arena, around, at, gilded, stats } from '../helpers';
 
 afterEach(() => setLang('en'));
 
-// Legacy: 2.5 burn dps at ★1 x TIER.mult, 2 s, 0.5 s ticks. Nail Gun (tools / blast / electric) shares only Tools with the can (cooldown, not burn)
+// Burn: 3 / 5 / 7 dps at ★1 / ★2 / ★3, 3 s, 0.5 s ticks. Nail Gun (tools / blast / electric) shares only Tools with the can (cooldown, not burn)
 // and has no combo with it. A ★2 / ★3 can is 2 / 3 Heat set points on its own: Heat L1 (burns +1 s); Gold Star's effective ★4 is 4 points:
 // L2 (also x1.4 dps).
 const gun = at('nailgun');
 const HEAT = (lv: number) => contentSetTune('heat', lv);
 
 describe('Fuel Can: build', () => {
-  it('sets enemies on fire for 2.5 / 3.75 / 5 dps at ★1 / ★2 / ★3 (2 s, 0.5 s ticks), plus the Heat level its own set points reach', () => {
-    expect(stats([gun, at('fuel')]).burn).toEqual({ dps: 2.5, duration: 2, tick: 0.5 });
-    expect(stats([gun, at('fuel', 2)]).burn).toEqual({ dps: 3.75, duration: 2 + HEAT(1).burnExtra, tick: 0.5 });
-    expect(stats([gun, at('fuel', 3)]).burn).toEqual({ dps: 5, duration: 2 + HEAT(1).burnExtra, tick: 0.5 });
+  it('sets enemies on fire for 3 / 5 / 7 dps at ★1 / ★2 / ★3 (3 s, 0.5 s ticks), plus the Heat level its own set points reach', () => {
+    expect(stats([gun, at('fuel')]).burn).toEqual({ dps: 3, duration: 3, tick: 0.5 });
+    expect(stats([gun, at('fuel', 2)]).burn).toEqual({ dps: 5, duration: 3 + HEAT(1).burnExtra, tick: 0.5 });
+    expect(stats([gun, at('fuel', 3)]).burn).toEqual({ dps: 7, duration: 3 + HEAT(1).burnExtra, tick: 0.5 });
   });
 
   it('records the buff, and leaves damage, range and speed alone (only the Tools set speeds the nail gun up)', () => {
@@ -39,20 +39,20 @@ describe('Fuel Can: build', () => {
   });
 
   it('does not stack: the highest touching tier counts once', () => {
-    expect(stats([gun, at('fuel', 1), at('fuel', 3, { near: [0] })]).burn?.dps).toBe(5); // 3 Heat points, not 4: L1, no dps multiplier
+    expect(stats([gun, at('fuel', 1), at('fuel', 3, { near: [0] })]).burn?.dps).toBe(7); // 3 Heat points, not 4: L1, no dps multiplier
   });
 
-  it('Gold Star lifts it one tier (★3 -> effective ★4 = 6.25 dps)', () => {
+  it('Gold Star lifts it one tier (★3 -> effective ★4 = 9 dps)', () => {
     const w = stats([gun, at('fuel', 3), gilded(1)]);
-    expect(w.burn?.dps).toBeCloseTo(2.5 * TIER.mult(4) * HEAT(2).burnMult); // 4 Heat points: L2
-    expect(2.5 * TIER.mult(4)).toBe(6.25);
+    expect(w.burn?.dps).toBeCloseTo(9 * HEAT(2).burnMult); // 4 Heat points: L2
+    expect(contentTune('fuel', 4).dps).toBe(9);
   });
 
   it('is what Jelly Beans (heat) scales: 70% of the ★1 burn at ★1', () => {
-    expect(contentTune('fuel', 1)).toEqual({ dps: 2.5, duration: 2, tick: 0.5 });
+    expect(contentTune('fuel', 1)).toEqual({ dps: 3, duration: 3, tick: 0.5 });
     const w = stats([gun, at('jellybeans', 1, { flavor: 'heat' })]);
-    expect(w.burn?.dps).toBeCloseTo(2.5 * 0.7);
-    expect(w.burn?.duration).toBe(2);
+    expect(w.burn?.dps).toBeCloseTo(3 * 0.7);
+    expect(w.burn?.duration).toBe(3);
   });
 });
 
@@ -72,23 +72,23 @@ describe('Fuel Can: content', () => {
 
   it('renders its text for every level, EN and DE', () => {
     expect([1, 2, 3].map((t) => itemRules('fuel', t))).toEqual([
-      'Any adjacent weapon sets enemies on fire: 2.5/s burn damage for 2 s (refreshes, never stacks).',
-      'Any adjacent weapon sets enemies on fire: 3.75/s burn damage for 2 s (refreshes, never stacks).',
-      'Any adjacent weapon sets enemies on fire: 5/s burn damage for 2 s (refreshes, never stacks).',
+      'Any adjacent weapon sets enemies on fire: 3/s burn damage for 3 s (refreshes, never stacks).',
+      'Any adjacent weapon sets enemies on fire: 5/s burn damage for 3 s (refreshes, never stacks).',
+      'Any adjacent weapon sets enemies on fire: 7/s burn damage for 3 s (refreshes, never stacks).',
     ]);
     setLang('de');
     expect([1, 2, 3].map((t) => itemRules('fuel', t))).toEqual([
-      'Jede angrenzende Waffe setzt Gegner in Brand: 2,5/s Brandschaden für 2 s (erneuert sich, stapelt sich nie).',
-      'Jede angrenzende Waffe setzt Gegner in Brand: 3,75/s Brandschaden für 2 s (erneuert sich, stapelt sich nie).',
-      'Jede angrenzende Waffe setzt Gegner in Brand: 5/s Brandschaden für 2 s (erneuert sich, stapelt sich nie).',
+      'Jede angrenzende Waffe setzt Gegner in Brand: 3/s Brandschaden für 3 s (erneuert sich, stapelt sich nie).',
+      'Jede angrenzende Waffe setzt Gegner in Brand: 5/s Brandschaden für 3 s (erneuert sich, stapelt sich nie).',
+      'Jede angrenzende Waffe setzt Gegner in Brand: 7/s Brandschaden für 3 s (erneuert sich, stapelt sich nie).',
     ]);
     expect(itemT('fuel').name).toBe('Benzinkanister');
   });
 
   it('generates the shop scaling row', () => {
-    expect(tierScaling('fuel')).toEqual([{ label: 'Burn', values: ['2.5/s', '3.75/s', '5/s'] }]);
+    expect(tierScaling('fuel')).toEqual([{ label: 'Burn', values: ['3/s', '5/s', '7/s'] }]);
     setLang('de');
-    expect(tierScaling('fuel')).toEqual([{ label: 'Brand', values: ['2,5/s', '3,75/s', '5/s'] }]);
+    expect(tierScaling('fuel')).toEqual([{ label: 'Brand', values: ['3/s', '5/s', '7/s'] }]);
   });
 
   it('shows its buff line with the right numbers per tier', () => {
@@ -97,8 +97,8 @@ describe('Fuel Can: content', () => {
       inv.placed[1].tier = tier;
       return describeBuffs(computeBuild(inv).weapons[0], inv)[0];
     };
-    expect(line(1)).toBe('Burn 2.5/s for 2s (Fuel Can)');
-    expect(line(3)).toBe('Burn 5/s for 2s (Fuel Can ★3)');
+    expect(line(1)).toBe('Burn 3/s for 3s (Fuel Can)');
+    expect(line(3)).toBe('Burn 7/s for 3s (Fuel Can ★3)');
   });
 });
 
@@ -111,7 +111,7 @@ describe('Fuel Can: runtime', () => {
   });
 
   it('its burn lands on a hit through the engine: dps / duration / tick of the tier, refreshing', () => {
-    for (const [tier, dps, until] of [[1, 2.5, 2], [2, 3.75, 2 + HEAT(1).burnExtra], [3, 5, 2 + HEAT(1).burnExtra]] as const) {
+    for (const [tier, dps, until] of [[1, 3, 3], [2, 5, 3 + HEAT(1).burnExtra], [3, 7, 3 + HEAT(1).burnExtra]] as const) {
       const { fake, stats: w } = arena([at('nailgun'), at('fuel', tier)]);
       const e = fake.spawnEnemy({ hp: 100 });
       fake.hit(e, 3, w);

@@ -23,7 +23,7 @@ const beans = (flavor?: ElementTag, tier?: number, extra = {}) => at('jellybeans
 // Vacuum (cleaning, no element, no fuel/popper combo) for heat; Nail Gun (tools / blast) for frost and blast.
 const vac = at('vacuum'), gun = at('nailgun');
 
-// Legacy: each touching bag adds its flavor's real module effect at 70% x TIER.mult of its own effective tier, never weaker than what a real
+// Legacy: each touching bag adds its flavor's real module effect at 70% x TIER.mult of its own effective tier (Fuel Can ★1 = 3 dps), never weaker than what a real
 // Fuel Can / Ice Pack / Party Popper already gave. No flavor = heat. The bags also count toward the flavor's set.
 describe('Jelly Beans: flavors', () => {
   it('heat burns like a Fuel Can at 70%', () => {
@@ -80,7 +80,7 @@ describe('Jelly Beans: 70% x tier', () => {
       expect(stats([gun, beans('frost', tier)]).slow!.pct).toBe(frost[tier - 1](ice.pct * (TIER.mult(tier) * STRENGTH)));
       expect(stats([gun, beans('blast', tier)]).popper!.damage).toBe(popper.damage * (TIER.mult(tier) * STRENGTH));
     }
-    [1.75, 2.625, 3.5].forEach((dps, i) => expect(stats([vac, beans('heat', i + 1)]).burn!.dps).toBeCloseTo(dps, 12));
+    [2.1, 3.15, 4.2].forEach((dps, i) => expect(stats([vac, beans('heat', i + 1)]).burn!.dps).toBeCloseTo(dps, 12));
   });
 
   it('Gold Star lifts it (★3 -> effective ★4: 175%, 4 set points: L2); the Ice Pack slow stays under its cap', () => {
@@ -103,18 +103,18 @@ describe('Jelly Beans: 70% x tier', () => {
 describe('Jelly Beans: never weaker than the real module (max)', () => {
   it('a stronger Fuel Can keeps its burn; weaker beans do not replace it', () => {
     const w = stats([vac, at('fuel', 3), beans('heat', 1)]);
-    expect(w.burn!.dps).toBe(contentTune('fuel', 3).dps * HEAT(2).burnMult); // 5 > 1.75; 4 Heat points: L2
+    expect(w.burn!.dps).toBe(contentTune('fuel', 3).dps * HEAT(2).burnMult); // 7 > 2.1; 4 Heat points: L2
     expect(w.buffs).toEqual(['fuel']);
   });
 
   it('stronger beans replace a weaker Fuel Can (and keep the Fuel Can buff)', () => {
     const w = stats([vac, at('fuel', 1), beans('heat', 3)]);
-    expect(w.burn!.dps).toBe(fuel.dps * (TIER.mult(3) * STRENGTH) * HEAT(2).burnMult); // 3.5 > 2.5; 4 Heat points: L2
+    expect(w.burn!.dps).toBe(fuel.dps * (TIER.mult(3) * STRENGTH) * HEAT(2).burnMult); // 4.2 > 3; 4 Heat points: L2
     expect(w.buffs).toEqual(['fuel']);
   });
 
   it('equal strength keeps the Fuel Can\'s burn', () => {
-    // beans never equal exactly (1.75 vs 2.5 vs 3.75 ...): a Fuel Can ★1 against ★1 beans is the strictly stronger one
+    // beans never equal exactly (2.1 vs 3 vs 5 ...): a Fuel Can ★1 against ★1 beans is the strictly stronger one
     expect(stats([vac, at('fuel', 1), beans('heat', 1)]).burn!.dps).toBe(fuel.dps);
   });
 

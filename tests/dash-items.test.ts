@@ -46,13 +46,15 @@ describe('dash items', () => {
   it('shop leans towards them when the cart has a Bell', () => {
     const count = (own: ItemTypeId[]) => {
       const s = createRun(1);
-      s.pool = undefined;
+      // A small pool, so the Bell's x1.1 on the Flag is not lost in the noise of the whole stock.
+      s.pool = ['flag', 'bell', 'ice', 'piggy', 'lunchbox', 'sample', 'coupon', 'helmet'] as ItemTypeId[];
       for (const t of own) s.inventory.shelf[own.indexOf(t)] = { uid: `u${t}`, type: t, x: 0, y: 0, rot: 0 } as never;
       let n = 0;
-      for (let seed = 0; seed < 400; seed++) for (const o of rollOffers(s, mulberry32(seed), 3)) if (o.type === 'flag') n++;
+      for (let seed = 0; seed < 1500; seed++) for (const o of rollOffers(s, mulberry32(seed), 3)) if (o.type === 'flag') n++;
       return n;
     };
-    expect(count(['bell'])).toBeGreaterThan(count(['fan']));
+    // The Ice Pack is in no Toaster combo, so the shop's pull towards the starting weapon's parts leaves both carts alike.
+    expect(count(['bell'])).toBeGreaterThan(count(['ice']));
   });
 });
 

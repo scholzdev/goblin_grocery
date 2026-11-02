@@ -34,9 +34,7 @@ describe('starter weapons x characters', () => {
         expect(s.hp).toBe(s.build.maxHp);
         applyStock(s, STARTING_ITEMS, []);
         const types = rollOffers(s, mulberry32(3), 1).map((o) => o.type);
-        // Tomato has no dedicated recipes yet; its first shop rolls freely.
-        if (weapon === 'tomato') expect(s.openers).toEqual([]);
-        else expect(s.openers!.length).toBeGreaterThanOrEqual(2);
+        expect(s.openers!.length).toBeGreaterThanOrEqual(2);
         for (const t of s.openers!) expect(types).toContain(t);
       });
     }

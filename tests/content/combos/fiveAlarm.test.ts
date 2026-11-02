@@ -13,10 +13,10 @@ const dealt = (fake: ReturnType<typeof arena>['fake'], stats: ReturnType<typeof 
 };
 
 describe('Five-Alarm Toast: runtime', () => {
-  it('toast damage vs a burning enemy x1.8, otherwise normal', () => {
+  it('toast damage vs a burning enemy x1.25, otherwise normal', () => {
     const { fake, stats } = arena(partsOf(fiveAlarm));
     expect(dealt(fake, stats, false)).toBe(10);
-    expect(dealt(fake, stats, true)).toBeCloseTo(18, 12);
+    expect(dealt(fake, stats, true)).toBeCloseTo(12.5, 12);
   });
   it('an expired burn does not count', () => {
     const { fake, stats } = arena(partsOf(fiveAlarm));
@@ -31,12 +31,12 @@ describe('Five-Alarm Toast: runtime', () => {
     const plain = arena([at('toaster')]);
     expect(dealt(plain.fake, plain.stats, true)).toBe(10);
   });
-  it('order guard: the x1.8 is applied in modifyDamage, so the mark (x1.2) and a crit multiply on top of it', () => {
+  it('order guard: the x1.25 is applied in modifyDamage, so the mark (x1.2) and a crit multiply on top of it', () => {
     const { fake, stats } = arena(partsOf(fiveAlarm));
     const e = fake.spawnEnemy({ hp: 1000 });
     e.status.burnUntil = 10; e.markedUntil = 10;
     fake.hit(e, 10, { ...stats, critChance: 0 });
-    expect(1000 - e.hp).toBeCloseTo(10 * 1.8 * 1.2, 9);
+    expect(1000 - e.hp).toBeCloseTo(10 * 1.25 * 1.2, 9);
   });
   it('draws no random numbers when the weapon cannot crit', () => {
     const { fake, stats } = arena(partsOf(fiveAlarm), { seed: 6 });

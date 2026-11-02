@@ -1,7 +1,7 @@
 import { defineCombo } from '../../engine/define';
 import { Combo, Item } from '../../engine/ids';
 
-// Toaster + Desk Fan + Fuel Can: three flaming toasts per shot. The Fuel burn comes from the module phase; this only reshapes the volley.
+// Toaster + Desk Fan + Fuel Can: two flaming toasts per shot. The Fuel burn comes from the module phase; this only reshapes the volley.
 // The flame trail, the amber hit sparks and the lower pop are this combo's `pattern:look` (cosmetic only; the toast pattern and damageEnemy read the look).
 export default defineCombo({
   id: Combo.toastMode, requires: [Item.toaster, Item.fan, Item.fuel],
@@ -9,12 +9,12 @@ export default defineCombo({
   text: {
     en: {
       name: 'Toast Mode', short: '{count} flaming toasts per shot',
-      summary: 'Toaster touching a Desk Fan AND a Fuel Can: flaming three-toast spread.',
+      summary: 'Toaster touching a Desk Fan AND a Fuel Can: flaming two-toast spread.',
       detail: 'Fires {count} toasts in a spread. Each deals {damageMult|pct} damage and sets enemies on fire (burn does not stack). Fan speed and range still apply.',
     },
     de: {
       name: 'Toast-Modus', short: '{count} flammende Toasts pro Schuss',
-      summary: 'Toaster berührt Tischventilator UND Benzinkanister: flammender Dreifach-Toast-Fächer.',
+      summary: 'Toaster berührt Tischventilator UND Benzinkanister: flammender Doppel-Toast-Fächer.',
       detail: 'Feuert {count} Toasts im Fächer. Jeder macht {damageMult|pct} Schaden und setzt Gegner in Brand (Brand stapelt sich nicht). Ventilator-Tempo und -Reichweite gelten weiterhin.',
     },
   },

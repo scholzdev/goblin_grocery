@@ -23,7 +23,7 @@ describe('Blender: content', () => {
     expect(def.tags).toEqual(['melee', 'area']);
     expect(def.legendary).toBeUndefined();
     expect(def.cells).toEqual([{x: 0, y: 0}, {x: 0, y: 1}]);
-    expect(def.weapon).toEqual({ pattern: 'aura', damage: 5, cooldown: 0.3, range: 100, projectileSpeed: 0, count: 1, burstInterval: 0, arcDeg: 0, pull: 0, tick: 0, duration: 0, bounces: 0, chain: 0, aoe: 0 });
+    expect(def.weapon).toEqual({ pattern: 'aura', damage: 2, cooldown: 0.3, range: 100, projectileSpeed: 0, count: 1, burstInterval: 0, arcDeg: 0, pull: 0, tick: 0, duration: 0, bounces: 0, chain: 0, aoe: 0 });
   });
 
   it('keeps its position in the item order', () => {
@@ -32,24 +32,24 @@ describe('Blender: content', () => {
 
   it('renders its text for every level, EN and DE', () => {
     expect([1, 2, 3].map((t) => itemRules('blender', t))).toEqual([
-      'Shreds every enemy within 100 for 5 damage every 0.3 s (each enemy once per tick). Electrical.',
-      'Shreds every enemy within 100 for 7.5 damage every 0.27 s (each enemy once per tick). Electrical.',
-      'Shreds every enemy within 100 for 10 damage every 0.24 s (each enemy once per tick). Electrical. ★3: The blades pull enemies in instead of pushing them away.',
+      'Shreds every enemy within 100 for 2 damage every 0.3 s (each enemy once per tick). Electrical.',
+      'Shreds every enemy within 100 for 3 damage every 0.27 s (each enemy once per tick). Electrical.',
+      'Shreds every enemy within 100 for 4 damage every 0.24 s (each enemy once per tick). Electrical. ★3: The blades pull enemies in instead of pushing them away.',
     ]);
     expect(itemT('blender')).toMatchObject({ name: 'Blender', blurb: 'Whirring blades around the cart.' });
     setLang('de');
-    expect([1, 3].map((t) => itemRules('blender', t))).toEqual(['Schreddert alle 0,3 s jeden Gegner im Umkreis von 100 für 5 Schaden (jeden Gegner einmal pro Tick). Elektrisch.', 'Schreddert alle 0,24 s jeden Gegner im Umkreis von 100 für 10 Schaden (jeden Gegner einmal pro Tick). Elektrisch. ★3: Die Klingen ziehen Gegner heran, statt sie wegzustoßen.']);
+    expect([1, 3].map((t) => itemRules('blender', t))).toEqual(['Schreddert alle 0,3 s jeden Gegner im Umkreis von 100 für 2 Schaden (jeden Gegner einmal pro Tick). Elektrisch.', 'Schreddert alle 0,24 s jeden Gegner im Umkreis von 100 für 4 Schaden (jeden Gegner einmal pro Tick). Elektrisch. ★3: Die Klingen ziehen Gegner heran, statt sie wegzustoßen.']);
     expect(itemT('blender')).toMatchObject({ name: 'Mixer', blurb: 'Surrende Klingen rund um den Wagen.' });
   });
 
   it('generates the shop scaling rows', () => {
     expect(tierScaling('blender')).toEqual([
-      { label: 'Damage', values: ['5', '7.5', '10'] },
+      { label: 'Damage', values: ['2', '3', '4'] },
       { label: 'Interval', values: ['0.3 s', '0.27 s', '0.24 s'] },
     ]);
     setLang('de');
     expect(tierScaling('blender')).toEqual([
-      { label: 'Schaden', values: ['5', '7,5', '10'] },
+      { label: 'Schaden', values: ['2', '3', '4'] },
       { label: 'Intervall', values: ['0,3 s', '0,27 s', '0,24 s'] },
     ]);
   });
@@ -68,7 +68,7 @@ describe('Blender: build', () => {
       expect(w.damage).toBe(tune.damage[t - 1] * kitchen(t));
       expect(w.cooldown).toBe(tune.cooldown[t - 1]);
     }
-    expect([1, 2, 3].map((t) => stats([at('blender', t)]).damage)).toEqual([5.0, 7.5, 10.0].map((d, i) => d * kitchen(i + 1)));
+    expect([1, 2, 3].map((t) => stats([at('blender', t)]).damage)).toEqual([2.0, 3.0, 4.0].map((d, i) => d * kitchen(i + 1)));
   });
 
   it('carries the base shape of the pattern into the build', () => {
@@ -85,7 +85,7 @@ describe('Blender: pattern aura', () => {
     a.step(0.45);
     const hits = fake.callsOf('damage');
     expect(hits.map((c) => c.enemy)).toEqual([trigger.id, rim.id]);
-    expect(hits.every((c) => c.dmg === 7.5 * setTuneAt('kitchen', 2)!.damageMult)).toBe(true);
+    expect(hits.every((c) => c.dmg === 3 * setTuneAt('kitchen', 2)!.damageMult)).toBe(true);
     expect(hits.map((c) => c.opts)).toEqual([{ kb: 20, kbX: 1, kbY: 0, quiet: true }, { kb: 20, kbX: 0, kbY: -1, quiet: true }]);
     expect(hits.some((c) => c.enemy === out.id)).toBe(false);
     expect(a.sounds).toEqual(['blender']);

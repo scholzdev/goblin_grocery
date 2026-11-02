@@ -22,7 +22,7 @@ describe('Frying Pan: content', () => {
     expect(def.tags).toEqual(['melee']);
     expect(def.legendary).toBeUndefined();
     expect(def.cells).toEqual([{x: 0, y: 0}, {x: 0, y: 1}, {x: 0, y: 2}]);
-    expect(def.weapon).toEqual({ pattern: 'sweep', damage: 9, cooldown: 1.15, range: 150, projectileSpeed: 0, count: 1, burstInterval: 0, arcDeg: 150, pull: 0, tick: 0, duration: 0, bounces: 0, chain: 0, aoe: 0 });
+    expect(def.weapon).toEqual({ pattern: 'sweep', damage: 9, cooldown: 1.12, range: 150, projectileSpeed: 0, count: 1, burstInterval: 0, arcDeg: 150, pull: 0, tick: 0, duration: 0, bounces: 0, chain: 0, aoe: 0 });
   });
 
   it('keeps its position in the item order', () => {
@@ -31,25 +31,25 @@ describe('Frying Pan: content', () => {
 
   it('renders its text for every level, EN and DE', () => {
     expect([1, 2, 3].map((t) => itemRules('pan', t))).toEqual([
-      'Sweeps toward nearby enemies for 9 damage every 1.15 s. 150 reach. Hits each enemy once per swing.',
-      'Sweeps toward nearby enemies for 13.5 damage every 1.03 s. 150 reach. Hits each enemy once per swing.',
-      'Sweeps toward nearby enemies for 18 damage every 0.92 s. 150 reach. Hits each enemy once per swing. ★3: Sweeps the full 360° around the cart.',
+      'Sweeps toward nearby enemies for 9 damage every 1.12 s. 150 reach. Hits each enemy once per swing.',
+      'Sweeps toward nearby enemies for 13.5 damage every 1.01 s. 150 reach. Hits each enemy once per swing.',
+      'Sweeps toward nearby enemies for 18 damage every 0.9 s. 150 reach. Hits each enemy once per swing. ★3: Sweeps the full 360° around the cart.',
     ]);
     expect(itemT('pan')).toMatchObject({ name: 'Frying Pan', blurb: 'Big clangy sweep around the cart.' });
     setLang('de');
-    expect([1, 3].map((t) => itemRules('pan', t))).toEqual(['Schwingt alle 1,15 s auf Gegner in der Nähe für 9 Schaden. 150 Reichweite. Trifft jeden Gegner einmal pro Schwung.', 'Schwingt alle 0,92 s auf Gegner in der Nähe für 18 Schaden. 150 Reichweite. Trifft jeden Gegner einmal pro Schwung. ★3: Schwingt die vollen 360° rund um den Wagen.']);
+    expect([1, 3].map((t) => itemRules('pan', t))).toEqual(['Schwingt alle 1,12 s auf Gegner in der Nähe für 9 Schaden. 150 Reichweite. Trifft jeden Gegner einmal pro Schwung.', 'Schwingt alle 0,9 s auf Gegner in der Nähe für 18 Schaden. 150 Reichweite. Trifft jeden Gegner einmal pro Schwung. ★3: Schwingt die vollen 360° rund um den Wagen.']);
     expect(itemT('pan')).toMatchObject({ name: 'Bratpfanne', blurb: 'Großer, scheppernder Schwung um den Wagen.' });
   });
 
   it('generates the shop scaling rows', () => {
     expect(tierScaling('pan')).toEqual([
       { label: 'Damage', values: ['9', '13.5', '18'] },
-      { label: 'Interval', values: ['1.15 s', '1.03 s', '0.92 s'] },
+      { label: 'Interval', values: ['1.12 s', '1.01 s', '0.9 s'] },
     ]);
     setLang('de');
     expect(tierScaling('pan')).toEqual([
       { label: 'Schaden', values: ['9', '13,5', '18'] },
-      { label: 'Intervall', values: ['1,15 s', '1,03 s', '0,92 s'] },
+      { label: 'Intervall', values: ['1,12 s', '1,01 s', '0,9 s'] },
     ]);
   });
 });
