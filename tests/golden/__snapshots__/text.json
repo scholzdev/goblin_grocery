@@ -8530,13 +8530,13 @@
     "summary": "Blender touching an Ice Pack: a chilling, wider blade storm."
   },
   "combos.butteredPopcorn.de": {
-    "detail": "Der Popcorn-Cooldown sinkt um 12.",
+    "detail": "Der Popcorn-Cooldown sinkt um 20.",
     "name": "Butterpopcorn",
     "short": "Popp schneller",
     "summary": "Popcorn berührt eine Lunchbox: Die Snacklinie bleibt versorgt."
   },
   "combos.butteredPopcorn.en": {
-    "detail": "Popcorn cooldown is reduced by 12.",
+    "detail": "Popcorn cooldown is reduced by 20.",
     "name": "Buttered Popcorn",
     "short": "Pops faster",
     "summary": "Popcorn touching a Lunchbox: the snack line stays stocked."
@@ -8734,13 +8734,13 @@
     "summary": "Snow Cone Machine touching Popcorn: crunchy ice carries the chill."
   },
   "combos.goldenKernels.de": {
-    "detail": "Körner erhalten +10% Kritchance.",
+    "detail": "Körner erhalten +20% Kritchance.",
     "name": "Goldene Körner",
     "short": "Körner können kritisch treffen",
     "summary": "Popcorn berührt einen Glückskeks: Glückskörner treffen doppelt hart."
   },
   "combos.goldenKernels.en": {
-    "detail": "Kernels gain +10% crit chance.",
+    "detail": "Kernels gain +20% crit chance.",
     "name": "Golden Kernels",
     "short": "Kernels can crit",
     "summary": "Popcorn touching a Fortune Cookie: lucky kernels hit twice as hard."
@@ -9205,13 +9205,13 @@
     "detail": "Feuert 2 Toasts im Fächer. Jeder macht 75% Schaden und setzt Gegner in Brand (Brand stapelt sich nicht). Ventilator-Tempo und -Reichweite gelten weiterhin.",
     "name": "Toast-Modus",
     "short": "2 flammende Toasts pro Schuss",
-    "summary": "Toaster berührt Tischventilator UND Benzinkanister: flammender Dreifach-Toast-Fächer."
+    "summary": "Toaster berührt Tischventilator UND Benzinkanister: flammender Doppel-Toast-Fächer."
   },
   "combos.toastMode.en": {
     "detail": "Fires 2 toasts in a spread. Each deals 75% damage and sets enemies on fire (burn does not stack). Fan speed and range still apply.",
     "name": "Toast Mode",
     "short": "2 flaming toasts per shot",
-    "summary": "Toaster touching a Desk Fan AND a Fuel Can: flaming three-toast spread."
+    "summary": "Toaster touching a Desk Fan AND a Fuel Can: flaming two-toast spread."
   },
   "combos.tomatoHelmet.de": {
     "detail": "Solange die Combo aktiv ist, wird eingehender Schaden um 88% reduziert.",
@@ -9662,17 +9662,17 @@
     "name": "Mixer",
     "rules": "Schreddert alle {1} jeden Gegner im Umkreis von 100 für {0} Schaden (jeden Gegner einmal pro Tick). Elektrisch.",
     "rulesByTier": {
-      "1": "Schreddert alle 0,3 s jeden Gegner im Umkreis von 100 für 5 Schaden (jeden Gegner einmal pro Tick). Elektrisch.",
-      "2": "Schreddert alle 0,27 s jeden Gegner im Umkreis von 100 für 7,5 Schaden (jeden Gegner einmal pro Tick). Elektrisch.",
-      "3": "Schreddert alle 0,24 s jeden Gegner im Umkreis von 100 für 10 Schaden (jeden Gegner einmal pro Tick). Elektrisch. ★3: Die Klingen ziehen Gegner heran, statt sie wegzustoßen."
+      "1": "Schreddert alle 0,3 s jeden Gegner im Umkreis von 100 für 2 Schaden (jeden Gegner einmal pro Tick). Elektrisch.",
+      "2": "Schreddert alle 0,27 s jeden Gegner im Umkreis von 100 für 3 Schaden (jeden Gegner einmal pro Tick). Elektrisch.",
+      "3": "Schreddert alle 0,24 s jeden Gegner im Umkreis von 100 für 4 Schaden (jeden Gegner einmal pro Tick). Elektrisch. ★3: Die Klingen ziehen Gegner heran, statt sie wegzustoßen."
     },
     "tierScaling": [
       {
         "label": "Schaden",
         "values": [
-          "5",
-          "7,5",
-          "10"
+          "2",
+          "3",
+          "4"
         ]
       },
       {
@@ -9690,17 +9690,17 @@
     "name": "Blender",
     "rules": "Shreds every enemy within 100 for {0} damage every {1} (each enemy once per tick). Electrical.",
     "rulesByTier": {
-      "1": "Shreds every enemy within 100 for 5 damage every 0.3 s (each enemy once per tick). Electrical.",
-      "2": "Shreds every enemy within 100 for 7.5 damage every 0.27 s (each enemy once per tick). Electrical.",
-      "3": "Shreds every enemy within 100 for 10 damage every 0.24 s (each enemy once per tick). Electrical. ★3: The blades pull enemies in instead of pushing them away."
+      "1": "Shreds every enemy within 100 for 2 damage every 0.3 s (each enemy once per tick). Electrical.",
+      "2": "Shreds every enemy within 100 for 3 damage every 0.27 s (each enemy once per tick). Electrical.",
+      "3": "Shreds every enemy within 100 for 4 damage every 0.24 s (each enemy once per tick). Electrical. ★3: The blades pull enemies in instead of pushing them away."
     },
     "tierScaling": [
       {
         "label": "Damage",
         "values": [
-          "5",
-          "7.5",
-          "10"
+          "2",
+          "3",
+          "4"
         ]
       },
       {
