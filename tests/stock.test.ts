@@ -99,8 +99,7 @@ describe('run stock: what flow.startRun puts in the run', () => {
       const openers = s.openers!;
       expect(s.shop!.offers.slice(0, openers.length).map((o) => [o.type, o.tier])).toEqual(openers.map((t) => [t, 1]));
       expect(distinctRecipes(openers, weapon), `${weapon}: ${openers}`).toBe(openers.length);
-      if (weapon === 'tomato') expect(openers).toEqual([]);
-      else expect(openers.length).toBeGreaterThanOrEqual(2);
+      expect(openers.length).toBeGreaterThanOrEqual(2);
       for (const t of openers) expect(s.pool).toContain(t);
     }
   });
