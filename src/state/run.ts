@@ -1,4 +1,3 @@
-import { refillCharges } from '../engine/actives';
 import { t } from '../i18n';
 import { ITEMS, ITEM_IDS, PLAYER, SIGNATURE, STARTER_WEAPONS, TIER, signatureOf } from '../data/items';
 import { DEPARTMENTS } from '../data/departments';
@@ -412,7 +411,6 @@ export function startNextWave(state: RunState): void {
   state.wave++;
   state.phase = 'combat';
   state.shopLock = state.shop?.locked ? state.shop.offers : undefined;
-  refillCharges(state.inventory);
   state.shop = null;
   state.coinLog = [];
 }

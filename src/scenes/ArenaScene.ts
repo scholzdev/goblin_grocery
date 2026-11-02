@@ -58,10 +58,8 @@ import { CRATE, DASH_PROPS, OBSTACLES, OBSTACLE_KINDS, PROP_TUNING, crateSpots, 
 import { ZONES, type ZoneDef } from '../data/zones';
 import { type Rect, inLane, pushOutCapsule, pushOutCircle, rectsOverlap, segmentHitsRect, steerAround } from '../systems/obstacles';
 
-import { ACTIVE_KEYS } from '../state/keymap';
 import { isDown, resetKeyboard, takePressed } from '../input/keyboard';
-import { padMove, takePadActive, takePadShove } from '../input/gamepad';
-import { activeSlots, fireActive } from '../engine/actives';
+import { padMove, takePadShove } from '../input/gamepad';
 import { floorSpeed, healPlayer } from '../engine/playerHealth';
 import { ARENA, ENTRIES, SIDE_UNITS, DECO_SPOTS, edgeSolids } from '../data/arena';
 import { labDummies, type LabDummy } from '../lab';
@@ -1095,7 +1093,6 @@ export class ArenaScene extends Phaser.Scene {
       hud.tick({
         timeLeft: this.timeLeft(),
         elapsed: this.waveTime,
-        actives: activeSlots(s.inventory).filter((a) => a.slot).map((a) => ({ slot: a.slot!, type: a.inst.type, left: a.left, max: a.max })),
         weapons: this.arsenal.weapons.map((w) => ({ uid: w.stats.uid, type: w.stats.type, mode: w.targetMode })),
         map: { department: s.department, player: { x: this.player.x, y: this.player.y }, obstacles: this.obstacles },
         shoveCd: this.player.chainT > 0 ? 0 : Math.max(0, this.player.shoveCd), shoveMax: s.build.shoveCooldown,
@@ -1148,11 +1145,6 @@ export class ArenaScene extends Phaser.Scene {
     p.invulnT -= dt; p.protectT -= dt; p.hurtT -= dt; p.shoveCd -= dt; p.chainT -= dt;
     const inp = this.input01();
     if (inp.x !== 0) p.facing = inp.x > 0 ? 1 : -1;
-
-    ACTIVE_KEYS.forEach((k, i) => {
-      const key = takePressed(k), pad = takePadActive(i + 1);
-      if ((key || pad) && fireActive(s.inventory, this.ctx, i + 1)) this.fx.shake(0.002, 90);
-    });
 
     const devShove = import.meta.env.DEV && this.devInput?.shove;
     if (devShove) this.devInput!.shove = false;

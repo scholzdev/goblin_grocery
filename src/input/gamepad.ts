@@ -41,7 +41,6 @@ let raf = 0;
 let move: Vec = ZERO;
 let shoveQueued = false;
 let shoveCount = 0;
-const activeQueued = [false, false, false];
 let prev: boolean[] = [];
 let prevMode: PadMode | '' = '';
 const repeat = makeRepeater();
@@ -53,12 +52,6 @@ export const padMove = (): Vec => move;
 export function takePadShove(): boolean {
   const s = shoveQueued;
   shoveQueued = false;
-  return s;
-}
-/** True once per press in combat of the pad button for active slot 1..3 (X, LB, RB). */
-export function takePadActive(slot: number): boolean {
-  const s = activeQueued[slot - 1];
-  activeQueued[slot - 1] = false;
   return s;
 }
 /** Total shoves requested by the pad so far (the tutorial watches this). */
@@ -90,7 +83,6 @@ function stop(): void {
   raf = 0;
   move = ZERO;
   shoveQueued = false;
-  activeQueued.fill(false);
   window.removeEventListener('pointermove', leavePadNav);
   window.removeEventListener('keydown', leavePadNav, true);
   document.body.classList.remove('pad-nav');
@@ -126,7 +118,6 @@ function frame(now: number): void {
 
   if (mode === 'combat') {
     if (edges.includes(BTN.A)) { shoveQueued = true; shoveCount++; }
-    [BTN.X, BTN.LB, BTN.RB].forEach((b, i) => { if (edges.includes(b)) activeQueued[i] = true; });
     return;
   }
   const dir = repeat(dpadDir(down) ?? stickDir(ax, ay), now);

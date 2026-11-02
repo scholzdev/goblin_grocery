@@ -1,4 +1,42 @@
 {
+  "buffs.combo.acidTomato.de": [
+    {
+      "lines": [
+        "Brand 3/s für 3 s (Benzinkanister)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Säuretomate"
+      ],
+      "weapon": "tomato"
+    }
+  ],
+  "buffs.combo.acidTomato.en": [
+    {
+      "lines": [
+        "Burn 3/s for 3s (Fuel Can)",
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Acid Tomato"
+      ],
+      "weapon": "tomato"
+    }
+  ],
+  "buffs.combo.airRaid.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Fliegeralarm"
+      ],
+      "weapon": "leafblower"
+    }
+  ],
+  "buffs.combo.airRaid.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Air Raid"
+      ],
+      "weapon": "leafblower"
+    }
+  ],
   "buffs.combo.bagIt.de": [
     {
       "lines": [
@@ -17,6 +55,24 @@
         "Combo: Bag It"
       ],
       "weapon": "vacuum"
+    }
+  ],
+  "buffs.combo.barcodeFlag.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Sale-Scan"
+      ],
+      "weapon": "laser"
+    }
+  ],
+  "buffs.combo.barcodeFlag.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Sale Scan"
+      ],
+      "weapon": "laser"
     }
   ],
   "buffs.combo.blackIce.de": [
@@ -39,6 +95,44 @@
       "weapon": "mop"
     }
   ],
+  "buffs.combo.blanketBarrage.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Deckenhagel"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.combo.blanketBarrage.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Blanket Barrage"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.combo.bloodyMary.de": [
+    {
+      "lines": [
+        "+25 % Schaden (Scharfe Soße)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Bloody Mary"
+      ],
+      "weapon": "tomato"
+    }
+  ],
+  "buffs.combo.bloodyMary.en": [
+    {
+      "lines": [
+        "+25% damage (Hot Sauce)",
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Bloody Mary"
+      ],
+      "weapon": "tomato"
+    }
+  ],
   "buffs.combo.brainFreeze.de": [
     {
       "lines": [
@@ -59,6 +153,24 @@
       "weapon": "blender"
     }
   ],
+  "buffs.combo.butteredPopcorn.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Butterpopcorn"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.combo.butteredPopcorn.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Buttered Popcorn"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
   "buffs.combo.chickenDinner.de": [
     {
       "lines": [
@@ -75,6 +187,26 @@
         "Combo: Chicken Dinner"
       ],
       "weapon": "pan"
+    }
+  ],
+  "buffs.combo.chillKernels.de": [
+    {
+      "lines": [
+        "Verlangsamung 25 % für 1 s (Kühlakku)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Kühle Körner"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.combo.chillKernels.en": [
+    {
+      "lines": [
+        "Slow 25% for 1s (Ice Pack)",
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Chill Kernels"
+      ],
+      "weapon": "popcorn"
     }
   ],
   "buffs.combo.clearanceSale.de": [
@@ -95,6 +227,44 @@
         "Combo: Clearance Sale"
       ],
       "weapon": "fizz"
+    }
+  ],
+  "buffs.combo.coldChain.de": [
+    {
+      "lines": [
+        "Verlangsamung 25 % für 1 s (Kühlakku)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Kühlkette"
+      ],
+      "weapon": "laser"
+    }
+  ],
+  "buffs.combo.coldChain.en": [
+    {
+      "lines": [
+        "Slow 25% for 1s (Ice Pack)",
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Cold Chain"
+      ],
+      "weapon": "laser"
+    }
+  ],
+  "buffs.combo.coldDiscount.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Kälterabatt"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.combo.coldDiscount.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Cold Discount"
+      ],
+      "weapon": "snowcone"
     }
   ],
   "buffs.combo.coldStorage.de": [
@@ -194,7 +364,7 @@
   "buffs.combo.fiveAlarm.de": [
     {
       "lines": [
-        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "Brand 3/s für 3 s (Benzinkanister)",
         "+25 % Schaden (Scharfe Soße)",
         "Mengenrabatt: 2 Gegenstände → +12 % Schaden",
         "Combo: Fünf-Alarm-Toast"
@@ -205,12 +375,30 @@
   "buffs.combo.fiveAlarm.en": [
     {
       "lines": [
-        "Burn 2.5/s for 2s (Fuel Can)",
+        "Burn 3/s for 3s (Fuel Can)",
         "+25% damage (Hot Sauce)",
         "Bundle Deal: 2 items → +12% damage",
         "Combo: Five-Alarm Toast"
       ],
       "weapon": "toaster"
+    }
+  ],
+  "buffs.combo.foamGuard.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Schaumwache"
+      ],
+      "weapon": "mop"
+    }
+  ],
+  "buffs.combo.foamGuard.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Foam Guard"
+      ],
+      "weapon": "mop"
     }
   ],
   "buffs.combo.freshBread.de": [
@@ -229,6 +417,24 @@
         "Combo: Fresh Bread"
       ],
       "weapon": "toaster"
+    }
+  ],
+  "buffs.combo.frostArmor.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Frostpanzer"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.combo.frostArmor.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Frost Armor"
+      ],
+      "weapon": "snowcone"
     }
   ],
   "buffs.combo.frostbiteNails.de": [
@@ -251,10 +457,58 @@
       "weapon": "nailgun"
     }
   ],
+  "buffs.combo.frozenKernels.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Eiskörner"
+      ],
+      "weapon": "snowcone"
+    },
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.combo.frozenKernels.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Frozen Kernels"
+      ],
+      "weapon": "snowcone"
+    },
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.combo.goldenKernels.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Goldene Körner"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
+  "buffs.combo.goldenKernels.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Golden Kernels"
+      ],
+      "weapon": "popcorn"
+    }
+  ],
   "buffs.combo.greaseFire.de": [
     {
       "lines": [
-        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "Brand 3/s für 3 s (Benzinkanister)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
         "Combo: Fettbrand"
       ],
@@ -264,7 +518,7 @@
   "buffs.combo.greaseFire.en": [
     {
       "lines": [
-        "Burn 2.5/s for 2s (Fuel Can)",
+        "Burn 3/s for 3s (Fuel Can)",
         "Bundle Deal: 1 item → +6% damage",
         "Combo: Grease Fire"
       ],
@@ -291,6 +545,26 @@
       "weapon": "popcorn"
     }
   ],
+  "buffs.combo.leafPile.de": [
+    {
+      "lines": [
+        "Brand 3/s für 3 s (Benzinkanister)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Laubhaufen"
+      ],
+      "weapon": "leafblower"
+    }
+  ],
+  "buffs.combo.leafPile.en": [
+    {
+      "lines": [
+        "Burn 3/s for 3s (Fuel Can)",
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Leaf Pile"
+      ],
+      "weapon": "leafblower"
+    }
+  ],
   "buffs.combo.liveWire.de": [
     {
       "lines": [
@@ -309,6 +583,42 @@
         "Combo: Live Wire"
       ],
       "weapon": "mop"
+    }
+  ],
+  "buffs.combo.luckyFizz.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Glücksbrause"
+      ],
+      "weapon": "fizz"
+    }
+  ],
+  "buffs.combo.luckyFizz.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Lucky Fizz"
+      ],
+      "weapon": "fizz"
+    }
+  ],
+  "buffs.combo.magneticFizz.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Magnetbrause"
+      ],
+      "weapon": "fizz"
+    }
+  ],
+  "buffs.combo.magneticFizz.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Magnetic Fizz"
+      ],
+      "weapon": "fizz"
     }
   ],
   "buffs.combo.mistMachine.de": [
@@ -349,6 +659,46 @@
       "weapon": "nailgun"
     }
   ],
+  "buffs.combo.neonSmoothie.de": [
+    {
+      "lines": [
+        "+18 % Angriffstempo (Batterie)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Neon-Smoothie"
+      ],
+      "weapon": "blender"
+    }
+  ],
+  "buffs.combo.neonSmoothie.en": [
+    {
+      "lines": [
+        "+18% attack rate (Battery)",
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Neon Smoothie"
+      ],
+      "weapon": "blender"
+    }
+  ],
+  "buffs.combo.polarArc.de": [
+    {
+      "lines": [
+        "+12 % Angriffstempo (Batterie)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Polarer Lichtbogen"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.combo.polarArc.en": [
+    {
+      "lines": [
+        "+12% attack rate (Battery)",
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Polar Arc"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
   "buffs.combo.potSlam.de": [
     {
       "lines": [
@@ -385,10 +735,28 @@
       "weapon": "laser"
     }
   ],
+  "buffs.combo.prepLine.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Vorbereitungsstation"
+      ],
+      "weapon": "blender"
+    }
+  ],
+  "buffs.combo.prepLine.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Prep Line"
+      ],
+      "weapon": "blender"
+    }
+  ],
   "buffs.combo.pressurePoint.de": [
     {
       "lines": [
-        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "Brand 3/s für 3 s (Benzinkanister)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
         "Combo: Druckpunkt"
       ],
@@ -398,7 +766,7 @@
   "buffs.combo.pressurePoint.en": [
     {
       "lines": [
-        "Burn 2.5/s for 2s (Fuel Can)",
+        "Burn 3/s for 3s (Fuel Can)",
         "Bundle Deal: 1 item → +6% damage",
         "Combo: Pressure Point"
       ],
@@ -445,6 +813,24 @@
       "weapon": "laser"
     }
   ],
+  "buffs.combo.priceDrop.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Preissturz"
+      ],
+      "weapon": "laser"
+    }
+  ],
+  "buffs.combo.priceDrop.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Price Drop"
+      ],
+      "weapon": "laser"
+    }
+  ],
   "buffs.combo.rayGun.de": [
     {
       "lines": [
@@ -468,7 +854,7 @@
   "buffs.combo.reheat.de": [
     {
       "lines": [
-        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "Brand 3/s für 3 s (Benzinkanister)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
         "Combo: Aufwärmen"
       ],
@@ -478,11 +864,51 @@
   "buffs.combo.reheat.en": [
     {
       "lines": [
-        "Burn 2.5/s for 2s (Fuel Can)",
+        "Burn 3/s for 3s (Fuel Can)",
         "Bundle Deal: 1 item → +6% damage",
         "Combo: Reheat"
       ],
       "weapon": "microwave"
+    }
+  ],
+  "buffs.combo.salsaSplash.de": [
+    {
+      "lines": [
+        "+10 % Tempo & Distanz (Tischventilator)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Salsa-Spritzer"
+      ],
+      "weapon": "tomato"
+    }
+  ],
+  "buffs.combo.salsaSplash.en": [
+    {
+      "lines": [
+        "+10% speed & range (Desk Fan)",
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Salsa Splash"
+      ],
+      "weapon": "tomato"
+    }
+  ],
+  "buffs.combo.scaldingClean.de": [
+    {
+      "lines": [
+        "+25 % Schaden (Scharfe Soße)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Heißes Wischen"
+      ],
+      "weapon": "mop"
+    }
+  ],
+  "buffs.combo.scaldingClean.en": [
+    {
+      "lines": [
+        "+25% damage (Hot Sauce)",
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Scalding Clean"
+      ],
+      "weapon": "mop"
     }
   ],
   "buffs.combo.shrapnel.de": [
@@ -508,7 +934,7 @@
   "buffs.combo.sizzlingSkillet.de": [
     {
       "lines": [
-        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "Brand 3/s für 3 s (Benzinkanister)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
         "Combo: Zischende Pfanne"
       ],
@@ -518,7 +944,7 @@
   "buffs.combo.sizzlingSkillet.en": [
     {
       "lines": [
-        "Burn 2.5/s for 2s (Fuel Can)",
+        "Burn 3/s for 3s (Fuel Can)",
         "Bundle Deal: 1 item → +6% damage",
         "Combo: Sizzling Skillet"
       ],
@@ -581,6 +1007,54 @@
       "weapon": "blender"
     }
   ],
+  "buffs.combo.snowBlower.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Schneefräse"
+      ],
+      "weapon": "leafblower"
+    },
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.combo.snowBlower.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Snow Blower"
+      ],
+      "weapon": "leafblower"
+    },
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage"
+      ],
+      "weapon": "snowcone"
+    }
+  ],
+  "buffs.combo.sodaShield.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Limo-Schild"
+      ],
+      "weapon": "fizz"
+    }
+  ],
+  "buffs.combo.sodaShield.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Soda Shield"
+      ],
+      "weapon": "fizz"
+    }
+  ],
   "buffs.combo.sourMist.de": [
     {
       "lines": [
@@ -621,6 +1095,24 @@
       "weapon": "microwave"
     }
   ],
+  "buffs.combo.sporeStorm.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Sporensturm"
+      ],
+      "weapon": "leafblower"
+    }
+  ],
+  "buffs.combo.sporeStorm.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Spore Storm"
+      ],
+      "weapon": "leafblower"
+    }
+  ],
   "buffs.combo.staticCling.de": [
     {
       "lines": [
@@ -641,12 +1133,30 @@
       "weapon": "vacuum"
     }
   ],
+  "buffs.combo.stickyMop.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Klebriger Mopp"
+      ],
+      "weapon": "mop"
+    }
+  ],
+  "buffs.combo.stickyMop.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Sticky Mop"
+      ],
+      "weapon": "mop"
+    }
+  ],
   "buffs.combo.sugarRush.de": [],
   "buffs.combo.sugarRush.en": [],
   "buffs.combo.tailwind.de": [
     {
       "lines": [
-        "+30 % Reichweite (Tischventilator)",
+        "+10 % Reichweite (Tischventilator)",
         "Mengenrabatt: 2 Gegenstände → +12 % Schaden",
         "Combo: Rückenwind"
       ],
@@ -656,17 +1166,55 @@
   "buffs.combo.tailwind.en": [
     {
       "lines": [
-        "+30% reach (Desk Fan)",
+        "+10% reach (Desk Fan)",
         "Bundle Deal: 2 items → +12% damage",
         "Combo: Tailwind"
       ],
       "weapon": "leafblower"
     }
   ],
+  "buffs.combo.thermalScan.de": [
+    {
+      "lines": [
+        "Brand 3/s für 3 s (Benzinkanister)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Wärmescanner"
+      ],
+      "weapon": "laser"
+    }
+  ],
+  "buffs.combo.thermalScan.en": [
+    {
+      "lines": [
+        "Burn 3/s for 3s (Fuel Can)",
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Thermal Scanner"
+      ],
+      "weapon": "laser"
+    }
+  ],
+  "buffs.combo.thickSmoothie.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Dicker Smoothie"
+      ],
+      "weapon": "blender"
+    }
+  ],
+  "buffs.combo.thickSmoothie.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Thick Smoothie"
+      ],
+      "weapon": "blender"
+    }
+  ],
   "buffs.combo.thunderstorm.de": [
     {
       "lines": [
-        "+30 % Reichweite (Tischventilator)",
+        "+10 % Reichweite (Tischventilator)",
         "+12 % Angriffstempo (Batterie)",
         "Verlangsamung 25 % für 1 s (Kühlakku)",
         "Mengenrabatt: 3 Gegenstände → +18 % Schaden",
@@ -678,7 +1226,7 @@
   "buffs.combo.thunderstorm.en": [
     {
       "lines": [
-        "+30% reach (Desk Fan)",
+        "+10% reach (Desk Fan)",
         "+12% attack rate (Battery)",
         "Slow 25% for 1s (Ice Pack)",
         "Bundle Deal: 3 items → +18% damage",
@@ -690,8 +1238,8 @@
   "buffs.combo.toastMode.de": [
     {
       "lines": [
-        "+30 % Tempo & Distanz (Tischventilator)",
-        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "+10 % Tempo & Distanz (Tischventilator)",
+        "Brand 3/s für 3 s (Benzinkanister)",
         "Mengenrabatt: 2 Gegenstände → +12 % Schaden",
         "Combo: Toast-Modus"
       ],
@@ -701,12 +1249,48 @@
   "buffs.combo.toastMode.en": [
     {
       "lines": [
-        "+30% speed & range (Desk Fan)",
-        "Burn 2.5/s for 2s (Fuel Can)",
+        "+10% speed & range (Desk Fan)",
+        "Burn 3/s for 3s (Fuel Can)",
         "Bundle Deal: 2 items → +12% damage",
         "Combo: Toast Mode"
       ],
       "weapon": "toaster"
+    }
+  ],
+  "buffs.combo.tomatoHelmet.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Tomatenhelm"
+      ],
+      "weapon": "tomato"
+    }
+  ],
+  "buffs.combo.tomatoHelmet.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Tomato Helmet"
+      ],
+      "weapon": "tomato"
+    }
+  ],
+  "buffs.combo.tomatoToll.de": [
+    {
+      "lines": [
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Tomatenzoll"
+      ],
+      "weapon": "tomato"
+    }
+  ],
+  "buffs.combo.tomatoToll.en": [
+    {
+      "lines": [
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Tomato Toll"
+      ],
+      "weapon": "tomato"
     }
   ],
   "buffs.combo.tvDinner.de": [
@@ -850,7 +1434,7 @@
   "buffs.edge.dup_fans_t1_t2.de": [
     {
       "lines": [
-        "+45 % Tempo & Distanz (Tischventilator ★2)",
+        "+15 % Tempo & Distanz (Tischventilator ★2)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "toaster"
@@ -859,7 +1443,7 @@
   "buffs.edge.dup_fans_t1_t2.en": [
     {
       "lines": [
-        "+45% speed & range (Desk Fan ★2)",
+        "+15% speed & range (Desk Fan ★2)",
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "toaster"
@@ -958,8 +1542,8 @@
   "buffs.edge.gold.chain_no_stack.de": [
     {
       "lines": [
-        "+45 % Tempo & Distanz (Tischventilator ★2)",
-        "Brand 3,75/s für 2 s (Benzinkanister ★2)",
+        "+15 % Tempo & Distanz (Tischventilator ★2)",
+        "Brand 5/s für 3 s (Benzinkanister ★2)",
         "Mengenrabatt: 4 Gegenstände → +24 % Schaden",
         "Combo: Toast-Modus"
       ],
@@ -969,8 +1553,8 @@
   "buffs.edge.gold.chain_no_stack.en": [
     {
       "lines": [
-        "+45% speed & range (Desk Fan ★2)",
-        "Burn 3.75/s for 2s (Fuel Can ★2)",
+        "+15% speed & range (Desk Fan ★2)",
+        "Burn 5/s for 3s (Fuel Can ★2)",
         "Bundle Deal: 4 items → +24% damage",
         "Combo: Toast Mode"
       ],
@@ -980,7 +1564,7 @@
   "buffs.edge.gold.fan_t3.de": [
     {
       "lines": [
-        "+75 % Tempo & Distanz (Tischventilator ★4)",
+        "+25 % Tempo & Distanz (Tischventilator ★4)",
         "Mengenrabatt: 3 Gegenstände → +18 % Schaden"
       ],
       "weapon": "toaster"
@@ -989,7 +1573,7 @@
   "buffs.edge.gold.fan_t3.en": [
     {
       "lines": [
-        "+75% speed & range (Desk Fan ★4)",
+        "+25% speed & range (Desk Fan ★4)",
         "Bundle Deal: 3 items → +18% damage"
       ],
       "weapon": "toaster"
@@ -998,7 +1582,7 @@
   "buffs.edge.gold.fuel_and_weapon.de": [
     {
       "lines": [
-        "Brand 3,75/s für 2 s (Benzinkanister ★2)",
+        "Brand 5/s für 3 s (Benzinkanister ★2)",
         "Mengenrabatt: 3 Gegenstände → +18 % Schaden"
       ],
       "weapon": "toaster"
@@ -1007,7 +1591,7 @@
   "buffs.edge.gold.fuel_and_weapon.en": [
     {
       "lines": [
-        "Burn 3.75/s for 2s (Fuel Can ★2)",
+        "Burn 5/s for 3s (Fuel Can ★2)",
         "Bundle Deal: 3 items → +18% damage"
       ],
       "weapon": "toaster"
@@ -1016,7 +1600,7 @@
   "buffs.edge.gold.fuel_not_weapon.de": [
     {
       "lines": [
-        "Brand 3,75/s für 2 s (Benzinkanister ★2)",
+        "Brand 5/s für 3 s (Benzinkanister ★2)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "toaster"
@@ -1025,7 +1609,7 @@
   "buffs.edge.gold.fuel_not_weapon.en": [
     {
       "lines": [
-        "Burn 3.75/s for 2s (Fuel Can ★2)",
+        "Burn 5/s for 3s (Fuel Can ★2)",
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "toaster"
@@ -1106,7 +1690,7 @@
   "buffs.edge.gold.two_stars_one_fan.de": [
     {
       "lines": [
-        "+45 % Tempo & Distanz (Tischventilator ★2)",
+        "+15 % Tempo & Distanz (Tischventilator ★2)",
         "Mengenrabatt: 3 Gegenstände → +18 % Schaden"
       ],
       "weapon": "toaster"
@@ -1115,7 +1699,7 @@
   "buffs.edge.gold.two_stars_one_fan.en": [
     {
       "lines": [
-        "+45% speed & range (Desk Fan ★2)",
+        "+15% speed & range (Desk Fan ★2)",
         "Bundle Deal: 3 items → +18% damage"
       ],
       "weapon": "toaster"
@@ -1300,7 +1884,7 @@
   "buffs.edge.jelly.heat_vs_fuel_max.de": [
     {
       "lines": [
-        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "Brand 3/s für 3 s (Benzinkanister)",
         "Mengenrabatt: 2 Gegenstände → +12 % Schaden"
       ],
       "weapon": "toaster"
@@ -1309,7 +1893,7 @@
   "buffs.edge.jelly.heat_vs_fuel_max.en": [
     {
       "lines": [
-        "Burn 2.5/s for 2s (Fuel Can)",
+        "Burn 3/s for 3s (Fuel Can)",
         "Bundle Deal: 2 items → +12% damage"
       ],
       "weapon": "toaster"
@@ -1318,7 +1902,7 @@
   "buffs.edge.jelly.heat_weaker_than_fuel.de": [
     {
       "lines": [
-        "Brand 5/s für 2 s (Benzinkanister ★3)",
+        "Brand 7/s für 3 s (Benzinkanister ★3)",
         "Mengenrabatt: 2 Gegenstände → +12 % Schaden"
       ],
       "weapon": "toaster"
@@ -1327,7 +1911,7 @@
   "buffs.edge.jelly.heat_weaker_than_fuel.en": [
     {
       "lines": [
-        "Burn 5/s for 2s (Fuel Can ★3)",
+        "Burn 7/s for 3s (Fuel Can ★3)",
         "Bundle Deal: 2 items → +12% damage"
       ],
       "weapon": "toaster"
@@ -1368,7 +1952,7 @@
   "buffs.edge.kitchen_family_plus_bundle.de": [
     {
       "lines": [
-        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "Brand 3/s für 3 s (Benzinkanister)",
         "Verlangsamung 25 % für 1 s (Kühlakku)",
         "+25 % Schaden (Scharfe Soße)",
         "Mengenrabatt: 4 Gegenstände → +24 % Schaden",
@@ -1380,7 +1964,7 @@
   "buffs.edge.kitchen_family_plus_bundle.en": [
     {
       "lines": [
-        "Burn 2.5/s for 2s (Fuel Can)",
+        "Burn 3/s for 3s (Fuel Can)",
         "Slow 25% for 1s (Ice Pack)",
         "+25% damage (Hot Sauce)",
         "Bundle Deal: 4 items → +24% damage",
@@ -1594,8 +2178,8 @@
   "buffs.edge.multipack.toastmode_t1.de": [
     {
       "lines": [
-        "+30 % Tempo & Distanz (Tischventilator)",
-        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "+10 % Tempo & Distanz (Tischventilator)",
+        "Brand 3/s für 3 s (Benzinkanister)",
         "+1 Projektil(e) (Multipack)",
         "Mengenrabatt: 3 Gegenstände → +18 % Schaden",
         "Combo: Toast-Modus"
@@ -1606,8 +2190,8 @@
   "buffs.edge.multipack.toastmode_t1.en": [
     {
       "lines": [
-        "+30% speed & range (Desk Fan)",
-        "Burn 2.5/s for 2s (Fuel Can)",
+        "+10% speed & range (Desk Fan)",
+        "Burn 3/s for 3s (Fuel Can)",
         "+1 projectile(s) (Multipack)",
         "Bundle Deal: 3 items → +18% damage",
         "Combo: Toast Mode"
@@ -1618,8 +2202,8 @@
   "buffs.edge.multipack.toastmode_t3.de": [
     {
       "lines": [
-        "+30 % Tempo & Distanz (Tischventilator)",
-        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "+10 % Tempo & Distanz (Tischventilator)",
+        "Brand 3/s für 3 s (Benzinkanister)",
         "+2 Projektil(e) (Multipack ★3)",
         "Mengenrabatt: 3 Gegenstände → +18 % Schaden",
         "Combo: Toast-Modus"
@@ -1630,8 +2214,8 @@
   "buffs.edge.multipack.toastmode_t3.en": [
     {
       "lines": [
-        "+30% speed & range (Desk Fan)",
-        "Burn 2.5/s for 2s (Fuel Can)",
+        "+10% speed & range (Desk Fan)",
+        "Burn 3/s for 3s (Fuel Can)",
         "+2 projectile(s) (Multipack ★3)",
         "Bundle Deal: 3 items → +18% damage",
         "Combo: Toast Mode"
@@ -1848,14 +2432,14 @@
   "buffs.edge.two_weapons_share_module.de": [
     {
       "lines": [
-        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "Brand 3/s für 3 s (Benzinkanister)",
         "Mengenrabatt: 2 Gegenstände → +12 % Schaden"
       ],
       "weapon": "toaster"
     },
     {
       "lines": [
-        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "Brand 3/s für 3 s (Benzinkanister)",
         "Mengenrabatt: 2 Gegenstände → +12 % Schaden",
         "Combo: Zischende Pfanne"
       ],
@@ -1865,14 +2449,14 @@
   "buffs.edge.two_weapons_share_module.en": [
     {
       "lines": [
-        "Burn 2.5/s for 2s (Fuel Can)",
+        "Burn 3/s for 3s (Fuel Can)",
         "Bundle Deal: 2 items → +12% damage"
       ],
       "weapon": "toaster"
     },
     {
       "lines": [
-        "Burn 2.5/s for 2s (Fuel Can)",
+        "Burn 3/s for 3s (Fuel Can)",
         "Bundle Deal: 2 items → +12% damage",
         "Combo: Sizzling Skillet"
       ],
@@ -2043,7 +2627,8 @@
     {
       "lines": [
         "+18 % Angriffstempo (Batterie)",
-        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Neon-Smoothie"
       ],
       "weapon": "blender"
     }
@@ -2052,7 +2637,8 @@
     {
       "lines": [
         "+18% attack rate (Battery)",
-        "Bundle Deal: 1 item → +6% damage"
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Neon Smoothie"
       ],
       "weapon": "blender"
     }
@@ -2225,7 +2811,8 @@
     {
       "lines": [
         "+12 % Angriffstempo (Batterie)",
-        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Polarer Lichtbogen"
       ],
       "weapon": "snowcone"
     }
@@ -2234,7 +2821,8 @@
     {
       "lines": [
         "+12% attack rate (Battery)",
-        "Bundle Deal: 1 item → +6% damage"
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Polar Arc"
       ],
       "weapon": "snowcone"
     }
@@ -3070,7 +3658,7 @@
   "buffs.item.fan.t1.on.blender.de": [
     {
       "lines": [
-        "+30 % Reichweite (Tischventilator)",
+        "+10 % Reichweite (Tischventilator)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "blender"
@@ -3079,7 +3667,7 @@
   "buffs.item.fan.t1.on.blender.en": [
     {
       "lines": [
-        "+30% reach (Desk Fan)",
+        "+10% reach (Desk Fan)",
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "blender"
@@ -3088,7 +3676,7 @@
   "buffs.item.fan.t1.on.cooker.de": [
     {
       "lines": [
-        "+30 % Reichweite (Tischventilator)",
+        "+10 % Reichweite (Tischventilator)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "cooker"
@@ -3097,7 +3685,7 @@
   "buffs.item.fan.t1.on.cooker.en": [
     {
       "lines": [
-        "+30% reach (Desk Fan)",
+        "+10% reach (Desk Fan)",
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "cooker"
@@ -3106,7 +3694,7 @@
   "buffs.item.fan.t1.on.fizz.de": [
     {
       "lines": [
-        "+30 % Tempo & Distanz (Tischventilator)",
+        "+10 % Tempo & Distanz (Tischventilator)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "fizz"
@@ -3115,7 +3703,7 @@
   "buffs.item.fan.t1.on.fizz.en": [
     {
       "lines": [
-        "+30% speed & range (Desk Fan)",
+        "+10% speed & range (Desk Fan)",
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "fizz"
@@ -3124,7 +3712,7 @@
   "buffs.item.fan.t1.on.laser.de": [
     {
       "lines": [
-        "+30 % Reichweite (Tischventilator)",
+        "+10 % Reichweite (Tischventilator)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "laser"
@@ -3133,7 +3721,7 @@
   "buffs.item.fan.t1.on.laser.en": [
     {
       "lines": [
-        "+30% reach (Desk Fan)",
+        "+10% reach (Desk Fan)",
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "laser"
@@ -3142,7 +3730,7 @@
   "buffs.item.fan.t1.on.leafblower.de": [
     {
       "lines": [
-        "+30 % Reichweite (Tischventilator)",
+        "+10 % Reichweite (Tischventilator)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "leafblower"
@@ -3151,7 +3739,7 @@
   "buffs.item.fan.t1.on.leafblower.en": [
     {
       "lines": [
-        "+30% reach (Desk Fan)",
+        "+10% reach (Desk Fan)",
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "leafblower"
@@ -3160,7 +3748,7 @@
   "buffs.item.fan.t1.on.microwave.de": [
     {
       "lines": [
-        "+30 % Reichweite (Tischventilator)",
+        "+10 % Reichweite (Tischventilator)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "microwave"
@@ -3169,7 +3757,7 @@
   "buffs.item.fan.t1.on.microwave.en": [
     {
       "lines": [
-        "+30% reach (Desk Fan)",
+        "+10% reach (Desk Fan)",
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "microwave"
@@ -3178,7 +3766,7 @@
   "buffs.item.fan.t1.on.mop.de": [
     {
       "lines": [
-        "+30 % Reichweite (Tischventilator)",
+        "+10 % Reichweite (Tischventilator)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "mop"
@@ -3187,7 +3775,7 @@
   "buffs.item.fan.t1.on.mop.en": [
     {
       "lines": [
-        "+30% reach (Desk Fan)",
+        "+10% reach (Desk Fan)",
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "mop"
@@ -3196,7 +3784,7 @@
   "buffs.item.fan.t1.on.nailgun.de": [
     {
       "lines": [
-        "+30 % Tempo & Distanz (Tischventilator)",
+        "+10 % Tempo & Distanz (Tischventilator)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "nailgun"
@@ -3205,7 +3793,7 @@
   "buffs.item.fan.t1.on.nailgun.en": [
     {
       "lines": [
-        "+30% speed & range (Desk Fan)",
+        "+10% speed & range (Desk Fan)",
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "nailgun"
@@ -3214,7 +3802,7 @@
   "buffs.item.fan.t1.on.pan.de": [
     {
       "lines": [
-        "+30 % Reichweite (Tischventilator)",
+        "+10 % Reichweite (Tischventilator)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "pan"
@@ -3223,7 +3811,7 @@
   "buffs.item.fan.t1.on.pan.en": [
     {
       "lines": [
-        "+30% reach (Desk Fan)",
+        "+10% reach (Desk Fan)",
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "pan"
@@ -3232,7 +3820,7 @@
   "buffs.item.fan.t1.on.popcorn.de": [
     {
       "lines": [
-        "+30 % Reichweite (Tischventilator)",
+        "+10 % Reichweite (Tischventilator)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "popcorn"
@@ -3241,7 +3829,7 @@
   "buffs.item.fan.t1.on.popcorn.en": [
     {
       "lines": [
-        "+30% reach (Desk Fan)",
+        "+10% reach (Desk Fan)",
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "popcorn"
@@ -3250,7 +3838,7 @@
   "buffs.item.fan.t1.on.snowcone.de": [
     {
       "lines": [
-        "+30 % Reichweite (Tischventilator)",
+        "+10 % Reichweite (Tischventilator)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "snowcone"
@@ -3259,7 +3847,7 @@
   "buffs.item.fan.t1.on.snowcone.en": [
     {
       "lines": [
-        "+30% reach (Desk Fan)",
+        "+10% reach (Desk Fan)",
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "snowcone"
@@ -3286,7 +3874,7 @@
   "buffs.item.fan.t1.on.toaster.de": [
     {
       "lines": [
-        "+30 % Tempo & Distanz (Tischventilator)",
+        "+10 % Tempo & Distanz (Tischventilator)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "toaster"
@@ -3295,7 +3883,7 @@
   "buffs.item.fan.t1.on.toaster.en": [
     {
       "lines": [
-        "+30% speed & range (Desk Fan)",
+        "+10% speed & range (Desk Fan)",
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "toaster"
@@ -3304,8 +3892,9 @@
   "buffs.item.fan.t1.on.tomato.de": [
     {
       "lines": [
-        "+30 % Tempo & Distanz (Tischventilator)",
-        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+        "+10 % Tempo & Distanz (Tischventilator)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Salsa-Spritzer"
       ],
       "weapon": "tomato"
     }
@@ -3313,8 +3902,9 @@
   "buffs.item.fan.t1.on.tomato.en": [
     {
       "lines": [
-        "+30% speed & range (Desk Fan)",
-        "Bundle Deal: 1 item → +6% damage"
+        "+10% speed & range (Desk Fan)",
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Salsa Splash"
       ],
       "weapon": "tomato"
     }
@@ -3322,7 +3912,7 @@
   "buffs.item.fan.t1.on.vacuum.de": [
     {
       "lines": [
-        "+30 % Reichweite (Tischventilator)",
+        "+10 % Reichweite (Tischventilator)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "vacuum"
@@ -3331,7 +3921,7 @@
   "buffs.item.fan.t1.on.vacuum.en": [
     {
       "lines": [
-        "+30% reach (Desk Fan)",
+        "+10% reach (Desk Fan)",
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "vacuum"
@@ -3340,7 +3930,7 @@
   "buffs.item.fan.t3.on.pan.de": [
     {
       "lines": [
-        "+60 % Reichweite (Tischventilator ★3)",
+        "+20 % Reichweite (Tischventilator ★3)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "pan"
@@ -3349,7 +3939,7 @@
   "buffs.item.fan.t3.on.pan.en": [
     {
       "lines": [
-        "+60% reach (Desk Fan ★3)",
+        "+20% reach (Desk Fan ★3)",
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "pan"
@@ -3358,7 +3948,7 @@
   "buffs.item.fan.t3.on.toaster.de": [
     {
       "lines": [
-        "+60 % Tempo & Distanz (Tischventilator ★3)",
+        "+20 % Tempo & Distanz (Tischventilator ★3)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "toaster"
@@ -3367,7 +3957,7 @@
   "buffs.item.fan.t3.on.toaster.en": [
     {
       "lines": [
-        "+60% speed & range (Desk Fan ★3)",
+        "+20% speed & range (Desk Fan ★3)",
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "toaster"
@@ -3504,7 +4094,7 @@
   "buffs.item.fuel.t1.on.blender.de": [
     {
       "lines": [
-        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "Brand 3/s für 3 s (Benzinkanister)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "blender"
@@ -3513,7 +4103,7 @@
   "buffs.item.fuel.t1.on.blender.en": [
     {
       "lines": [
-        "Burn 2.5/s for 2s (Fuel Can)",
+        "Burn 3/s for 3s (Fuel Can)",
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "blender"
@@ -3522,7 +4112,7 @@
   "buffs.item.fuel.t1.on.cooker.de": [
     {
       "lines": [
-        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "Brand 3/s für 3 s (Benzinkanister)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
         "Combo: Druckpunkt"
       ],
@@ -3532,7 +4122,7 @@
   "buffs.item.fuel.t1.on.cooker.en": [
     {
       "lines": [
-        "Burn 2.5/s for 2s (Fuel Can)",
+        "Burn 3/s for 3s (Fuel Can)",
         "Bundle Deal: 1 item → +6% damage",
         "Combo: Pressure Point"
       ],
@@ -3542,7 +4132,7 @@
   "buffs.item.fuel.t1.on.fizz.de": [
     {
       "lines": [
-        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "Brand 3/s für 3 s (Benzinkanister)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "fizz"
@@ -3551,7 +4141,7 @@
   "buffs.item.fuel.t1.on.fizz.en": [
     {
       "lines": [
-        "Burn 2.5/s for 2s (Fuel Can)",
+        "Burn 3/s for 3s (Fuel Can)",
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "fizz"
@@ -3560,8 +4150,9 @@
   "buffs.item.fuel.t1.on.laser.de": [
     {
       "lines": [
-        "Brand 2,5/s für 2 s (Benzinkanister)",
-        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+        "Brand 3/s für 3 s (Benzinkanister)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Wärmescanner"
       ],
       "weapon": "laser"
     }
@@ -3569,8 +4160,9 @@
   "buffs.item.fuel.t1.on.laser.en": [
     {
       "lines": [
-        "Burn 2.5/s for 2s (Fuel Can)",
-        "Bundle Deal: 1 item → +6% damage"
+        "Burn 3/s for 3s (Fuel Can)",
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Thermal Scanner"
       ],
       "weapon": "laser"
     }
@@ -3578,8 +4170,9 @@
   "buffs.item.fuel.t1.on.leafblower.de": [
     {
       "lines": [
-        "Brand 2,5/s für 2 s (Benzinkanister)",
-        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+        "Brand 3/s für 3 s (Benzinkanister)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Laubhaufen"
       ],
       "weapon": "leafblower"
     }
@@ -3587,8 +4180,9 @@
   "buffs.item.fuel.t1.on.leafblower.en": [
     {
       "lines": [
-        "Burn 2.5/s for 2s (Fuel Can)",
-        "Bundle Deal: 1 item → +6% damage"
+        "Burn 3/s for 3s (Fuel Can)",
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Leaf Pile"
       ],
       "weapon": "leafblower"
     }
@@ -3596,7 +4190,7 @@
   "buffs.item.fuel.t1.on.microwave.de": [
     {
       "lines": [
-        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "Brand 3/s für 3 s (Benzinkanister)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
         "Combo: Aufwärmen"
       ],
@@ -3606,7 +4200,7 @@
   "buffs.item.fuel.t1.on.microwave.en": [
     {
       "lines": [
-        "Burn 2.5/s for 2s (Fuel Can)",
+        "Burn 3/s for 3s (Fuel Can)",
         "Bundle Deal: 1 item → +6% damage",
         "Combo: Reheat"
       ],
@@ -3616,7 +4210,7 @@
   "buffs.item.fuel.t1.on.mop.de": [
     {
       "lines": [
-        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "Brand 3/s für 3 s (Benzinkanister)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
         "Combo: Fettbrand"
       ],
@@ -3626,7 +4220,7 @@
   "buffs.item.fuel.t1.on.mop.en": [
     {
       "lines": [
-        "Burn 2.5/s for 2s (Fuel Can)",
+        "Burn 3/s for 3s (Fuel Can)",
         "Bundle Deal: 1 item → +6% damage",
         "Combo: Grease Fire"
       ],
@@ -3636,7 +4230,7 @@
   "buffs.item.fuel.t1.on.nailgun.de": [
     {
       "lines": [
-        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "Brand 3/s für 3 s (Benzinkanister)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "nailgun"
@@ -3645,7 +4239,7 @@
   "buffs.item.fuel.t1.on.nailgun.en": [
     {
       "lines": [
-        "Burn 2.5/s for 2s (Fuel Can)",
+        "Burn 3/s for 3s (Fuel Can)",
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "nailgun"
@@ -3654,7 +4248,7 @@
   "buffs.item.fuel.t1.on.pan.de": [
     {
       "lines": [
-        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "Brand 3/s für 3 s (Benzinkanister)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
         "Combo: Zischende Pfanne"
       ],
@@ -3664,7 +4258,7 @@
   "buffs.item.fuel.t1.on.pan.en": [
     {
       "lines": [
-        "Burn 2.5/s for 2s (Fuel Can)",
+        "Burn 3/s for 3s (Fuel Can)",
         "Bundle Deal: 1 item → +6% damage",
         "Combo: Sizzling Skillet"
       ],
@@ -3674,7 +4268,7 @@
   "buffs.item.fuel.t1.on.popcorn.de": [
     {
       "lines": [
-        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "Brand 3/s für 3 s (Benzinkanister)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "popcorn"
@@ -3683,7 +4277,7 @@
   "buffs.item.fuel.t1.on.popcorn.en": [
     {
       "lines": [
-        "Burn 2.5/s for 2s (Fuel Can)",
+        "Burn 3/s for 3s (Fuel Can)",
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "popcorn"
@@ -3692,7 +4286,7 @@
   "buffs.item.fuel.t1.on.snowcone.de": [
     {
       "lines": [
-        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "Brand 3/s für 3 s (Benzinkanister)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "snowcone"
@@ -3701,7 +4295,7 @@
   "buffs.item.fuel.t1.on.snowcone.en": [
     {
       "lines": [
-        "Burn 2.5/s for 2s (Fuel Can)",
+        "Burn 3/s for 3s (Fuel Can)",
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "snowcone"
@@ -3710,7 +4304,7 @@
   "buffs.item.fuel.t1.on.spray.de": [
     {
       "lines": [
-        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "Brand 3/s für 3 s (Benzinkanister)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "spray"
@@ -3719,7 +4313,7 @@
   "buffs.item.fuel.t1.on.spray.en": [
     {
       "lines": [
-        "Burn 2.5/s for 2s (Fuel Can)",
+        "Burn 3/s for 3s (Fuel Can)",
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "spray"
@@ -3728,7 +4322,7 @@
   "buffs.item.fuel.t1.on.toaster.de": [
     {
       "lines": [
-        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "Brand 3/s für 3 s (Benzinkanister)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "toaster"
@@ -3737,7 +4331,7 @@
   "buffs.item.fuel.t1.on.toaster.en": [
     {
       "lines": [
-        "Burn 2.5/s for 2s (Fuel Can)",
+        "Burn 3/s for 3s (Fuel Can)",
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "toaster"
@@ -3746,8 +4340,9 @@
   "buffs.item.fuel.t1.on.tomato.de": [
     {
       "lines": [
-        "Brand 2,5/s für 2 s (Benzinkanister)",
-        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+        "Brand 3/s für 3 s (Benzinkanister)",
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Säuretomate"
       ],
       "weapon": "tomato"
     }
@@ -3755,8 +4350,9 @@
   "buffs.item.fuel.t1.on.tomato.en": [
     {
       "lines": [
-        "Burn 2.5/s for 2s (Fuel Can)",
-        "Bundle Deal: 1 item → +6% damage"
+        "Burn 3/s for 3s (Fuel Can)",
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Acid Tomato"
       ],
       "weapon": "tomato"
     }
@@ -3764,7 +4360,7 @@
   "buffs.item.fuel.t1.on.vacuum.de": [
     {
       "lines": [
-        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "Brand 3/s für 3 s (Benzinkanister)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "vacuum"
@@ -3773,7 +4369,7 @@
   "buffs.item.fuel.t1.on.vacuum.en": [
     {
       "lines": [
-        "Burn 2.5/s for 2s (Fuel Can)",
+        "Burn 3/s for 3s (Fuel Can)",
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "vacuum"
@@ -3782,7 +4378,7 @@
   "buffs.item.fuel.t3.on.pan.de": [
     {
       "lines": [
-        "Brand 5/s für 2 s (Benzinkanister ★3)",
+        "Brand 7/s für 3 s (Benzinkanister ★3)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
         "Combo: Zischende Pfanne"
       ],
@@ -3792,7 +4388,7 @@
   "buffs.item.fuel.t3.on.pan.en": [
     {
       "lines": [
-        "Burn 5/s for 2s (Fuel Can ★3)",
+        "Burn 7/s for 3s (Fuel Can ★3)",
         "Bundle Deal: 1 item → +6% damage",
         "Combo: Sizzling Skillet"
       ],
@@ -3802,7 +4398,7 @@
   "buffs.item.fuel.t3.on.toaster.de": [
     {
       "lines": [
-        "Brand 5/s für 2 s (Benzinkanister ★3)",
+        "Brand 7/s für 3 s (Benzinkanister ★3)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "toaster"
@@ -3811,7 +4407,7 @@
   "buffs.item.fuel.t3.on.toaster.en": [
     {
       "lines": [
-        "Burn 5/s for 2s (Fuel Can ★3)",
+        "Burn 7/s for 3s (Fuel Can ★3)",
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "toaster"
@@ -4025,7 +4621,8 @@
     {
       "lines": [
         "+25 % Schaden (Scharfe Soße)",
-        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Heißes Wischen"
       ],
       "weapon": "mop"
     }
@@ -4034,7 +4631,8 @@
     {
       "lines": [
         "+25% damage (Hot Sauce)",
-        "Bundle Deal: 1 item → +6% damage"
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Scalding Clean"
       ],
       "weapon": "mop"
     }
@@ -4151,7 +4749,8 @@
     {
       "lines": [
         "+25 % Schaden (Scharfe Soße)",
-        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Bloody Mary"
       ],
       "weapon": "tomato"
     }
@@ -4160,7 +4759,8 @@
     {
       "lines": [
         "+25% damage (Hot Sauce)",
-        "Bundle Deal: 1 item → +6% damage"
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Bloody Mary"
       ],
       "weapon": "tomato"
     }
@@ -4281,7 +4881,8 @@
     {
       "lines": [
         "Verlangsamung 25 % für 1 s (Kühlakku)",
-        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Kühlkette"
       ],
       "weapon": "laser"
     }
@@ -4290,7 +4891,8 @@
     {
       "lines": [
         "Slow 25% for 1s (Ice Pack)",
-        "Bundle Deal: 1 item → +6% damage"
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Cold Chain"
       ],
       "weapon": "laser"
     }
@@ -4393,7 +4995,8 @@
     {
       "lines": [
         "Verlangsamung 25 % für 1 s (Kühlakku)",
-        "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
+        "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
+        "Combo: Kühle Körner"
       ],
       "weapon": "popcorn"
     }
@@ -4402,7 +5005,8 @@
     {
       "lines": [
         "Slow 25% for 1s (Ice Pack)",
-        "Bundle Deal: 1 item → +6% damage"
+        "Bundle Deal: 1 item → +6% damage",
+        "Combo: Chill Kernels"
       ],
       "weapon": "popcorn"
     }
@@ -6586,8 +7190,8 @@
   "buffs.perk.coupon.de": [
     {
       "lines": [
-        "+30 % Tempo & Distanz (Tischventilator)",
-        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "+10 % Tempo & Distanz (Tischventilator)",
+        "Brand 3/s für 3 s (Benzinkanister)",
         "Mengenrabatt: 2 Gegenstände → +12 % Schaden",
         "Combo: Toast-Modus"
       ],
@@ -6597,8 +7201,8 @@
   "buffs.perk.coupon.en": [
     {
       "lines": [
-        "+30% speed & range (Desk Fan)",
-        "Burn 2.5/s for 2s (Fuel Can)",
+        "+10% speed & range (Desk Fan)",
+        "Burn 3/s for 3s (Fuel Can)",
         "Bundle Deal: 2 items → +12% damage",
         "Combo: Toast Mode"
       ],
@@ -6608,8 +7212,8 @@
   "buffs.perk.night.de": [
     {
       "lines": [
-        "+30 % Tempo & Distanz (Tischventilator)",
-        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "+10 % Tempo & Distanz (Tischventilator)",
+        "Brand 3/s für 3 s (Benzinkanister)",
         "Mengenrabatt: 2 Gegenstände → +12 % Schaden",
         "Combo: Toast-Modus"
       ],
@@ -6619,8 +7223,8 @@
   "buffs.perk.night.en": [
     {
       "lines": [
-        "+30% speed & range (Desk Fan)",
-        "Burn 2.5/s for 2s (Fuel Can)",
+        "+10% speed & range (Desk Fan)",
+        "Burn 3/s for 3s (Fuel Can)",
         "Bundle Deal: 2 items → +12% damage",
         "Combo: Toast Mode"
       ],
@@ -6630,8 +7234,8 @@
   "buffs.perk.pan.de": [
     {
       "lines": [
-        "+30 % Tempo & Distanz (Tischventilator)",
-        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "+10 % Tempo & Distanz (Tischventilator)",
+        "Brand 3/s für 3 s (Benzinkanister)",
         "Mengenrabatt: 2 Gegenstände → +12 % Schaden",
         "Combo: Toast-Modus"
       ],
@@ -6641,8 +7245,8 @@
   "buffs.perk.pan.en": [
     {
       "lines": [
-        "+30% speed & range (Desk Fan)",
-        "Burn 2.5/s for 2s (Fuel Can)",
+        "+10% speed & range (Desk Fan)",
+        "Burn 3/s for 3s (Fuel Can)",
         "Bundle Deal: 2 items → +12% damage",
         "Combo: Toast Mode"
       ],
@@ -6652,8 +7256,8 @@
   "buffs.perk.toaster.de": [
     {
       "lines": [
-        "+30 % Tempo & Distanz (Tischventilator)",
-        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "+10 % Tempo & Distanz (Tischventilator)",
+        "Brand 3/s für 3 s (Benzinkanister)",
         "Mengenrabatt: 2 Gegenstände → +12 % Schaden",
         "Combo: Toast-Modus"
       ],
@@ -6663,8 +7267,8 @@
   "buffs.perk.toaster.en": [
     {
       "lines": [
-        "+30% speed & range (Desk Fan)",
-        "Burn 2.5/s for 2s (Fuel Can)",
+        "+10% speed & range (Desk Fan)",
+        "Burn 3/s for 3s (Fuel Can)",
         "Bundle Deal: 2 items → +12% damage",
         "Combo: Toast Mode"
       ],
@@ -6778,7 +7382,7 @@
   "buffs.set.cleaning.L1.de": [
     {
       "lines": [
-        "+30 % Reichweite (Tischventilator)",
+        "+10 % Reichweite (Tischventilator)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden"
       ],
       "weapon": "leafblower"
@@ -6787,7 +7391,7 @@
   "buffs.set.cleaning.L1.en": [
     {
       "lines": [
-        "+30% reach (Desk Fan)",
+        "+10% reach (Desk Fan)",
         "Bundle Deal: 1 item → +6% damage"
       ],
       "weapon": "leafblower"
@@ -6796,7 +7400,7 @@
   "buffs.set.cleaning.L2.de": [
     {
       "lines": [
-        "+30 % Reichweite (Tischventilator)",
+        "+10 % Reichweite (Tischventilator)",
         "Mengenrabatt: 2 Gegenstände → +12 % Schaden"
       ],
       "weapon": "leafblower"
@@ -6811,7 +7415,7 @@
   "buffs.set.cleaning.L2.en": [
     {
       "lines": [
-        "+30% reach (Desk Fan)",
+        "+10% reach (Desk Fan)",
         "Bundle Deal: 2 items → +12% damage"
       ],
       "weapon": "leafblower"
@@ -6826,7 +7430,7 @@
   "buffs.set.cleaning.L3.de": [
     {
       "lines": [
-        "+30 % Reichweite (Tischventilator)",
+        "+10 % Reichweite (Tischventilator)",
         "Mengenrabatt: 2 Gegenstände → +12 % Schaden"
       ],
       "weapon": "leafblower"
@@ -6847,7 +7451,7 @@
   "buffs.set.cleaning.L3.en": [
     {
       "lines": [
-        "+30% reach (Desk Fan)",
+        "+10% reach (Desk Fan)",
         "Bundle Deal: 2 items → +12% damage"
       ],
       "weapon": "leafblower"
@@ -6936,7 +7540,8 @@
     {
       "lines": [
         "+18 % Angriffstempo (Batterie)",
-        "Mengenrabatt: 2 Gegenstände → +12 % Schaden"
+        "Mengenrabatt: 2 Gegenstände → +12 % Schaden",
+        "Combo: Neon-Smoothie"
       ],
       "weapon": "blender"
     }
@@ -6960,7 +7565,8 @@
     {
       "lines": [
         "+18% attack rate (Battery)",
-        "Bundle Deal: 2 items → +12% damage"
+        "Bundle Deal: 2 items → +12% damage",
+        "Combo: Neon Smoothie"
       ],
       "weapon": "blender"
     }
@@ -7072,7 +7678,7 @@
   "buffs.set.heat.L1.de": [
     {
       "lines": [
-        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "Brand 3/s für 3 s (Benzinkanister)",
         "Mengenrabatt: 1 Gegenstand → +6 % Schaden",
         "Combo: Zischende Pfanne"
       ],
@@ -7082,7 +7688,7 @@
   "buffs.set.heat.L1.en": [
     {
       "lines": [
-        "Burn 2.5/s for 2s (Fuel Can)",
+        "Burn 3/s for 3s (Fuel Can)",
         "Bundle Deal: 1 item → +6% damage",
         "Combo: Sizzling Skillet"
       ],
@@ -7092,7 +7698,7 @@
   "buffs.set.heat.L2.de": [
     {
       "lines": [
-        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "Brand 3/s für 3 s (Benzinkanister)",
         "+38 % Schaden (Scharfe Soße ★2)",
         "Mengenrabatt: 2 Gegenstände → +12 % Schaden",
         "Combo: Zischende Pfanne"
@@ -7103,7 +7709,7 @@
   "buffs.set.heat.L2.en": [
     {
       "lines": [
-        "Burn 2.5/s for 2s (Fuel Can)",
+        "Burn 3/s for 3s (Fuel Can)",
         "+38% damage (Hot Sauce ★2)",
         "Bundle Deal: 2 items → +12% damage",
         "Combo: Sizzling Skillet"
@@ -7114,7 +7720,7 @@
   "buffs.set.heat.L3.de": [
     {
       "lines": [
-        "Brand 2,5/s für 2 s (Benzinkanister)",
+        "Brand 3/s für 3 s (Benzinkanister)",
         "+38 % Schaden (Scharfe Soße ★2)",
         "Mengenrabatt: 2 Gegenstände → +12 % Schaden",
         "Combo: Zischende Pfanne"
@@ -7132,7 +7738,7 @@
   "buffs.set.heat.L3.en": [
     {
       "lines": [
-        "Burn 2.5/s for 2s (Fuel Can)",
+        "Burn 3/s for 3s (Fuel Can)",
         "+38% damage (Hot Sauce ★2)",
         "Bundle Deal: 2 items → +12% damage",
         "Combo: Sizzling Skillet"
@@ -7827,6 +8433,30 @@
       "weapon": "vacuum"
     }
   ],
+  "combos.acidTomato.de": {
+    "detail": "Direkte Tomatentreffer setzen das Ziel zusätzlich für 2 s in Brand (2/s).",
+    "name": "Säuretomate",
+    "short": "Tomaten brennen zusätzlich",
+    "summary": "Faule Tomate berührt Benzinkanister: die Soße fängt Feuer."
+  },
+  "combos.acidTomato.en": {
+    "detail": "Direct tomato hits also burn the target for 2/s over 2 s.",
+    "name": "Acid Tomato",
+    "short": "Tomatoes burn too",
+    "summary": "Rotten Tomato touching a Fuel Can: the sauce catches fire."
+  },
+  "combos.airRaid.de": {
+    "detail": "Jede 5. Böe betäubt alle getroffenen Gegner für 0,5 s.",
+    "name": "Fliegeralarm",
+    "short": "Jede 5. Böe betäubt",
+    "summary": "Laubbläser berührt Signalhorn: die Sirene nagelt den ganzen Gang fest."
+  },
+  "combos.airRaid.en": {
+    "detail": "Every 5th blast stuns all enemies it hits for 0.5 s.",
+    "name": "Air Raid",
+    "short": "Every 5th blast stuns",
+    "summary": "Leaf Blower touching an Air Horn: the siren pins the whole aisle."
+  },
   "combos.bagIt.de": {
     "detail": "Jeder vom Staubsauger besiegte Gegner gibt 1 Ladung (max. 10). Ein Dash mit Ladungen wirft einen Müllsack, der nach 0,4 s explodiert: 6 Schaden pro Ladung im Umkreis von 120, mit Rückstoß. Die Ladungen werden zurückgesetzt.",
     "name": "Eingetütet",
@@ -7838,6 +8468,18 @@
     "name": "Bag It",
     "short": "Kills charge a garbage bomb",
     "summary": "Vacuum touching a Double Bag AND Running Boots: bag the trash, then toss it."
+  },
+  "combos.barcodeFlag.de": {
+    "detail": "Jeder Gegner im Strahl wird wie vom Sale-Fähnchen markiert, so lange wie dessen Markierzeit (sie erleiden mehr Schaden von allem).",
+    "name": "Sale-Scan",
+    "short": "Strahl markiert wie das Sale-Fähnchen",
+    "summary": "Selbstscan-Laser berührt Sale-Fähnchen: scannen, auszeichnen, reduzieren."
+  },
+  "combos.barcodeFlag.en": {
+    "detail": "Every enemy in the beam is marked as if hit by the Sale Flag, for the flag's mark time (they take extra damage from everything).",
+    "name": "Sale Scan",
+    "short": "Beam marks like the Sale Flag",
+    "summary": "Self-Checkout Laser touching a Sale Flag: scan it, tag it, discount it."
   },
   "combos.blackIce.de": {
     "detail": "Wenn ein Gegner zum ersten Mal in eine Pfütze tritt, friert er 0,8 s lang fest.",
@@ -7851,6 +8493,30 @@
     "short": "Puddles freeze",
     "summary": "Mop touching an Ice Pack: puddles freeze over."
   },
+  "combos.blanketBarrage.de": {
+    "detail": "Körnertreffer verringern den Schaden von Gegnern für 1,2 s um 20%.",
+    "name": "Deckenhagel",
+    "short": "Körner schwächen Gegner",
+    "summary": "Popcorn berührt eine Decke: Jeder Treffer wickelt einen Gegner ein."
+  },
+  "combos.blanketBarrage.en": {
+    "detail": "Kernel hits make enemies deal 20% less damage for 1.2 s.",
+    "name": "Blanket Barrage",
+    "short": "Kernels weaken enemies",
+    "summary": "Popcorn touching a Blanket: every hit tucks a grocery in."
+  },
+  "combos.bloodyMary.de": {
+    "detail": "Direkte Tomatentreffer markieren Gegner 3 s lang und erhöhen den Schaden aus allen Quellen.",
+    "name": "Bloody Mary",
+    "short": "Tomaten markieren Ziele",
+    "summary": "Faule Tomate berührt Scharfe Soße: jeder Treffer klebt einen heißen Aufkleber auf die Ware."
+  },
+  "combos.bloodyMary.en": {
+    "detail": "Direct tomato hits mark enemies for 3 s, increasing damage from all sources.",
+    "name": "Bloody Mary",
+    "short": "Tomatoes mark targets",
+    "summary": "Rotten Tomato touching Hot Sauce: every hit puts a hot sticker on the grocery."
+  },
   "combos.brainFreeze.de": {
     "detail": "Klingenradius +25% und jeder Tick verlangsamt um 40% für 0,6 s. Ersetzt die Kühlakku-Verlangsamung für diese Waffe (nie addiert).",
     "name": "Eiskopfschmerz",
@@ -7862,6 +8528,18 @@
     "name": "Brain Freeze",
     "short": "Wider, freezing blades",
     "summary": "Blender touching an Ice Pack: a chilling, wider blade storm."
+  },
+  "combos.butteredPopcorn.de": {
+    "detail": "Der Popcorn-Cooldown sinkt um 12.",
+    "name": "Butterpopcorn",
+    "short": "Popp schneller",
+    "summary": "Popcorn berührt eine Lunchbox: Die Snacklinie bleibt versorgt."
+  },
+  "combos.butteredPopcorn.en": {
+    "detail": "Popcorn cooldown is reduced by 12.",
+    "name": "Buttered Popcorn",
+    "short": "Pops faster",
+    "summary": "Popcorn touching a Lunchbox: the snack line stays stocked."
   },
   "combos.chickenDinner.de": {
     "detail": "Jeder 4. Schwung reicht 40% weiter und verursacht 2,5-fachen Schaden.",
@@ -7875,6 +8553,18 @@
     "short": "Every 4th sweep is huge",
     "summary": "Frying Pan touching a Lunchbox: winner winner, every 4th sweep is a big serving."
   },
+  "combos.chillKernels.de": {
+    "detail": "Körnertreffer verlangsamen Gegner um 45% für 0,7 s.",
+    "name": "Kühle Körner",
+    "short": "Körner bremsen Gegner",
+    "summary": "Popcorn berührt einen Kühlakku: Jedes Korn trägt Kälte."
+  },
+  "combos.chillKernels.en": {
+    "detail": "Kernel hits slow enemies by 45% for 0.7 s.",
+    "name": "Chill Kernels",
+    "short": "Kernels slow enemies",
+    "summary": "Popcorn touching an Ice Pack: every kernel carries a chill."
+  },
   "combos.clearanceSale.de": {
     "detail": "Kronkorken prallen 2 weitere Male ab, und kritische Treffer schütteln eine Bonusmünze los (einmal pro Gegner).",
     "name": "Räumungsverkauf",
@@ -7886,6 +8576,30 @@
     "name": "Clearance Sale",
     "short": "+2 bounces, crits drop coins",
     "summary": "Fizz Cannon touching a Price Gun AND a Coupon Book: everything must go!"
+  },
+  "combos.coldChain.de": {
+    "detail": "Jeder 3. Strahl in Folge auf denselben Gegner friert ihn 0,8 s lang fest.",
+    "name": "Kühlkette",
+    "short": "Jeder 3. Strahl in Folge friert ein",
+    "summary": "Selbstscan-Laser berührt Kühlakku: halte den Scan auf einem Artikel."
+  },
+  "combos.coldChain.en": {
+    "detail": "Every 3rd beam in a row at the same enemy freezes it solid for 0.8 s.",
+    "name": "Cold Chain",
+    "short": "3rd beam in a row freezes",
+    "summary": "Self-Checkout Laser touching an Ice Pack: keep the scan on one item."
+  },
+  "combos.coldDiscount.de": {
+    "detail": "Pfützen erhalten 1,3× Reichweite.",
+    "name": "Kälterabatt",
+    "short": "Größere Pfützen",
+    "summary": "Slush-Maschine berührt Couponheft: kalte Angebote bedecken mehr Boden."
+  },
+  "combos.coldDiscount.en": {
+    "detail": "Puddles gain 1.3× range.",
+    "name": "Cold Discount",
+    "short": "Longer puddles",
+    "summary": "Snow Cone Machine touching a Coupon Book: cold deals cover more floor."
   },
   "combos.coldStorage.de": {
     "detail": "Der Sog reicht 20% weiter, seine Schadensticks machen 2,5× Schaden und verlangsamen Gegner 1,5 s um 50%. Ersetzt die Kühlakku-Verlangsamung (nie addiert).",
@@ -7948,16 +8662,28 @@
     "summary": "Pressure Cooker touching Sparklers: the lid comes off. Festively."
   },
   "combos.fiveAlarm.de": {
-    "detail": "Toast macht +80% Schaden an Gegnern, die bereits brennen.",
+    "detail": "Toast macht +25% Schaden an Gegnern, die bereits brennen.",
     "name": "Fünf-Alarm-Toast",
-    "short": "+80% gegen Brennende",
+    "short": "+25% gegen Brennende",
     "summary": "Toaster berührt Scharfe Soße UND Benzinkanister: Toast versengt brennende Gegner."
   },
   "combos.fiveAlarm.en": {
-    "detail": "Toast deals +80% damage to enemies that are already on fire.",
+    "detail": "Toast deals +25% damage to enemies that are already on fire.",
     "name": "Five-Alarm Toast",
-    "short": "+80% vs burning",
+    "short": "+25% vs burning",
     "summary": "Toaster touching Hot Sauce AND a Fuel Can: toast scorches burning groceries."
+  },
+  "combos.foamGuard.de": {
+    "detail": "Wenn ein Gegner erstmals eine Pfütze betritt, verursacht er 2,5 s lang 75% weniger Schaden.",
+    "name": "Schaumwache",
+    "short": "Pfützen schwächen Gegner",
+    "summary": "Wischmopp berührt Luftpolsterfolie: klebriger Schaum schwächt die Angriffe."
+  },
+  "combos.foamGuard.en": {
+    "detail": "The first time an enemy enters each puddle, it deals 75% less damage for 2.5 s.",
+    "name": "Foam Guard",
+    "short": "Puddles weaken enemies",
+    "summary": "Mop touching Bubble Wrap: sticky foam dulls grocery attacks."
   },
   "combos.freshBread.de": {
     "detail": "Toast durchschlägt 1 weiteren Gegner, 2, sobald der Sauerteig ganz aufgegangen ist.",
@@ -7971,6 +8697,18 @@
     "short": "Sourdough lets toast pierce",
     "summary": "Toaster touching a Sourdough Starter: a risen loaf is hard to stop."
   },
+  "combos.frostArmor.de": {
+    "detail": "Nach einem Treffer erhältst du zusätzlich 0,2 s Unverwundbarkeit.",
+    "name": "Frostpanzer",
+    "short": "Mehr Unverwundbarkeit nach Treffern",
+    "summary": "Slush-Maschine berührt Decke: gefrorene Polsterung schützt den Wagen."
+  },
+  "combos.frostArmor.en": {
+    "detail": "Taking a hit grants an extra 0.2 s of invulnerability.",
+    "name": "Frost Armor",
+    "short": "Extra invulnerability after hits",
+    "summary": "Snow Cone Machine touching a Blanket: frozen padding cushions the cart."
+  },
   "combos.frostbiteNails.de": {
     "detail": "Nägel durchschlagen 1 weiteren Gegner, und jeder 3. Nagel, der denselben Gegner trifft, friert ihn 0,7 s lang fest.",
     "name": "Frostbeulen-Nägel",
@@ -7982,6 +8720,30 @@
     "name": "Frostbite Nails",
     "short": "3rd hit freezes",
     "summary": "Nail Gun touching an Ice Pack: nails freeze groceries solid."
+  },
+  "combos.frozenKernels.de": {
+    "detail": "Die Reichweite der Slush-Pfütze steigt um 120%.",
+    "name": "Eiskörner",
+    "short": "Slush-Pfützen reichen weiter",
+    "summary": "Slush-Maschine berührt Popcorn: knuspriges Eis trägt die Kälte."
+  },
+  "combos.frozenKernels.en": {
+    "detail": "Snow Cone puddle range is increased by 120%.",
+    "name": "Frozen Kernels",
+    "short": "Snow cones reach farther",
+    "summary": "Snow Cone Machine touching Popcorn: crunchy ice carries the chill."
+  },
+  "combos.goldenKernels.de": {
+    "detail": "Körner erhalten +10% Kritchance.",
+    "name": "Goldene Körner",
+    "short": "Körner können kritisch treffen",
+    "summary": "Popcorn berührt einen Glückskeks: Glückskörner treffen doppelt hart."
+  },
+  "combos.goldenKernels.en": {
+    "detail": "Kernels gain +10% crit chance.",
+    "name": "Golden Kernels",
+    "short": "Kernels can crit",
+    "summary": "Popcorn touching a Fortune Cookie: lucky kernels hit twice as hard."
   },
   "combos.greaseFire.de": {
     "detail": "Pfützen werden zu Fettbränden: 40% größer, und ihr Brand ist verdoppelt (Benzinkanister-Brand ×2, kein Stapeln).",
@@ -8007,6 +8769,18 @@
     "short": "Kernel kills scatter more kernels",
     "summary": "Popcorn Maker touching a Party Popper: sweet, salty, explosive."
   },
+  "combos.leafPile.de": {
+    "detail": "Trifft eine Böe einen brennenden Gegner, breitet sich der stärkste Brand unter den Getroffenen auf jeden Gegner im Umkreis von 80 um einen brennenden aus.",
+    "name": "Laubhaufen",
+    "short": "Böen verbreiten Feuer",
+    "summary": "Laubbläser berührt Benzinkanister: ein Haufen trockenes Laub und ein Funke."
+  },
+  "combos.leafPile.en": {
+    "detail": "When a blast hits a burning enemy, the strongest burn among those hit spreads to every enemy within 80 of a burning one.",
+    "name": "Leaf Pile",
+    "short": "Blasts spread burning",
+    "summary": "Leaf Blower touching a Fuel Can: a pile of dry leaves and a spark."
+  },
   "combos.liveWire.de": {
     "detail": "Alle 1 s zappen die Pfützen bis zu 3 nasse Gegner, die gerade darin standen, für 100% Pfützenschaden. Der Blitz verbraucht die Nässe nicht.",
     "name": "Stromschlag",
@@ -8018,6 +8792,30 @@
     "name": "Live Wire",
     "short": "Puddles zap Wet enemies",
     "summary": "Mop touching a Battery: the soapy floor is live."
+  },
+  "combos.luckyFizz.de": {
+    "detail": "Die Sprudelkanone erhält +8% Kritchance.",
+    "name": "Glücksbrause",
+    "short": "+Kritchance",
+    "summary": "Sprudelkanone berührt Glückskeks: Glückszahlen in jeder Dose."
+  },
+  "combos.luckyFizz.en": {
+    "detail": "The Fizz Cannon gains +8% critical-hit chance.",
+    "name": "Lucky Fizz",
+    "short": "+crit chance",
+    "summary": "Fizz Cannon touching a Fortune Cookie: lucky numbers in every can."
+  },
+  "combos.magneticFizz.de": {
+    "detail": "Jeder Abpraller markiert sein nächstes Ziel für 2,5 s; alle Quellen verursachen mehr Schaden.",
+    "name": "Magnetbrause",
+    "short": "Abpraller markieren das nächste Ziel",
+    "summary": "Sprudelkanone berührt Magnet: jeder Kronkorken zieht die Aufmerksamkeit weiter."
+  },
+  "combos.magneticFizz.en": {
+    "detail": "Each bounce marks its next target for 2.5 s, increasing damage from all sources.",
+    "name": "Magnetic Fizz",
+    "short": "Bounces mark the next target",
+    "summary": "Fizz Cannon touching a Magnet: every cap pulls attention to the next grocery."
   },
   "combos.mistMachine.de": {
     "detail": "Der Sprühkegel wird 120° breit und reicht 40% weiter. (Der Ventilator-Bonus auf Tempo/Reichweite gilt nicht für Sprühstöße, dies ersetzt ihn.)",
@@ -8043,6 +8841,30 @@
     "short": "Nails pierce and curve",
     "summary": "Nail Gun touching a Magnet AND a Battery: piercing, curving nails."
   },
+  "combos.neonSmoothie.de": {
+    "detail": "Die Reichweite der Klingen steigt um 115%.",
+    "name": "Neon-Smoothie",
+    "short": "Geladene Klingen reichen weiter",
+    "summary": "Mixer berührt Batterie: Die Klingen knistern vor Strom."
+  },
+  "combos.neonSmoothie.en": {
+    "detail": "Blade range is increased by 115%.",
+    "name": "Neon Smoothie",
+    "short": "Charged blades reach farther",
+    "summary": "Blender touching a Battery: the blades hum with static."
+  },
+  "combos.polarArc.de": {
+    "detail": "Wenn ein Gegner erstmals eine Pfütze betritt, wird er 0,25 s lang geschockt.",
+    "name": "Polarer Lichtbogen",
+    "short": "Pfützen schocken nasse Gegner",
+    "summary": "Slush-Maschine berührt Batterie: gefrorener Matsch steht unter Strom."
+  },
+  "combos.polarArc.en": {
+    "detail": "The first time an enemy enters each puddle, it is shocked for 0.25 s.",
+    "name": "Polar Arc",
+    "short": "Puddles shock soaked enemies",
+    "summary": "Snow Cone Machine touching a Battery: frozen slush carries a charge."
+  },
   "combos.potSlam.de": {
     "detail": "Jeder Dash endet mit einer vollen Schnellkochtopf-Explosion am Landepunkt (Schaden, Radius und Rückstoß des Topfs). Löst bei jedem Dash aus, unabhängig vom Topf-Timer.",
     "name": "Topf-Slam",
@@ -8066,6 +8888,18 @@
     "name": "Power Surge",
     "short": "Beam aftershock",
     "summary": "Self-Checkout Laser touching a Power Strip: double scan."
+  },
+  "combos.prepLine.de": {
+    "detail": "Der Mixer-Cooldown sinkt um 12.",
+    "name": "Vorbereitungsstation",
+    "short": "Klingen drehen schneller",
+    "summary": "Mixer berührt Lunchbox: Die Vorbereitung hält den Motor am Laufen."
+  },
+  "combos.prepLine.en": {
+    "detail": "Blender cooldown is reduced by 12.",
+    "name": "Prep Line",
+    "short": "Blades spin faster",
+    "summary": "Blender touching a Lunchbox: the prep line keeps the motor fed."
   },
   "combos.pressurePoint.de": {
     "detail": "Jede Explosion hinterlässt 2,5 s lang eine Feuerlache: Gegner darin brennen (mindestens 3 Schaden/s, kein Stapeln).",
@@ -8103,6 +8937,18 @@
     "short": "Marks: +20% dmg",
     "summary": "Self-Checkout Laser touching a Price Gun: everything gets a sticker."
   },
+  "combos.priceDrop.de": {
+    "detail": "Abschüsse durch den Laser würfeln erneut auf eine Extra-Münze mit 2× der Couponheft-Chance (begrenzt durch die Couponheft-Obergrenze).",
+    "name": "Preissturz",
+    "short": "Laser-Abschüsse lassen Extra-Münzen fallen",
+    "summary": "Selbstscan-Laser berührt Couponheft: gescannte Ware kostet die Hälfte, Münzen das Doppelte."
+  },
+  "combos.priceDrop.en": {
+    "detail": "Kills by the laser roll again for an extra coin at 2× the Coupon Book chance (capped at the Coupon Book cap).",
+    "name": "Price Drop",
+    "short": "Laser kills drop extra coins",
+    "summary": "Self-Checkout Laser touching a Coupon Book: scanned goods are half price, coins double."
+  },
   "combos.rayGun.de": {
     "detail": "Nägel werden zu grünen Energiestrahlen (ohne Durchschlag), die 60% Schaden auf Gegner im Umkreis von 60 verteilen. Jeder 3. Schuss ist ein roter Überladungsstrahl: Splash-Radius 120 und +20% Splash-Schaden. Ersetzt Nagelsturm.",
     "name": "Strahlenkanone",
@@ -8126,6 +8972,30 @@
     "name": "Reheat",
     "short": "Zaps leave fire",
     "summary": "Microwave touching a Fuel Can: overcooked!"
+  },
+  "combos.salsaSplash.de": {
+    "detail": "Direkte Tomatentreffer vergiften nahe Gegner im Umkreis von 70 für 2/s über 3 s.",
+    "name": "Salsa-Spritzer",
+    "short": "Gift spritzt auf Nachbarn",
+    "summary": "Faule Tomate berührt Tischventilator: jeder Treffer spritzt saures Gift um das Ziel."
+  },
+  "combos.salsaSplash.en": {
+    "detail": "Direct tomato hits poison nearby enemies within 70 for 2/s over 3 s.",
+    "name": "Salsa Splash",
+    "short": "Poison splashes nearby",
+    "summary": "Rotten Tomato touching a Desk Fan: every hit sprays sour poison around the target."
+  },
+  "combos.scaldingClean.de": {
+    "detail": "Wenn ein Gegner erstmals eine Pfütze betritt, brennt er 2 s lang für 3 Schaden/s.",
+    "name": "Heißes Wischen",
+    "short": "Pfützen entzünden Gegner",
+    "summary": "Wischmopp berührt Scharfe Soße: der Boden ist kochend heiß."
+  },
+  "combos.scaldingClean.en": {
+    "detail": "The first time an enemy enters each puddle, it burns for 3 damage/s for 2 s.",
+    "name": "Scalding Clean",
+    "short": "Puddles ignite enemies",
+    "summary": "Mop touching Hot Sauce: the clean is painfully hot."
   },
   "combos.shrapnel.de": {
     "detail": "Jede Explosion schleudert 6 Topfsplitter nach außen (40% Schaden, Durchschlag 1).",
@@ -8187,6 +9057,30 @@
     "short": "Blades eat bullets",
     "summary": "Blender touching Bubble Wrap: the blades shred enemy projectiles."
   },
+  "combos.snowBlower.de": {
+    "detail": "Jede Böe lässt am Ende des Kegels eine Slush-Pfütze der Slush-Maschine fallen.",
+    "name": "Schneefräse",
+    "short": "Böen lassen Matschpfützen fallen",
+    "summary": "Laubbläser berührt Slush-Maschine: der Windstoß trägt den Matsch mit."
+  },
+  "combos.snowBlower.en": {
+    "detail": "Every blast drops a Snow Cone slush puddle where the cone ends.",
+    "name": "Snow Blower",
+    "short": "Blasts drop slush puddles",
+    "summary": "Leaf Blower touching a Snow Cone Machine: the gust carries the slush."
+  },
+  "combos.sodaShield.de": {
+    "detail": "Nach einem Treffer erhältst du zusätzlich 0,15 s Unverwundbarkeit.",
+    "name": "Limo-Schild",
+    "short": "Mehr Unverwundbarkeit nach Treffern",
+    "summary": "Sprudelkanone berührt Luftpolsterfolie: gepolsterte Dosen schützen den Goblin."
+  },
+  "combos.sodaShield.en": {
+    "detail": "Taking a hit grants an extra 0.15 s of invulnerability.",
+    "name": "Soda Shield",
+    "short": "More invulnerability after hits",
+    "summary": "Fizz Cannon touching Bubble Wrap: padded cans cushion the goblin."
+  },
   "combos.sourMist.de": {
     "detail": "Sprühtreffer vergiften Gegner für 4 Schaden/s über 3 s (erneuert sich, stapelt sich nie).",
     "name": "Sauernebel",
@@ -8211,6 +9105,18 @@
     "short": "Zaps chain +2, may stun",
     "summary": "Microwave touching a Tin Foil Hat AND a Battery: the sparks go everywhere."
   },
+  "combos.sporeStorm.de": {
+    "detail": "Jede Böe hinterlässt dort, wo ihr Kegel endet, eine Sporenwolke des Schimmelbrots: Sie vergiftet die Gegner darin, als wäre es eine Explosion.",
+    "name": "Sporensturm",
+    "short": "Böen säen Sporenwolken",
+    "summary": "Laubbläser berührt Schimmelbrot: der Windstoß verbreitet den Schimmel."
+  },
+  "combos.sporeStorm.en": {
+    "detail": "Every blast leaves a Moldy Bread spore cloud where its cone ends: it poisons the enemies inside, as if it were an explosion.",
+    "name": "Spore Storm",
+    "short": "Blasts seed spore clouds",
+    "summary": "Leaf Blower touching Moldy Bread: the gust spreads the mold."
+  },
   "combos.staticCling.de": {
     "detail": "Jeder Schadenstick zappt zusätzlich bis zu 3 Gegner im Sogradius für 150% Tickschaden.",
     "name": "Statische Aufladung",
@@ -8222,6 +9128,18 @@
     "name": "Static Cling",
     "short": "Ticks zap 3",
     "summary": "Vacuum touching a Battery: the suction throws out lightning."
+  },
+  "combos.stickyMop.de": {
+    "detail": "Wenn ein Gegner erstmals eine Pfütze betritt, wird er 3 s lang markiert.",
+    "name": "Klebriger Mopp",
+    "short": "Pfützen markieren Gegner",
+    "summary": "Wischmopp berührt Magnet: nasser Schmutz markiert die Ware."
+  },
+  "combos.stickyMop.en": {
+    "detail": "The first time an enemy enters each puddle, it is marked for 3 s.",
+    "name": "Sticky Mop",
+    "short": "Puddles mark enemies",
+    "summary": "Mop touching a Magnet: wet grime makes groceries stand out."
   },
   "combos.sugarRush.de": {
     "detail": "Jeder Dash fügt einen Stapel hinzu: +8% Bewegungstempo für 3 s, bis zu 5 Stapel (jeder Stapel läuft einzeln ab).",
@@ -8247,6 +9165,30 @@
     "short": "Blasts push the cart forward",
     "summary": "Leaf Blower touching a Desk Fan AND Running Boots: ride your own breeze."
   },
+  "combos.thermalScan.de": {
+    "detail": "Jeder Strahl hinterlässt 3 Feuerlachen entlang seiner Linie für 2 s: Gegner darin brennen (mindestens 3/s, kein Stapeln).",
+    "name": "Wärmescanner",
+    "short": "Strahl hinterlässt eine brennende Linie",
+    "summary": "Selbstscan-Laser berührt Benzinkanister: die Scanlinie bleibt heiß."
+  },
+  "combos.thermalScan.en": {
+    "detail": "Each beam leaves 3 fire pools along its line for 2 s: enemies inside burn (at least 3/s, no stacking).",
+    "name": "Thermal Scanner",
+    "short": "Beam leaves a burning line",
+    "summary": "Self-Checkout Laser touching a Fuel Can: the scan line stays hot."
+  },
+  "combos.thickSmoothie.de": {
+    "detail": "Klingentreffer verlangsamen Gegner um 30% für 0,8 s.",
+    "name": "Dicker Smoothie",
+    "short": "Klingen verlangsamen Gegner",
+    "summary": "Mixer berührt Decke: Der Smoothie klebt an allem, was er trifft."
+  },
+  "combos.thickSmoothie.en": {
+    "detail": "Blade hits slow enemies by 30% for 0.8 s.",
+    "name": "Thick Smoothie",
+    "short": "Blades slow enemies",
+    "summary": "Blender touching a Blanket: the smoothie sticks to anything it hits."
+  },
   "combos.thunderstorm.de": {
     "detail": "Jede Böe macht Gegner für 2 s nass. Jede 3. Böe trifft zuerst bis zu 4 bereits nasse Gegner für 50% Böenschaden.",
     "name": "Gewitter",
@@ -8260,16 +9202,40 @@
     "summary": "Leaf Blower touching a Desk Fan, a Battery AND an Ice Pack: whip up a storm."
   },
   "combos.toastMode.de": {
-    "detail": "Feuert 3 Toasts im Fächer. Jeder macht 75% Schaden und setzt Gegner in Brand (Brand stapelt sich nicht). Ventilator-Tempo und -Reichweite gelten weiterhin.",
+    "detail": "Feuert 2 Toasts im Fächer. Jeder macht 75% Schaden und setzt Gegner in Brand (Brand stapelt sich nicht). Ventilator-Tempo und -Reichweite gelten weiterhin.",
     "name": "Toast-Modus",
-    "short": "3 flammende Toasts pro Schuss",
+    "short": "2 flammende Toasts pro Schuss",
     "summary": "Toaster berührt Tischventilator UND Benzinkanister: flammender Dreifach-Toast-Fächer."
   },
   "combos.toastMode.en": {
-    "detail": "Fires 3 toasts in a spread. Each deals 75% damage and sets enemies on fire (burn does not stack). Fan speed and range still apply.",
+    "detail": "Fires 2 toasts in a spread. Each deals 75% damage and sets enemies on fire (burn does not stack). Fan speed and range still apply.",
     "name": "Toast Mode",
-    "short": "3 flaming toasts per shot",
+    "short": "2 flaming toasts per shot",
     "summary": "Toaster touching a Desk Fan AND a Fuel Can: flaming three-toast spread."
+  },
+  "combos.tomatoHelmet.de": {
+    "detail": "Solange die Combo aktiv ist, wird eingehender Schaden um 88% reduziert.",
+    "name": "Tomatenhelm",
+    "short": "Weniger eingehender Schaden",
+    "summary": "Faule Tomate berührt Einkaufswagenhelm: Sicherheit zuerst, Hygiene später."
+  },
+  "combos.tomatoHelmet.en": {
+    "detail": "While the combo is active, incoming damage is reduced by 88%.",
+    "name": "Tomato Helmet",
+    "short": "Less incoming damage",
+    "summary": "Rotten Tomato touching a Cart Helmet: safety first, hygiene second."
+  },
+  "combos.tomatoToll.de": {
+    "detail": "Wenn ein Tomatentreffer einen Gegner tötet, fliegen alle Münzen zum Wagen.",
+    "name": "Tomatenzoll",
+    "short": "Tomaten-Kills ziehen Münzen an",
+    "summary": "Faule Tomate berührt Einkaufsklingel: jede faule Ware klingelt an der Kasse."
+  },
+  "combos.tomatoToll.en": {
+    "detail": "When a tomato hit kills an enemy, all loose coins fly to the cart.",
+    "name": "Tomato Toll",
+    "short": "Tomato kills pull coins",
+    "summary": "Rotten Tomato touching a Shopping Bell: every rotten grocery rings the till."
   },
   "combos.tvDinner.de": {
     "detail": "Jeder Zap springt auf 1 weiteren Gegner in der Nähe über (60% Schaden) und die Mikrowelle feuert 8% schneller (zusätzlich zur Batterie).",
@@ -8286,11 +9252,11 @@
   "items.airhorn.de": {
     "blurb": "Dezent. Wie ein Güterzug.",
     "name": "Signalhorn",
-    "rules": "Aktiv (E, {0} pro Gang): betäubt jeden Gegner im Bild für {1}. Bosse nur für 0,3 s.",
+    "rules": "Sobald mindestens 8 Gegner im Umkreis von 150 um den Wagen sind, ertönt es automatisch (bis zu {0} pro Gang): betäubt jeden Gegner im Bild für {1}. Bosse nur für 0,3 s.",
     "rulesByTier": {
-      "1": "Aktiv (E, 1 pro Gang): betäubt jeden Gegner im Bild für 1 s. Bosse nur für 0,3 s.",
-      "2": "Aktiv (E, 1 pro Gang): betäubt jeden Gegner im Bild für 1,3 s. Bosse nur für 0,3 s.",
-      "3": "Aktiv (E, 2 pro Gang): betäubt jeden Gegner im Bild für 1,5 s. Bosse nur für 0,3 s."
+      "1": "Sobald mindestens 8 Gegner im Umkreis von 150 um den Wagen sind, ertönt es automatisch (bis zu 1 pro Gang): betäubt jeden Gegner im Bild für 1 s. Bosse nur für 0,3 s.",
+      "2": "Sobald mindestens 8 Gegner im Umkreis von 150 um den Wagen sind, ertönt es automatisch (bis zu 1 pro Gang): betäubt jeden Gegner im Bild für 1,3 s. Bosse nur für 0,3 s.",
+      "3": "Sobald mindestens 8 Gegner im Umkreis von 150 um den Wagen sind, ertönt es automatisch (bis zu 2 pro Gang): betäubt jeden Gegner im Bild für 1,5 s. Bosse nur für 0,3 s."
     },
     "tierScaling": [
       {
@@ -8314,11 +9280,11 @@
   "items.airhorn.en": {
     "blurb": "Subtle. Like a freight train.",
     "name": "Air Horn",
-    "rules": "Active (E, {0} per aisle): stuns every enemy on screen for {1}. Bosses are stunned for only 0.3 s.",
+    "rules": "When at least 8 enemies are within 150 of the cart, it blows automatically (up to {0} per aisle): stuns every enemy on screen for {1}. Bosses are stunned for only 0.3 s.",
     "rulesByTier": {
-      "1": "Active (E, 1 per aisle): stuns every enemy on screen for 1 s. Bosses are stunned for only 0.3 s.",
-      "2": "Active (E, 1 per aisle): stuns every enemy on screen for 1.3 s. Bosses are stunned for only 0.3 s.",
-      "3": "Active (E, 2 per aisle): stuns every enemy on screen for 1.5 s. Bosses are stunned for only 0.3 s."
+      "1": "When at least 8 enemies are within 150 of the cart, it blows automatically (up to 1 per aisle): stuns every enemy on screen for 1 s. Bosses are stunned for only 0.3 s.",
+      "2": "When at least 8 enemies are within 150 of the cart, it blows automatically (up to 1 per aisle): stuns every enemy on screen for 1.3 s. Bosses are stunned for only 0.3 s.",
+      "3": "When at least 8 enemies are within 150 of the cart, it blows automatically (up to 2 per aisle): stuns every enemy on screen for 1.5 s. Bosses are stunned for only 0.3 s."
     },
     "tierScaling": [
       {
@@ -8846,11 +9812,11 @@
   "items.bubblewrap.de": {
     "blurb": "Platzsichere Polsterung für deinen Wagen.",
     "name": "Luftpolsterfolie",
-    "rules": "Nimm {0} Schaden weniger pro Treffer (mindestens 1) und +0,25 s Unverwundbarkeit nach einem Treffer (stapelt sich nicht). Aktiv (E, 1 pro Gang): Platzen, 1,5 s unverwundbar und eine Druckwelle mit {1} Schaden um dich.",
+    "rules": "Nimm {0} Schaden weniger pro Treffer (mindestens 1) und +0,25 s Unverwundbarkeit nach einem Treffer (stapelt sich nicht). Einmal pro Gang, wenn ein Treffer dich unter 50 % deiner Max.-LP bringt, platzt sie: 1,5 s unverwundbar und eine Druckwelle mit {1} Schaden um dich.",
     "rulesByTier": {
-      "1": "Nimm 1 Schaden weniger pro Treffer (mindestens 1) und +0,25 s Unverwundbarkeit nach einem Treffer (stapelt sich nicht). Aktiv (E, 1 pro Gang): Platzen, 1,5 s unverwundbar und eine Druckwelle mit 10 Schaden um dich.",
-      "2": "Nimm 2 Schaden weniger pro Treffer (mindestens 1) und +0,25 s Unverwundbarkeit nach einem Treffer (stapelt sich nicht). Aktiv (E, 1 pro Gang): Platzen, 1,5 s unverwundbar und eine Druckwelle mit 15 Schaden um dich.",
-      "3": "Nimm 3 Schaden weniger pro Treffer (mindestens 1) und +0,25 s Unverwundbarkeit nach einem Treffer (stapelt sich nicht). Aktiv (E, 1 pro Gang): Platzen, 1,5 s unverwundbar und eine Druckwelle mit 20 Schaden um dich."
+      "1": "Nimm 1 Schaden weniger pro Treffer (mindestens 1) und +0,25 s Unverwundbarkeit nach einem Treffer (stapelt sich nicht). Einmal pro Gang, wenn ein Treffer dich unter 50 % deiner Max.-LP bringt, platzt sie: 1,5 s unverwundbar und eine Druckwelle mit 10 Schaden um dich.",
+      "2": "Nimm 2 Schaden weniger pro Treffer (mindestens 1) und +0,25 s Unverwundbarkeit nach einem Treffer (stapelt sich nicht). Einmal pro Gang, wenn ein Treffer dich unter 50 % deiner Max.-LP bringt, platzt sie: 1,5 s unverwundbar und eine Druckwelle mit 15 Schaden um dich.",
+      "3": "Nimm 3 Schaden weniger pro Treffer (mindestens 1) und +0,25 s Unverwundbarkeit nach einem Treffer (stapelt sich nicht). Einmal pro Gang, wenn ein Treffer dich unter 50 % deiner Max.-LP bringt, platzt sie: 1,5 s unverwundbar und eine Druckwelle mit 20 Schaden um dich."
     },
     "tierScaling": [
       {
@@ -8874,11 +9840,11 @@
   "items.bubblewrap.en": {
     "blurb": "Pop-proof padding for your cart.",
     "name": "Bubble Wrap",
-    "rules": "Take {0} less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack). Active (E, 1 per aisle): Pop, 1.5 s invulnerable and a {1} damage blast around you.",
+    "rules": "Take {0} less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack). Once per aisle, when a hit drops you below 50% of your max HP, it pops: 1.5 s invulnerable and a {1} damage blast around you.",
     "rulesByTier": {
-      "1": "Take 1 less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack). Active (E, 1 per aisle): Pop, 1.5 s invulnerable and a 10 damage blast around you.",
-      "2": "Take 2 less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack). Active (E, 1 per aisle): Pop, 1.5 s invulnerable and a 15 damage blast around you.",
-      "3": "Take 3 less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack). Active (E, 1 per aisle): Pop, 1.5 s invulnerable and a 20 damage blast around you."
+      "1": "Take 1 less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack). Once per aisle, when a hit drops you below 50% of your max HP, it pops: 1.5 s invulnerable and a 10 damage blast around you.",
+      "2": "Take 2 less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack). Once per aisle, when a hit drops you below 50% of your max HP, it pops: 1.5 s invulnerable and a 15 damage blast around you.",
+      "3": "Take 3 less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack). Once per aisle, when a hit drops you below 50% of your max HP, it pops: 1.5 s invulnerable and a 20 damage blast around you."
     },
     "tierScaling": [
       {
@@ -9262,25 +10228,25 @@
     "name": "Tischventilator",
     "rules": "Jede angrenzende Waffe erhält {0} Reichweite und {1} Projektiltempo.",
     "rulesByTier": {
-      "1": "Jede angrenzende Waffe erhält +30% Reichweite und +30% Projektiltempo.",
-      "2": "Jede angrenzende Waffe erhält +45% Reichweite und +45% Projektiltempo.",
-      "3": "Jede angrenzende Waffe erhält +60% Reichweite und +60% Projektiltempo."
+      "1": "Jede angrenzende Waffe erhält +10% Reichweite und +10% Projektiltempo.",
+      "2": "Jede angrenzende Waffe erhält +15% Reichweite und +15% Projektiltempo.",
+      "3": "Jede angrenzende Waffe erhält +20% Reichweite und +20% Projektiltempo."
     },
     "tierScaling": [
       {
         "label": "Distanz / Reichweite",
         "values": [
-          "+30%",
-          "+45%",
-          "+60%"
+          "+10%",
+          "+15%",
+          "+20%"
         ]
       },
       {
         "label": "Projektiltempo",
         "values": [
-          "+30%",
-          "+45%",
-          "+60%"
+          "+10%",
+          "+15%",
+          "+20%"
         ]
       }
     ]
@@ -9290,25 +10256,25 @@
     "name": "Desk Fan",
     "rules": "Any adjacent weapon gains {0} range or reach and {1} projectile speed.",
     "rulesByTier": {
-      "1": "Any adjacent weapon gains +30% range or reach and +30% projectile speed.",
-      "2": "Any adjacent weapon gains +45% range or reach and +45% projectile speed.",
-      "3": "Any adjacent weapon gains +60% range or reach and +60% projectile speed."
+      "1": "Any adjacent weapon gains +10% range or reach and +10% projectile speed.",
+      "2": "Any adjacent weapon gains +15% range or reach and +15% projectile speed.",
+      "3": "Any adjacent weapon gains +20% range or reach and +20% projectile speed."
     },
     "tierScaling": [
       {
         "label": "Range / reach",
         "values": [
-          "+30%",
-          "+45%",
-          "+60%"
+          "+10%",
+          "+15%",
+          "+20%"
         ]
       },
       {
         "label": "Projectile speed",
         "values": [
-          "+30%",
-          "+45%",
-          "+60%"
+          "+10%",
+          "+15%",
+          "+20%"
         ]
       }
     ]
@@ -9316,19 +10282,19 @@
   "items.fireextinguisher.de": {
     "blurb": "Auf Lebensmittel gerichtet. Streng genommen Missbrauch.",
     "name": "Feuerlöscher",
-    "rules": "Aktiv (E, {0} pro Gang): ein 70°-Kegel, 180 Reichweite, 6 Schaden, verlangsamt, betäubt 0,6 s und stößt zurück.",
+    "rules": "Alle {0} sprüht er automatisch auf den nächsten Gegner: ein 70°-Kegel, 180 Reichweite, 6 Schaden, verlangsamt, betäubt 0,6 s und stößt zurück.",
     "rulesByTier": {
-      "1": "Aktiv (E, 3 pro Gang): ein 70°-Kegel, 180 Reichweite, 6 Schaden, verlangsamt, betäubt 0,6 s und stößt zurück.",
-      "2": "Aktiv (E, 4 pro Gang): ein 70°-Kegel, 180 Reichweite, 6 Schaden, verlangsamt, betäubt 0,6 s und stößt zurück.",
-      "3": "Aktiv (E, 5 pro Gang): ein 70°-Kegel, 180 Reichweite, 6 Schaden, verlangsamt, betäubt 0,6 s und stößt zurück."
+      "1": "Alle 6 s sprüht er automatisch auf den nächsten Gegner: ein 70°-Kegel, 180 Reichweite, 6 Schaden, verlangsamt, betäubt 0,6 s und stößt zurück.",
+      "2": "Alle 5 s sprüht er automatisch auf den nächsten Gegner: ein 70°-Kegel, 180 Reichweite, 6 Schaden, verlangsamt, betäubt 0,6 s und stößt zurück.",
+      "3": "Alle 4 s sprüht er automatisch auf den nächsten Gegner: ein 70°-Kegel, 180 Reichweite, 6 Schaden, verlangsamt, betäubt 0,6 s und stößt zurück."
     },
     "tierScaling": [
       {
-        "label": "Ladungen",
+        "label": "Intervall",
         "values": [
-          "3",
-          "4",
-          "5"
+          "6 s",
+          "5 s",
+          "4 s"
         ]
       }
     ]
@@ -9336,19 +10302,19 @@
   "items.fireextinguisher.en": {
     "blurb": "Aimed at groceries. Technically a misuse.",
     "name": "Fire Extinguisher",
-    "rules": "Active (E, {0} per aisle): a 70° cone blast, 180 range, 6 damage, slows, stuns for 0.6 s and knocks back.",
+    "rules": "Every {0}, automatically blasts the nearest enemy: a 70° cone, 180 range, 6 damage, slows, stuns for 0.6 s and knocks back.",
     "rulesByTier": {
-      "1": "Active (E, 3 per aisle): a 70° cone blast, 180 range, 6 damage, slows, stuns for 0.6 s and knocks back.",
-      "2": "Active (E, 4 per aisle): a 70° cone blast, 180 range, 6 damage, slows, stuns for 0.6 s and knocks back.",
-      "3": "Active (E, 5 per aisle): a 70° cone blast, 180 range, 6 damage, slows, stuns for 0.6 s and knocks back."
+      "1": "Every 6 s, automatically blasts the nearest enemy: a 70° cone, 180 range, 6 damage, slows, stuns for 0.6 s and knocks back.",
+      "2": "Every 5 s, automatically blasts the nearest enemy: a 70° cone, 180 range, 6 damage, slows, stuns for 0.6 s and knocks back.",
+      "3": "Every 4 s, automatically blasts the nearest enemy: a 70° cone, 180 range, 6 damage, slows, stuns for 0.6 s and knocks back."
     },
     "tierScaling": [
       {
-        "label": "Charges",
+        "label": "Interval",
         "values": [
-          "3",
-          "4",
-          "5"
+          "6 s",
+          "5 s",
+          "4 s"
         ]
       }
     ]
@@ -9532,19 +10498,19 @@
   "items.fuel.de": {
     "blurb": "Fragwürdig. Setzt jeden Treffer in Brand.",
     "name": "Benzinkanister",
-    "rules": "Jede angrenzende Waffe setzt Gegner in Brand: {0} Brandschaden für 2 s (erneuert sich, stapelt sich nie).",
+    "rules": "Jede angrenzende Waffe setzt Gegner in Brand: {0} Brandschaden für 3 s (erneuert sich, stapelt sich nie).",
     "rulesByTier": {
-      "1": "Jede angrenzende Waffe setzt Gegner in Brand: 2,5/s Brandschaden für 2 s (erneuert sich, stapelt sich nie).",
-      "2": "Jede angrenzende Waffe setzt Gegner in Brand: 3,75/s Brandschaden für 2 s (erneuert sich, stapelt sich nie).",
-      "3": "Jede angrenzende Waffe setzt Gegner in Brand: 5/s Brandschaden für 2 s (erneuert sich, stapelt sich nie)."
+      "1": "Jede angrenzende Waffe setzt Gegner in Brand: 3/s Brandschaden für 3 s (erneuert sich, stapelt sich nie).",
+      "2": "Jede angrenzende Waffe setzt Gegner in Brand: 5/s Brandschaden für 3 s (erneuert sich, stapelt sich nie).",
+      "3": "Jede angrenzende Waffe setzt Gegner in Brand: 7/s Brandschaden für 3 s (erneuert sich, stapelt sich nie)."
     },
     "tierScaling": [
       {
         "label": "Brand",
         "values": [
-          "2,5/s",
-          "3,75/s",
-          "5/s"
+          "3/s",
+          "5/s",
+          "7/s"
         ]
       }
     ]
@@ -9552,19 +10518,19 @@
   "items.fuel.en": {
     "blurb": "Questionable. Sets every hit on fire.",
     "name": "Fuel Can",
-    "rules": "Any adjacent weapon sets enemies on fire: {0} burn damage for 2 s (refreshes, never stacks).",
+    "rules": "Any adjacent weapon sets enemies on fire: {0} burn damage for 3 s (refreshes, never stacks).",
     "rulesByTier": {
-      "1": "Any adjacent weapon sets enemies on fire: 2.5/s burn damage for 2 s (refreshes, never stacks).",
-      "2": "Any adjacent weapon sets enemies on fire: 3.75/s burn damage for 2 s (refreshes, never stacks).",
-      "3": "Any adjacent weapon sets enemies on fire: 5/s burn damage for 2 s (refreshes, never stacks)."
+      "1": "Any adjacent weapon sets enemies on fire: 3/s burn damage for 3 s (refreshes, never stacks).",
+      "2": "Any adjacent weapon sets enemies on fire: 5/s burn damage for 3 s (refreshes, never stacks).",
+      "3": "Any adjacent weapon sets enemies on fire: 7/s burn damage for 3 s (refreshes, never stacks)."
     },
     "tierScaling": [
       {
         "label": "Burn",
         "values": [
-          "2.5/s",
-          "3.75/s",
-          "5/s"
+          "3/s",
+          "5/s",
+          "7/s"
         ]
       }
     ]
@@ -10280,9 +11246,9 @@
     "name": "Bratpfanne",
     "rules": "Schwingt alle {1} auf Gegner in der Nähe für {0} Schaden. 150 Reichweite. Trifft jeden Gegner einmal pro Schwung.",
     "rulesByTier": {
-      "1": "Schwingt alle 1,15 s auf Gegner in der Nähe für 9 Schaden. 150 Reichweite. Trifft jeden Gegner einmal pro Schwung.",
-      "2": "Schwingt alle 1,03 s auf Gegner in der Nähe für 13,5 Schaden. 150 Reichweite. Trifft jeden Gegner einmal pro Schwung.",
-      "3": "Schwingt alle 0,92 s auf Gegner in der Nähe für 18 Schaden. 150 Reichweite. Trifft jeden Gegner einmal pro Schwung. ★3: Schwingt die vollen 360° rund um den Wagen."
+      "1": "Schwingt alle 1,12 s auf Gegner in der Nähe für 9 Schaden. 150 Reichweite. Trifft jeden Gegner einmal pro Schwung.",
+      "2": "Schwingt alle 1,01 s auf Gegner in der Nähe für 13,5 Schaden. 150 Reichweite. Trifft jeden Gegner einmal pro Schwung.",
+      "3": "Schwingt alle 0,9 s auf Gegner in der Nähe für 18 Schaden. 150 Reichweite. Trifft jeden Gegner einmal pro Schwung. ★3: Schwingt die vollen 360° rund um den Wagen."
     },
     "tierScaling": [
       {
@@ -10296,9 +11262,9 @@
       {
         "label": "Intervall",
         "values": [
-          "1,15 s",
-          "1,03 s",
-          "0,92 s"
+          "1,12 s",
+          "1,01 s",
+          "0,9 s"
         ]
       }
     ]
@@ -10308,9 +11274,9 @@
     "name": "Frying Pan",
     "rules": "Sweeps toward nearby enemies for {0} damage every {1}. 150 reach. Hits each enemy once per swing.",
     "rulesByTier": {
-      "1": "Sweeps toward nearby enemies for 9 damage every 1.15 s. 150 reach. Hits each enemy once per swing.",
-      "2": "Sweeps toward nearby enemies for 13.5 damage every 1.03 s. 150 reach. Hits each enemy once per swing.",
-      "3": "Sweeps toward nearby enemies for 18 damage every 0.92 s. 150 reach. Hits each enemy once per swing. ★3: Sweeps the full 360° around the cart."
+      "1": "Sweeps toward nearby enemies for 9 damage every 1.12 s. 150 reach. Hits each enemy once per swing.",
+      "2": "Sweeps toward nearby enemies for 13.5 damage every 1.01 s. 150 reach. Hits each enemy once per swing.",
+      "3": "Sweeps toward nearby enemies for 18 damage every 0.9 s. 150 reach. Hits each enemy once per swing. ★3: Sweeps the full 360° around the cart."
     },
     "tierScaling": [
       {
@@ -10324,9 +11290,9 @@
       {
         "label": "Interval",
         "values": [
-          "1.15 s",
-          "1.03 s",
-          "0.92 s"
+          "1.12 s",
+          "1.01 s",
+          "0.9 s"
         ]
       }
     ]
@@ -11502,11 +12468,11 @@
   "items.vacuum.de": {
     "blurb": "Hilfswaffe. Saugt Gegner heran, Münzen übrigens auch.",
     "name": "Staubsauger",
-    "rules": "Zieht Gegner in der Nähe ständig zum Wagen. Alle {1} erleiden Gegner im Radius {0} Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir.",
+    "rules": "Zieht Gegner in der Nähe ständig zum Wagen. Alle {1} erleiden Gegner im Radius {0} Schaden. +60 Münz-Sammelradius. Alle 3 Dashes in einem Gang lösen die volle Saugkraft aus: 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir.",
     "rulesByTier": {
-      "1": "Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,65 s erleiden Gegner im Radius 2 Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir.",
-      "2": "Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,59 s erleiden Gegner im Radius 3 Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir.",
-      "3": "Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,52 s erleiden Gegner im Radius 4 Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir. ★3: Jeder Schadensstoß stößt die Gegner direkt am Wagen zurück."
+      "1": "Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,65 s erleiden Gegner im Radius 2 Schaden. +60 Münz-Sammelradius. Alle 3 Dashes in einem Gang lösen die volle Saugkraft aus: 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir.",
+      "2": "Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,59 s erleiden Gegner im Radius 3 Schaden. +60 Münz-Sammelradius. Alle 3 Dashes in einem Gang lösen die volle Saugkraft aus: 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir.",
+      "3": "Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,52 s erleiden Gegner im Radius 4 Schaden. +60 Münz-Sammelradius. Alle 3 Dashes in einem Gang lösen die volle Saugkraft aus: 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir. ★3: Jeder Schadensstoß stößt die Gegner direkt am Wagen zurück."
     },
     "tierScaling": [
       {
@@ -11530,11 +12496,11 @@
   "items.vacuum.en": {
     "blurb": "Utility weapon. Sucks groceries closer, and coins too.",
     "name": "Vacuum",
-    "rules": "Constantly pulls nearby enemies toward the cart. Every {1}, enemies in range take {0} damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you.",
+    "rules": "Constantly pulls nearby enemies toward the cart. Every {1}, enemies in range take {0} damage. +60 coin pickup radius. Every 3 dashes in an aisle trigger Full Suck: for 2 s the pull is x3 and the range x2, and every coin on screen flies to you.",
     "rulesByTier": {
-      "1": "Constantly pulls nearby enemies toward the cart. Every 0.65 s, enemies in range take 2 damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you.",
-      "2": "Constantly pulls nearby enemies toward the cart. Every 0.59 s, enemies in range take 3 damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you.",
-      "3": "Constantly pulls nearby enemies toward the cart. Every 0.52 s, enemies in range take 4 damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you. ★3: Each damage pulse knocks the groceries right at the cart back out."
+      "1": "Constantly pulls nearby enemies toward the cart. Every 0.65 s, enemies in range take 2 damage. +60 coin pickup radius. Every 3 dashes in an aisle trigger Full Suck: for 2 s the pull is x3 and the range x2, and every coin on screen flies to you.",
+      "2": "Constantly pulls nearby enemies toward the cart. Every 0.59 s, enemies in range take 3 damage. +60 coin pickup radius. Every 3 dashes in an aisle trigger Full Suck: for 2 s the pull is x3 and the range x2, and every coin on screen flies to you.",
+      "3": "Constantly pulls nearby enemies toward the cart. Every 0.52 s, enemies in range take 4 damage. +60 coin pickup radius. Every 3 dashes in an aisle trigger Full Suck: for 2 s the pull is x3 and the range x2, and every coin on screen flies to you. ★3: Each damage pulse knocks the groceries right at the cart back out."
     },
     "tierScaling": [
       {

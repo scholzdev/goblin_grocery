@@ -98,9 +98,9 @@ describe('Bubble Wrap: content', () => {
   });
 
   it('renders its text for every level, EN and DE', () => {
-    expect(itemRules('bubblewrap', 3)).toBe('Take 3 less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack). Active (E, 1 per aisle): Pop, 1.5 s invulnerable and a 20 damage blast around you.');
+    expect(itemRules('bubblewrap', 3)).toBe('Take 3 less damage from every hit (minimum 1) and +0.25 s invulnerability after being hit (does not stack). Once per aisle, when a hit drops you below 50% of your max HP, it pops: 1.5 s invulnerable and a 20 damage blast around you.');
     setLang('de');
-    expect(itemRules('bubblewrap', 2)).toBe('Nimm 2 Schaden weniger pro Treffer (mindestens 1) und +0,25 s Unverwundbarkeit nach einem Treffer (stapelt sich nicht). Aktiv (E, 1 pro Gang): Platzen, 1,5 s unverwundbar und eine Druckwelle mit 15 Schaden um dich.');
+    expect(itemRules('bubblewrap', 2)).toBe('Nimm 2 Schaden weniger pro Treffer (mindestens 1) und +0,25 s Unverwundbarkeit nach einem Treffer (stapelt sich nicht). Einmal pro Gang, wenn ein Treffer dich unter 50 % deiner Max.-LP bringt, platzt sie: 1,5 s unverwundbar und eine Druckwelle mit 15 Schaden um dich.');
     expect(itemT('bubblewrap')).toMatchObject({ name: 'Luftpolsterfolie', blurb: 'Platzsichere Polsterung für deinen Wagen.' });
   });
 
@@ -108,5 +108,43 @@ describe('Bubble Wrap: content', () => {
     expect(tierScaling('bubblewrap')).toEqual([{ label: 'Armor', values: ['1', '2', '3'] }, { label: 'Pop damage', values: ['10', '15', '20'] }]);
     setLang('de');
     expect(tierScaling('bubblewrap')).toEqual([{ label: 'Rüstung', values: ['1', '2', '3'] }, { label: 'Platz-Schaden', values: ['10', '15', '20'] }]);
+  });
+});
+
+describe('Bubble Wrap: automatic Pop', () => {
+  const wrap = (tier = 1) => arena([at('toaster'), far('bubblewrap', tier)], { hp: 40, maxHp: 40 });
+
+  it('pops the first time a hit leaves you under 50% HP: i-frames and a 10 / 15 / 20 blast within 80 px', () => {
+    for (const [tier, dmg] of [[1, 10], [2, 15], [3, 20]] as const) {
+      const { fake } = wrap(tier);
+      const near = fake.spawnEnemy({ x: 70, hp: 100 }), out = fake.spawnEnemy({ x: 200, hp: 100 });
+      fake.hurt(10 + tier); // armor soaks `tier`: 10 damage, 30 HP left, no pop
+      expect(near.hp).toBe(100);
+      fake.player.invulnT = 0;
+      fake.hurt(15 + tier); // 15 damage: 15 HP left
+      expect(fake.run.hp).toBe(15);
+      expect([near.hp, out.hp]).toEqual([100 - dmg, 100]);
+      expect(fake.player.invulnT).toBe(1.5);
+    }
+  });
+
+  it('exactly 50% HP does not pop, and it pops only once per aisle', () => {
+    const { fake } = wrap();
+    const e = fake.spawnEnemy({ x: 70, hp: 1000 });
+    fake.hurt(21); // 20 damage: 20 of 40 HP
+    expect(e.hp).toBe(1000);
+    fake.player.invulnT = 0;
+    fake.hurt(2); // 1 damage: 19 HP
+    expect(e.hp).toBe(990);
+    fake.player.invulnT = 0;
+    fake.hurt(2);
+    expect(e.hp).toBe(990);
+  });
+
+  it('does not pop on a fatal hit', () => {
+    const { fake } = wrap();
+    const e = fake.spawnEnemy({ x: 70, hp: 100 });
+    fake.hurt(100);
+    expect(e.hp).toBe(100);
   });
 });

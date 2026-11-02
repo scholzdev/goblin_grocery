@@ -18,7 +18,7 @@ import { absorbShield, healPlayer, useRunOnce } from './playerHealth';
 import { damageType } from './damageType';
 import { applyHitStatuses, scheduleEcho } from './onHitStatuses';
 import { applyKillEffects } from './onKillEffects';
-import { beamOnce, explodeAt, spawnFirePool, sweepOnce, type PatternEnemy, type PatternHost, type WeaponRt } from './patterns';
+import { beamOnce, explodeAt, spawnFirePool, spawnPuddleAt, sweepOnce, type PatternEnemy, type PatternHost, type WeaponRt } from './patterns';
 
 // `RuntimeCtx` for tests (docs/item-hooks-refactor.md §5/§6): a deterministic clock and rng, an in-memory enemy list, and a log of
 // every effect a hook asked for. No Phaser, no timers: delayed callbacks and tweens run when the test calls `advance(s)`.
@@ -52,6 +52,7 @@ export type Call = { at: number } & (
   | { kind: 'healFx'; x: number; y: number }
   | { kind: 'spawnShot'; spec: ShotSpec }
   | { kind: 'spawnPool'; spec: PoolSpec }
+  | { kind: 'spawnPuddle'; weapon: string; x: number; y: number }
   | { kind: 'popperBlast'; x: number; y: number; damage: number; radius: number; setPop: boolean }
   | { kind: 'killShot'; shot: CombatShot }
   | { kind: 'reflectShot'; shot: CombatShot; mult: number }
@@ -349,6 +350,11 @@ export class FakeCtx implements RuntimeCtx {
   spawnPool(spec: PoolSpec): void {
     this.log({ kind: 'spawnPool', spec });
     if (this.arsenal) spawnFirePool(this.arsenal, spec.x, spec.y, spec.r, spec.time, spec.stats, spec.tune);
+  }
+  spawnPuddle(weaponUid: string, x: number, y: number): void {
+    this.log({ kind: 'spawnPuddle', weapon: weaponUid, x, y });
+    const a = this.arsenal, w = this.weaponOf(weaponUid);
+    if (a && w && w.stats.pattern === 'puddle') spawnPuddleAt(a, w, x, y);
   }
   /** Damages every enemy in the radius with `fromPopper` (so poppers never re-trigger), as the scene does. */
   pullCoins(): void { this.log({ kind: 'pullCoins' }); }

@@ -1,10 +1,10 @@
 import { defineSim } from './_sim';
 import { Enemy, Item } from '../engine/ids';
 
-// Active items: four actives in one cart: reading order gives the first three a key (Q / E / F), the 4th has no slot.
+// The four former actives, now automatic triggers, in one cart.
 export default defineSim({
   id: 'actives',
-  notes: 'Slots follow the cart reading order: Vacuum Full Suck (Q), Bubble Wrap Pop (E), Air Horn (F, 1 stun for everyone); the Fire Extinguisher (3 blasts, 70° cone) comes 4th and has no slot (shop badge "No slot"). Charges refill each aisle (restart with F9).',
+  notes: 'Automatic triggers: Air Horn blows once 8 enemies are within 150 of the cart, the Fire Extinguisher blasts the nearest enemy every 6 s, Bubble Wrap pops the first time a hit leaves you under 50% HP, and every 3rd dash fires the Vacuum\'s Full Suck. Dash with Space.',
   cart: [
     { id: Item.vacuum, at: [0, 0] },
     { id: Item.bubblewrap, at: [4, 0] },

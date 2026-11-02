@@ -17,7 +17,7 @@ Critical means a crash, a softlock, save corruption, or a lost run. High means a
 
 Confirmed by trace and by a refuter's repro.
 
-`src/input/gamepad.ts:125-128` handles only shove and the active slots while the mode is `'combat'`, then returns. `src/ui/ui.ts:887` reports `'combat'` for both the `combat` and `checkout` phases. The stockroom overlay (`src/ui/stockroom.ts:20-57`, opened from `src/scenes/ArenaScene.ts:1359`) opens while the phase is still `combat`. It accepts only a click, Enter on a focused card, or the keys 1 to 3. The pad never moves focus to a card and never confirms one. Those aisles have no timer, so the run cannot continue.
+`src/input/gamepad.ts:125-128` handles only shove while the mode is `'combat'`, then returns. `src/ui/ui.ts:887` reports `'combat'` for both the `combat` and `checkout` phases. The stockroom overlay (`src/ui/stockroom.ts:20-57`, opened from `src/scenes/ArenaScene.ts:1359`) opens while the phase is still `combat`. It accepts only a click, Enter on a focused card, or the keys 1 to 3. The pad never moves focus to a card and never confirms one. Those aisles have no timer, so the run cannot continue.
 
 The README advertises full gamepad support, and the mini-boss crate pick comes up in most runs. A player with only a controller loses every run that reaches it. Any keyboard, mouse or touch input frees the run, which is why one refuter rated it high.
 
@@ -73,9 +73,9 @@ Fix: return `setCount(placed + the offered instance) - setCount(placed)`.
 
 Confirmed by test.
 
-`src/state/run.ts:211-214` carries only `tier` and `double` into the merge target. Dragging a cart Basil with 200 kills onto a shelf Basil gives a ★2 Basil with 0 kills. Dragging a stinking Fresh Fish onto a fresh one resets the rot, so the crit bonus returns and the price markup goes away. Scoby age, Binder sales and the chosen active slot are lost the same way. Dragging the shelf copy onto the cart copy keeps the counters.
+`src/state/run.ts:211-214` carries only `tier` and `double` into the merge target. Dragging a cart Basil with 200 kills onto a shelf Basil gives a ★2 Basil with 0 kills. Dragging a stinking Fresh Fish onto a fresh one resets the rot, so the crit bonus returns and the price markup goes away. Scoby age and Binder sales are lost the same way. Dragging the shelf copy onto the cart copy keeps the counters.
 
-Fix: carry the counters into the target. Sum or max `kills`, take the max `age`, sum `binderSold` only when both Binders share `binderFamily`, and take `a.slot` when the target has none.
+Fix: carry the counters into the target. Sum or max `kills`, take the max `age`, and sum `binderSold` only when both Binders share `binderFamily`.
 
 ### 8. The inspector's Combine button on a shelf item consumes the cart copy
 
@@ -134,7 +134,7 @@ Every low bug below is confirmed by trace unless the row says otherwise.
 | # | Bug | Where | Fix |
 |---|---|---|---|
 | 14 | Burn and poison keep killing with full credit after the aisle ends. Melon slices spawned then survive into the shop. | `src/scenes/ArenaScene.ts:1040`, `:864` | Skip DoT ticks, or kill without credit, when combat is not active. Add the `!this.ending` guard to the melon branch. |
-| 15 | Keys pressed during an ending (checkout sweep, victory, crate pick) fire on the first frame of the next aisle. One active charge or one dash is spent. | `src/input/keyboard.ts:17`, `src/scenes/ArenaScene.ts:1117` | Call `resetKeyboard()` and clear the pad queues in `ArenaScene.create`. |
+| 15 | Keys pressed during an ending (checkout sweep, victory, crate pick) fire on the first frame of the next aisle. One dash is spent. | `src/input/keyboard.ts:17`, `src/scenes/ArenaScene.ts:1117` | Call `resetKeyboard()` and clear the pad queues in `ArenaScene.create`. |
 | 16 | A hazard activation is spent on a contact the player was immune to. | `src/scenes/hazards.ts:133`, `:143` | Set `hitPlayer` only when `hurtPlayer` reports a hit. |
 | 17 | A `RESUME` listener is added on every arena restart and never removed. | `src/scenes/ArenaScene.ts:188` | Remove it on `SHUTDOWN`, as the `RESIZE` handler at `:168` does. |
 | 18 | Tab, the default cart-view key, has its default action blocked on every screen. Keyboard-only players cannot move focus in menus. | `src/ui/ui.ts:846-848` | Intercept the loadout key only in combat or while the loadout view is open. |
@@ -142,7 +142,7 @@ Every low bug below is confirmed by trace unless the row says otherwise.
 | 20 | Starting a mouse drag while the pad holds an item leaves the first drag image on screen. | `src/ui/shop.ts:661-683` | Call `cancelDrag()` at the start of `beginDrag`. |
 | 21 | A key swap can move Escape onto cart view or rotate, which then cannot fire from the keyboard. Partly confirmed. The report's repro used the wrong slot, and the action can be rebound. | `src/state/keymap.ts:85-94` | Never swap Escape onto an action other than `pause`. Clear the slot instead. |
 | 22 | Pressing Start on the pad while a rebind is waiting binds the next combat key. | `src/ui/ui.ts:854-857` | Call `stopListening()` in `togglePause`. |
-| 23 | The active-slot key labels and the Punch Card text do not update after a rebind or a language change. | `src/ui/hud.ts:111-115`, `punchcard.ts:28-30` | Add the binding label and the language to both cache keys. |
+| 23 | The Punch Card text does not update after a language change. (The active-slot key labels went away with the active system.) | `punchcard.ts:28-30` | Add the language to the cache key. |
 | 24 | The desktop fullscreen setting drifts from the real window state. | `electron/main.cjs:36-37`, `src/ui/ui.ts:820-823` | Send fullscreen change events to the page, or read `isFullscreen()` before F11 toggles. |
 | 25 | A daily run that crosses midnight is booked on the new day's board. | `src/state/profile.ts:213-225` | Store the daily key on the run at start and compare it at finish. |
 | 26 | Test Lab only. The lab modal stays inside the hidden title screen and swallows the first Escape. | `src/ui/ui.ts:617-623`, `:831` | Call `closeTitleSettings()` before starting the lab or a sim. |
@@ -155,10 +155,10 @@ Every low bug below is confirmed by trace unless the row says otherwise.
 | 33 | Tests only. `FakeCtx` checks `armored` against the damage from before affinity and mark. | `src/engine/fakeCtx.ts:391` | Compare against the final pre-armor damage, as the scene does. |
 | 34 | The shop offers legendaries the player already owns. A second Expired Coupon or Snack Bag does nothing. | `src/systems/shop.ts:65` | Filter owned legendaries, as `rollMiniCrates` does at `:108`. |
 | 35 | A second Shortcut Key gives a second skip. The item text says "once per run". | `src/systems/shortcut.ts:11-21` | Check `skippedAisles` in `canShortcut`, or reword the text. |
-| 36 | Test Lab only. Every trip to the editor ages perishables and Sourdough, and actives never refill. | `src/flow.ts:155-171`, `src/state/run.ts:330-337` | Skip `ageItems` in the lab sandbox and refill charges in `labToArena`. |
+| 36 | Test Lab only. Every trip to the editor ages perishables and Sourdough. | `src/flow.ts:155-171`, `src/state/run.ts:330-337` | Skip `ageItems` in the lab sandbox. |
 | 37 | Sims only. Buying a bigger cart shrinks a cart that is not on the size ladder. Partly confirmed, no shipped sim triggers it. | `src/state/run.ts:463`, `:484` | Take the max per dimension. |
 | 38 | Victory credits an aisle skipped with the Shortcut Key as cleared, worth 250 score. | `src/flow.ts:209` | Subtract `skippedAisles.length`. |
-| 39 | Active-item tooltips say "E" in English and German. Since PR #13 the slots are Q, E and F in cart order. | `src/content/items/airhorn.ts:8`, `bubblewrap.ts:8`, `vacuum.ts:15`, `fireextinguisher.ts:9`, `src/engine/define.ts:241` | Drop the key from the text and let the slot chips show it. |
+| 39 | Obsolete: the active system was removed, the four items trigger automatically. (Was: active-item tooltips say "E" in English and German.) Since PR #13 the slots are Q, E and F in cart order. | `src/content/items/airhorn.ts:8`, `bubblewrap.ts:8`, `vacuum.ts:15`, `fireextinguisher.ts:9`, `src/engine/define.ts:241` | Drop the key from the text and let the slot chips show it. |
 | 40 | Binder and Shortcut Key are offered at ★2 and ★3 for 2x and 4x the price with the same effect. Partly confirmed. The report's claim that players can pay coins to upgrade is wrong, because `upgradeItem` has no UI caller. | `src/systems/shop.ts:72` | Add a `tierless` flag and honor it in `rollOffers` and the merge rules. |
 | 41 | Pressure Washer sets the spray cone to 25° and cancels Mist Machine's 120°. A test pins it as intended, but neither combo text says so. | `src/content/combos/pressureWasher.ts:25` | Add `replaces: [Combo.mistMachine]`, or say it in both texts. |
 | 42 | Sparklers uses the Blast set's L1 radius at L2 and L3. Confirmed by test. | `src/content/items/sparklers.ts:24` | Pass the current set level to `tuneOf`. |
