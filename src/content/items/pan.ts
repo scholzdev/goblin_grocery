@@ -3,7 +3,7 @@ import { Item, Set } from '../../engine/ids';
 
 // Pattern `sweep` (engine/patterns/sweep.ts): a 150° arc toward the nearest enemy, `range` reach. Sweep
 // combos (Chicken Dinner, Sizzling Skillet, Smash the Bank, Express Checkout) hook `pattern:sweep`.
-const W = weaponBase({ pattern: 'sweep', damage: 9, cooldown: 1.12, range: 150, arcDeg: 150 });
+const W = weaponBase({ pattern: 'sweep', damage: 8, cooldown: 1.1, range: 145, arcDeg: 150 });
 
 export default defineItem({
   id: Item.pan, kind: 'weapon', sets: [Set.kitchen, Set.heat], shape: '1x3', price: 10, tags: ['melee'],
