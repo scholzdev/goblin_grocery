@@ -89,4 +89,12 @@ describe('keymap', () => {
     expect(bindingLabel(defaultKeys(), 'up')).toBe('W / ↑');
     expect(bindingLabel(defaultKeys(), 'pause')).toBe('ESC');
   });
+
+  it('ignores removed useActive* actions in a stored keymap', () => {
+    const stored = { ...defaultKeys(), useActive1: ['KeyQ', ''], useActive2: ['KeyE', ''], useActive3: ['KeyF', ''], useActive: ['KeyG', ''], up: ['KeyI', ''] };
+    const k = sanitizeKeys(stored);
+    expect(Object.keys(k).sort()).toEqual(Object.keys(defaultKeys()).sort());
+    expect(k.up[0]).toBe('KeyI');
+    expect(Object.keys(k).some((a) => a.startsWith('useActive'))).toBe(false);
+  });
 });

@@ -1,10 +1,8 @@
 // Rebindable keyboard controls: pure helpers (no DOM, no settings import) so the rules are unit-testable.
 // Bindings are KeyboardEvent.code values ('KeyW', 'Space'), two slots per action; '' means unbound.
 
-export type KeyAction = 'up' | 'down' | 'left' | 'right' | 'shove' | 'loadout' | 'rotate' | 'pause' | 'useActive1' | 'useActive2' | 'useActive3';
-export const KEY_ACTIONS: KeyAction[] = ['up', 'down', 'left', 'right', 'shove', 'loadout', 'rotate', 'pause', 'useActive1', 'useActive2', 'useActive3'];
-/** Active-item key actions in slot order. */
-export const ACTIVE_KEYS: KeyAction[] = ['useActive1', 'useActive2', 'useActive3'];
+export type KeyAction = 'up' | 'down' | 'left' | 'right' | 'shove' | 'loadout' | 'rotate' | 'pause';
+export const KEY_ACTIONS: KeyAction[] = ['up', 'down', 'left', 'right', 'shove', 'loadout', 'rotate', 'pause'];
 export const KEY_SLOTS = 2;
 export type KeyMap = Record<KeyAction, string[]>;
 
@@ -17,9 +15,6 @@ export const DEFAULT_KEYS: KeyMap = {
   loadout: ['Tab', ''],
   rotate: ['KeyR', ''],
   pause: ['Escape', ''],
-  useActive1: ['KeyQ', ''],
-  useActive2: ['KeyE', ''],
-  useActive3: ['KeyF', ''],
 };
 
 /** Last resort when a custom binding took every default key of an action. */
@@ -35,10 +30,7 @@ export function isReserved(code: string): boolean {
 
 /** Repairs whatever was stored: missing actions fall back to defaults, junk is dropped, a code is only kept for its first action/slot. */
 export function sanitizeKeys(raw: unknown): KeyMap {
-  const src = { ...(raw && typeof raw === 'object' ? raw : {}) } as Partial<Record<KeyAction, unknown>> & { useActive?: unknown };
-  // Old saves had one `useActive` key for every active; a custom binding becomes slot 1 (the default E was slot-less, E now belongs to slot 2).
-  const legacy = src.useActive;
-  if (Array.isArray(legacy) && !src.useActive1 && legacy.some((c) => c && c !== 'KeyE')) src.useActive1 = legacy;
+  const src = { ...(raw && typeof raw === 'object' ? raw : {}) } as Partial<Record<KeyAction, unknown>>; // stored keymaps may still hold removed actions (useActive*): only KEY_ACTIONS are read
   const out = defaultKeys();
   const seen = new Set<string>();
   for (const a of KEY_ACTIONS) {

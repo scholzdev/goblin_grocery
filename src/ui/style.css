@@ -90,13 +90,6 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 }
 #hud .shove.ready .ring { box-shadow: 0 0 0 3px var(--gold); }
 #hud .recipes { display: flex; gap: 8px; }
-#hud .actives .active-item kbd { min-width: 14px; text-align: center; }
-.slot-badge { position: absolute; right: 2px; top: 2px; z-index: 3; display: flex; align-items: center; gap: 3px; padding: 1px 5px; font: 700 12px/1.2 var(--display, inherit); color: #fff; background: #30203F; border: 2px solid #fff; border-radius: 8px; pointer-events: auto; }
-.slot-badge kbd { font: 700 10px/1 inherit; padding: 1px 3px; border-radius: 4px; background: #fff; color: #30203F; }
-.slot-badge.none { background: #F45F52; }
-.chip.slot-chip { background: #30203F; color: #fff; }
-.chip.slot-none { background: #F45F52; color: #fff; }
-#hud .actives { display: flex; gap: 8px; margin-top: 6px; }
 .combat-tools { display: flex; align-items: center; gap: 8px; pointer-events: auto; }
 .hud-tool, .target-chip { border: 2px solid var(--plum); border-radius: 8px; background: var(--cream); color: var(--plum); box-shadow: 0 3px 0 var(--plum); font: 800 12px/1 var(--ui); cursor: pointer; }
 .hud-tool { padding: 6px 10px; font-family: var(--display); font-size: 15px; }
@@ -114,13 +107,6 @@ button:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--gold);
 .map-legend { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 7px; font-size: 12px; font-weight: 800; }
 .map-legend i { width: 12px; height: 12px; display: inline-block; border: 2px solid var(--plum); border-radius: 3px; }
 .map-legend .walk { background: var(--mint); }.map-legend .blocked { background: var(--coral); }
-.active-item { display: flex; align-items: center; gap: 6px; padding: 3px 8px; background: #FFF2D5; border: 3px solid #30203F; border-radius: 10px; }
-.active-item img { width: 28px; height: 28px; }
-.active-item kbd { font: 700 12px/1 inherit; padding: 2px 5px; border: 2px solid #30203F; border-radius: 5px; background: #fff; }
-.active-item .pips { display: flex; gap: 3px; }
-.active-item .pips i { width: 9px; height: 9px; border-radius: 50%; border: 2px solid #30203F; background: transparent; }
-.active-item .pips i.on { background: #F45F52; }
-.active-item.spent { opacity: 0.55; }
 .badge {
   display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 2px 4px; border: 2px solid var(--plum); border-radius: 999px;
   background: var(--gold); font-family: var(--display); font-size: 15px; box-shadow: 0 3px 0 var(--plum);
@@ -1070,4 +1056,3 @@ body.pad-nav :focus { outline: 4px solid var(--gold); outline-offset: 3px; }
 /* Loyalty 3 plus the Staff Only door: four cards must fit the 1280-wide root. */
 .route .doors:has(> .door:nth-child(4)) { gap: 14px; }
 .route .doors:has(> .door:nth-child(4)) .door { width: 280px; }
-.slot-badge, .slot-cycle { cursor: pointer; }
