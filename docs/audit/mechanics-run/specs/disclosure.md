@@ -7,7 +7,7 @@ Background: `docs/audit/mechanics.md` proposal 11 and "Too many systems are visi
 Disclosure is per profile, for new players. Once a system has been introduced, it stays visible forever. Store the flags with the existing tutorial flags (`settings.tutorialSeen`, `src/state/settings.ts:14-16`, written via `src/ui/tutorial.ts:42-46`), as one key per system. Add a Settings toggle "Show all systems" (EN/DE) that marks every system as introduced.
 
 1. **Sets.** Hide the set panel in the shop receipt, the set chips on offer cards, inspector and level-up card, and set badges until the player first has 2 or more items of one set placed in the cart in any run. From then on, show them always. When it first happens, show a one-time short explainer near the set panel (reuse the tutorial bubble style).
-2. **Active slots.** Hide the Q/E/F slot chips in the HUD and on cart items until the player first owns an active item. Verify what the HUD already does before changing anything.
+2. **Active slots.** Obsolete: the active system (and its Q/E/F slot chips) was removed.
 3. **Reactions.** The first time each reaction fires for this profile, show a short non-blocking banner in combat naming the reaction and what it does in one line (EN/DE). Never again for that reaction.
 4. **What changed.** After every drop in the shop (place, move, rotate, merge, sell), show one line under the build stats summarising what the drop changed: weapon damage or cooldown deltas, combos formed or lost, set level changes. Compute it as the difference of two `computeBuild` results (before and after), not by re-deriving rules. Hide it after a few seconds or on the next drop.
 
@@ -20,7 +20,6 @@ Disclosure is per profile, for new players. Once a system has been introduced, i
 ## Tests (behavior)
 
 - A fresh profile's first shop renders without the set panel and set chips; after a run in which 2 items of one set were placed, the next shop shows them; the "Show all systems" toggle shows them immediately.
-- The HUD shows no active-slot chips without an active item, and shows them once one is owned.
 - The reaction banner shows once per reaction per profile.
 - After a drop that forms a combo, the change line names the combo; after a drop that changes nothing, no line.
 

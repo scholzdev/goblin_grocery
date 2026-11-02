@@ -77,7 +77,7 @@ Inflation costs 10% per shop. Interest exists only at Checkout set level 2 or hi
 
 ## Too many systems are visible at once
 
-A single shop card can involve module adjacency, the Bundle Deal, 38 combos, 9 sets at 3 levels each, double packs, 6 element reactions, tiers, perishables, Jelly Bean flavors and Q, E and F actives. The fight adds 5 elite affixes, 5 hazards, door modifiers, special rooms, set events, zones and Punch Card goals. Each layer is reasonable alone. No layer is introduced alone. Sets count anywhere in the cart and adjacency counts neighbors, so the two pull placement in different directions, and the player cannot easily tell which one moved a number.
+A single shop card can involve module adjacency, the Bundle Deal, 38 combos, 9 sets at 3 levels each, double packs, 6 element reactions, tiers, perishables, Jelly Bean flavors and automatic item triggers. The fight adds 5 elite affixes, 5 hazards, door modifiers, special rooms, set events, zones and Punch Card goals. Each layer is reasonable alone. No layer is introduced alone. Sets count anywhere in the cart and adjacency counts neighbors, so the two pull placement in different directions, and the player cannot easily tell which one moved a number.
 
 ## Ranked proposals
 
@@ -95,7 +95,7 @@ Cost is S for under a day, M for a few days, and L for a week or more. None of t
 | 8 | Holding coins is never right. | Base interest for everyone, +1 per 10 held, capped at 3. The Checkout set raises the cap to 6, then 10. Show the next interest in the shop footer. | S | `src/state/run.ts:392`, `src/content/sets/checkout.ts:8`, `src/data/waves.ts:70` |
 | 9 | Doors are picked blind. | List the aisle's 2 or 3 most common enemy types, any forced elite affix, and the hazard level on each door card. `waveSpawnPlan` already computes them. | S to M | `src/systems/shop.ts:81-125`, route UI |
 | 10 | Adjacency is nearly free in a 4x4 cart. | Make 3 or 4 modules directional, so R-rotate matters. Do it only together with proposal 11. | M | `src/systems/synergies.ts`, those modules, `src/ui/shop.ts` |
-| 11 | About 10 build layers are visible from shop 1. | Hide set chips until 2 items of one set are owned. Introduce reactions on the first one that fires. Hide the Q, E and F slots until an active is owned. | M | `src/ui/shop.ts`, `src/ui/hud.ts`, profile flags |
+| 11 | About 10 build layers are visible from shop 1. | Hide set chips until 2 items of one set are owned. Introduce reactions on the first one that fires. (The Q, E and F active slots no longer exist.) | M | `src/ui/shop.ts`, `src/ui/hud.ts`, profile flags |
 | 12 | Unlocks are passive milestones. | Replace a third of them with build goals, such as "win with Frost level 2". Feature a fresh unlock in the next run's stock. | S | `src/data/unlocks.ts`, `src/state/profile.ts` |
 
 My order is 1, 2 and 3 first, because together they fix the structural problem that the game gets less coherent as it grows. Proposal 4 is the cheapest win for player understanding. Proposal 5 should wait until the proxy is calibrated, or it will tune against the same blind spots as the last round.

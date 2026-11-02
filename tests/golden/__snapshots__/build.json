@@ -1,4 +1,166 @@
 {
+  "combo.acidTomato": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "acidTomato",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [
+          "fuel"
+        ],
+        "bundle": 1,
+        "burn": {
+          "dps": 3,
+          "duration": 3,
+          "tick": 0.5
+        },
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 2.12,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "tomato",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 430,
+        "pull": 0,
+        "range": 400,
+        "recipes": [
+          "acidTomato"
+        ],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "tomato",
+        "uid": "u0"
+      }
+    ]
+  },
+  "combo.airRaid": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "airRaid",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 50,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 0.9,
+        "count": 1,
+        "critChance": 0,
+        "damage": 3.18,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "cone",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 0,
+        "pull": 0,
+        "range": 220,
+        "recipes": [
+          "airRaid"
+        ],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "leafblower",
+        "uid": "u0"
+      }
+    ]
+  },
   "combo.bagIt": {
     "adjacency": [
       [
@@ -88,6 +250,84 @@
       }
     ]
   },
+  "combo.barcodeFlag": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 0.92,
+    "recipes": [
+      {
+        "id": "barcodeFlag",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 1,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1.6,
+        "count": 1,
+        "critChance": 0,
+        "damage": 21.2,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "laser",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 0,
+        "pull": 0,
+        "range": 620,
+        "recipes": [
+          "barcodeFlag"
+        ],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "laser",
+        "uid": "u0"
+      }
+    ]
+  },
   "combo.blackIce": {
     "adjacency": [
       [
@@ -167,6 +407,164 @@
         "tick": 0.5,
         "tier": 1,
         "type": "mop",
+        "uid": "u0"
+      }
+    ]
+  },
+  "combo.blanketBarrage": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 80,
+    "moveSpeedMult": 0.9,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "blanketBarrage",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 1,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1.3,
+        "count": 6,
+        "critChance": 0,
+        "damage": 3.18,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "popcorn",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 520,
+        "pull": 0,
+        "range": 240,
+        "recipes": [
+          "blanketBarrage"
+        ],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "popcorn",
+        "uid": "u0"
+      }
+    ]
+  },
+  "combo.bloodyMary": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "bloodyMary",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [
+          "hotsauce"
+        ],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 2.65,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "tomato",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 430,
+        "pull": 0,
+        "range": 400,
+        "recipes": [
+          "bloodyMary"
+        ],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "tomato",
         "uid": "u0"
       }
     ]
@@ -254,6 +652,84 @@
       }
     ]
   },
+  "combo.butteredPopcorn": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 65,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "butteredPopcorn",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 1,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1.144,
+        "count": 6,
+        "critChance": 0,
+        "damage": 3.18,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "popcorn",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 520,
+        "pull": 0,
+        "range": 240,
+        "recipes": [
+          "butteredPopcorn"
+        ],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "popcorn",
+        "uid": "u0"
+      }
+    ]
+  },
   "combo.chickenDinner": {
     "adjacency": [
       [
@@ -306,7 +782,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 9.54,
@@ -328,6 +804,89 @@
         "tick": 0,
         "tier": 1,
         "type": "pan",
+        "uid": "u0"
+      }
+    ]
+  },
+  "combo.chillKernels": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "chillKernels",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [
+          "ice"
+        ],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1.3,
+        "count": 6,
+        "critChance": 0,
+        "damage": 3.18,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "popcorn",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 520,
+        "pull": 0,
+        "range": 240,
+        "recipes": [
+          "chillKernels"
+        ],
+        "slow": {
+          "duration": 0.7,
+          "pct": 0.45
+        },
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "popcorn",
         "uid": "u0"
       }
     ]
@@ -417,6 +976,167 @@
         "tick": 0,
         "tier": 1,
         "type": "fizz",
+        "uid": "u0"
+      }
+    ]
+  },
+  "combo.coldChain": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "coldChain",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [
+          "ice"
+        ],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1.6,
+        "count": 1,
+        "critChance": 0,
+        "damage": 21.2,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "laser",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 0,
+        "pull": 0,
+        "range": 620,
+        "recipes": [
+          "coldChain"
+        ],
+        "slow": {
+          "duration": 1,
+          "pct": 0.25
+        },
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "laser",
+        "uid": "u0"
+      }
+    ]
+  },
+  "combo.coldDiscount": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "coldDiscount",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 2,
+        "count": 1,
+        "critChance": 0,
+        "damage": 3.18,
+        "duration": 4,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "puddle",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 0,
+        "pull": 0,
+        "range": 84.5,
+        "recipes": [
+          "coldDiscount"
+        ],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0.5,
+        "tier": 1,
+        "type": "snowcone",
         "uid": "u0"
       }
     ]
@@ -717,7 +1437,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 9.54,
@@ -881,8 +1601,8 @@
         ],
         "bundle": 2,
         "burn": {
-          "dps": 2.5,
-          "duration": 3,
+          "dps": 3,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -911,6 +1631,84 @@
         "tick": 0,
         "tier": 1,
         "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
+  "combo.foamGuard": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "foamGuard",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1.6,
+        "count": 1,
+        "critChance": 0,
+        "damage": 3.18,
+        "duration": 3,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "puddle",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 0,
+        "pull": 0,
+        "range": 60,
+        "recipes": [
+          "foamGuard"
+        ],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0.5,
+        "tier": 1,
+        "type": "mop",
         "uid": "u0"
       }
     ]
@@ -989,6 +1787,84 @@
         "tick": 0,
         "tier": 1,
         "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
+  "combo.frostArmor": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 70,
+    "moveSpeedMult": 0.9,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "frostArmor",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 2,
+        "count": 1,
+        "critChance": 0,
+        "damage": 3.18,
+        "duration": 4,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "puddle",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 0,
+        "pull": 0,
+        "range": 65,
+        "recipes": [
+          "frostArmor"
+        ],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0.5,
+        "tier": 1,
+        "type": "snowcone",
         "uid": "u0"
       }
     ]
@@ -1076,6 +1952,195 @@
       }
     ]
   },
+  "combo.frozenKernels": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "frozenKernels",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 2,
+        "count": 1,
+        "critChance": 0,
+        "damage": 3.18,
+        "duration": 4,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "puddle",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 0,
+        "pull": 0,
+        "range": 78,
+        "recipes": [
+          "frozenKernels"
+        ],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0.5,
+        "tier": 1,
+        "type": "snowcone",
+        "uid": "u0"
+      },
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1.3,
+        "count": 6,
+        "critChance": 0,
+        "damage": 3.18,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "popcorn",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 520,
+        "pull": 0,
+        "range": 240,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "popcorn",
+        "uid": "u1"
+      }
+    ]
+  },
+  "combo.goldenKernels": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 50,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "goldenKernels",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 1,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1.3,
+        "count": 6,
+        "critChance": 0.15,
+        "damage": 3.18,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "popcorn",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 520,
+        "pull": 0,
+        "range": 240,
+        "recipes": [
+          "goldenKernels"
+        ],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "popcorn",
+        "uid": "u0"
+      }
+    ]
+  },
   "combo.greaseFire": {
     "adjacency": [
       [
@@ -1126,8 +2191,8 @@
         ],
         "bundle": 1,
         "burn": {
-          "dps": 5,
-          "duration": 2,
+          "dps": 6,
+          "duration": 3,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -1243,6 +2308,90 @@
       }
     ]
   },
+  "combo.leafPile": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "leafPile",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 50,
+        "bounces": 0,
+        "buffs": [
+          "fuel"
+        ],
+        "bundle": 1,
+        "burn": {
+          "dps": 3,
+          "duration": 3,
+          "tick": 0.5
+        },
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 0.9,
+        "count": 1,
+        "critChance": 0,
+        "damage": 3.18,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "cone",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 0,
+        "pull": 0,
+        "range": 220,
+        "recipes": [
+          "leafPile"
+        ],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "leafblower",
+        "uid": "u0"
+      }
+    ]
+  },
   "combo.liveWire": {
     "adjacency": [
       [
@@ -1319,6 +2468,162 @@
         "tick": 0.5,
         "tier": 1,
         "type": "mop",
+        "uid": "u0"
+      }
+    ]
+  },
+  "combo.luckyFizz": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 50,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "luckyFizz",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 1,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 2,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0.13,
+        "damage": 6.36,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "ricochet",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 620,
+        "pull": 0,
+        "range": 420,
+        "recipes": [
+          "luckyFizz"
+        ],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "fizz",
+        "uid": "u0"
+      }
+    ]
+  },
+  "combo.magneticFizz": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 130,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "magneticFizz",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 2,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 6.36,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "ricochet",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 620,
+        "pull": 0,
+        "range": 420,
+        "recipes": [
+          "magneticFizz"
+        ],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "fizz",
         "uid": "u0"
       }
     ]
@@ -1490,6 +2795,166 @@
       }
     ]
   },
+  "combo.neonSmoothie": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "neonSmoothie",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 1,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [
+          "battery"
+        ],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0.1,
+        "chainJumps": 1,
+        "cooldown": 0.254237,
+        "count": 1,
+        "critChance": 0,
+        "damage": 5.3,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "aura",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 0,
+        "pull": 0,
+        "range": 115,
+        "recipes": [
+          "neonSmoothie"
+        ],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "blender",
+        "uid": "u0"
+      }
+    ]
+  },
+  "combo.polarArc": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "polarArc",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [
+          "battery"
+        ],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1.785714,
+        "count": 1,
+        "critChance": 0,
+        "damage": 3.18,
+        "duration": 4,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "puddle",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 0,
+        "pull": 0,
+        "range": 65,
+        "recipes": [
+          "polarArc"
+        ],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0.5,
+        "tier": 1,
+        "type": "snowcone",
+        "uid": "u0"
+      }
+    ]
+  },
   "combo.potSlam": {
     "adjacency": [
       [
@@ -1646,6 +3111,84 @@
       }
     ]
   },
+  "combo.prepLine": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 55,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "prepLine",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 0.264,
+        "count": 1,
+        "critChance": 0,
+        "damage": 5.3,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "aura",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 0,
+        "pull": 0,
+        "range": 100,
+        "recipes": [
+          "prepLine"
+        ],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "blender",
+        "uid": "u0"
+      }
+    ]
+  },
   "combo.pressurePoint": {
     "adjacency": [
       [
@@ -1696,8 +3239,8 @@
         ],
         "bundle": 1,
         "burn": {
-          "dps": 2.5,
-          "duration": 3,
+          "dps": 3,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -1890,6 +3433,84 @@
       }
     ]
   },
+  "combo.priceDrop": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 0.92,
+    "recipes": [
+      {
+        "id": "priceDrop",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 1,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1.6,
+        "count": 1,
+        "critChance": 0,
+        "damage": 21.2,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "laser",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 0,
+        "pull": 0,
+        "range": 620,
+        "recipes": [
+          "priceDrop"
+        ],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "laser",
+        "uid": "u0"
+      }
+    ]
+  },
   "combo.rayGun": {
     "adjacency": [
       [
@@ -2034,8 +3655,8 @@
         ],
         "bundle": 1,
         "burn": {
-          "dps": 2.5,
-          "duration": 3,
+          "dps": 3,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -2064,6 +3685,166 @@
         "tick": 0,
         "tier": 1,
         "type": "microwave",
+        "uid": "u0"
+      }
+    ]
+  },
+  "combo.salsaSplash": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "salsaSplash",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [
+          "fan"
+        ],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 2.12,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "tomato",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 473,
+        "pull": 0,
+        "range": 440,
+        "recipes": [
+          "salsaSplash"
+        ],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "tomato",
+        "uid": "u0"
+      }
+    ]
+  },
+  "combo.scaldingClean": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "scaldingClean",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [
+          "hotsauce"
+        ],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1.6,
+        "count": 1,
+        "critChance": 0,
+        "damage": 3.975,
+        "duration": 3,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "puddle",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 0,
+        "pull": 0,
+        "range": 60,
+        "recipes": [
+          "scaldingClean"
+        ],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0.5,
+        "tier": 1,
+        "type": "mop",
         "uid": "u0"
       }
     ]
@@ -2198,15 +3979,15 @@
         ],
         "bundle": 1,
         "burn": {
-          "dps": 2.5,
-          "duration": 3,
+          "dps": 3,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 9.54,
@@ -2367,7 +4148,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 9.54,
@@ -2467,6 +4248,195 @@
         "tick": 0,
         "tier": 1,
         "type": "blender",
+        "uid": "u0"
+      }
+    ]
+  },
+  "combo.snowBlower": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "snowBlower",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 50,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 0.9,
+        "count": 1,
+        "critChance": 0,
+        "damage": 3.18,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "cone",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 0,
+        "pull": 0,
+        "range": 220,
+        "recipes": [
+          "snowBlower"
+        ],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "leafblower",
+        "uid": "u0"
+      },
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 2,
+        "count": 1,
+        "critChance": 0,
+        "damage": 3.18,
+        "duration": 4,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "puddle",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 0,
+        "pull": 0,
+        "range": 65,
+        "recipes": [],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0.5,
+        "tier": 1,
+        "type": "snowcone",
+        "uid": "u1"
+      }
+    ]
+  },
+  "combo.sodaShield": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "sodaShield",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 2,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 6.36,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "ricochet",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 620,
+        "pull": 0,
+        "range": 420,
+        "recipes": [
+          "sodaShield"
+        ],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "fizz",
         "uid": "u0"
       }
     ]
@@ -2651,6 +4621,84 @@
       }
     ]
   },
+  "combo.sporeStorm": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "sporeStorm",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 50,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 0.9,
+        "count": 1,
+        "critChance": 0,
+        "damage": 3.18,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "cone",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 0,
+        "pull": 0,
+        "range": 220,
+        "recipes": [
+          "sporeStorm"
+        ],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "leafblower",
+        "uid": "u0"
+      }
+    ]
+  },
   "combo.staticCling": {
     "adjacency": [
       [
@@ -2727,6 +4775,84 @@
         "tick": 0,
         "tier": 1,
         "type": "vacuum",
+        "uid": "u0"
+      }
+    ]
+  },
+  "combo.stickyMop": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 130,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "stickyMop",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1.6,
+        "count": 1,
+        "critChance": 0,
+        "damage": 3.18,
+        "duration": 3,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "puddle",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 0,
+        "pull": 0,
+        "range": 60,
+        "recipes": [
+          "stickyMop"
+        ],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0.5,
+        "tier": 1,
+        "type": "mop",
         "uid": "u0"
       }
     ]
@@ -2850,7 +4976,7 @@
         "popper": null,
         "projectileSpeed": 0,
         "pull": 0,
-        "range": 328.9,
+        "range": 278.3,
         "recipes": [
           "tailwind"
         ],
@@ -2859,6 +4985,171 @@
         "tick": 0,
         "tier": 1,
         "type": "leafblower",
+        "uid": "u0"
+      }
+    ]
+  },
+  "combo.thermalScan": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "thermalScan",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [
+          "fuel"
+        ],
+        "bundle": 1,
+        "burn": {
+          "dps": 3,
+          "duration": 3,
+          "tick": 0.5
+        },
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1.6,
+        "count": 1,
+        "critChance": 0,
+        "damage": 21.2,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "laser",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 0,
+        "pull": 0,
+        "range": 620,
+        "recipes": [
+          "thermalScan"
+        ],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "laser",
+        "uid": "u0"
+      }
+    ]
+  },
+  "combo.thickSmoothie": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 70,
+    "moveSpeedMult": 0.9,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "thickSmoothie",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 0.3,
+        "count": 1,
+        "critChance": 0,
+        "damage": 5.3,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "aura",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 0,
+        "pull": 0,
+        "range": 100,
+        "recipes": [
+          "thickSmoothie"
+        ],
+        "slow": {
+          "duration": 0.8,
+          "pct": 0.3
+        },
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "blender",
         "uid": "u0"
       }
     ]
@@ -2946,7 +5237,7 @@
         "popper": null,
         "projectileSpeed": 0,
         "pull": 0,
-        "range": 328.9,
+        "range": 278.3,
         "recipes": [
           "thunderstorm"
         ],
@@ -3018,8 +5309,8 @@
         ],
         "bundle": 2,
         "burn": {
-          "dps": 2.5,
-          "duration": 3,
+          "dps": 3,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -3027,7 +5318,7 @@
         "chainChance": 0,
         "chainJumps": 0,
         "cooldown": 1,
-        "count": 3,
+        "count": 2,
         "critChance": 0,
         "damage": 7.56,
         "duration": 0,
@@ -3037,17 +5328,173 @@
         "pattern": "toast",
         "pierce": 0,
         "popper": null,
-        "projectileSpeed": 702,
+        "projectileSpeed": 594,
         "pull": 0,
-        "range": 591.5,
+        "range": 500.5,
         "recipes": [
           "toastMode"
         ],
         "slow": null,
-        "spreadDeg": 22,
+        "spreadDeg": 25,
         "tick": 0,
         "tier": 1,
         "type": "toaster",
+        "uid": "u0"
+      }
+    ]
+  },
+  "combo.tomatoHelmet": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "tomatoHelmet",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 3,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 2.12,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "tomato",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 430,
+        "pull": 0,
+        "range": 400,
+        "recipes": [
+          "tomatoHelmet"
+        ],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "tomato",
+        "uid": "u0"
+      }
+    ]
+  },
+  "combo.tomatoToll": {
+    "adjacency": [
+      [
+        "u0",
+        "u1"
+      ]
+    ],
+    "killCoinMult": 1,
+    "maxHp": 40,
+    "moveSpeedMult": 1,
+    "pickupRadius": 70,
+    "priceMult": 1,
+    "recipes": [
+      {
+        "id": "tomatoToll",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
+    "regen": 0,
+    "sellFullFamilies": [],
+    "sellRate": 0.5,
+    "sets": {
+      "blast": 0,
+      "checkout": 0,
+      "cleaning": 0,
+      "electric": 0,
+      "frost": 0,
+      "heat": 0,
+      "kitchen": 0,
+      "snacks": 0,
+      "tools": 0
+    },
+    "shoveCooldown": 2.5,
+    "shoveDamage": 6,
+    "shoveDistMult": 1,
+    "shoveKnockMult": 1,
+    "stinkDps": 0,
+    "weapons": [
+      {
+        "aoe": 0,
+        "arcDeg": 0,
+        "bounces": 0,
+        "buffs": [],
+        "bundle": 1,
+        "burn": null,
+        "burstInterval": 0,
+        "chain": 0,
+        "chainChance": 0,
+        "chainJumps": 0,
+        "cooldown": 1,
+        "count": 1,
+        "critChance": 0,
+        "damage": 2.12,
+        "duration": 0,
+        "echo": 0,
+        "frostRing": false,
+        "ignite": null,
+        "pattern": "tomato",
+        "pierce": 0,
+        "popper": null,
+        "projectileSpeed": 430,
+        "pull": 0,
+        "range": 400,
+        "recipes": [
+          "tomatoToll"
+        ],
+        "slow": null,
+        "spreadDeg": 0,
+        "tick": 0,
+        "tier": 1,
+        "type": "tomato",
         "uid": "u0"
       }
     ]
@@ -3624,7 +6071,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 10.494,
@@ -3712,9 +6159,9 @@
         "pattern": "toast",
         "pierce": 0,
         "popper": null,
-        "projectileSpeed": 783,
+        "projectileSpeed": 621,
         "pull": 0,
-        "range": 659.75,
+        "range": 523.25,
         "recipes": [],
         "slow": null,
         "spreadDeg": 0,
@@ -4185,8 +6632,8 @@
         ],
         "bundle": 4,
         "burn": {
-          "dps": 3.75,
-          "duration": 3,
+          "dps": 5,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -4194,7 +6641,7 @@
         "chainChance": 0,
         "chainJumps": 0,
         "cooldown": 0.925926,
-        "count": 3,
+        "count": 2,
         "critChance": 0,
         "damage": 8.37,
         "duration": 0,
@@ -4204,14 +6651,14 @@
         "pattern": "toast",
         "pierce": 0,
         "popper": null,
-        "projectileSpeed": 783,
+        "projectileSpeed": 621,
         "pull": 0,
-        "range": 659.75,
+        "range": 523.25,
         "recipes": [
           "toastMode"
         ],
         "slow": null,
-        "spreadDeg": 22,
+        "spreadDeg": 25,
         "tick": 0,
         "tier": 1,
         "type": "toaster",
@@ -4284,9 +6731,9 @@
         "pattern": "toast",
         "pierce": 0,
         "popper": null,
-        "projectileSpeed": 945,
+        "projectileSpeed": 675,
         "pull": 0,
-        "range": 796.25,
+        "range": 568.75,
         "recipes": [],
         "slow": null,
         "spreadDeg": 0,
@@ -4347,8 +6794,8 @@
         ],
         "bundle": 3,
         "burn": {
-          "dps": 3.75,
-          "duration": 3,
+          "dps": 5,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -4425,8 +6872,8 @@
         ],
         "bundle": 1,
         "burn": {
-          "dps": 3.75,
-          "duration": 3,
+          "dps": 5,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -4501,8 +6948,8 @@
         "buffs": [],
         "bundle": 1,
         "burn": {
-          "dps": 2.625,
-          "duration": 3,
+          "dps": 3.15,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -4789,7 +7236,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 11.75328,
@@ -4882,9 +7329,9 @@
         "pattern": "toast",
         "pierce": 0,
         "popper": null,
-        "projectileSpeed": 783,
+        "projectileSpeed": 621,
         "pull": 0,
-        "range": 659.75,
+        "range": 523.25,
         "recipes": [],
         "slow": null,
         "spreadDeg": 0,
@@ -5560,8 +8007,8 @@
         "buffs": [],
         "bundle": 1,
         "burn": {
-          "dps": 1.75,
-          "duration": 3,
+          "dps": 2.1,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -5632,8 +8079,8 @@
         "buffs": [],
         "bundle": 1,
         "burn": {
-          "dps": 4.9,
-          "duration": 3,
+          "dps": 5.88,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -5714,8 +8161,8 @@
         ],
         "bundle": 2,
         "burn": {
-          "dps": 4.9,
-          "duration": 3,
+          "dps": 5.88,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -5796,8 +8243,8 @@
         ],
         "bundle": 2,
         "burn": {
-          "dps": 7,
-          "duration": 3,
+          "dps": 9.8,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -5868,8 +8315,8 @@
         "buffs": [],
         "bundle": 1,
         "burn": {
-          "dps": 1.75,
-          "duration": 3,
+          "dps": 2.1,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -5948,8 +8395,8 @@
         "buffs": [],
         "bundle": 1,
         "burn": {
-          "dps": 1.75,
-          "duration": 3,
+          "dps": 2.1,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -6055,15 +8502,15 @@
         ],
         "bundle": 4,
         "burn": {
-          "dps": 2.5,
-          "duration": 3,
+          "dps": 3,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 15.345,
@@ -6965,7 +9412,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 2,
         "critChance": 0,
         "damage": 9.54,
@@ -7054,8 +9501,8 @@
         ],
         "bundle": 3,
         "burn": {
-          "dps": 2.5,
-          "duration": 3,
+          "dps": 3,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -7063,7 +9510,7 @@
         "chainChance": 0,
         "chainJumps": 0,
         "cooldown": 1,
-        "count": 4,
+        "count": 3,
         "critChance": 0,
         "damage": 7.965,
         "duration": 0,
@@ -7073,14 +9520,14 @@
         "pattern": "toast",
         "pierce": 0,
         "popper": null,
-        "projectileSpeed": 702,
+        "projectileSpeed": 594,
         "pull": 0,
-        "range": 591.5,
+        "range": 500.5,
         "recipes": [
           "toastMode"
         ],
         "slow": null,
-        "spreadDeg": 22,
+        "spreadDeg": 25,
         "tick": 0,
         "tier": 1,
         "type": "toaster",
@@ -7153,8 +9600,8 @@
         ],
         "bundle": 3,
         "burn": {
-          "dps": 2.5,
-          "duration": 3,
+          "dps": 3,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -7162,7 +9609,7 @@
         "chainChance": 0,
         "chainJumps": 0,
         "cooldown": 1,
-        "count": 5,
+        "count": 4,
         "critChance": 0,
         "damage": 7.965,
         "duration": 0,
@@ -7172,14 +9619,14 @@
         "pattern": "toast",
         "pierce": 0,
         "popper": null,
-        "projectileSpeed": 702,
+        "projectileSpeed": 594,
         "pull": 0,
-        "range": 591.5,
+        "range": 500.5,
         "recipes": [
           "toastMode"
         ],
         "slow": null,
-        "spreadDeg": 22,
+        "spreadDeg": 25,
         "tick": 0,
         "tier": 1,
         "type": "toaster",
@@ -7388,7 +9835,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 9.54,
@@ -7797,7 +10244,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 9.9,
@@ -7865,7 +10312,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 11.12364,
@@ -7933,7 +10380,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 11.75328,
@@ -8001,7 +10448,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 12.38292,
@@ -8073,7 +10520,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 12.458477,
@@ -8155,8 +10602,8 @@
         ],
         "bundle": 2,
         "burn": {
-          "dps": 2.5,
-          "duration": 3,
+          "dps": 3,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -8194,15 +10641,15 @@
         ],
         "bundle": 2,
         "burn": {
-          "dps": 2.5,
-          "duration": 3,
+          "dps": 3,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 11.088,
@@ -8920,7 +11367,15 @@
     "moveSpeedMult": 1,
     "pickupRadius": 70,
     "priceMult": 1,
-    "recipes": [],
+    "recipes": [
+      {
+        "id": "neonSmoothie",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
     "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
@@ -8967,8 +11422,10 @@
         "popper": null,
         "projectileSpeed": 0,
         "pull": 0,
-        "range": 100,
-        "recipes": [],
+        "range": 115,
+        "recipes": [
+          "neonSmoothie"
+        ],
         "slow": null,
         "spreadDeg": 0,
         "tick": 0,
@@ -9524,7 +11981,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.026786,
+        "cooldown": 1,
         "count": 1,
         "critChance": 0,
         "damage": 9.54,
@@ -9630,7 +12087,15 @@
     "moveSpeedMult": 1,
     "pickupRadius": 70,
     "priceMult": 1,
-    "recipes": [],
+    "recipes": [
+      {
+        "id": "polarArc",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
     "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
@@ -9678,7 +12143,9 @@
         "projectileSpeed": 0,
         "pull": 0,
         "range": 65,
-        "recipes": [],
+        "recipes": [
+          "polarArc"
+        ],
         "slow": null,
         "spreadDeg": 0,
         "tick": 0.5,
@@ -10034,7 +12501,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 0.858722,
+        "cooldown": 0.83632,
         "count": 1,
         "critChance": 0,
         "damage": 9.54,
@@ -12090,7 +14557,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 9.54,
@@ -12578,7 +15045,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 9.54,
@@ -13139,7 +15606,7 @@
         "popper": null,
         "projectileSpeed": 0,
         "pull": 0,
-        "range": 130,
+        "range": 110,
         "recipes": [],
         "slow": null,
         "spreadDeg": 0,
@@ -13209,7 +15676,7 @@
         "popper": null,
         "projectileSpeed": 380,
         "pull": 0,
-        "range": 546,
+        "range": 462,
         "recipes": [],
         "slow": null,
         "spreadDeg": 0,
@@ -13277,9 +15744,9 @@
         "pattern": "ricochet",
         "pierce": 0,
         "popper": null,
-        "projectileSpeed": 806,
+        "projectileSpeed": 682,
         "pull": 0,
-        "range": 546,
+        "range": 462,
         "recipes": [],
         "slow": null,
         "spreadDeg": 0,
@@ -13349,7 +15816,7 @@
         "popper": null,
         "projectileSpeed": 0,
         "pull": 0,
-        "range": 806,
+        "range": 682,
         "recipes": [],
         "slow": null,
         "spreadDeg": 0,
@@ -13419,7 +15886,7 @@
         "popper": null,
         "projectileSpeed": 0,
         "pull": 0,
-        "range": 328.9,
+        "range": 278.3,
         "recipes": [],
         "slow": null,
         "spreadDeg": 0,
@@ -13489,7 +15956,7 @@
         "popper": null,
         "projectileSpeed": 0,
         "pull": 0,
-        "range": 494,
+        "range": 418,
         "recipes": [],
         "slow": null,
         "spreadDeg": 0,
@@ -13559,7 +16026,7 @@
         "popper": null,
         "projectileSpeed": 0,
         "pull": 0,
-        "range": 89.7,
+        "range": 75.9,
         "recipes": [],
         "slow": null,
         "spreadDeg": 0,
@@ -13627,9 +16094,9 @@
         "pattern": "burst",
         "pierce": 0,
         "popper": null,
-        "projectileSpeed": 988,
+        "projectileSpeed": 836,
         "pull": 0,
-        "range": 624,
+        "range": 528,
         "recipes": [],
         "slow": null,
         "spreadDeg": 0,
@@ -13686,7 +16153,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 9.54,
@@ -13699,7 +16166,7 @@
         "popper": null,
         "projectileSpeed": 0,
         "pull": 0,
-        "range": 195,
+        "range": 165,
         "recipes": [],
         "slow": null,
         "spreadDeg": 0,
@@ -13769,7 +16236,7 @@
         "popper": null,
         "projectileSpeed": 520,
         "pull": 0,
-        "range": 312,
+        "range": 264,
         "recipes": [],
         "slow": null,
         "spreadDeg": 0,
@@ -13839,7 +16306,7 @@
         "popper": null,
         "projectileSpeed": 0,
         "pull": 0,
-        "range": 84.5,
+        "range": 71.5,
         "recipes": [],
         "slow": null,
         "spreadDeg": 0,
@@ -13985,9 +16452,9 @@
         "pattern": "toast",
         "pierce": 0,
         "popper": null,
-        "projectileSpeed": 702,
+        "projectileSpeed": 594,
         "pull": 0,
-        "range": 591.5,
+        "range": 500.5,
         "recipes": [],
         "slow": null,
         "spreadDeg": 0,
@@ -14010,7 +16477,15 @@
     "moveSpeedMult": 1,
     "pickupRadius": 70,
     "priceMult": 1,
-    "recipes": [],
+    "recipes": [
+      {
+        "id": "salsaSplash",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
     "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
@@ -14055,10 +16530,12 @@
         "pattern": "tomato",
         "pierce": 0,
         "popper": null,
-        "projectileSpeed": 559,
+        "projectileSpeed": 473,
         "pull": 0,
-        "range": 520,
-        "recipes": [],
+        "range": 440,
+        "recipes": [
+          "salsaSplash"
+        ],
         "slow": null,
         "spreadDeg": 0,
         "tick": 0,
@@ -14127,7 +16604,7 @@
         "popper": null,
         "projectileSpeed": 0,
         "pull": 70,
-        "range": 224.25,
+        "range": 189.75,
         "recipes": [],
         "slow": null,
         "spreadDeg": 0,
@@ -14184,7 +16661,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 9.54,
@@ -14197,7 +16674,7 @@
         "popper": null,
         "projectileSpeed": 0,
         "pull": 0,
-        "range": 240,
+        "range": 180,
         "recipes": [],
         "slow": null,
         "spreadDeg": 0,
@@ -14265,9 +16742,9 @@
         "pattern": "toast",
         "pierce": 0,
         "popper": null,
-        "projectileSpeed": 864,
+        "projectileSpeed": 648,
         "pull": 0,
-        "range": 728,
+        "range": 546,
         "recipes": [],
         "slow": null,
         "spreadDeg": 0,
@@ -14864,8 +17341,8 @@
         ],
         "bundle": 1,
         "burn": {
-          "dps": 2.5,
-          "duration": 2,
+          "dps": 3,
+          "duration": 3,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -14946,8 +17423,8 @@
         ],
         "bundle": 1,
         "burn": {
-          "dps": 2.5,
-          "duration": 3,
+          "dps": 3,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -15022,8 +17499,8 @@
         ],
         "bundle": 1,
         "burn": {
-          "dps": 2.5,
-          "duration": 2,
+          "dps": 3,
+          "duration": 3,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -15066,7 +17543,15 @@
     "moveSpeedMult": 1,
     "pickupRadius": 70,
     "priceMult": 1,
-    "recipes": [],
+    "recipes": [
+      {
+        "id": "thermalScan",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
     "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
@@ -15096,8 +17581,8 @@
         ],
         "bundle": 1,
         "burn": {
-          "dps": 2.5,
-          "duration": 2,
+          "dps": 3,
+          "duration": 3,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -15118,7 +17603,9 @@
         "projectileSpeed": 0,
         "pull": 0,
         "range": 620,
-        "recipes": [],
+        "recipes": [
+          "thermalScan"
+        ],
         "slow": null,
         "spreadDeg": 0,
         "tick": 0,
@@ -15140,7 +17627,15 @@
     "moveSpeedMult": 1,
     "pickupRadius": 70,
     "priceMult": 1,
-    "recipes": [],
+    "recipes": [
+      {
+        "id": "leafPile",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
     "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
@@ -15170,8 +17665,8 @@
         ],
         "bundle": 1,
         "burn": {
-          "dps": 2.5,
-          "duration": 2,
+          "dps": 3,
+          "duration": 3,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -15192,7 +17687,9 @@
         "projectileSpeed": 0,
         "pull": 0,
         "range": 220,
-        "recipes": [],
+        "recipes": [
+          "leafPile"
+        ],
         "slow": null,
         "spreadDeg": 0,
         "tick": 0,
@@ -15252,8 +17749,8 @@
         ],
         "bundle": 1,
         "burn": {
-          "dps": 2.5,
-          "duration": 3,
+          "dps": 3,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -15336,8 +17833,8 @@
         ],
         "bundle": 1,
         "burn": {
-          "dps": 5,
-          "duration": 2,
+          "dps": 6,
+          "duration": 3,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -15412,8 +17909,8 @@
         ],
         "bundle": 1,
         "burn": {
-          "dps": 2.5,
-          "duration": 2,
+          "dps": 3,
+          "duration": 3,
           "tick": 0.5
         },
         "burstInterval": 0.08,
@@ -15494,15 +17991,15 @@
         ],
         "bundle": 1,
         "burn": {
-          "dps": 2.5,
-          "duration": 3,
+          "dps": 3,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 9.54,
@@ -15570,8 +18067,8 @@
         ],
         "bundle": 1,
         "burn": {
-          "dps": 2.5,
-          "duration": 2,
+          "dps": 3,
+          "duration": 3,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -15644,8 +18141,8 @@
         ],
         "bundle": 1,
         "burn": {
-          "dps": 2.5,
-          "duration": 2,
+          "dps": 3,
+          "duration": 3,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -15718,8 +18215,8 @@
         ],
         "bundle": 1,
         "burn": {
-          "dps": 2.5,
-          "duration": 2,
+          "dps": 3,
+          "duration": 3,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -15792,8 +18289,8 @@
         ],
         "bundle": 1,
         "burn": {
-          "dps": 2.5,
-          "duration": 3,
+          "dps": 3,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -15836,7 +18333,15 @@
     "moveSpeedMult": 1,
     "pickupRadius": 70,
     "priceMult": 1,
-    "recipes": [],
+    "recipes": [
+      {
+        "id": "acidTomato",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
     "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
@@ -15866,8 +18371,8 @@
         ],
         "bundle": 1,
         "burn": {
-          "dps": 2.5,
-          "duration": 2,
+          "dps": 3,
+          "duration": 3,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -15888,7 +18393,9 @@
         "projectileSpeed": 430,
         "pull": 0,
         "range": 400,
-        "recipes": [],
+        "recipes": [
+          "acidTomato"
+        ],
         "slow": null,
         "spreadDeg": 0,
         "tick": 0,
@@ -15940,8 +18447,8 @@
         ],
         "bundle": 1,
         "burn": {
-          "dps": 2.5,
-          "duration": 2,
+          "dps": 3,
+          "duration": 3,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -16022,15 +18529,15 @@
         ],
         "bundle": 1,
         "burn": {
-          "dps": 7,
-          "duration": 3,
+          "dps": 9.8,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.064815,
+        "cooldown": 1.037037,
         "count": 1,
         "critChance": 0,
         "damage": 9.54,
@@ -16098,8 +18605,8 @@
         ],
         "bundle": 1,
         "burn": {
-          "dps": 7,
-          "duration": 3,
+          "dps": 9.8,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -16251,8 +18758,8 @@
         "frostRing": false,
         "ignite": {
           "burn": {
-            "dps": 3.5,
-            "duration": 3,
+            "dps": 4.2,
+            "duration": 4,
             "tick": 0.5
           },
           "chance": 0.15
@@ -16977,7 +19484,15 @@
     "moveSpeedMult": 1,
     "pickupRadius": 70,
     "priceMult": 1,
-    "recipes": [],
+    "recipes": [
+      {
+        "id": "scaldingClean",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
     "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
@@ -17025,7 +19540,9 @@
         "projectileSpeed": 0,
         "pull": 0,
         "range": 60,
-        "recipes": [],
+        "recipes": [
+          "scaldingClean"
+        ],
         "slow": null,
         "spreadDeg": 0,
         "tick": 0.5,
@@ -17151,7 +19668,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 13.1175,
@@ -17467,7 +19984,15 @@
     "moveSpeedMult": 1,
     "pickupRadius": 70,
     "priceMult": 1,
-    "recipes": [],
+    "recipes": [
+      {
+        "id": "bloodyMary",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
     "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
@@ -17515,7 +20040,9 @@
         "projectileSpeed": 430,
         "pull": 0,
         "range": 400,
-        "recipes": [],
+        "recipes": [
+          "bloodyMary"
+        ],
         "slow": null,
         "spreadDeg": 0,
         "tick": 0,
@@ -17641,7 +20168,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 15.741,
@@ -17650,8 +20177,8 @@
         "frostRing": false,
         "ignite": {
           "burn": {
-            "dps": 3.5,
-            "duration": 3,
+            "dps": 4.2,
+            "duration": 4,
             "tick": 0.5
           },
           "chance": 0.15
@@ -17727,8 +20254,8 @@
         "frostRing": false,
         "ignite": {
           "burn": {
-            "dps": 3.5,
-            "duration": 3,
+            "dps": 4.2,
+            "duration": 4,
             "tick": 0.5
           },
           "chance": 0.15
@@ -18000,7 +20527,15 @@
     "moveSpeedMult": 1,
     "pickupRadius": 70,
     "priceMult": 1,
-    "recipes": [],
+    "recipes": [
+      {
+        "id": "coldChain",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
     "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
@@ -18048,7 +20583,9 @@
         "projectileSpeed": 0,
         "pull": 0,
         "range": 620,
-        "recipes": [],
+        "recipes": [
+          "coldChain"
+        ],
         "slow": {
           "duration": 1,
           "pct": 0.25
@@ -18419,7 +20956,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 10.494,
@@ -18458,7 +20995,15 @@
     "moveSpeedMult": 1,
     "pickupRadius": 70,
     "priceMult": 1,
-    "recipes": [],
+    "recipes": [
+      {
+        "id": "chillKernels",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u0"
+      }
+    ],
     "regen": 0,
     "sellFullFamilies": [],
     "sellRate": 0.5,
@@ -18506,10 +21051,12 @@
         "projectileSpeed": 520,
         "pull": 0,
         "range": 240,
-        "recipes": [],
+        "recipes": [
+          "chillKernels"
+        ],
         "slow": {
-          "duration": 1,
-          "pct": 0.25
+          "duration": 0.7,
+          "pct": 0.45
         },
         "spreadDeg": 0,
         "tick": 0,
@@ -18940,7 +21487,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 10.494,
@@ -19216,8 +21763,8 @@
         "buffs": [],
         "bundle": 1,
         "burn": {
-          "dps": 1.75,
-          "duration": 3,
+          "dps": 2.1,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -19288,8 +21835,8 @@
         "buffs": [],
         "bundle": 1,
         "burn": {
-          "dps": 4.9,
-          "duration": 3,
+          "dps": 5.88,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -20334,7 +22881,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 2,
         "critChance": 0,
         "damage": 9.54,
@@ -20824,7 +23371,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 2,
         "critChance": 0,
         "damage": 9.54,
@@ -21966,7 +24513,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 9.54,
@@ -22487,7 +25034,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 9.54,
@@ -23339,7 +25886,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0.15,
         "damage": 9.54,
@@ -23829,7 +26376,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0.3,
         "damage": 9.54,
@@ -26337,7 +28884,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 9.54,
@@ -26827,7 +29374,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.064815,
+        "cooldown": 1.037037,
         "count": 1,
         "critChance": 0,
         "damage": 9.54,
@@ -27450,8 +29997,8 @@
         ],
         "bundle": 2,
         "burn": {
-          "dps": 2.5,
-          "duration": 3,
+          "dps": 3,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -27459,7 +30006,7 @@
         "chainChance": 0,
         "chainJumps": 0,
         "cooldown": 1,
-        "count": 3,
+        "count": 2,
         "critChance": 0,
         "damage": 7.56,
         "duration": 0,
@@ -27469,14 +30016,14 @@
         "pattern": "toast",
         "pierce": 0,
         "popper": null,
-        "projectileSpeed": 702,
+        "projectileSpeed": 594,
         "pull": 0,
-        "range": 591.5,
+        "range": 500.5,
         "recipes": [
           "toastMode"
         ],
         "slow": null,
-        "spreadDeg": 22,
+        "spreadDeg": 25,
         "tick": 0,
         "tier": 1,
         "type": "toaster",
@@ -27540,8 +30087,8 @@
         ],
         "bundle": 2,
         "burn": {
-          "dps": 2.5,
-          "duration": 3,
+          "dps": 3,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -27549,7 +30096,7 @@
         "chainChance": 0,
         "chainJumps": 0,
         "cooldown": 1,
-        "count": 3,
+        "count": 2,
         "critChance": 0,
         "damage": 6.804,
         "duration": 0,
@@ -27559,14 +30106,14 @@
         "pattern": "toast",
         "pierce": 0,
         "popper": null,
-        "projectileSpeed": 702,
+        "projectileSpeed": 594,
         "pull": 0,
-        "range": 591.5,
+        "range": 500.5,
         "recipes": [
           "toastMode"
         ],
         "slow": null,
-        "spreadDeg": 22,
+        "spreadDeg": 25,
         "tick": 0,
         "tier": 1,
         "type": "toaster",
@@ -27630,8 +30177,8 @@
         ],
         "bundle": 2,
         "burn": {
-          "dps": 2.5,
-          "duration": 3,
+          "dps": 3,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -27639,7 +30186,7 @@
         "chainChance": 0,
         "chainJumps": 0,
         "cooldown": 1,
-        "count": 3,
+        "count": 2,
         "critChance": 0,
         "damage": 7.56,
         "duration": 0,
@@ -27649,14 +30196,14 @@
         "pattern": "toast",
         "pierce": 0,
         "popper": null,
-        "projectileSpeed": 702,
+        "projectileSpeed": 594,
         "pull": 0,
-        "range": 591.5,
+        "range": 500.5,
         "recipes": [
           "toastMode"
         ],
         "slow": null,
-        "spreadDeg": 22,
+        "spreadDeg": 25,
         "tick": 0,
         "tier": 1,
         "type": "toaster",
@@ -27720,8 +30267,8 @@
         ],
         "bundle": 2,
         "burn": {
-          "dps": 2.5,
-          "duration": 3,
+          "dps": 3,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
@@ -27729,7 +30276,7 @@
         "chainChance": 0,
         "chainJumps": 0,
         "cooldown": 1,
-        "count": 3,
+        "count": 2,
         "critChance": 0,
         "damage": 7.56,
         "duration": 0,
@@ -27739,14 +30286,14 @@
         "pattern": "toast",
         "pierce": 0,
         "popper": null,
-        "projectileSpeed": 702,
+        "projectileSpeed": 594,
         "pull": 0,
-        "range": 591.5,
+        "range": 500.5,
         "recipes": [
           "toastMode"
         ],
         "slow": null,
-        "spreadDeg": 22,
+        "spreadDeg": 25,
         "tick": 0,
         "tier": 1,
         "type": "toaster",
@@ -28038,7 +30585,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 9.54,
@@ -28114,7 +30661,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 9.54,
@@ -28194,7 +30741,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 9.54,
@@ -28277,7 +30824,7 @@
         "popper": null,
         "projectileSpeed": 0,
         "pull": 0,
-        "range": 328.9,
+        "range": 278.3,
         "recipes": [],
         "slow": null,
         "spreadDeg": 0,
@@ -28351,7 +30898,7 @@
         "popper": null,
         "projectileSpeed": 0,
         "pull": 0,
-        "range": 328.9,
+        "range": 278.3,
         "recipes": [],
         "slow": null,
         "spreadDeg": 0,
@@ -28462,7 +31009,7 @@
         "popper": null,
         "projectileSpeed": 0,
         "pull": 0,
-        "range": 357.5,
+        "range": 302.5,
         "recipes": [],
         "slow": null,
         "spreadDeg": 0,
@@ -28767,6 +31314,13 @@
           "u1"
         ],
         "weaponUid": "u2"
+      },
+      {
+        "id": "neonSmoothie",
+        "supportUids": [
+          "u1"
+        ],
+        "weaponUid": "u3"
       }
     ],
     "regen": 0,
@@ -28887,8 +31441,10 @@
         "popper": null,
         "projectileSpeed": 0,
         "pull": 0,
-        "range": 100,
-        "recipes": [],
+        "range": 115,
+        "recipes": [
+          "neonSmoothie"
+        ],
         "slow": null,
         "spreadDeg": 0,
         "tick": 0,
@@ -29344,15 +31900,15 @@
         ],
         "bundle": 1,
         "burn": {
-          "dps": 2.5,
-          "duration": 3,
+          "dps": 3,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 9.54,
@@ -29437,15 +31993,15 @@
         ],
         "bundle": 2,
         "burn": {
-          "dps": 3.5,
-          "duration": 3,
+          "dps": 4.2,
+          "duration": 4,
           "tick": 0.5
         },
         "burstInterval": 0,
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 15.246,
@@ -29534,15 +32090,15 @@
         ],
         "bundle": 2,
         "burn": {
-          "dps": 4.5,
-          "duration": 4,
+          "dps": 5.4,
+          "duration": 5,
           "tick": 0.5
         },
         "burstInterval": 0,
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 15.246,
@@ -29588,8 +32144,8 @@
         "frostRing": false,
         "ignite": {
           "burn": {
-            "dps": 3.5,
-            "duration": 4,
+            "dps": 4.2,
+            "duration": 5,
             "tick": 0.5
           },
           "chance": 0.25
@@ -31815,7 +34371,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.15,
+        "cooldown": 1.12,
         "count": 1,
         "critChance": 0,
         "damage": 9,
@@ -31878,7 +34434,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 1.035,
+        "cooldown": 1.008,
         "count": 1,
         "critChance": 0,
         "damage": 14.85,
@@ -31941,7 +34497,7 @@
         "chain": 0,
         "chainChance": 0,
         "chainJumps": 0,
-        "cooldown": 0.92,
+        "cooldown": 0.896,
         "count": 1,
         "critChance": 0,
         "damage": 19.8,

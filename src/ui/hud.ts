@@ -1,11 +1,8 @@
 import { store } from '../state/store';
 import { BOSS_WAVE } from '../data/waves';
 import { RECIPES, recipeIcon } from '../data/recipes';
-import { deptT, itemT, recipeT, zoneT } from '../i18n/data';
-import type { ItemTypeId } from '../types';
+import { deptT, recipeT, zoneT } from '../i18n/data';
 import { fmtNum, t, type UIKey } from '../i18n';
-import { settings } from '../state/settings';
-import { ACTIVE_KEYS, bindingLabel } from '../state/keymap';
 import { initPunchCard, renderPunchCard } from './punchcard';
 import type { TargetMode } from '../engine/patterns';
 
@@ -41,7 +38,6 @@ export function initHud(ui: HTMLElement): void {
       <div class="barcode"></div>
     </div>
     <div class="recipes"></div>
-    <div class="actives"></div>
     <div class="combat-tools"><div class="targeting"></div></div>
     <div class="map-panel receipt hidden" aria-label="Walkable map"></div>`;
   const boss = document.createElement('div');
@@ -62,7 +58,7 @@ export function initHud(ui: HTMLElement): void {
     hud, boss, banner, bark,
     hpbar: hud.querySelector('.hpbar > i')!, hpnum: hud.querySelector('.hpnum')!, aisle: hud.querySelector('.aisle')!, dept: hud.querySelector('.dept')!,
     clock: hud.querySelector('.clock')!, t: hud.querySelector('.clock .t')!, m: hud.querySelector('.money .m')!,
-    shove: hud.querySelector('.shove')!, ring: hud.querySelector('.shove .ring')!, recipes: hud.querySelector('.recipes')!, actives: hud.querySelector('.actives')!,
+    shove: hud.querySelector('.shove')!, ring: hud.querySelector('.shove .ring')!, recipes: hud.querySelector('.recipes')!,
     bossfill: boss.querySelector('.bar > i')!,
   };
   hud.addEventListener('click', (e) => {
@@ -103,7 +99,7 @@ function render(): void {
 }
 
 export const hud = {
-  tick(o: { timeLeft: number; elapsed: number; actives?: { slot: number; type: string; left: number; max: number }[]; weapons?: { uid: string; type: string; mode: TargetMode }[]; map?: { department: string; player: { x: number; y: number }; obstacles: { x: number; y: number; w: number; h: number }[] }; shoveCd: number; shoveMax: number; boss: { hp: number; max: number; enraged: boolean; name: string } | null }): void {
+  tick(o: { timeLeft: number; elapsed: number; weapons?: { uid: string; type: string; mode: TargetMode }[]; map?: { department: string; player: { x: number; y: number }; obstacles: { x: number; y: number; w: number; h: number }[] }; shoveCd: number; shoveMax: number; boss: { hp: number; max: number; enraged: boolean; name: string } | null }): void {
     if (!els.t) return;
     const t = o.timeLeft >= 0 ? `${Math.ceil(o.timeLeft)}s` : `${Math.floor(o.elapsed)}s`;
     set('t', t);
@@ -115,11 +111,6 @@ export const hud = {
       els.ring.style.setProperty('--p', pk);
       els.shove.classList.toggle('ready', o.shoveCd <= 0);
       els.ring.textContent = o.shoveCd > 0 ? fmtNum(o.shoveCd.toFixed(1)) : '';
-    }
-    const act = (o.actives ?? []).map((a) => `${a.slot}${a.type}:${a.left}/${a.max}`).join();
-    if (last.actives !== act) { // one chip per active slot, in slot order: icon, its key, and one pip per charge (spent pips are hollow)
-      last.actives = act;
-      els.actives.innerHTML = (o.actives ?? []).map((a) => `<span class="active-item${a.left <= 0 ? ' spent' : ''}" title="${itemT(a.type as ItemTypeId).name}"><img src="${svg(`icon_${a.type}`)}" alt=""><kbd>${bindingLabel(settings.keys, ACTIVE_KEYS[a.slot - 1])}</kbd><span class="pips">${Array.from({ length: a.max }, (_, i) => `<i class="${i < a.left ? 'on' : ''}"></i>`).join('')}</span></span>`).join('');
     }
     const weapons = o.weapons ?? [];
     const wk = weapons.map((w) => `${w.uid}:${w.mode}`).join('|');

@@ -45,33 +45,23 @@ Both use the per-instance counter the way Sourdough uses `rise` (`src/state/run.
 - For 2 aisles: all weapons get +15% / +20% / +25% crit chance.
 - After that it stinks for good. It poisons enemies like Expired Milk's aura (radius 110), and shop prices go up 20% while it is in the cart.
 
-## Active items ("spells")
+## Automatic trigger items
 
-These are new cart items with charges that refill at the start of each aisle. They fit the existing grid, the shop and merging (a higher tier adds charges), so they need no separate spell slot.
-
-- **Key.** E (not bound today, `src/state/keymap.ts:9-18`). Add it as a `useActive` action so players can rebind it.
-- **Several actives in the cart.** E fires every active item that has a charge left. One key keeps it readable, and owning two becomes a combo moment.
-- **Data.** Add `charges` to `ItemInstance` (`src/types.ts:69-85`) and reset it in `startNextWave` (`src/state/run.ts:307`).
+The E-press active system was removed. These four items now trigger on their own; every number is in the item's `tune`.
 
 **Fire Extinguisher.** Cleaning, frost, 1x2, base price 16.
-- 3 / 4 / 5 charges per aisle.
+- Every 6 / 5 / 4 s it blasts the nearest enemy within range + 40 (it waits while there is none).
 - A cone of 70° and 180 px. Each blast does 6 damage, slows, stuns for 0.6 s and knocks back 200.
 
 **Air Horn.** Checkout, 1x1, base price 14.
-- 1 / 1 / 2 charges per aisle.
+- Blows when at least 8 enemies are within 150 px of the cart, 1 / 1 / 2 times per aisle (2 s apart).
 - Stuns every enemy on screen for 1.0 s / 1.3 s / 1.5 s. Bosses are stunned for 0.3 s only.
 
-### Actives on existing items
+**Bubble Wrap: Pop.** It reduces each hit by 1 / 2 / 3 and gives 0.25 s of invulnerability after a hit (`src/content/items/bubblewrap.ts`). Once per aisle, the first hit that leaves you under 50% of your max HP pops it: 1.5 s of invulnerability and a pop blast of 10 / 15 / 20 damage in an 80 px radius.
 
-Two existing items get an active on top of what they already do. Their passive effect stays the same. Every other item stays passive, so players who never press E lose nothing.
+**Vacuum: Full Suck.** It pulls with 70 force and does 2 damage every 0.65 s within 150 px (`src/content/items/vacuum.ts`). Every 3rd dash in an aisle triggers Full Suck: for 2 s the pull is tripled and the range doubles, and every coin on screen flies to you.
 
-**Bubble Wrap: Pop.** It already reduces each hit by 1 / 2 / 3 and gives 0.25 s of invulnerability after a hit (`src/content/items/bubblewrap.ts:6`). The new active has 1 charge per aisle. It gives 1.5 s of invulnerability and a pop blast of 10 / 15 / 20 damage in an 80 px radius.
-
-**Vacuum: Full Suck.** It already pulls with 70 force and does 2 damage every 0.65 s within 150 px (`src/content/items/vacuum.ts:6`). The new active has 1 charge per aisle. For 2 s the pull is tripled and the range doubles, and every coin on screen flies to you.
-
-Leaf Blower was the third candidate. It stays passive, because its push and wall slam (`src/content/items/leafblower.ts:6`) already do what an active would.
-
-### What needs evaluating Whether players remember to press E in a busy aisle. Whether a 1 s screen stun trivializes elites. Whether firing all actives at once wastes charges. The sims can't measure the first one, so it needs a playtest.
+Leaf Blower was a candidate for an extra effect. It stays as it is, because its push and wall slam (`src/content/items/leafblower.ts:6`) already do the job.
 
 ## Items that grow
 
@@ -145,7 +135,7 @@ Today the four starters only differ in stats (`src/data/items.ts:53-58`):
 | Coupon Clipper | -8 max HP, x0.85 prices, +12 starting coins |
 | Night Shift | -1 s dash cooldown, x1.08 speed, x0.9 weapon damage |
 
-Recommendation: give each goblin one passive signature that uses the existing hooks. Don't add separate goblin actives, since they would fight the active items over the E key.
+Recommendation: give each goblin one passive signature that uses the existing hooks. Don't add separate goblin actives.
 
 - **Toast Goblin.** The first hit of each weapon in each aisle always crits. This works with any starter weapon, since the starter weapon is picked separately (`src/data/items.ts:62`). It gets something today in place of nothing.
 - **Line Cook.** Merging two items heals 5 HP.

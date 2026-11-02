@@ -34,13 +34,13 @@ describe('Vacuum: content', () => {
 
   it('renders its text for every level, EN and DE', () => {
     expect([1, 2, 3].map((t) => itemRules('vacuum', t))).toEqual([
-      'Constantly pulls nearby enemies toward the cart. Every 0.65 s, enemies in range take 2 damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you.',
-      'Constantly pulls nearby enemies toward the cart. Every 0.59 s, enemies in range take 3 damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you.',
-      'Constantly pulls nearby enemies toward the cart. Every 0.52 s, enemies in range take 4 damage. +60 coin pickup radius. Active (E, 1 per aisle): Full Suck, for 2 s the pull is x3 and the range x2, and every coin on screen flies to you. ★3: Each damage pulse knocks the groceries right at the cart back out.',
+      'Constantly pulls nearby enemies toward the cart. Every 0.65 s, enemies in range take 2 damage. +60 coin pickup radius. Every 3 dashes in an aisle trigger Full Suck: for 2 s the pull is x3 and the range x2, and every coin on screen flies to you.',
+      'Constantly pulls nearby enemies toward the cart. Every 0.59 s, enemies in range take 3 damage. +60 coin pickup radius. Every 3 dashes in an aisle trigger Full Suck: for 2 s the pull is x3 and the range x2, and every coin on screen flies to you.',
+      'Constantly pulls nearby enemies toward the cart. Every 0.52 s, enemies in range take 4 damage. +60 coin pickup radius. Every 3 dashes in an aisle trigger Full Suck: for 2 s the pull is x3 and the range x2, and every coin on screen flies to you. ★3: Each damage pulse knocks the groceries right at the cart back out.',
     ]);
     expect(itemT('vacuum')).toMatchObject({ name: 'Vacuum', blurb: 'Utility weapon. Sucks groceries closer, and coins too.' });
     setLang('de');
-    expect([1, 3].map((t) => itemRules('vacuum', t))).toEqual(['Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,65 s erleiden Gegner im Radius 2 Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir.', 'Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,52 s erleiden Gegner im Radius 4 Schaden. +60 Münz-Sammelradius. Aktiv (E, 1 pro Gang): Volle Saugkraft, 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir. ★3: Jeder Schadensstoß stößt die Gegner direkt am Wagen zurück.']);
+    expect([1, 3].map((t) => itemRules('vacuum', t))).toEqual(['Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,65 s erleiden Gegner im Radius 2 Schaden. +60 Münz-Sammelradius. Alle 3 Dashes in einem Gang lösen die volle Saugkraft aus: 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir.', 'Zieht Gegner in der Nähe ständig zum Wagen. Alle 0,52 s erleiden Gegner im Radius 4 Schaden. +60 Münz-Sammelradius. Alle 3 Dashes in einem Gang lösen die volle Saugkraft aus: 2 s lang x3 Sog und x2 Reichweite, und alle Münzen im Bild fliegen zu dir. ★3: Jeder Schadensstoß stößt die Gegner direkt am Wagen zurück.']);
     expect(itemT('vacuum')).toMatchObject({ name: 'Staubsauger', blurb: 'Hilfswaffe. Saugt Gegner heran, Münzen übrigens auch.' });
   });
 
