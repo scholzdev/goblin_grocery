@@ -1,6 +1,6 @@
 import { UI } from './ui';
 import { lang } from './lang';
-export { lang, setLang, systemLang, LANGS, type Lang } from './lang';
+export { contentLang, lang, setLang, systemLang, LANGS, type Lang } from './lang';
 
 export type UIKey = keyof typeof UI.en;
 

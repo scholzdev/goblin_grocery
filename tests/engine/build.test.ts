@@ -102,7 +102,7 @@ describe('computeBuild dispatch', () => {
     const inv = cart('toaster', ['jellybeans']); // cart() builds while placing
     tunes.length = 0;
     computeBuild(inv);
-    expect(tunes).toEqual(['5:7:4']); // Fuel Can dps [3, 5, 7] at ★2 and ★3; the Toaster's tune has damage, cooldown, range and secondToast (every item is content now)
+    expect(tunes).toEqual(['5:7:6']); // Fuel Can dps at ★2/★3; Toaster now also declares finisher threshold and bonus.
   });
 
   it('runs player hooks after all weapons, by order, only for owned items', () => {

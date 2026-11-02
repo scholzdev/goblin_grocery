@@ -21,7 +21,7 @@ export function beamOnce(h: PatternHost, w: WeaponRt, target: PatternEnemy, echo
   let a = aimAngle(h, target, w.targetMode), best = -1;
   // Mouse aim takes control of the beam direction. Without it, keep the laser's
   // special behavior of choosing the line that crosses the most groceries.
-  if (w.targetMode !== 'cursor' || sc.aimAngle === null) {
+  if (!w.prioritizedTarget && (w.targetMode !== 'cursor' || sc.aimAngle === null)) {
     for (const t of [target, ...live]) {
       if (Math.hypot(t.x - o.x, t.y - o.y) > st.range) continue;
       const ta = Math.atan2(t.y - o.y, t.x - o.x), tx = Math.cos(ta), ty = Math.sin(ta);

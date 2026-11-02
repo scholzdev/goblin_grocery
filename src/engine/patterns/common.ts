@@ -1,7 +1,7 @@
 import type { WeaponStats } from '../../types';
 import { resolveTune, type ItemContent } from '../define';
 import type { HookTable, WeaponLook } from '../hooks';
-import type { PatternHost, Sprite, TargetMode, WeaponRt } from './types';
+import type { PatternEnemy, PatternHost, Sprite, TargetMode, WeaponRt } from './types';
 
 // Helpers every pattern shares.
 
@@ -10,6 +10,22 @@ export const degToRad = (deg: number): number => deg * (Math.PI / 180);
 
 /** Pulls stop this far outside the cart, so they never feed melee enemies into the goblin. */
 export const CART_STANDOFF = 12;
+
+/** Auto targeting may be refined by weapon identity and an active family pairing. Manual aim stays authoritative. */
+export function weaponTarget(h: PatternHost, w: WeaponRt): PatternEnemy | null {
+  let target = h.sc.targetForWeapon(w.stats.range, w.targetMode);
+  w.prioritizedTarget = false;
+  if (w.targetMode !== 'auto') return target;
+  const p = h.sc.player;
+  const candidates = h.sc.enemies.filter((e) => e.alive && e.state !== 'spawn' && Math.hypot(e.x - p.x, e.y - p.y) <= w.stats.range);
+  if (h.sc.hooks['pattern:target'].length) {
+    const ev = { stats: w.stats, candidates, target, prioritized: false };
+    h.sc.hooks.emit('pattern:target', ev);
+    target = ev.target as PatternEnemy | null;
+    w.prioritizedTarget = ev.prioritized;
+  }
+  return target;
+}
 
 /** Where the cart's weapons shoot from: the nose of the cart. */
 export function origin(h: PatternHost): { x: number; y: number } {

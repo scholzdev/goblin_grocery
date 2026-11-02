@@ -12,6 +12,12 @@ describe('ui strings', () => {
     expect(Object.keys(UI.de).sort()).toEqual(Object.keys(UI.en).sort());
   });
 
+  it('exposes Simplified Chinese as a complete fallback locale', () => {
+    expect(Object.keys(UI.zh).sort()).toEqual(Object.keys(UI.en).sort());
+    setLang('zh');
+    expect(t('language')).toBe(UI.en.language);
+  });
+
   it('placeholders match between languages', () => {
     for (const k of Object.keys(UI.en) as (keyof typeof UI.en)[]) expect(vars(UI.de[k]), k).toBe(vars(UI.en[k]));
   });

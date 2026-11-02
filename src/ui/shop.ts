@@ -2,8 +2,8 @@ import { store } from '../state/store';
 import { profile, unlockedItems } from '../state/profile';
 import { ITEMS, ITEM_IDS, TIER, cellsFor, cellsOf } from '../data/items';
 import { RECIPES, recipeIcon, recipeParts } from '../data/recipes';
-import { BOSS_WAVE, ECONOMY, SHOP_LEVELS } from '../data/waves';
-import { cartUpgradeCost, nextCartSize, shelfUpgradeCost, upgradeCart, upgradeShelf, buyOffer, interestPreview, mergeItems, mergeTargetFor, upgradeShop, shopUpgradeCost, moveItem, previewMerge, previewMove, repair, reroll, sellItem, toggleShopLock, type MoveTarget } from '../state/run';
+import { BOSS_WAVE, ECONOMY, SHOP_LEVELS, shopQuality } from '../data/waves';
+import { acceptCustomer, declineCustomer, cartUpgradeCost, nextCartSize, shelfUpgradeCost, upgradeCart, upgradeShelf, buyOffer, interestPreview, mergeItems, mergeTargetFor, moveItem, previewMerge, previewMove, repair, reroll, sellItem, toggleShopLock, type MoveTarget } from '../state/run';
 import { findItem, rotateCells, rotatedSize, footprint } from '../systems/inventory';
 import { describeBuffs, tierScaling } from '../systems/synergies';
 import { currentRerollCost, inflation, repairCost, sellPrice } from '../systems/shop';
@@ -19,6 +19,9 @@ import type { ShopPad } from '../input/gamepad';
 import { pickNext, type Dir } from '../input/pad-core';
 import { icons, setIcon } from './icons';
 import { strongVsHtml } from './affinity';
+import { weaponRoleT } from '../i18n/weapons';
+import { ownedWeapons, weaponLoadoutIssue } from '../systems/weaponLoadout';
+import { weaponPairs } from '../engine/weaponPairings';
 import { t, fmtNum, type UIKey } from '../i18n';
 import { itemRules, itemT, recipeT, setBonusT, star3Teaser, tagT } from '../i18n/data';
 import { lvOf, setCount as setCountOf, setGains, setWeight, setsOf, type SetCandidate } from '../data/sets';
@@ -175,6 +178,10 @@ export function combosHtml(build: Build, preview?: Build | null, relevant: ItemT
   const now = new Set(build.recipes.map((r) => r.id));
   const next = preview ? new Set(preview.recipes.map((r) => r.id)) : null;
   const inv = store.state.inventory;
+  const activePairs = [...new Set(weaponPairs(inv).map((p) => p.id))];
+  const pairing = `<div class="weapon-pair ${activePairs.length ? 'on' : ''}">${activePairs.length
+    ? activePairs.map((id) => `<p>${esc(t(`pair_${id}`))}</p>`).join('')
+    : esc(ownedWeapons(inv).length >= 2 ? t('weaponPairInactive') : t('weaponPairHint'))}</div>`;
   const owned = new Set([...inv.placed.map((i) => i.type), ...inv.shelf.flatMap((i) => (i ? [i.type] : []))]);
   // Group by the cart's weapon order so every weapon reads as its own build path.
   const have = new Set(relevant);
@@ -203,7 +210,7 @@ export function combosHtml(build: Build, preview?: Build | null, relevant: ItemT
     if (b === '__cart__') return -1;
     return weaponOrder.indexOf(a as ItemTypeId) - weaponOrder.indexOf(b as ItemTypeId);
   });
-  if (!orderedGroups.length) return `<div class="combo empty"><div class="eff">${t('noCombos')}</div><div class="hint">${t('noCombosHint')}</div></div>`;
+  if (!orderedGroups.length) return `${pairing}<div class="combo empty"><div class="eff">${t('noCombos')}</div><div class="hint">${t('noCombosHint')}</div></div>`;
   const render = (id: RecipeId) => {
     if (!known(id)) {
       const r = RECIPES[id];
@@ -224,7 +231,7 @@ export function combosHtml(build: Build, preview?: Build | null, relevant: ItemT
       <div class="icons">${icons}</div>
       <div class="eff">${esc(recipeT(id).short)}</div></div>`;
   };
-  return orderedGroups.map(([weapon, ids]) => {
+  return pairing + orderedGroups.map(([weapon, ids]) => {
     const ordered = ids.sort((a, b) => score(b) - score(a)).slice(0, 3);
     const title = weapon === '__cart__' ? 'Cart Effects' : itemT(weapon as ItemTypeId).name;
     const icon = weapon === '__cart__' ? '' : `<img src="${svg(`icon_${weapon}`)}" alt="">`;
@@ -313,7 +320,8 @@ function render(): void {
     const def = ITEMS[o.type];
     const lv = o.sold ? null : mergeTargetFor(s.inventory, o.type, o.tier);
     const poor = !o.sold && s.money < o.price; // shown by the red pill + title, not as text over the footprint
-    const why = o.sold || poor ? '' : s.inventory.shelf.every(Boolean) ? t('shelfFull') : '';
+    const loadoutIssue = !s.lab && weaponLoadoutIssue(s.inventory, o.type);
+    const why = o.sold ? '' : loadoutIssue ? t('weaponBlocked') : (poor ? '' : s.inventory.shelf.every(Boolean) ? t('shelfFull') : '');
     // Cards have width to spare but not height: show tall footprints lying down.
     const base = cellsFor(o.type, o.tier);
     const tall = Math.max(...base.map((c) => c.y)) > Math.max(...base.map((c) => c.x));
@@ -327,10 +335,10 @@ function render(): void {
     const list = Math.max(1, Math.round(TIER.value(def.price, o.tier) * infl));
     const was = list > o.price ? list : Math.max(1, Math.round(o.price / infl));
     const struck = !o.sold && (list > o.price || infl > 1) ? was : undefined;
-    return `<div class="card ${rarityClass(o.type, o.tier)} ${s3 ? 'has-s3' : ''} ${o.sold ? 'sold' : ''} ${why || poor ? 'blocked' : ''} ${lv ? 'lvl' : ''}" data-offer="${o.slot}" data-type="${o.type}" ${poor ? `title="${t('needCoins', { n: o.price - s.money })}"` : ''} ${o.sold ? `data-sold="${t('soldStamp')}"` : ''} role="button" tabindex="0"
+    return `<div class="card ${rarityClass(o.type, o.tier)} ${s3 ? 'has-s3' : ''} ${o.sold ? 'sold' : ''} ${why || poor ? 'blocked' : ''} ${lv ? 'lvl' : ''}" data-offer="${o.slot}" data-type="${o.type}" title="${esc(loadoutIssue || (poor ? t('needCoins', { n: o.price - s.money }) : ''))}" ${o.sold ? `data-sold="${t('soldStamp')}"` : ''} role="button" tabindex="0"
       aria-label="${t('buyAria', { rar, name: itemT(o.type).name, price: o.price })}">
       <img class="art" src="${svg(`icon_${o.type}`)}" alt="">
-      <div class="nm">${itemT(o.type).name}</div><div class="fp" style="grid-template-columns:repeat(${w},10px)">${fp}</div>
+      <div class="nm">${itemT(o.type).name}</div>${def.weaponFamily ? `<span class="offer-family tagchip family-${def.weaponFamily}" title="${esc(weaponRoleT(o.type))}">${tagT(def.weaponFamily)}</span>` : ''}<div class="fp" style="grid-template-columns:repeat(${w},10px)">${fp}</div>
       ${s3 ? `<div class="s3" title="${esc(s3)}">${esc(s3)}</div>` : ''}
       <span class="price-tag">${costPill(o.price, s.money >= o.price, struck)}</span>
       ${lv ? `<span class="lvlup" title="${t('combinesTip', { name: itemT(o.type).name })}">${t('combinesTag', { n: (lv.tier ?? 1) + 1 })}</span>` : ''}
@@ -360,6 +368,7 @@ function render(): void {
     </div>
     <div class="col-mid">
       <div class="cart-title sticker">${t('cartLoadout')}</div>
+      <div class="weapon-slots" title="${esc(t('weaponPairHint'))}">${t('weaponSlots', { n: ownedWeapons(s.inventory).length })}</div>
       <div class="grid-wrap"><div class="grid" style="width:${s.inventory.cols * cellFor(s.inventory.cols, s.inventory.rows)}px;height:${s.inventory.rows * cellFor(s.inventory.cols, s.inventory.rows)}px;margin:0 auto">${gridHtml(s)}</div></div>
       <div class="combos">${combosHtml(s.build, null, relevantTypes())}</div>
       ${featuredHtml(s)}
@@ -368,7 +377,8 @@ function render(): void {
     <div class="col-right">
       <div class="offers-head"><h3>${t('todaysDeals')}</h3>${infl > 1 ? `<span class="inflation">${t('priceInflation', { n: Math.round((infl - 1) * 100) })}</span>` : ''}</div>
       <div class="offers">${offers}</div>
-      <div class="head-btns services">${loyaltyHtml(s)}${serviceHtml(s)}</div>
+      <div class="head-btns services">${loyaltyHtml()}${serviceHtml(s)}</div>
+      ${customerHtml(s)}
       <div class="shelf-head"><h3>${t('stagingShelf')}</h3><small style="font-weight:800">${t('shelfNoFight')}</small></div>
       <div class="shelf" style="grid-template-columns:repeat(${s.inventory.shelf.length}, ${slotPx(s.inventory.shelf.length)}px)">${shelf}</div>
       <div class="sell" data-sell="1">${t('dropSell')}</div>
@@ -418,6 +428,7 @@ export function inspectorHtml(type: ItemTypeId, uid: string | null, offer?: Shop
   const weaponTag = (def.tags ?? []).find((tg): tg is keyof typeof KIND_BY_TAG => tg in KIND_BY_TAG);
   const kind = def.kind === 'weapon' && weaponTag ? t(KIND_BY_TAG[weaponTag]) : kindLabel(type);
   const otherTags = (def.tags ?? []).filter((tg) => !(tg in KIND_BY_TAG));
+  const familyChip = def.weaponFamily ? `<span class="chip family-${def.weaponFamily}">${tagT(def.weaponFamily)}</span>` : '';
   const gains = offer && !loc && s ? setGains(s.inventory.placed, offer) : [];
   const dblNote = offer?.double || loc?.inst.double ? `<span class="chip dbl">${esc(t('setDouble'))}</span>` : '';
   const flavor = type === 'jellybeans' ? (loc ? flavorOf(loc.inst) : null) : null;
@@ -427,7 +438,7 @@ export function inspectorHtml(type: ItemTypeId, uid: string | null, offer?: Shop
   const head = `<header><span class="ico-tile ${rc}"><img src="${svg(loc ? iconOf(loc.inst) : `icon_${type}`)}" alt=""></span>
     <div class="hd"><div class="nm"><span style="font-size:${fitName(itemT(type).name)}px">${itemT(type).name}</span><b class="lv ${def.legendary ? 'leg' : `t${tier}`}">★${def.legendary ? '' : tier}</b></div>
     <span class="sub ${rc}">${rarity} · ${kind}</span></div></header>
-    <div class="chips">${dblNote}${binder}${flavor ? `<span class="chip flavor-chip flavor-${flavor}">${esc(t('flavorLabel', { f: tagT(flavor) }))}</span>` : ''}${setChips}${otherTags.map((tg) => `<span class="chip">${tagT(tg)}</span>`).join('')}<span class="chip">${icons.grid(15)}${w}×${h}</span>
+    <div class="chips">${dblNote}${binder}${familyChip}${flavor ? `<span class="chip flavor-chip flavor-${flavor}">${esc(t('flavorLabel', { f: tagT(flavor) }))}</span>` : ''}${setChips}${otherTags.map((tg) => `<span class="chip">${tagT(tg)}</span>`).join('')}<span class="chip">${icons.grid(15)}${w}×${h}</span>
     <span class="chip coin"><img class="coin-ico" src="${svg('coin')}" alt="">${loc ? t('sells', { n: sellValue(loc.inst, sellPrice(type, tier, s?.build)) }) : def.price}</span></div>${strongVsHtml(type)}`;
 
   let body = '';
@@ -460,7 +471,7 @@ export function inspectorHtml(type: ItemTypeId, uid: string | null, offer?: Shop
     ? `<div class="callout">${icons.crate(30)}<div><b>${t('shelfTitle')}</b><span>${t('shelfText')}</span></div></div>` : '';
 
   const teaser = star3Teaser(type, tier);
-  body += `<p class="rules">${esc(itemRules(type, tier))}${teaser ? `<span class="s3">${esc(teaser)}</span>` : ''}</p>`;
+  body += `${def.weapon ? `<p class="weapon-role">${esc(weaponRoleT(type))}</p>` : ''}<p class="rules">${esc(itemRules(type, tier))}${teaser ? `<span class="s3">${esc(teaser)}</span>` : ''}</p>`;
 
   // Level comparison: each level column tinted in its rarity colour, the current one stronger and labelled.
   const scale = tierScaling(type);
@@ -588,9 +599,17 @@ function onClick(e: MouseEvent): void {
   if (selectedUid && !el.closest('.item[data-uid], .inspector, button, [data-offer], .slot')) { selectedUid = null; refreshHover(); }
   if (act === 'next') { play('click'); selectedUid = null; if (s.labSandbox) flow.labToArena(); else flow.leaveShop(); return; }
   if (act === 'loyalty') {
-    const cost = shopUpgradeCost(s);
-    const r = upgradeShop(s);
-    if (r.ok) { ledger.push({ label: t('ledgerLoyalty', { n: s.shopLevel }), amount: -(cost ?? 0) }); play('upgrade'); toast(t('toastLoyalty', { n: s.shopLevel })); } else toast(r.reason);
+    loyaltyOn = !loyaltyOn;
+    refreshHover();
+    return;
+  }
+  if (act === 'customer-accept' || act === 'customer-decline') {
+    const deal = s.shop?.customer;
+    const result = act === 'customer-accept' ? acceptCustomer(s) : declineCustomer(s);
+    if (result.ok && act === 'customer-accept' && deal) {
+      ledger.push({ label: t('customerUpgraded', { name: itemT(deal.type).name }), amount: -deal.price });
+      play('upgrade');
+    } else if (!result.ok) toast(result.reason);
     store.changed();
     return;
   }
@@ -934,19 +953,31 @@ function serviceHtml(s: RunState): string {
     + `<button class="btn small svc${locked ? ' on' : ''}" data-act="lock" aria-pressed="${locked}" title="${t('lockTip')}"><span class="lbl">${locked ? '🔒 ' + t('locked') : '🔓 ' + t('lock')}</span></button>`;
 }
 
-function loyaltyHtml(s: RunState): string {
-  const cost = shopUpgradeCost(s);
-  return `<button class="btn small loyalty" data-act="loyalty" title="${t('loyaltyName')}" ${cost === null || s.money < cost ? 'disabled' : ''}>
-    <span class="lbl"><img src="${svg('loyalty_card')}" alt="">${cost === null ? t('loyaltyMax') : t('loyaltyBtn', { n: s.shopLevel + 1 })}</span>${cost === null ? '' : costPill(cost, s.money >= cost)}</button>`;
+function loyaltyHtml(): string {
+  return `<button class="btn small loyalty" data-act="loyalty" title="${t('loyaltyInfo')}">
+    <span class="lbl">${t('shopQualityBtn')}</span></button>`;
 }
 
 function loyaltyHtml_(): string {
   const s = store.state;
-  const row = (lv: number) => {
-    const L = SHOP_LEVELS[lv - 1];
-    return `<div class="${lv === s.shopLevel ? 'buff' : 'muted'}">${t('loyaltyRow', { n: lv, a: pct(L.tier2), b: pct(L.tier3), c: pct(L.legendary) })}${L.freeReroll ? ` · ${t('freeReroll')}` : ''}</div>`;
+  const row = (aisle: number) => {
+    const L = s.lab ? SHOP_LEVELS[s.shopLevel - 1] : shopQuality(aisle);
+    return `<div class="${aisle === s.wave ? 'buff' : 'muted'}">${t('shopOddsRow', { n: aisle, a: pct(L.tier2), b: pct(L.tier3), c: pct(L.legendary) })}${L.freeReroll ? ` · ${t('freeReroll')}` : ''}</div>`;
   };
-  return `<header><div class="nm">${t('loyaltyCard')}</div></header><div class="ibody"><div>${t('loyaltyInfo')}</div>${[1, 2, 3, 4].map(row).join('')}</div>`;
+  return `<header><div class="nm">${t('loyaltyCard')}</div></header><div class="ibody"><div>${t('loyaltyInfo')}</div>${[s.wave, s.wave + 1].map(row).join('')}</div>`;
+}
+
+function customerHtml(s: RunState): string {
+  const deal = s.shop?.customer;
+  if (!deal) return '';
+  const item = findItem(s.inventory, deal.uid)?.inst;
+  const valid = item?.type === deal.type && (item.tier ?? 1) === deal.tier;
+  const done = deal.status !== 'offered';
+  return `<aside class="customer-deal" aria-label="${t('customerTitle')}">
+    <svg class="customer-portrait" viewBox="0 0 48 60" aria-hidden="true"><path d="M7 58V42q0-13 17-13t17 13v16" fill="#3FB7A6" stroke="#30203F" stroke-width="3"/><circle cx="24" cy="18" r="13" fill="#FFE3B3" stroke="#30203F" stroke-width="3"/><path d="M11 15q0-16 14-12 13 0 13 14l-8-7-7 5-6-3z" fill="#704934"/><circle cx="20" cy="19" r="1.5"/><circle cx="29" cy="19" r="1.5"/><path d="M21 25q4 3 7-1" fill="none" stroke="#30203F" stroke-width="2"/></svg>
+    <div class="customer-copy"><b>${t('customerTitle')}</b><span>${done ? t(deal.status === 'accepted' ? 'customerAccepted' : 'customerDeclined') : t('customerOffer', { name: itemT(deal.type).name, from: deal.tier, to: deal.tier + 1 })}</span>
+    ${done ? '' : `<div class="customer-actions"><button class="btn small coral" data-act="customer-accept" ${!valid || s.money < deal.price ? 'disabled' : ''}>${t('customerAccept')} ${costPill(deal.price, s.money >= deal.price)}</button><button class="btn small" data-act="customer-decline">${t('customerDecline')}</button></div>${!valid ? `<small>${t('rCustomerGone')}</small>` : ''}`}</div>
+  </aside>`;
 }
 
 /** Owned + currently offered types: decides which combo hints are worth showing. */

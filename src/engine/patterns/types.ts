@@ -86,6 +86,8 @@ export interface Shot {
 export interface WeaponRt {
   stats: WeaponStats;
   targetMode: TargetMode;
+  /** A family interaction selected a priority target for this attack. */
+  prioritizedTarget?: boolean;
   cd: number;
   burstLeft: number;
   burstT: number;

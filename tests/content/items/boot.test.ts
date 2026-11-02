@@ -62,8 +62,11 @@ describe('Running Boot: build', () => {
 describe('Running Boot: runtime', () => {
   it('has no combat hooks, and compiles none', () => {
     expect(boot.hooks).toBeUndefined();
-    expect(arena([at('toaster'), far('boot')]).fake.hooks.size).toBe(0);
-    expect(arena([at('toaster'), far('boot', 3)]).fake.hooks.size, 'only the Tools L2 hooks its 3 set points switch on').toBe(arena([at('toaster'), far('magnet', 3)]).fake.hooks.size);
+    for (const tier of [1, 3]) {
+      const hooks = arena([at('toaster'), far('boot', tier)]).fake.hooks;
+      const owners = Object.values(hooks).filter(Array.isArray).flat().map((h) => h.id);
+      expect(owners).not.toContain('boot');
+    }
   });
 });
 

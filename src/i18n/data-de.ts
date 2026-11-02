@@ -98,7 +98,7 @@ const unlocks: Record<string, string> = {
   scratchticket: 'Verdiene 150 Münzen (insgesamt)',
   punchcard: 'Verdiene 150 Münzen (insgesamt)',
   shortcut: 'Geh zweimal k.o.',
-  laser: 'Gewinne mit 3 Waffen im Wagen',
+  laser: 'Gewinne mit 2 Waffen im Wagen',
   'starter-coupon': 'Verdiene 400 Münzen (insgesamt)',
   'starter-night': 'Erreiche Gang 6',
   'skin-night': 'Beende 5 Runs',
@@ -109,7 +109,10 @@ const unlocks: Record<string, string> = {
 };
 
 // Weapon tags only: the set names (kitchen ... electric) live in src/content/sets/<id>.ts.
-const tags: Record<string, string> = { ranged: 'Fernkampf', melee: 'Nahkampf', area: 'Fläche' };
+const tags: Record<string, string> = {
+  ranged: 'Fernkampf', melee: 'Nahkampf', area: 'Fläche',
+  hunter: 'Jäger', spreader: 'Verteiler', primer: 'Vorbereiter', controller: 'Kontrolle',
+};
 
 const zones: Record<ZoneId, { name: string; blurb: string }> = {
   cereal_wall: { name: 'Müsliwand', blurb: 'Lange Regalgassen' },

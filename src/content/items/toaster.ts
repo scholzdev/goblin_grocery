@@ -9,10 +9,21 @@ export default defineItem({
   id: Item.toaster, kind: 'weapon', sets: [Set.kitchen, Set.heat], shape: '2x1', price: 12, tags: ['ranged'], electrical: true,
   weapon: W,
   // damage and interval per ★ for the text and the shop rows (the stats themselves come from `weapon`)
-  tune: { ...weaponTiers(W), range: W.range, secondToast: [0, 0, 1] },
+  tune: { ...weaponTiers(W), range: W.range, secondToast: [0, 0, 1], finishBelow: 0.5, finishBonus: 0.5 },
   rows: WEAPON_ROWS,
   text: {
     en: { name: 'Toaster', blurb: 'Lobs hot toast at the nearest grocery.', rules: 'Fires toast for {damage} damage every {cooldown|s}. {range} range. Each toast hits one enemy.', star3: '★3: Also fires a toast at a second enemy.' },
     de: { name: 'Toaster', blurb: 'Schleudert heißen Toast auf den nächsten Gegner.', rules: 'Feuert alle {cooldown|s} Toast für {damage} Schaden. {range} Reichweite. Jeder Toast trifft einen Gegner.', star3: '★3: Feuert zusätzlich einen Toast auf einen zweiten Gegner.' },
+  },
+  hooks: {
+    'pattern:target'(ev) {
+      if (ev.stats.type !== Item.toaster) return;
+      const wounded = ev.candidates.filter((e) => e.hp < e.maxHp);
+      if (wounded.length) ev.target = wounded.reduce((a, b) => a.hp / a.maxHp <= b.hp / b.maxHp ? a : b);
+    },
+    modifyDamage(hit, _ctx, c) {
+      if (hit.stats?.type === Item.toaster && hit.direct && hit.enemy.hp <= hit.enemy.maxHp * c.tune().finishBelow)
+        hit.dmg *= 1 + c.tune().finishBonus;
+    },
   },
 });

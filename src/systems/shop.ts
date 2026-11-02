@@ -1,7 +1,7 @@
 import { ELITE_EXCLUDED, MINI_BOSS } from '../data/enemies';
 import { DEPARTMENTS, DEPT_TUNING } from '../data/departments';
 import { DOOR_POOL, MODIFIERS, ROOMS, ROOM_DOORS, type DoorId } from '../data/modifiers';
-import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS, eliteChance, waveDef } from '../data/waves';
+import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS, eliteChance, shopQuality, waveDef } from '../data/waves';
 import { PLAYER, ITEMS, ITEM_IDS, TIER } from '../data/items';
 import { RECIPES } from '../data/recipes';
 import { ZONES, ZONE_TUNING, zonesOf, type ZoneId } from '../data/zones';
@@ -65,7 +65,7 @@ export function rollOffers(state: RunState, rng: Rng, shopIndex: number, guarant
   const owned = [...state.inventory.placed, ...state.inventory.shelf.filter((s) => !!s)];
   const own = new Set(owned.map((i) => i.type));
   const mergeable = new Set(owned.filter((i) => (i.tier ?? 1) < TIER.max).map((i) => i.type));
-  const lv = SHOP_LEVELS[Math.max(0, Math.min(SHOP_LEVELS.length, state.shopLevel) - 1)];
+  const lv = state.lab ? SHOP_LEVELS[Math.max(0, Math.min(SHOP_LEVELS.length, state.shopLevel) - 1)] : shopQuality(shopIndex);
   const kept = (opts.keep ?? []).filter((o) => !o.sold);
   const offers: ShopOffer[] = kept.map((o) => ({ ...o }));
   // Checkout set discount is baked in at roll time: offers already on the table keep their price until the next reroll.
@@ -77,7 +77,12 @@ export function rollOffers(state: RunState, rng: Rng, shopIndex: number, guarant
   while (offers.length < ECONOMY.offerCount) {
     const needLegend = !!opts.forceLegendary && offers.length === ECONOMY.offerCount - 1 && !offers.some((o) => ITEMS[o.type].legendary);
     if (legends.length && (needLegend || (shopIndex >= 2 && rng() < lv.legendary + bonus))) { add(legends.splice(Math.floor(rng() * legends.length), 1)[0], 1); continue; }
-    const ws = regular.map((t) => (guarantee ? 1 : weight(t, own, mergeable, state.weapon)) * (bias.includes(t) ? DEPT_TUNING.biasWeight : 1));
+    const families = new Set(owned.flatMap((i) => ITEMS[i.type].weaponFamily ? [ITEMS[i.type].weaponFamily!] : []));
+    const needsPartner = guarantee && families.size === 1 && offers.length === ECONOMY.offerCount - 1 &&
+      !offers.some((o) => ITEMS[o.type].weaponFamily && !families.has(ITEMS[o.type].weaponFamily!));
+    const hasPartner = regular.some((t) => ITEMS[t].weaponFamily && !families.has(ITEMS[t].weaponFamily!));
+    const ws = regular.map((t) => needsPartner && hasPartner && (!ITEMS[t].weaponFamily || families.has(ITEMS[t].weaponFamily!)) ? 0 :
+      (guarantee ? 1 : weight(t, own, mergeable, state.weapon)) * (bias.includes(t) ? DEPT_TUNING.biasWeight : 1));
     let r = rng() * ws.reduce((a, b) => a + b, 0), i = 0;
     while (i < regular.length - 1 && (r -= ws[i]) >= 0) i++;
     add(regular.splice(i, 1)[0], rng() < lv.tier3 ? 3 : rng() < lv.tier2 ? 2 : 1);

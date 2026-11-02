@@ -1,11 +1,14 @@
 import { MODIFIERS, type DoorId } from '../data/modifiers';
 import { botDoors } from '../systems/shortcut';
 import { ITEM_ORDER, RECIPE_ORDER, SET_ORDER } from '../engine/define';
-import { cartUpgradeCost, shelfUpgradeCost, shopUpgradeCost } from '../state/run';
+import { cartUpgradeCost, shelfUpgradeCost } from '../state/run';
 import { currentRerollCost, repairCost, sellPrice } from '../systems/shop';
 import type { Rng } from '../systems/rng';
 import type { ItemInstance, ItemTypeId, RunState, ShopOffer } from '../types';
 import { DEFAULT_SCORE, bestPlacement, comboCredits, mergePairs, type Policy, type PolicyFactory, type PolicyView, type Scorer, type ShopAction } from './policy';
+import { ITEMS } from '../data/items';
+import { weaponPairs } from '../engine/weaponPairings';
+import { weaponLoadoutIssue } from '../systems/weaponLoadout';
 
 // The parameterized policy of Phase 1b (docs/buildlab.md "Genome"): every number a shop policy decides with, as a flat JSON object, so an
 // optimizer can mutate it. `greedyGenome()` is the Phase 1a greedy policy written as one genome (tests/buildlab/genome.test.ts checks that
@@ -31,7 +34,7 @@ export const GENOME_SPEC: readonly ParamSpec[] = [
   spec('rule', 'rule.buffWeight', 0, 5, 1),
   spec('rule', 'rule.tierBonus', 0, 2, 0),
   spec('rule', 'rule.repairMargin', 0, 40, 9),
-  spec('rule', 'rule.upgradeShopAbove', 0, 120, 45),
+  spec('rule', 'rule.customerReserve', 0, 120, 45),
   spec('rule', 'rule.upgradeCartAbove', 0, 120, 30),
   spec('rule', 'rule.upgradeShelfAbove', 0, 120, 25),
   spec('rule', 'rule.buyReserve', 0, 40, 0),
@@ -108,7 +111,7 @@ export function createGenomePolicy(genome: Genome, name = 'genome'): Policy {
   const w = (k: string): number => g[k];
   const value = (type: ItemTypeId, tier: number): number => g[`item.${type}`] * (1 + w('rule.tierBonus') * (tier - 1));
   const scorer: Scorer = (b, placed) => {
-    let s = 0;
+    let s = new Set(weaponPairs({ placed: [...placed] }).map((p) => p.id)).size * DEFAULT_SCORE.recipe;
     for (const c of comboCredits(b, placed, DEFAULT_SCORE.partial)) s += g[`combo.${c.id}`] * c.credit;
     for (const id of SET_ORDER) s += g[`set.${id}`] * b.sets[id];
     for (const x of b.weapons) s += w('rule.buffWeight') * x.buffs.length;
@@ -120,11 +123,13 @@ export function createGenomePolicy(genome: Genome, name = 'genome'): Policy {
 
   const buys = (state: RunState, pre: boolean): ShopAction[] => {
     const out: ShopAction[] = [];
+    const planned = { ...state.inventory, placed: [...state.inventory.placed], shelf: [...state.inventory.shelf] };
     let money = state.money;
     const sh = state.shop!;
     if (pre) {
       if (state.hp < state.build.maxHp - w('rule.repairMargin') && !sh.repairUsed) { out.push({ kind: 'repair' }); money -= repairCost(state); }
-      if (money > w('rule.upgradeShopAbove') && shopUpgradeCost(state) !== null) { out.push({ kind: 'upgradeShop' }); money -= shopUpgradeCost(state) ?? 0; }
+      const deal = sh.customer;
+      if (deal?.status === 'offered' && money - deal.price >= w('rule.customerReserve')) { out.push({ kind: 'acceptCustomer' }); money -= deal.price; }
     }
     const shelf = state.inventory.shelf;
     let free = shelf.filter((s) => !s).length;
@@ -140,6 +145,10 @@ export function createGenomePolicy(genome: Genome, name = 'genome'): Policy {
         spend -= sellPrice(sale.type, sale.tier ?? 1, state.build);
       }
       if (spend > money - w('rule.buyReserve')) continue;
+      const next = sale ? { ...planned, shelf: planned.shelf.map((i) => i?.uid === sale!.uid ? null : i) } : planned;
+      if (!state.lab && weaponLoadoutIssue(next, x.type)) continue;
+      planned.shelf = next.shelf;
+      if (ITEMS[x.type].weapon) planned.placed.push({ uid: `planned-${x.slot}`, type: x.type, x: 0, y: 0, rot: 0 });
       if (sale) { out.push({ kind: 'sell', uid: sale.uid }); sellable.splice(sellable.indexOf(sale), 1); free++; }
       money -= spend; free--;
       out.push({ kind: 'buy', slot: x.slot });

@@ -6,8 +6,10 @@ import type { Build, Inventory, ItemInstance, ItemTypeId, RecipeId, Rotation, Ru
 import { footprint, normalizeRotation, rotateCells } from '../systems/inventory';
 import { computeBuild } from '../systems/synergies';
 import { RECIPES } from '../data/recipes';
-import { cartUpgradeCost, mergeTargetFor, shelfUpgradeCost, shopUpgradeCost, type MoveTarget } from '../state/run';
+import { cartUpgradeCost, mergeTargetFor, shelfUpgradeCost, type MoveTarget } from '../state/run';
 import { repairCost } from '../systems/shop';
+import { MAX_WEAPON_TYPES, weaponLoadoutIssue } from '../systems/weaponLoadout';
+import { weaponPairs } from '../engine/weaponPairings';
 import type { Rng } from '../systems/rng';
 
 // The build-lab policies (docs/buildlab.md). A policy is everything the lab asks a player to decide: what to do in the shop, which door,
@@ -26,7 +28,7 @@ export type ShopAction =
   | { kind: 'upgradeItem'; uid: string }
   | { kind: 'upgradeCart' }
   | { kind: 'upgradeShelf' }
-  | { kind: 'upgradeShop' }
+  | { kind: 'acceptCustomer' }
   | { kind: 'repair' }
   | { kind: 'sell'; uid: string }
   | { kind: 'leave' };
@@ -89,7 +91,8 @@ export function comboCredits(b: Build, placed: readonly ItemInstance[], partial:
 
 export function scoreBuild(b: Build, placed: readonly ItemInstance[], w: ScoreWeights = DEFAULT_SCORE): number {
   const combos = comboCredits(b, placed, w.partial).reduce((n, c) => n + c.credit, 0);
-  return combos * w.recipe + b.weapons.reduce((n, x) => n + x.buffs.length, 0) * w.buff;
+  const familyPairs = new Set(weaponPairs({ placed: [...placed] }).map((p) => p.id)).size;
+  return (combos + familyPairs) * w.recipe + b.weapons.reduce((n, x) => n + x.buffs.length, 0) * w.buff;
 }
 
 export interface Placement { x: number; y: number; rot: Rotation; score: number }
@@ -105,6 +108,8 @@ const perkOf = (state: RunState) => PLAYER.starters[state.starter ?? 'toaster'].
 export type Scorer = (b: Build, placed: readonly ItemInstance[]) => number;
 export function bestPlacement(state: RunState, probe: Probe, weights: ScoreWeights | Scorer = DEFAULT_SCORE): Placement | null {
   const inv = state.inventory, tier = probe.tier ?? 1;
+  if (!state.lab && ITEMS[probe.type].weapon && !inv.placed.some((i) => i.uid === probe.uid) &&
+    (weaponLoadoutIssue(inv, probe.type) || inv.placed.filter((i) => !!ITEMS[i.type].weapon).length >= MAX_WEAPON_TYPES)) return null;
   const occ = new Set<number>();
   for (const p of inv.placed) for (const c of footprint(p)) occ.add(c.y * 64 + c.x);
   const work: Inventory = { cols: inv.cols, rows: inv.rows, placed: [...inv.placed], shelf: [] };
@@ -135,7 +140,7 @@ export interface GreedyOptions {
   /** Repair when hp < maxHp - this. */
   repairSlack: number;
   /** Buy the next Loyalty level when money is above this. */
-  upgradeShopAbove: number;
+  customerReserve: number;
   upgradeCartAbove: number;
   upgradeShelfAbove: number;
   /** Placement score weights (combo, buff). */
@@ -155,7 +160,7 @@ export interface GreedyOptions {
 }
 
 export const GREEDY_DEFAULTS: GreedyOptions = {
-  repairSlack: 9, upgradeShopAbove: 45, upgradeCartAbove: 30, upgradeShelfAbove: 25, score: DEFAULT_SCORE,
+  repairSlack: 9, customerReserve: 45, upgradeCartAbove: 30, upgradeShelfAbove: 25, score: DEFAULT_SCORE,
   rushAvoidHpFrac: 0.6, rushAvoidUntilWave: 3, maxRerolls: 0,
 };
 
@@ -189,15 +194,18 @@ export function createGreedyPolicy(opt: Partial<GreedyOptions> = {}): Policy {
 
   const buyBatch = (state: RunState): ShopAction[] => {
     const out: ShopAction[] = [];
+    const planned = { ...state.inventory, placed: [...state.inventory.placed] };
     let money = state.money, free = state.inventory.shelf.filter((s) => !s).length;
     const sh = state.shop!;
     // The rules decide whether these two succeed; the money left for offers is the pessimistic (both bought) share.
     if (state.hp < state.build.maxHp - o.repairSlack && !sh.repairUsed) { out.push({ kind: 'repair' }); money -= repairCost(state); }
-    if (money > o.upgradeShopAbove && shopUpgradeCost(state) !== null) { out.push({ kind: 'upgradeShop' }); money -= shopUpgradeCost(state) ?? 0; }
+    const deal = sh.customer;
+    if (deal?.status === 'offered' && money - deal.price >= o.customerReserve) { out.push({ kind: 'acceptCustomer' }); money -= deal.price; }
     const ranked = sh.offers.filter((x) => !x.sold).map((x) => ({ x, w: o.itemWeight?.(x.type, x.tier, state) ?? 1 })).filter((r) => r.w > 0);
     ranked.sort((a, b) => b.w - a.w || a.x.slot - b.x.slot);
     for (const { x } of ranked) {
-      if (free <= 0 || x.price > money) continue;
+      if (free <= 0 || x.price > money || (!state.lab && weaponLoadoutIssue(planned, x.type))) continue;
+      if (ITEMS[x.type].weapon) planned.placed.push({ uid: `planned-${x.slot}`, type: x.type, x: 0, y: 0, rot: 0 });
       money -= x.price; free--;
       out.push({ kind: 'buy', slot: x.slot });
     }

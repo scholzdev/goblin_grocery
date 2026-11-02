@@ -192,13 +192,13 @@ describe('Thermos', () => {
 });
 
 describe('Loyalty Life Insurance', () => {
-  it('saves a fatal hit at 1 HP and grants 3 seconds of invulnerability, once', () => {
+  it('revives a fatal hit at half max HP and grants 3 seconds of invulnerability, once', () => {
     const { fake } = arena([at('insurance')], { hp: 10, maxHp: 100 });
     fake.hurt(100, contact);
-    expect(fake.run.hp).toBe(1);
+    expect(fake.run.hp).toBe(50);
     expect(fake.player.invulnT).toBe(3);
     expect(fake.player.dead).toBe(false);
-    reset(fake); fake.hurt(1, contact);
+    reset(fake); fake.hurt(50, contact);
     expect(fake.player.dead).toBe(true);
   });
 
@@ -210,13 +210,13 @@ describe('Loyalty Life Insurance', () => {
     reset(fake); fake.hurt(7, contact); // 5 shield, 2 HP damage
     expect(fake.run.itemUses).toBeUndefined();
     reset(fake); fake.hurt(10, contact);
-    expect(fake.run.hp).toBe(1);
+    expect(fake.run.hp).toBe(50);
   });
 
-  it('survives at 1 HP even at the start of the hit, and cannot reset between aisles or copies', () => {
+  it('revives from 1 HP and cannot reset between aisles or copies', () => {
     const { fake } = arena([at('insurance'), at('insurance')], { hp: 1, maxHp: 100 });
     fake.hurt(1, contact);
-    expect(fake.run.hp).toBe(1);
+    expect(fake.run.hp).toBe(50);
     expect(fake.player.invulnT).toBe(3);
     const next = arena([at('insurance')], { hp: 10, maxHp: 100 }).fake;
     next.run.itemUses = structuredClone(fake.run.itemUses);
@@ -226,6 +226,14 @@ describe('Loyalty Life Insurance', () => {
     expect(useRunOnce(s, 'insurance')).toBe(true);
     startNextWave(s);
     expect(useRunOnce(s, 'insurance')).toBe(false);
+  });
+
+  it('also lands at half HP when a fatal hit starts above half, and scales with max HP', () => {
+    const { fake } = arena([at('insurance')], { hp: 100, maxHp: 121 });
+    fake.hurt(200, contact);
+    expect(fake.run.hp).toBe(61);
+    expect(fake.player.dead).toBe(false);
+    expect(fake.run.itemUses?.insurance).toBe(true);
   });
 });
 

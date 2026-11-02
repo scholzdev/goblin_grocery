@@ -20,6 +20,8 @@ export type ElementTag = (typeof ELEMENTS)[number];
 export type SetId = (typeof SET_ORDER)[number];
 /** Weapon role tags (shown on cards; Electric is the separate `electrical` flag). */
 export type WeaponTag = 'ranged' | 'melee' | 'area';
+/** Primary role in the two-weapon pairing system. Each weapon has exactly one. */
+export type WeaponFamily = 'hunter' | 'spreader' | 'primer' | 'controller';
 export type BuffId = (typeof BUFF_ORDER)[number];
 export type EnemyId = (typeof ENEMY_ORDER)[number];
 
@@ -54,6 +56,8 @@ export interface ItemDef {
   family: FamilyTag;
   element?: ElementTag;
   weapon?: WeaponBase;
+  /** Primary role in the two-weapon pairing system. Weapons only. */
+  weaponFamily?: WeaponFamily;
   /** Weapons only: role tag(s). */
   tags?: WeaponTag[];
   /** Legendary: unique effect, gold border, rare in shops, cannot be upgraded or merged. */
@@ -284,6 +288,8 @@ export interface ShopState {
   riseWait?: boolean;
   /** Shop lock: unsold offers carry over to the next shop at their price; reroll is refused. */
   locked: boolean;
+  /** A customer offers one specific owned item one star higher; rerolls never replace the deal. */
+  customer?: { uid: string; type: ItemTypeId; tier: number; price: number; status: 'offered' | 'accepted' | 'declined' };
 }
 
 export type Phase = 'title' | 'combat' | 'checkout' | 'shop' | 'route' | 'victory' | 'defeat';
@@ -354,7 +360,7 @@ export interface RunState {
   shop: ShopState | null;
   /** Offers of a locked shop, waiting for the next `openShop` (set by `startNextWave`). */
   shopLock?: ShopOffer[];
-  /** Loyalty Card level 1..4 — better offers; persists for the run. */
+  /** Automatic shop milestone 1..4 (aisles 1/3/5/7); manually selectable in the lab. */
   shopLevel: number;
   /** Item types this run may offer (shops, stockroom, crates). Undefined = every item. */
   pool?: ItemTypeId[];

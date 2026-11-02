@@ -19,7 +19,7 @@ import { setLang } from '../src/i18n/lang';
 import { ITEMS, ITEM_IDS, PLAYER, STARTER_WEAPONS, TIER } from '../src/data/items';
 import { contentSetTune, contentTune } from '../src/engine/registry';
 import { STARTING_ITEMS, UNLOCKS } from '../src/data/unlocks';
-import { createLabRun, labAddItem, labDoor, cartUpgradeCost, shelfUpgradeCost, upgradeCart, upgradeShelf, chooseDoor, finishWave, leaveShop, startNextWave, buyOffer, mergeTargetFor, createRun, damagePlayer, mergeItems, moveItem, openShop, previewMerge, previewMove, repair, reroll, sellItem, upgradeCost, upgradeItem, upgradeShop } from '../src/state/run';
+import { createLabRun, labAddItem, labDoor, cartUpgradeCost, shelfUpgradeCost, upgradeCart, upgradeShelf, chooseDoor, finishWave, leaveShop, startNextWave, buyOffer, mergeTargetFor, createRun, damagePlayer, mergeItems, moveItem, openShop, previewMerge, previewMove, repair, reroll, sellItem, upgradeCost, upgradeItem } from '../src/state/run';
 import { OBSTACLES, hazardRects } from '../src/data/obstacles';
 import { zonesOf } from '../src/data/zones';
 import { ARENA, ENTRIES, PLAYER_START, edgeSolids } from '../src/data/arena';
@@ -127,9 +127,9 @@ describe('recipes', () => {
     const b = computeBuild(inv(toaster(), it_('fan', 0, 1), it_('fuel', 3, 1)));
     const w = b.weapons[0];
     expect(w.recipes).toContain('toastMode');
-    expect(w.count).toBe(2);
-    expect(w.spreadDeg).toBe(25);
-    expect(w.damage).toBeCloseTo(9 * 1.12 * 0.75);
+    expect(w.count).toBe(3);
+    expect(w.spreadDeg).toBe(22.5);
+    expect(w.damage).toBeCloseTo(9 * 1.12 * 0.60);
     expect(w.burn).toEqual({ dps: 3, duration: 4, tick: 0.5 });
     expect(w.projectileSpeed).toBeCloseTo(540 * 1.1);
     expect(b.recipes).toHaveLength(1);
@@ -138,7 +138,7 @@ describe('recipes', () => {
   it('toast mode with hot sauce = 7*1.25*bundle*0.6', () => {
     const w = w0(inv(toaster(), it_('fan', 0, 1), it_('fuel', 3, 1), it_('hotsauce', 1, 2)));
     expect(w.recipes).toContain('toastMode');
-    expect(w.damage).toBeCloseTo(9 * 1.25 * 1.18 * 0.75 * 1.1);
+    expect(w.damage).toBeCloseTo(9 * 1.25 * 1.18 * 0.60 * 1.1);
   });
   it('only one support touching the toaster: no recipe even if supports touch each other', () => {
     // fan (0,1)-(0,2); fuel rotated horizontal at (0,3)-(1,3): touches fan, not the toaster
@@ -644,21 +644,19 @@ describe('legendaries / bundle / shop levels', () => {
     expect(upgradeCost(s.inventory.shelf[0]!)).toBeNull();
     expect(s).toEqual(before);
   });
-  it('upgradeShop costs exactly, refused at max / short, atomic', () => {
-    const s = shopRun();
-    s.money = 19;
-    const before = structuredClone(s);
-    expect(upgradeShop(s).ok).toBe(false);
-    expect(s).toEqual(before);
-    s.money = 150;
-    for (const c of [20, 35, 55]) { const m = s.money; expect(upgradeShop(s).ok).toBe(true); expect(s.money).toBe(m - c); }
-    expect(s.shopLevel).toBe(4);
-    const b2 = structuredClone(s);
-    expect(upgradeShop(s).ok).toBe(false);
-    expect(s).toEqual(b2);
+  it('shop quality reaches milestones automatically without charging gold', () => {
+    const s = createRun(1);
+    for (const [aisle, level] of [[1, 1], [3, 2], [5, 3], [7, 4]]) {
+      s.wave = aisle;
+      const money = s.money;
+      openShop(s, mulberry32(aisle));
+      expect(s.shopLevel).toBe(level);
+      expect(s.money).toBe(money);
+    }
   });
   it('level 4 rolls: legendaries only from shop 2, unique, priced by tier', () => {
     const s = createRun(1);
+    s.lab = true;
     s.shopLevel = 4;
     s.openers = ['fan', 'fuel'];
     let legends = 0, t3 = 0;
@@ -711,10 +709,10 @@ describe('departments and routes', () => {
     const s = createRun(3, 'toaster', 0, 'toaster', 'bakery');
     expect([s.theme, s.department, s.modifier, s.route, s.mods]).toEqual(['bakery', 'bakery', 'none', ['bakery'], ['none']]);
   });
-  it('doors are distinct modifiers from the pool; 2 vs 3 by loyalty', () => {
+  it('doors are distinct modifiers from the pool; a third route unlocks automatically at aisle 5', () => {
     for (let seed = 0; seed < 300; seed++) {
-      const a = rollDoors(shopAt(2 + (seed % 4), 'none', 2), mulberry32(seed));
-      const b = rollDoors(shopAt(2 + (seed % 4), 'none', 3), mulberry32(seed));
+      const a = rollDoors(shopAt(2 + (seed % 3)), mulberry32(seed));
+      const b = rollDoors(shopAt(5 + (seed % 2)), mulberry32(seed));
       expect(a).toHaveLength(2); expect(b).toHaveLength(3);
       expect(new Set(a).size).toBe(2); expect(new Set(b).size).toBe(3);
       for (const d of [...a, ...b]) expect([...DOOR_POOL, 'clearance', ...ROOM_DOORS]).toContain(d);
@@ -1016,7 +1014,7 @@ describe('aoe / multi-hit modules', () => {
     expect(w0(inv(it_('toaster', 1, 1), mk('multipack', 0, 1, 3))).count).toBe(3);
     const tm = w0(inv(it_('toaster', 1, 1), it_('fan', 0, 1), it_('fuel', 3, 1), it_('multipack', 1, 0)));
     expect(tm.recipes).toContain('toastMode');
-    expect(tm.count).toBe(3);
+    expect(tm.count).toBe(4);
     expect(w0(inv(it_('nailgun', 1, 1), it_('multipack', 0, 1))).count).toBe(4);
     expect(w0(inv(it_('pan', 0, 0), it_('multipack', 1, 0))).count).toBe(2);
     const lz = w0(inv(it_('laser', 0, 0), it_('multipack', 2, 0)));

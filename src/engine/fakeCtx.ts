@@ -426,7 +426,8 @@ export class FakeCtx implements RuntimeCtx {
     const unmarked = dmg;
     dmg = markedDamage(dmg, e.markedUntil, now, markMult(e.def)); // the shared mark rule (engine/marks), after the affinity like the scene
     const markBonus = dmg - unmarked;
-    if (!o.isDot && !rx && stats && stats.critChance > 0 && this.rand() < stats.critChance) {
+    const rolledCrit = !o.isDot && !rx && !!stats && stats.critChance > 0 && this.rand() < stats.critChance;
+    if (rolledCrit || (!o.isDot && !rx && hit.forceCrit)) {
       dmg *= CRIT.mult;
       hit.crit = true; hit.dmg = dmg; H.emit('onCrit', hit); dmg = hit.dmg;
     }

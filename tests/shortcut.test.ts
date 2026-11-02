@@ -11,10 +11,9 @@ import { profile, recordRun } from '../src/state/profile';
 import type { RunState } from '../src/types';
 
 /** A run in the shop after `cleared` aisles, holding a Shortcut Key (cart or shelf). */
-const shopWithKey = (cleared: number, opts: { shelf?: boolean; level?: number } = {}): RunState => {
+const shopWithKey = (cleared: number, opts: { shelf?: boolean } = {}): RunState => {
   const s = createRun(3);
   s.wave = cleared;
-  s.shopLevel = opts.level ?? 1;
   const key = { uid: newUid(s), type: 'shortcut' as const, x: 3, y: 3, rot: 0 as const };
   if (opts.shelf) s.inventory.shelf[0] = key; else s.inventory.placed.push(key);
   openShop(s, mulberry32(1));
@@ -35,12 +34,12 @@ describe('Shortcut Key', () => {
 
   it('is offered as the last door only while an unused key is owned (cart or shelf), never in overtime', () => {
     for (let seed = 0; seed < 60; seed++) {
-      for (const level of [1, 3]) {
-        const s = shopWithKey(2, { level, shelf: seed % 2 === 0 });
+      for (const cleared of [2, 5]) {
+        const s = shopWithKey(cleared, { shelf: seed % 2 === 0 });
         const doors = rollDoors(s, mulberry32(seed));
         expect(doors.at(-1)).toBe('shortcut');
         expect(doors.filter((d) => d === 'shortcut')).toHaveLength(1);
-        expect(doors).toHaveLength(level >= 3 ? 4 : 3);
+        expect(doors).toHaveLength(cleared >= 5 ? 4 : 3);
       }
       expect(rollDoors(shopWithKey(3), mulberry32(seed))).not.toContain('shortcut'); // would skip aisle 4
       expect(rollDoors(shopWithKey(7), mulberry32(seed))).toEqual(['boss']);

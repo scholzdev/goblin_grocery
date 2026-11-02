@@ -98,7 +98,7 @@
     "rule.buffWeight": 1,
     "rule.tierBonus": 0,
     "rule.repairMargin": 9,
-    "rule.upgradeShopAbove": 45,
+    "rule.customerReserve": 45,
     "rule.upgradeCartAbove": 29.1002,
     "rule.upgradeShelfAbove": 30.4569,
     "rule.buyReserve": 0,

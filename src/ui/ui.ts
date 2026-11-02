@@ -2,7 +2,7 @@ import type Phaser from 'phaser';
 import { store } from '../state/store';
 import { flow } from '../flow';
 import { settings, saveSettings, getBest } from '../state/settings';
-import { ITEMS, PLAYER, STARTER_LOOKS, STARTER_WEAPONS } from '../data/items';
+import { ITEMS, PLAYER, STARTER_LOOKS, STARTER_WEAPONS, WEAPON_FAMILY_ORDER } from '../data/items';
 import { RECIPES, recipeIcon, recipeParts } from '../data/recipes';
 import { BOSS_WAVE, SHIFTS, enemyAppears } from '../data/waves';
 import { CODEX_ENEMIES, ELITE, ENEMIES, MINI_BOSS, bossFor, enemyFrame, isBossId } from '../data/enemies';
@@ -37,6 +37,7 @@ import { allSystemsShown, disclose, setsShown, showAllSystems } from '../state/d
 import { REACTION_TEXT } from '../engine/reactions';
 import { ZONES } from '../data/zones';
 import { previewAisle, type AislePreview } from '../systems/shop';
+import { weaponRoleT } from '../i18n/weapons';
 import { cartSkinT, deptT, enemyT, goblinSkinT, itemT, recipeT, setBonusT, shiftT, starterT, tagT, unlockNeedT, zoneT } from '../i18n/data';
 
 // DOM controllers are created exactly once at boot and driven by store events,
@@ -271,7 +272,7 @@ function titleHtml(): string {
     <div class="menu">
       <button class="btn coral" data-act="play" data-focus>${t('play')}</button>
       <button class="btn" data-act="codex">${t('catalog')} <small class="count">${profile.recipes.length}/${Object.keys(RECIPES).length}</small>${newBadge(newCount())}</button>
-      <button class="btn" data-act="daily">${t('dailyBtn')} <small class="count">${dailyBestToday() ? t('dailyBest', { n: dailyBestToday() }) : t('dailyNone')}</small></button>
+      <button class="btn" data-act="daily">${t('dailyBtn')} <small class="count">${dailyBestToday() ? t('dailyBest', { n: dailyBestToday().toFixed(2) }) : t('dailyNone')}</small></button>
       <button class="btn" data-act="wardrobe">${t('wardrobe')}</button>
       <button class="btn" data-act="history">${t('historyBtn')}</button>
       <button class="btn" data-act="settings">${t('settings')}</button>
@@ -286,7 +287,7 @@ function titleHtml(): string {
       <div class="keys">${kbdHtml('shove')} ${t('cartShove')} · ${kbdHtml('loadout')} ${t('viewCartLc')} · ${kbdHtml('pause')} ${t('pauseLc')}</div>
       <div>${t('howToBlurb', { n: BOSS_WAVE - 1 })}</div>
       <hr class="dash">
-      <div class="best">${best ? t('bestReceipt', { score: best.score, result: best.won ? t('victory') : t('aisleN', { n: best.wave }) }) : t('noReceipts')}</div>
+      <div class="best">${best ? t('bestReceipt', { score: best.score.toFixed(2), result: best.won ? t('victory') : t('aisleN', { n: best.wave }) }) : t('noReceipts')}</div>
     </div>`;
 }
 
@@ -294,7 +295,7 @@ function settingsHtml(): string {
   const slider = (k: 'master' | 'music' | 'sfx', label: string) =>
     `<label>${label}<input type="range" min="0" max="100" value="${Math.round(settings[k] * 100)}" data-set="${k}"><span data-val="${k}">${Math.round(settings[k] * 100)}</span></label>`;
   return `<div class="settings">
-    <label>${t('language')}<select data-set="language">${LANGS.map((l) => `<option value="${l}" ${settings.language === l ? 'selected' : ''}>${l === 'en' ? 'English' : 'Deutsch'}</option>`).join('')}</select></label>
+    <label>${t('language')}<select data-set="language">${LANGS.map((l) => `<option value="${l}" ${settings.language === l ? 'selected' : ''}>${l === 'en' ? 'English' : l === 'de' ? 'Deutsch' : '简体中文'}</option>`).join('')}</select></label>
     ${slider('master', t('master'))}${slider('music', t('music'))}${slider('sfx', t('effects'))}
     <label class="check"><input type="checkbox" data-set="reducedMotion" ${settings.reducedMotion ? 'checked' : ''}>${t('reducedMotion')}</label>
     <label class="check"><input type="checkbox" data-set="shake" ${settings.shake ? 'checked' : ''}>${t('screenShake')}</label>
@@ -428,7 +429,7 @@ function starterHtml(): string {
     const it = ITEMS[wid], w = it.weapon!;
     const stat = t('starterStat', { dmg: w.damage, cd: fmtNum(w.cooldown), rk: w.pattern === 'sweep' ? t('reach') : t('range'), range: w.range });
     return `<button class="btn weapon-pick ${wid === pickedWeapon ? 'coral' : ''}" data-act="weapon" data-weapon="${wid}" aria-pressed="${wid === pickedWeapon}">
-      <img src="${svg(`icon_${wid}`)}" alt=""><span class="wp-text"><span class="wp-head"><b>${itemT(wid).name}</b>${it.tags?.[0] ? `<span class="tagchip ${it.tags[0]}">${tagT(it.tags[0])}</span>` : ''}</span><span class="wp-stat">${stat}</span></span></button>`;
+      <img src="${svg(`icon_${wid}`)}" alt=""><span class="wp-text"><span class="wp-head"><b>${itemT(wid).name}</b>${it.weaponFamily ? `<span class="tagchip family-${it.weaponFamily}">${tagT(it.weaponFamily)}</span>` : ''}</span><span class="wp-stat">${stat}</span><span class="wp-role">${weaponRoleT(wid)}</span></span></button>`;
   };
   const pills = SHIFTS.map((_sh, i) => {
     // Shift progression belongs to the selected goblin: a clear with another
@@ -590,8 +591,8 @@ export function endHtml(): string {
     </div>${side ? `<div class="endr">${side}</div>` : ''}</div>
     <div class="endfoot">
     <hr class="dash">
-    <div class="endscore"><div class="score">${t('pts', { n: res?.score ?? 0 })}</div>${res?.newBest ? `<span class="newbest sticker">${t('newBest')}</span>` : ''}</div>
-    ${res?.daily ? `<div style="text-align:center;font-weight:800">${res.daily.newBest ? t('dailyNewBest') + ' · ' : ''}${t('dailyEndBest', { n: res.daily.best })}</div>` : ''}
+    <div class="endscore"><div class="score">${t('pts', { n: (res?.score ?? 0).toFixed(2) })}</div>${res?.newBest ? `<span class="newbest sticker">${t('newBest')}</span>` : ''}</div>
+    ${res?.daily ? `<div style="text-align:center;font-weight:800">${res.daily.newBest ? t('dailyNewBest') + ' · ' : ''}${t('dailyEndBest', { n: res.daily.best.toFixed(2) })}</div>` : ''}
     ${res ? stampsHtml(res) : ''}
     <div class="row">${buttons}</div>
     <div style="display:flex;justify-content:center;margin-top:12px"><div class="barcode" style="width:180px"></div></div>
@@ -683,7 +684,7 @@ function openSettingsModal(): void {
 function historyHtml(): string {
   const fmt = new Intl.DateTimeFormat(lang() === 'de' ? 'de-DE' : 'en-GB', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
   const rows = profile.history.map((h) => `<div class="hcard">
-      <div class="htop"><span class="hstamp ${h.win ? 'win' : ''}">${h.win ? t('stampWin') : t('stampLoss')}</span><b>${fmt.format(h.t)}</b>${h.daily ? `<span class="badge">${t('histDaily')}</span>` : ''}<span class="hscore display">${t('pts', { n: h.score })}</span></div>
+      <div class="htop"><span class="hstamp ${h.win ? 'win' : ''}">${h.win ? t('stampWin') : t('stampLoss')}</span><b>${fmt.format(h.t)}</b>${h.daily ? `<span class="badge">${t('histDaily')}</span>` : ''}<span class="hscore display">${t('pts', { n: h.score.toFixed(2) })}</span></div>
       <div class="hmeta">${t('histAisle', { n: h.aisle })} · ${t('shiftN', { n: h.shift + 1, name: shiftT(h.shift).name })} · ${starterT(h.starter).name}</div>
       <div class="hicons">${h.items.map((i) => `<img src="${svg(`icon_${i}`)}" title="${itemT(i).name}" alt="${itemT(i).name}">`).join('')}${!setsShown() ? '' : h.sets.map((x) => `<span class="hset" title="${x.id} ${x.lv}">${setIcon(x.id, 14)}<small>${x.lv}</small></span>`).join('')}</div>
     </div>`).join('');
@@ -723,6 +724,7 @@ function codexHtml(tab: 'combos' | 'items' | 'enemies'): string {
 function codexTab(tab: 'combos' | 'items' | 'enemies'): string {
   const ids = Object.keys(RECIPES) as RecipeId[];
   const unlocked = new Set(unlockedItems());
+  const weaponGroups = WEAPON_FAMILY_ORDER.map((family) => ({ family, weapons: ITEM_IDS.filter((id) => ITEMS[id].weaponFamily === family) }));
   const tabs = `<div class="tabs"><button class="tab ${tab === 'combos' ? 'on' : ''}" data-act="codex-tab" data-tab="combos">${t('tabCombos')} ${profile.recipes.length}/${ids.length}${tab !== 'combos' ? newBadge(newCount('recipe:')) : ''}</button>
     <button class="tab ${tab === 'items' ? 'on' : ''}" data-act="codex-tab" data-tab="items">${t('tabItems')} ${unlocked.size}/${ITEM_IDS.length}${tab !== 'items' ? newBadge(newCount('item:')) : ''}</button>
     <button class="tab ${tab === 'enemies' ? 'on' : ''}" data-act="codex-tab" data-tab="enemies">${t('tabEnemies')}${tab !== 'enemies' ? newBadge(newCount('enemy:')) : ''}</button></div>`;
@@ -757,7 +759,7 @@ function codexTab(tab: 'combos' | 'items' | 'enemies'): string {
       list.push(id);
       groups.set(key, list);
     }
-    const weaponOrder = ITEM_IDS.filter((id) => ITEMS[id].kind === 'weapon');
+    const weaponOrder = weaponGroups.flatMap((g) => g.weapons);
     const grouped = [...groups.entries()].sort(([a], [b]) => {
       if (a === '__cart__') return 1;
       if (b === '__cart__') return -1;
@@ -765,16 +767,20 @@ function codexTab(tab: 'combos' | 'items' | 'enemies'): string {
     }).map(([weapon, group]) => {
       const title = weapon === '__cart__' ? 'Cart Effects' : itemT(weapon as ItemTypeId).name;
       const icon = weapon === '__cart__' ? '' : `<img src="${svg(`icon_${weapon}`)}" alt="">`;
-      return `<section class="codex-combo-group"><h3>${icon}${title}<span>${group.length}</span></h3><div class="codex-grid">${group.map(card).join('')}</div></section>`;
+      const family = weapon === '__cart__' ? undefined : ITEMS[weapon as ItemTypeId].weaponFamily;
+      return `<section class="codex-combo-group"${family ? ` data-weapon-family="${family}"` : ''}><h3>${icon}${title}${family ? `<small class="tagchip family-${family}">${tagT(family)}</small>` : ''}<span>${group.length}</span></h3><div class="codex-grid">${group.map(card).join('')}</div></section>`;
     }).join('');
     return `<h2>${t('catalog')}</h2>${tabs}<div class="codex-combo-groups">${grouped}</div>`;
   }
-  const tiles = ITEM_IDS.map((ty) => {
+  const tile = (ty: ItemTypeId) => {
     if (unlocked.has(ty)) return `<div class="codex-item ${ITEMS[ty].legendary ? 'legendary' : ''}" data-card="${ty}">${newTag(`item:${ty}`)}<img src="${svg(`icon_${ty}`)}" alt=""><span>${itemT(ty).name}</span></div>`;
     const u = UNLOCKS.find((x) => x.kind === 'item' && x.item === ty)!;
     return `<div class="codex-item locked" data-card="${ty}"><img src="${svg(`icon_${ty}`)}" alt=""><span>${unlockNeedT(u.id)}</span>${bar(unlockProgress(u))}</div>`;
-  }).join('');
-  return `<h2>${t('catalog')}</h2>${tabs}<div class="codex-items">${tiles}</div>`;
+  };
+  const groups = weaponGroups.map(({ family, weapons }) =>
+    `<section class="codex-item-group" data-weapon-family="${family}"><h3>${tagT(family)}<span>${weapons.length}</span></h3><div class="codex-items">${weapons.map(tile).join('')}</div></section>`).join('');
+  const otherItems = ITEM_IDS.filter((id) => !ITEMS[id].weapon);
+  return `<h2>${t('catalog')}</h2>${tabs}<div class="codex-item-groups">${groups}<section class="codex-item-group"><h3>${t('kindUtility')} · ${t('kindPassive')}<span>${otherItems.length}</span></h3><div class="codex-items">${otherItems.map(tile).join('')}</div></section></div>`;
 }
 
 function wardrobeHtml(): string {

@@ -79,7 +79,7 @@ for (let r = 0; r < runs; r++) {
         const { store, rules, flow } = window.__gg; const s = store.state;
         const bought = [], rolls = []; let rr = 0;
         if (s.hp < s.build.maxHp - 9) rules.repair(s);
-        if (s.money > 45) rules.upgradeShop(s);
+        if (s.shop?.customer?.status === 'offered' && s.money - s.shop.customer.price > 45) rules.acceptCustomer(s);
         if (!targets) for (const o of s.shop.offers) rules.buyOffer(s, o.slot);
         else {
           const buy = () => { for (const t of targets) s.shop.offers.forEach((o, i) => { if (!o.sold && o.type === t && rules.buyOffer(s, i).ok) bought.push(t); }); };

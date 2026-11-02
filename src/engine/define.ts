@@ -207,6 +207,7 @@ export interface BuildSpec<T extends Tune = Tune> {
 
 /** Every combat hook, in the order a table lists them (the typed payloads are in engine/hooks.ts, the API in engine/ctx.ts). */
 export const HOOK_NAMES: readonly HookName[] = [
+  'pattern:target',
   'onAisleStart', 'onTick', 'modifyDamage', 'onHit', 'afterHit', 'onCrit', 'onKill', 'afterKill', 'onDashStart', 'onDashHit', 'onDashEnd', 'onEnemyShotTouch', 'onPlayerHit', 'afterPlayerHit', 'onCoinPickup',
   'pattern:sweep', 'pattern:explode', 'pattern:zap', 'pattern:bounce', 'pattern:shotHit', 'pattern:shotMove', 'pattern:beam', 'pattern:fire', 'pattern:pulse', 'pattern:cone', 'pattern:puddleEnter', 'pattern:aura', 'pattern:look',
 ];

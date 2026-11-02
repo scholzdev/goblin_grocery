@@ -45,7 +45,17 @@ describe('the run-end receipt', () => {
     const { body, foot } = parts(endHtml());
     expect(acts(body), 'no button scrolls away with the body').toEqual([]);
     expect(acts(foot)).toEqual(buttons);
-    expect(foot).toContain('5830 pts');
+    expect(foot).toContain('5830.00 pts');
+  });
+
+  it('formats fractional scores and daily records to exactly two decimals without changing their values', () => {
+    run('victory');
+    flow.lastResult!.score = 5830.123456789;
+    flow.lastResult!.daily = { newBest: true, best: 5830.123456789 };
+    const { foot } = parts(endHtml());
+    expect(foot).toContain('5830.12 pts');
+    expect(foot).not.toContain('5830.123456789');
+    expect(flow.lastResult!.score).toBe(5830.123456789);
   });
 
   it('a defeat leads the side column with the hit that ended the run, a win with the unlocks', () => {

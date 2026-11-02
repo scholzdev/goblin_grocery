@@ -1,4 +1,4 @@
-import { lang } from './lang';
+import { contentLang, lang } from './lang';
 import { t } from './index';
 import { DATA_DE } from './data-de';
 import { PLAYER } from '../data/items';
@@ -13,31 +13,33 @@ import type { CartSkin, GoblinSkin } from '../data/unlocks';
 import type { DepartmentId, EnemyId, ItemTypeId, RecipeId, SetId, StarterId } from '../types';
 
 const de = () => lang() === 'de';
+// Gameplay content currently has English and German records. Chinese uses the
+// complete English catalog until translated records are added.
 
 /** An item's name and blurb in the current language (the blurb's placeholders filled at ★1). */
 export const itemT = (id: ItemTypeId) => {
-  const c = contentItem(id)!, { name, blurb } = c.text[lang()];
-  return { name, blurb: renderText(blurb, c.tune, 1, lang()) };
+  const c = contentItem(id)!, { name, blurb } = c.text[contentLang()];
+  return { name, blurb: renderText(blurb, c.tune, 1, contentLang()) };
 };
 export const itemRules = (id: ItemTypeId, tier = 1): string => {
-  const c = contentItem(id)!, t = c.text[lang()];
-  const rules = renderText(t.rules, c.tune, tier, lang());
-  return hasStar3(tier) && t.star3 ? `${rules} ${renderText(t.star3, c.tune, tier, lang())}` : rules;
+  const c = contentItem(id)!, t = c.text[contentLang()];
+  const rules = renderText(t.rules, c.tune, tier, contentLang());
+  return hasStar3(tier) && t.star3 ? `${rules} ${renderText(t.star3, c.tune, tier, contentLang())}` : rules;
 };
 /** Below ★3, a weapon's ★3 line as a teaser ("At ★3: …", numbers at ★3); '' from ★3 on and for items without one. */
 export const star3Teaser = (id: ItemTypeId, tier = 1): string => {
-  const c = contentItem(id)!, line = c.text[lang()].star3;
-  return line && !hasStar3(tier) ? t('star3At', { line: renderText(line, c.tune, 3, lang()).replace(/^★3:\s*/, '') }) : '';
+  const c = contentItem(id)!, line = c.text[contentLang()].star3;
+  return line && !hasStar3(tier) ? t('star3At', { line: renderText(line, c.tune, 3, contentLang()).replace(/^★3:\s*/, '') }) : '';
 };
 /** A combo's name and texts in the current language, the placeholders filled from its tune. */
 export const recipeT = (id: RecipeId) => {
   const c = contentCombo(id)!;
-  return renderAll(c.text[lang()], c.tune, lang());
+  return renderAll(c.text[contentLang()], c.tune, contentLang());
 };
 /** An enemy's name and codex blurb in the current language (the blurb's placeholders filled from its tune and stats). */
 export const enemyT = (id: EnemyId) => {
-  const c = contentEnemy(id)!, { name, blurb } = c.text[lang()];
-  return { name, blurb: renderText(blurb, enemyTextTune(c), 1, lang()) };
+  const c = contentEnemy(id)!, { name, blurb } = c.text[contentLang()];
+  return { name, blurb: renderText(blurb, enemyTextTune(c), 1, contentLang()) };
 };
 export const deptT = (id: DepartmentId) => {
   const { name, short, blurb, enemiesText, rewardText } = de() ? DATA_DE.departments[id] : DEPARTMENTS[id];
@@ -62,11 +64,11 @@ export const unlockNeedT = (id: string): string =>
 /** A tag's display name. Set ids (family, element, electric) come from their content file; weapon tags (ranged ...) from the DE table. */
 export const tagT = (tag: string): string => {
   const set = contentSet(tag as SetId);
-  if (set) return set.text[lang()].name;
+  if (set) return set.text[contentLang()].name;
   return de() ? DATA_DE.tags[tag] ?? tag : tag.charAt(0).toUpperCase() + tag.slice(1);
 };
 /** The bonus line of set level `lv`, rendered from the set's tune at that level (arrays are L1/L2/L3). */
 export const setBonusT = (id: SetId, lv: 1 | 2 | 3): string => {
   const c = contentSet(id)!;
-  return renderText(c.text[lang()].bonus[lv - 1], c.tune, lv, lang());
+  return renderText(c.text[contentLang()].bonus[lv - 1], c.tune, lv, contentLang());
 };

@@ -1,5 +1,5 @@
 // Per-player settings + best run, persisted in localStorage. Every access guarded.
-import { setLang, systemLang, type Lang } from '../i18n/lang';
+import { LANGS, setLang, systemLang, type Lang } from '../i18n/lang';
 import { defaultKeys, sanitizeKeys, type KeyMap } from './keymap';
 
 export interface Settings {
@@ -43,6 +43,7 @@ function write(key: string, value: unknown): void {
 }
 
 export const settings: Settings = { ...DEFAULTS, ...(read<Partial<Settings>>(KEY) ?? {}) };
+if (!LANGS.includes(settings.language)) settings.language = systemLang();
 settings.keys = sanitizeKeys(settings.keys);
 setLang(settings.language);
 export const saveSettings = (): void => write(KEY, settings);

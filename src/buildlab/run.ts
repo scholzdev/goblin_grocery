@@ -8,7 +8,7 @@ import { rollMiniCrates, rollStockroom } from '../systems/shop';
 import { applyStock } from '../systems/stock';
 import {
   buyOffer, chooseDoor, createRun, finishWave, leaveShop, mergeItems, moveItem, openShop, repair, reroll, sellItem, startNextWave, takeStockroomItem,
-  upgradeCart, upgradeItem, upgradeShelf, upgradeShop,
+  upgradeCart, upgradeItem, upgradeShelf, acceptCustomer,
 } from '../state/run';
 import type { Build, DepartmentId, OpResult, RunState, ShopOffer, StarterId, StarterWeapon } from '../types';
 import { PROXY, playAisle, type AisleResult } from './combat';
@@ -89,7 +89,7 @@ export function apply(state: RunState, a: ShopAction, flow: Rng): ShopStep {
     }
     case 'upgradeCart': return stepOf('upgradeCart', upgradeCart(state));
     case 'upgradeShelf': return stepOf('upgradeShelf', upgradeShelf(state));
-    case 'upgradeShop': return stepOf('upgradeShop', upgradeShop(state));
+    case 'acceptCustomer': return stepOf('acceptCustomer', acceptCustomer(state));
     case 'repair': return stepOf('repair', repair(state));
     case 'sell': {
       const it = [...state.inventory.placed, ...state.inventory.shelf].find((i) => i?.uid === a.uid);

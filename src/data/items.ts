@@ -1,6 +1,14 @@
-import type { Cell, ItemDef, ItemTypeId, Perk, SignatureId, StarterId, StarterWeapon } from '../types';
+import type { Cell, ItemDef, ItemTypeId, Perk, SignatureId, StarterId, StarterWeapon, WeaponFamily } from '../types';
 import { ITEM_ORDER, resolveShape, tierMult, weaponCooldownMult, weaponDamageMult, type ItemContent } from '../engine/define';
 import { contentItem } from '../engine/registry';
+
+/** Stable weapon identities used by the two-weapon pairing system. Keep this map explicit so a new weapon cannot silently ship without a role. */
+const WEAPON_FAMILIES: Partial<Record<ItemTypeId, WeaponFamily>> = {
+  toaster: 'hunter', laser: 'hunter', microwave: 'hunter', nailgun: 'hunter',
+  fizz: 'spreader', popcorn: 'spreader', cooker: 'spreader', blender: 'spreader',
+  tomato: 'primer', spray: 'primer', mop: 'primer', snowcone: 'primer',
+  leafblower: 'controller', pan: 'controller', vacuum: 'controller',
+};
 
 /** The shape of a content item that the rest of the game reads (cells, family, element, flags). Names and texts are not here: `itemT` reads them from the content file. */
 const itemDefOf = (c: ItemContent): ItemDef => {
@@ -10,6 +18,11 @@ const itemDefOf = (c: ItemContent): ItemDef => {
   if (c.sets[1]) def.element = c.sets[1];
   if (c.tags) def.tags = [...c.tags];
   if (c.weapon) def.weapon = c.weapon;
+  if (c.weapon) {
+    const family = WEAPON_FAMILIES[c.id];
+    if (!family) throw new Error(`weapon "${c.id}" has no weapon family`);
+    def.weaponFamily = family;
+  }
   if (c.legendary) def.legendary = true;
   if (c.noShop) def.noShop = true;
   if (c.buff) def.buff = c.buff;
@@ -37,6 +50,8 @@ export const cellsOf = (i: { type: ItemTypeId; tier?: number }): Cell[] => cells
 
 export const ITEM_IDS: ItemTypeId[] = [...ITEM_ORDER];
 export const WEAPON_IDS = ITEM_IDS.filter((id) => ITEMS[id].kind === 'weapon');
+/** Presentation order for the catalog; item registration and shop order stay stable. */
+export const WEAPON_FAMILY_ORDER = ['hunter', 'spreader', 'primer', 'controller'] as const satisfies readonly WeaponFamily[];
 
 /** Global tuning for the player and build. */
 export const PLAYER = {

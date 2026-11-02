@@ -158,7 +158,6 @@ describe('goal unlocks', () => {
     flow.overtime();
     nextAisle();
     place(s, 'pan', 0, 3);
-    place(s, 'nailgun', 3, 3);
     expect(s.build.weapons.length).toBe(target('laser'));
     flow.defeat();
     expect(profile.unlocked).toContain('laser');

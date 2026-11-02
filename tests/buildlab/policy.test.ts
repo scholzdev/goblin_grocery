@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { bestPlacement, createGreedyPolicy, mergePairs, scoreBuild } from '../../src/buildlab/policy';
 import { Combo, Item } from '../../src/engine/ids';
 import { canPlace } from '../../src/systems/inventory';
-import { buyOffer, createRun, mergeItems, moveItem, newUid, openShop, recomputeBuild, repair, upgradeCart, upgradeShelf, upgradeShop } from '../../src/state/run';
+import { buyOffer, createRun, mergeItems, moveItem, newUid, openShop, recomputeBuild, repair, upgradeCart, upgradeShelf, acceptCustomer } from '../../src/state/run';
 import { rollMiniCrates, rollStockroom } from '../../src/systems/shop';
 import { mulberry32 } from '../../src/systems/rng';
 import { ITEM_IDS } from '../../src/data/items';
@@ -95,7 +95,7 @@ describe('greedy policy', () => {
         else if (a.kind === 'move') moveItem(s, a.uid, a.target);
         else if (a.kind === 'merge') mergeItems(s, a.uid, a.targetUid);
         else if (a.kind === 'repair') repair(s);
-        else if (a.kind === 'upgradeShop') upgradeShop(s);
+        else if (a.kind === 'acceptCustomer') acceptCustomer(s);
         else if (a.kind === 'upgradeCart') upgradeCart(s);
         else if (a.kind === 'upgradeShelf') upgradeShelf(s);
       }

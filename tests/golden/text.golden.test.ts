@@ -3,7 +3,7 @@ import { ITEM_IDS } from '../../src/data/items';
 import { RECIPES } from '../../src/data/recipes';
 import { contentItem } from '../../src/engine/registry';
 import { itemRules, itemT, recipeT, tagT } from '../../src/i18n/data';
-import { LANGS, setLang, type Lang } from '../../src/i18n/lang';
+import { contentLang, LANGS, setLang, type Lang } from '../../src/i18n/lang';
 import { computeBuild, describeBuffs, tierScaling } from '../../src/systems/synergies';
 import type { SetId } from '../../src/types';
 import { goldenCarts } from './carts';
@@ -34,7 +34,7 @@ describe('golden: text', () => {
     for (const l of LANGS) {
       inLang(l, () => {
         for (const id of ITEM_IDS) {
-          const { name, blurb } = itemT(id), c = contentItem(id)!, rules = legacyRules(c.text[l].rules, c, l);
+          const { name, blurb } = itemT(id), c = contentItem(id)!, cl = contentLang(), rules = legacyRules(c.text[cl].rules, c, cl);
           out[`items.${id}.${l}`] = {
             name, blurb, rules,
             rulesByTier: { 1: itemRules(id, 1), 2: itemRules(id, 2), 3: itemRules(id, 3) },

@@ -24,6 +24,12 @@ export const zap: Pattern = {
     const tracker = newHitTracker(Infinity);
     // Sniper role: the toughest grocery in range (Elites first, then most HP); the splash handles the small fry.
     let target: PatternEnemy | null = pool.reduce((b, e) => (e.elite !== b.elite ? (e.elite ? e : b) : e.hp > b.hp ? e : b));
+    if (w.targetMode === 'auto' && sc.hooks['pattern:target'].length) {
+      const ev = { stats: st, candidates: pool, target };
+      sc.hooks.emit('pattern:target', ev);
+      target = ev.target;
+    }
+    if (!target) return;
     const H = sc.hooks, hooked = H['pattern:zap'].length > 0;
     const links = st.chain + wetChainBonus(target.status, sc.time.now / 1000); // Wet: +1 link when the first target is wet (once per zap)
     let knockedOut = false;

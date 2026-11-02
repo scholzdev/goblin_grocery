@@ -94,12 +94,26 @@ export const ECONOMY = {
 export const WAVE_RAMP = { hp: 0.4, speed: 0.12, densityPow: 0.8, fullAtWave: 6 };
 
 /**
- * Loyalty Card (shop upgrade). Index = level - 1. Upgrade cost is paid to reach the NEXT level.
+ * Shop quality milestones, reached automatically at aisles 1 / 3 / 5 / 7.
  * Odds are per offer slot; legendaries only from shopIndex >= 2. Pre-tiered offers cost TIER.value.
  */
 export const SHOP_LEVELS = [
-  { upgradeCost: 20, tier2: 0, tier3: 0, legendary: 0.03, freeReroll: false },
-  { upgradeCost: 35, tier2: 0.18, tier3: 0, legendary: 0.06, freeReroll: false },
-  { upgradeCost: 55, tier2: 0.28, tier3: 0.04, legendary: 0.1, freeReroll: true },
-  { upgradeCost: 0, tier2: 0.36, tier3: 0.1, legendary: 0.16, freeReroll: true },
+  { tier2: 0, tier3: 0, legendary: 0.03, freeReroll: false },
+  { tier2: 0.18, tier3: 0, legendary: 0.06, freeReroll: false },
+  { tier2: 0.28, tier3: 0.04, legendary: 0.1, freeReroll: true },
+  { tier2: 0.36, tier3: 0.1, legendary: 0.16, freeReroll: true },
 ];
+
+/** Every aisle improves the odds between milestones; overtime keeps the final odds. */
+export function shopQuality(aisle: number) {
+  const progress = Math.max(0, Math.min(SHOP_LEVELS.length - 1, (aisle - 1) / 2));
+  const lo = Math.floor(progress), hi = Math.ceil(progress), mix = progress - lo;
+  const a = SHOP_LEVELS[lo], b = SHOP_LEVELS[hi];
+  return {
+    level: lo + 1,
+    tier2: a.tier2 + (b.tier2 - a.tier2) * mix,
+    tier3: a.tier3 + (b.tier3 - a.tier3) * mix,
+    legendary: a.legendary + (b.legendary - a.legendary) * mix,
+    freeReroll: a.freeReroll,
+  };
+}

@@ -8,17 +8,17 @@ afterEach(() => vi.restoreAllMocks());
 describeCombo('toastMode', toastMode, ['Toast Mode', 'Toast-Modus']);
 
 describe('Toast Mode: build', () => {
-  it('turns the toaster into a 2-toast, 25 degree spread with 75% damage each', () => {
+  it('turns the toaster into a 3-toast, 22.5 degree spread with 60% damage each', () => {
     const base = bare('toaster'), w = applyCombo(toastMode, base);
-    expect(w.count).toBe(2);
-    expect(w.damage).toBe(base.damage * 0.75);
-    expect(w.spreadDeg).toBe(25);
+    expect(w.count).toBe(3);
+    expect(w.damage).toBe(base.damage * 0.60);
+    expect(w.spreadDeg).toBe(22.5);
   });
   it('is what computeBuild produces for the full cart (the Fan and Fuel Can modules still apply on top)', () => {
     const w = weaponOf(partsOf(toastMode));
     expect(w.recipes).toContain('toastMode');
     expect(w.count).toBeGreaterThanOrEqual(2);
-    expect(w.spreadDeg).toBe(25);
+    expect(w.spreadDeg).toBe(22.5);
   });
 });
 

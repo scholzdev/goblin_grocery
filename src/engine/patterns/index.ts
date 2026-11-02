@@ -14,6 +14,7 @@ import { toast } from './toast';
 import { tomato } from './tomato';
 import { zap } from './zap';
 import type { Pattern, PatternHost } from './types';
+import { weaponTarget } from './common';
 
 // The weapon patterns (docs/item-hooks-refactor.md). A weapon's content file names one in `weapon.pattern`; the arsenal asks the
 // table below what to do each frame. Combos change a pattern through its `pattern:*` events (engine/hooks.ts), never by editing it.
@@ -35,7 +36,7 @@ export function stepWeapons(h: PatternHost, dt: number, firing: boolean): void {
     w.cd -= dt * (w.electrical ? sc.dept.electricalRate * sc.aisleEvent.electricRate() : 1);
     if (!firing || w.cd > 0) continue;
     if (p.blind) { w.cd = w.stats.cooldown; p.fire(h, w, null); continue; }
-    const target = sc.targetForWeapon(w.stats.range, w.targetMode);
+    const target = weaponTarget(h, w);
     if (!target) { w.cd = 0.05; continue; }
     w.cd = w.stats.cooldown;
     p.fire(h, w, target);

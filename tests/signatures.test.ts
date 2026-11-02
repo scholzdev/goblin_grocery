@@ -47,10 +47,10 @@ describe('goblin signatures', () => {
     expect(toast.hp).toBe(10);
   });
 
-  it('Coupon Clipper: the first reroll of every shop is free, then they cost; it stacks with the Loyalty Card', () => {
+  it('Coupon Clipper: the first reroll of every shop is free; it stacks with automatic shop progression', () => {
     const shop = (starter: StarterId, level = 1) => {
       const s = createRun(1, starter);
-      s.wave = 2; s.shopLevel = level; s.money = 100;
+      s.wave = level === 3 ? 5 : 2; s.money = 100;
       openShop(s, mulberry32(1));
       return s;
     };
@@ -61,7 +61,7 @@ describe('goblin signatures', () => {
     expect(currentRerollCost(s)).toBeGreaterThan(0);
     const other = shop('toaster');
     expect(currentRerollCost(other)).toBeGreaterThan(0);
-    const loyal = shop('coupon', 3); // Loyalty Lv3 has its own free reroll
+    const loyal = shop('coupon', 3); // Aisle 5 adds its own free reroll.
     reroll(loyal, mulberry32(2)); reroll(loyal, mulberry32(3));
     expect(loyal.money).toBe(100);
     expect(currentRerollCost(loyal)).toBeGreaterThan(0);

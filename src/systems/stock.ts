@@ -53,6 +53,9 @@ export function drawStock(input: StockInput, rng: Rng): Stock {
   const others = (keep: (t: ItemTypeId) => boolean) => shuffled([...regular].filter((t) => !pool.has(t) && keep(t)), rng);
 
   add(input.weapon);
+  // Reserve a viable partner before the rest of the stock fills with support items.
+  const partner = shuffled([...regular].filter((t) => isWeapon(t) && ITEMS[t].weaponFamily !== ITEMS[input.weapon].weaponFamily), rng)[0];
+  if (partner) add(partner);
   for (const r of withPart(input.weapon)) recipeParts(r).forEach(add);
   DEPARTMENTS[input.theme].shopBias.forEach(add);
   let legend: ItemTypeId | undefined;

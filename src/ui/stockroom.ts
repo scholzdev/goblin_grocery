@@ -1,4 +1,7 @@
 import { t } from '../i18n';
+import { store } from '../state/store';
+import { weaponLoadoutIssue } from '../systems/weaponLoadout';
+import { sellPrice } from '../systems/shop';
 import { itemT } from '../i18n/data';
 import type { ShopOffer } from '../types';
 import { svg, uiRoot } from './hud';
@@ -41,7 +44,8 @@ export function showStockroom(offers: ShopOffer[], onPick: (o: ShopOffer) => voi
       <img class="art" src="${svg(`icon_${o.type}`)}" alt="">
       <div class="nm">${itemT(o.type).name}</div>
       <div class="kind">${kindLabel(o.type)}${starsHtml(o.tier)}</div>
-      <span class="free">${t('stockroomFree')}</span></div>`).join('')}</div>`;
+      <span class="free">${!store.state.lab && weaponLoadoutIssue(store.state.inventory, o.type)
+        ? t('lootWeaponCoins', { n: sellPrice(o.type, o.tier, store.state.build) }) : t('stockroomFree')}</span></div>`).join('')}</div>`;
   el.addEventListener('click', (e) => {
     const c = (e.target as HTMLElement).closest<HTMLElement>('[data-i]');
     if (c) pick(Number(c.dataset.i));

@@ -130,7 +130,7 @@ export const UNLOCKS: Unlock[] = [
   { id: 'bowlingball', kind: 'item', item: 'bowlingball', need: 'Trigger 10 Shatters in one run', type: 'goal', target: 10, measure: (r) => r.reactions.shatter },
   { id: 'ghostpepper', kind: 'item', item: 'ghostpepper', need: 'Reach aisle 4', check: (s) => s.bestWave >= 4, progress: (s) => at(4)(s.bestWave) },
   { id: 'scratchticket', kind: 'item', item: 'scratchticket', need: 'Earn 150 coins (lifetime)', check: (s) => s.coins >= 150, progress: (s) => at(150)(s.coins) },
-  { id: 'laser', kind: 'item', item: 'laser', need: 'Win with 3 weapons in the cart', type: 'goal', target: 3, measure: (r) => (r.won ? r.weapons : 0) },
+  { id: 'laser', kind: 'item', item: 'laser', need: 'Win with 2 weapons in the cart', type: 'goal', target: 2, measure: (r) => (r.won ? r.weapons : 0) },
   { id: 'snowcone', kind: 'item', item: 'snowcone', need: 'Win with the Frost set at level 1', type: 'goal', target: 1, measure: (r) => (r.won ? r.sets.frost : 0) },
   { id: 'moldybread', kind: 'item', item: 'moldybread', need: 'Trigger a Detonate in one run', type: 'goal', target: 1, measure: (r) => r.reactions.detonate },
   { id: 'punchcard', kind: 'item', item: 'punchcard', need: 'Earn 150 coins (lifetime)', check: (s) => s.coins >= 150, progress: (s) => at(150)(s.coins) },

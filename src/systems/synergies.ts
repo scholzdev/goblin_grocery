@@ -3,12 +3,13 @@ import { RECIPES } from '../data/recipes';
 import { setLevels } from '../data/sets';
 import type { ActiveRecipe, BuffId, Build, Inventory, ItemInstance, ItemTypeId, Perk, WeaponStats } from '../types';
 import { adjacentPairs, neighbors } from './inventory';
-import { fmtNum, lang, t } from '../i18n';
-import { itemT, recipeT } from '../i18n/data';
+import { contentLang, fmtNum, t } from '../i18n';
+import { itemT, recipeT, tagT } from '../i18n/data';
 import { BUFF_ORDER, PROJECTILE_PATTERNS } from '../engine/define';
 import { runCombo, runModule, runPhase, runPlayerHooks, tierBoostOf, type BuildEnv, type WeaponEnv } from '../engine/build';
 import { contentItem, contentTune } from '../engine/registry';
 import { tierRows } from '../engine/text';
+import { pairingOf } from '../engine/weaponPairings';
 
 const tierOf = (i: ItemInstance) => i.tier ?? 1;
 
@@ -114,6 +115,18 @@ const star = (t: number) => (t > 1 ? ` ★${t}` : '');
 /** Human lines for a weapon's buffs. Pass `inv` to show module tiers/magnitudes (defaults to ★1). */
 export function describeBuffs(s: WeaponStats, inv?: Inventory): string[] {
   const out: string[] = [];
+  if (inv) {
+    const self = ITEMS[s.type].weaponFamily;
+    const seen = new Set<string>();
+    if (self) for (const n of neighbors(inv.placed, s.uid)) {
+      const other = ITEMS[n.type].weaponFamily;
+      const pair = other ? pairingOf(self, other) : null;
+      if (pair && other && !seen.has(pair)) {
+        seen.add(pair);
+        out.push(`${t('bfPair', { pair: `${tagT(self)} + ${tagT(other)}` })}: ${t(`pair_${pair}`)}`);
+      }
+    }
+  }
   const tiers = new Map<BuffId, number>();
   const boost = inv ? tierBoostOf(inv.placed) : () => 0;
   for (const n of inv ? neighbors(inv.placed, s.uid) : []) {
@@ -144,5 +157,5 @@ type ScaleRow = { label: string; values: string[] };
 export function tierScaling(type: ItemTypeId): ScaleRow[] {
   const content = contentItem(type);
   if (!content || ITEMS[type].legendary) return [];
-  return tierRows(content, lang());
+  return tierRows(content, contentLang());
 }

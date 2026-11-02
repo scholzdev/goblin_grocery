@@ -2,6 +2,7 @@ import { tierBoostOf } from './build';
 import { contentComboTune, contentCombos, contentItems, contentSets, contentSetTune, contentTune } from './registry';
 import { neighbors } from '../systems/inventory';
 import { ITEMS } from '../data/items';
+import { pairingSources } from './weaponPairings';
 import type { ActiveRecipe, HitSource, Inventory, ItemDef, ItemInstance, ItemTypeId, RecipeId, SetId, SlowEffect, WeaponStats } from '../types';
 import { HOOK_NAMES, resolveTune, type AffinityTag, type ReactionId, type ComboContent, type ItemContent, type Resolved, type RuntimeHooks, type SetContent, type Tune } from './define';
 import type { CombatEnemy, CombatShot, FxApi, RuntimeCtx } from './ctx';
@@ -64,6 +65,8 @@ export interface HitEvent {
   /** A player-originated primary hit: not a DoT tick, an echo, a popper blast or a chained hit. Echo-eligible. */
   direct: boolean;
   crit: boolean;
+  /** A conditional content crit, resolved at the normal crit step. */
+  forceCrit?: boolean;
   /** Canned Beans armor soaked at least half of the hit. */
   armored: boolean;
   /** Set when `onHit` runs: this hit took the enemy to 0 HP (it dies right after). */
@@ -161,6 +164,7 @@ export interface WeaponLook {
 
 /** Event type per hook name. `onTick`'s event is the frame delta in seconds (no payload object per frame). */
 export interface HookEvents {
+  'pattern:target': PatternBase & { candidates: CombatEnemy[]; target: CombatEnemy | null; prioritized?: boolean };
   onAisleStart: AisleStartEvent;
   onTick: number;
   modifyDamage: HitEvent;
@@ -198,7 +202,7 @@ export type HookName = keyof HookEvents;
 /** The `c` every hook receives: its owner's tier and tune, resolved once when the cart was compiled. */
 export interface HookCtx<T extends Tune = Tune> {
   readonly id: string;
-  readonly kind: 'item' | 'combo' | 'set';
+  readonly kind: 'item' | 'combo' | 'set' | 'pairing';
   /** Item: best effective tier in the cart (Gold Star included, same as the build hooks' `env.top`). Combo: 1. Set: its level. */
   readonly tier: number;
   /** The owner's `tune` resolved for `tier`. The same frozen object every call (no allocation). */
@@ -251,7 +255,7 @@ export interface HookTable extends Lists {
 /** One content owner with runtime hooks that is active in the current cart. */
 export interface HookSource {
   id: string;
-  kind: 'item' | 'combo' | 'set';
+  kind: 'item' | 'combo' | 'set' | 'pairing';
   tier: number;
   tune?: Tune;
   hooks: RuntimeHooks;
@@ -343,6 +347,6 @@ export function hookSourcesFor(cart: Inventory, recipes: readonly ActiveRecipe[]
 /** `hookSourcesFor` + `compileHooks` in one step: what the arena calls when it is handed a build. */
 export function buildHooks(cart: Inventory, recipes: readonly ActiveRecipe[], sets: Record<SetId, 0 | 1 | 2 | 3>, ctx: RuntimeCtx, lookup?: ContentLookup): HookTable {
   const { sources, owned } = hookSourcesFor(cart, recipes, sets, lookup);
-  return compileHooks(sources, ctx, owned);
+  return compileHooks([...sources, ...pairingSources(cart)], ctx, owned);
 }
 

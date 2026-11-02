@@ -5,7 +5,7 @@ import { contentItem, contentSetTune, contentTune } from '../../../src/engine/re
 import { itemRules, itemT } from '../../../src/i18n/data';
 import { setLang } from '../../../src/i18n/lang';
 import { tierScaling } from '../../../src/systems/synergies';
-import { around, at, corner, far, full, gilded } from '../helpers';
+import { arena, around, at, corner, far, full, gilded } from '../helpers';
 
 afterEach(() => setLang('en'));
 
@@ -45,6 +45,15 @@ describe('Magnet: build', () => {
 });
 
 describe('Magnet: content', () => {
+  it('pulls the entire arena every tick, without stacking copies or requiring adjacency', () => {
+    const plain = arena([at('toaster')]);
+    plain.fake.tick(0.05);
+    expect(plain.fake.callsOf('pullCoins')).toHaveLength(0);
+    const a = arena([at('toaster'), far('magnet'), far('magnet', 3)]);
+    a.fake.tick(0.05);
+    a.fake.tick(0.05);
+    expect(a.fake.callsOf('pullCoins')).toHaveLength(2);
+  });
   it('is the registered content file, and the item table is derived from it', () => {
     expect(contentItem('magnet')).toBe(magnet);
     expect(ITEMS.magnet).toMatchObject({ id: 'magnet', family: 'tools', kind: 'passive', price: 7, electrical: false });
@@ -65,13 +74,13 @@ describe('Magnet: content', () => {
   });
 
   it('renders its text for every level, EN and DE', () => {
-    expect([1, 2, 3].map((t) => itemRules('magnet', t))).toEqual([
-      '+60 coin pickup radius (does not stack). Combo: Nailstorm with Nail Gun + Battery.',
-      '+90 coin pickup radius (does not stack). Combo: Nailstorm with Nail Gun + Battery.',
-      '+120 coin pickup radius (does not stack). Combo: Nailstorm with Nail Gun + Battery.',
-    ]);
+    for (const [tier, pickup] of [[1, 60], [2, 90], [3, 120]]) {
+      expect(itemRules('magnet', tier)).toContain('entire arena all the way to you, even as the run ends');
+      expect(itemRules('magnet', tier)).toContain(`+${pickup} pickup radius`);
+    }
     setLang('de');
-    expect(itemRules('magnet', 2)).toBe('+90 Münz-Sammelradius (stapelt sich nicht). Combo: Nagelsturm mit Nagelpistole + Batterie.');
+    expect(itemRules('magnet', 2)).toContain('gesamten Arena vollständig zu dir');
+    expect(itemRules('magnet', 2)).toContain('+90 Sammelradius');
     expect(itemT('magnet')).toMatchObject({ name: 'Magnet', blurb: 'Münzen kommen zu dir.' });
   });
 

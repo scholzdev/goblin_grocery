@@ -721,7 +721,7 @@ export class ArenaScene extends Phaser.Scene {
     const rolled = !o.isDot && !rx && !!stats && stats.critChance > 0 && this.rng() < stats.critChance;
     // Toast Goblin: a weapon's first direct hit of the aisle always crits (after the roll, so the combat rng stream is the same for every goblin).
     const first = !!stats && !o.isDot && !rx && !o.echo && !o.fromPopper && !o.chained && firstHitCrit(store.state.starter, this.firstHitDone, stats.uid);
-    const crit = rolled || first;
+    const crit = rolled || first || (!o.isDot && !rx && !!hit.forceCrit);
     if (crit) {
       dmg *= CRIT.mult;
       this.fx.popImage('fx_crit', e.x + Phaser.Math.Between(-10, 10), e.y - e.sprite.displayHeight - 6, 0.8);
@@ -941,6 +941,18 @@ export class ArenaScene extends Phaser.Scene {
     c.img.setVisible(true).setAlpha(1);
   }
 
+  /** Settle the floor before leaving the arena; crumbs are never money. Safe to call more than once. */
+  private sweepCoins(label?: string): void {
+    for (const c of this.coins) {
+      if (!c.active) continue;
+      c.active = false;
+      c.img.setVisible(false);
+      this.fx.puff(c.x, c.y, 1);
+      if (!c.bread) addCoins(store.state, 1, label ?? c.label);
+    }
+    store.changed();
+  }
+
   private updateCoins(dt: number): void {
     const p = this.player;
     const radius = store.state.build.pickupRadius;
@@ -956,7 +968,8 @@ export class ArenaScene extends Phaser.Scene {
       const d = Math.hypot(dx, dy);
       if (c.pull || d < radius) {
         c.pull = true;
-        const sp = 420 + (radius - Math.min(d, radius)) * 3;
+        // Never step past the player: large radii / slow frames otherwise leave coins oscillating forever.
+        const sp = Math.min(420 + (radius - Math.min(d, radius)) * 3, d / (dt || 1));
         c.vx = (dx / (d || 1)) * sp; c.vy = (dy / (d || 1)) * sp;
       } else {
         const fr = this.hazards.onIce(c.x, c.y) ? 0.6 : 3; // coins skate on ice
@@ -965,10 +978,11 @@ export class ArenaScene extends Phaser.Scene {
       }
       c.x += c.vx * dt; c.y += c.vy * dt;
       if (!c.pull) for (const o of this.obstacles) { const q = pushOutCircle(c.x, c.y, 8, o); if (q) { c.x = q.x; c.y = q.y; c.vx *= -0.3; c.vy *= -0.3; } }
-      if (d < 26 && c.pull) {
+      if (c.pull && Math.hypot(p.x - c.x, p.y - 20 - c.y) < 26) {
         c.active = false;
         c.img.setVisible(false);
         if (c.bread) {
+          if (p.dead) continue;
           const s = store.state;
           healPlayer(s, s.build, DEPT_TUNING.bread.heal);
           this.fx.number(this.player.x, this.player.y - 90, DEPT_TUNING.bread.heal, '#8FCB57', 20);
@@ -1480,8 +1494,9 @@ export class ArenaScene extends Phaser.Scene {
     const alive = this.enemies.filter((e) => e.alive);
     alive.forEach((e, i) => this.time.delayedCall(40 * i, () => this.killEnemy(e, false))); // no kill credit
     // Coins still on the floor get swept up at the end.
+    this.time.delayedCall(600, () => this.pullCoins());
     this.time.delayedCall(Math.max(1700, 40 * alive.length + 900), () => {
-      this.coins.forEach((c) => { if (c.active) { c.active = false; c.img.setVisible(false); this.fx.puff(c.x, c.y, 1); if (!c.bread) addCoins(store.state, 1, t('coinSwept')); } });
+      this.sweepCoins(t('coinSwept'));
       flow.endWave();
     });
   }
@@ -1507,9 +1522,9 @@ export class ArenaScene extends Phaser.Scene {
     this.arsenal.clearAll(true);
     this.groups.forEach((g) => (g.done = true));
     this.enemies.filter((e) => e.alive).forEach((e) => this.killEnemy(e, false));
-    this.time.delayedCall(700, () => this.coins.forEach((c) => (c.pull = c.active)));
+    this.time.delayedCall(700, () => this.pullCoins());
     this.time.delayedCall(2200, () => {
-      this.coins.forEach((c) => { if (c.active) { c.active = false; c.img.setVisible(false); addCoins(store.state, 1, c.label); } });
+      this.sweepCoins();
       flow.victory();
     });
   }
@@ -1522,10 +1537,15 @@ export class ArenaScene extends Phaser.Scene {
     const p = this.player;
     p.dead = true;
     this.ending = 'defeat';
+    const magnet = store.state.inventory.placed.some((i) => i.type === 'magnet');
+    if (magnet) this.pullCoins();
     this.fx.puff(p.x, p.y - 40, 10);
     this.tweens.add({ targets: this.rig, angle: p.facing * 18, y: p.y + 6, duration: 400, ease: 'Bounce.Out' });
     showBanner(t('wipedBanner'), t('wipedSub'));
-    this.time.delayedCall(1300, () => flow.defeat());
+    this.time.delayedCall(1300, () => {
+      if (magnet) this.sweepCoins();
+      flow.defeat();
+    });
   }
 
   // ───────────────────────────── dev only ─────────────────────────────

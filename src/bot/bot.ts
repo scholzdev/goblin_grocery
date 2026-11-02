@@ -10,7 +10,7 @@ import { MODIFIERS, type DoorId, type ModifierId } from '../data/modifiers';
 import { ECONOMY, waveDef } from '../data/waves';
 import { flow } from '../flow';
 import type { ArenaScene } from '../scenes/ArenaScene';
-import { cartUpgradeCost, shelfUpgradeCost, shopUpgradeCost, upgradeCost } from '../state/run';
+import { cartUpgradeCost, shelfUpgradeCost, upgradeCost } from '../state/run';
 import { store } from '../state/store';
 import { currentRerollCost, repairCost } from '../systems/shop';
 import { segmentHitsRect } from '../systems/obstacles';
@@ -359,7 +359,7 @@ export function startBot(): void {
   /** Genome item weights with the defense boost of every offer and shelf item that adds toughness (`defenseOnly`: everything else is 0, so only those are bought); the rule thresholds the rule layer owns are switched off. */
   function tuned(s: RunState, reserve: number, defenseOnly: boolean): Genome {
     const p = { ...genome.p }, deficit = deficitOf(s), gains = defGains(s);
-    p['rule.repairMargin'] = 40; p['rule.upgradeShopAbove'] = p['rule.upgradeCartAbove'] = p['rule.upgradeShelfAbove'] = 120;
+    p['rule.repairMargin'] = 40; p['rule.customerReserve'] = p['rule.upgradeCartAbove'] = p['rule.upgradeShelfAbove'] = 120;
     p['rule.buyReserve'] = reserve; p['rule.maxRerolls'] = 0;
     if (defenseOnly) for (const id of ITEM_IDS) if (!gains.has(id)) p[`item.${id}`] = 0;
     for (const [type, g] of gains) {
@@ -454,8 +454,9 @@ export function startBot(): void {
         v.phase = v.again ? 'done' : 'genome';
         const acts: ShopAction[] = [];
         let m = s.money - v.reserve;
-        const loyal = shopUpgradeCost(s), cart = cartUpgradeCost(s), shelf = shelfUpgradeCost(s);
-        if (loyal !== null && loyal <= m) { acts.push({ kind: 'upgradeShop' }); m -= loyal; }
+        const cart = cartUpgradeCost(s), shelf = shelfUpgradeCost(s);
+        const deal = s.shop?.customer;
+        if (deal?.status === 'offered' && deal.price <= m) { acts.push({ kind: 'acceptCustomer' }); m -= deal.price; }
         if (cart !== null && cart <= m && cartFree(s.inventory) < 6) { acts.push({ kind: 'upgradeCart' }); m -= cart; }
         if (shelf !== null && shelf <= m && s.inventory.shelf.every((i) => i)) acts.push({ kind: 'upgradeShelf' });
         if (acts.length && !v.again) { v.again = true; v.inner = null; return acts; }
@@ -513,7 +514,7 @@ export function startBot(): void {
     else if (kind === 'reroll') spend.reroll += c;
     else if (kind === 'merge') spend.merge++;
     else if (kind === 'repair') spend.repair += c;
-    else if (kind === 'upgradeItem' || kind === 'upgradeCart' || kind === 'upgradeShelf' || kind === 'upgradeShop') spend.upgrades += c;
+    else if (kind === 'upgradeItem' || kind === 'upgradeCart' || kind === 'upgradeShelf' || kind === 'acceptCustomer') spend.upgrades += c;
   }
 
   /** The door by the build's power: harder doors (more enemies, elites) only while dps and toughness are up to the next aisle and HP is healthy; weaker builds take the lightest aisle (a stockroom is free loot). The genome's door weights break ties. */

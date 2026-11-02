@@ -14,7 +14,7 @@ All tuning lives in `src/content/items/<id>.ts`. Copies of the same item use the
 | Weighted Blanket / `blanket` | +30 / 45 / 60 max HP and 10 / 15 / 20% damage reduction; movement speed −10% |
 | Rubber Boots / `rubberboots` | 50 / 60 / 70% less floor-hazard damage; floor slows are 50 / 65 / 80% weaker |
 | Thermos / `thermos` | Stores up to 15 / 23 / 30 excess healing as a shield |
-| Loyalty Life Insurance / `insurance` | Legendary: one fatal hit per run leaves 1 HP and grants 3 seconds of invulnerability |
+| Loyalty Life Insurance / `insurance` | Legendary: one fatal hit per run restores 50% max HP (rounded up) and grants 3 seconds of invulnerability; copies and re-equipping share the spent charge |
 
 Thermos collects excess healing from regeneration, bread, healing hooks, merge healing, repairs and aisle rewards. The shield persists between aisles, clamps to a lower cap when downgraded, and clears when Thermos leaves the cart. Increasing max HP does not heal or create a shield. Shield is shown above the player while active.
 

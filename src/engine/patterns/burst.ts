@@ -1,11 +1,18 @@
-import { aimAngle, emitFire, origin } from './common';
+import { aimAngle, emitFire, origin, weaponTarget } from './common';
 import type { Pattern, PatternEnemy, PatternHost, WeaponRt } from './types';
 
 const aimed = new WeakMap<WeaponRt, Set<number>>();
+const locked = new WeakMap<WeaponRt, PatternEnemy>();
 
 function nailTarget(h: PatternHost, w: WeaponRt): PatternEnemy | null {
   const sc = h.sc, range = w.stats.range, seen = aimed.get(w);
-  if (!seen) return sc.targetForWeapon(range, w.targetMode);
+  if (!seen) {
+    const old = locked.get(w);
+    if (w.targetMode === 'auto' && old?.alive && old.state !== 'spawn' && Math.hypot(old.x - sc.player.x, old.y - sc.player.y) <= range) return old;
+    const next = weaponTarget(h, w);
+    if (next) locked.set(w, next);
+    return next;
+  }
   const t = sc.nearestEnemyFrom(sc.player.x, sc.player.y, range, seen) ?? sc.targetForWeapon(range, w.targetMode);
   if (t) seen.add(t.id);
   return t;
@@ -31,9 +38,10 @@ export const burst: Pattern = {
     w.burstLeft--;
     w.burstT = w.stats.burstInterval;
   },
-  fire(_h, w) {
+  fire(_h, w, target) {
     w.burstLeft = w.stats.count;
     w.burstT = 0;
+    if (target) locked.set(w, target);
     if (w.tune.spreadNails > 0) aimed.set(w, new Set());
   },
 };

@@ -2,7 +2,7 @@ import { t } from '../i18n';
 import { ITEMS, ITEM_IDS, PLAYER, SIGNATURE, STARTER_WEAPONS, TIER, signatureOf } from '../data/items';
 import { DEPARTMENTS } from '../data/departments';
 import { MODIFIERS, type DoorId } from '../data/modifiers';
-import { BOSS_WAVE, ECONOMY, SHIFTS, SHOP_LEVELS } from '../data/waves';
+import { BOSS_WAVE, ECONOMY, SHIFTS, shopQuality } from '../data/waves';
 import type { ZoneId } from '../data/zones';
 import type { DepartmentId, ElementTag, FamilyTag, Build, HitSource, Inventory, ItemInstance, ItemTypeId, LabOpts, OpResult, Rotation, RunState, StarterId, StarterWeapon } from '../types';
 import { canPlace, findItem, firstFit, normalizeRotation } from '../systems/inventory';
@@ -16,6 +16,7 @@ import { FAMILIES, FLAVORS } from '../engine/define';
 import { PUNCH_REROLLS } from '../systems/contracts';
 import { canShortcut, spendKey } from '../systems/shortcut';
 import { healPlayer } from '../engine/playerHealth';
+import { equippedWeaponIssue, weaponLoadoutIssue, weaponPlacementIssue } from '../systems/weaponLoadout';
 
 const fail = (reason: string): OpResult => ({ ok: false, reason });
 const OK: OpResult = { ok: true };
@@ -128,6 +129,8 @@ export const labDoor = (s: RunState): DoorId =>
 /** Free copy of `type` at `tier` (legendaries ★1): in the cart's first free spot for `to: 'cart'` (the shelf when nothing fits), else the first empty shelf slot. */
 export function labAddItem(state: RunState, type: ItemTypeId, tier: number, to: 'cart' | 'shelf' = 'shelf'): { ok: true; where: 'cart' | 'shelf' } | { ok: false; reason: string } {
   if (state.phase !== 'shop') return { ok: false, reason: t('rShopClosed') };
+  const issue = !state.lab && weaponLoadoutIssue(state.inventory, type);
+  if (issue) return { ok: false, reason: issue };
   const inv = state.inventory, tr = ITEMS[type].legendary ? 1 : Math.max(1, Math.min(TIER.max, tier));
   const spot = to === 'cart' ? firstFit(inv, type, tr) : null, free = inv.shelf.indexOf(null);
   if (!spot && free < 0) return { ok: false, reason: t('rShelfFull') };
@@ -181,6 +184,8 @@ function applyMove(inv: Inventory, uid: string, tg: MoveTarget): OpResult {
 
 export function moveItem(state: RunState, uid: string, target: MoveTarget): OpResult {
   if (state.phase !== 'shop') return fail(t('rNoRearrange'));
+  const issue = !state.lab && target.where === 'grid' && weaponPlacementIssue(state.inventory, uid);
+  if (issue) return fail(issue);
   const r = applyMove(state.inventory, uid, target);
   if (r.ok) recomputeBuild(state);
   return r;
@@ -188,6 +193,8 @@ export function moveItem(state: RunState, uid: string, target: MoveTarget): OpRe
 
 export function previewMove(state: RunState, uid: string, target: MoveTarget): { result: OpResult; build: Build | null } {
   if (state.phase !== 'shop') return { result: fail(t('rNoRearrange')), build: null };
+  const issue = !state.lab && target.where === 'grid' && weaponPlacementIssue(state.inventory, uid);
+  if (issue) return { result: fail(issue), build: null };
   const inv = structuredClone(state.inventory);
   const result = applyMove(inv, uid, target);
   return { result, build: result.ok ? computeBuild(inv, perkOf(state)) : null };
@@ -254,23 +261,45 @@ export function upgradeItem(state: RunState, uid: string): OpResult {
   return OK;
 }
 
-export const shopUpgradeCost = (state: RunState): number | null =>
-  state.shopLevel >= SHOP_LEVELS.length ? null : SHOP_LEVELS[state.shopLevel - 1].upgradeCost;
-
-export function upgradeShop(state: RunState): OpResult {
+/** Customer purchase revalidates the original item, tier, price, space and wallet before charging. */
+export function acceptCustomer(state: RunState): OpResult {
   if (state.phase !== 'shop' || !state.shop) return fail(t('rShopClosed'));
-  const cost = shopUpgradeCost(state);
-  if (cost === null) return fail(t('rLoyaltyMax'));
-  if (state.money < cost) return fail(t('needCoins', { n: cost - state.money }));
-  state.money -= cost;
-  state.shopLevel++;
+  const deal = state.shop.customer;
+  const item = deal && findItem(state.inventory, deal.uid)?.inst;
+  if (!deal || deal.status !== 'offered' || !item || item.type !== deal.type || (item.tier ?? 1) !== deal.tier || upgradeCost(item) !== deal.price) return fail(t('rCustomerGone'));
+  const result = upgradeItem(state, deal.uid);
+  if (!result.ok) return result;
+  deal.status = 'accepted';
   return OK;
+}
+
+export function declineCustomer(state: RunState): OpResult {
+  if (state.phase !== 'shop' || !state.shop) return fail(t('rShopClosed'));
+  const deal = state.shop.customer;
+  if (!deal || deal.status !== 'offered') return fail(t('rCustomerGone'));
+  deal.status = 'declined';
+  return OK;
+}
+
+/** A separate seeded stream keeps visits stable and leaves offer/combat randomness untouched. */
+function customerOffer(state: RunState): NonNullable<RunState['shop']>['customer'] {
+  const rng = mulberry32(state.seed ^ Math.imul(state.wave, 0x6a09e667));
+  const chance = Math.min(0.55, 0.25 + Math.max(0, state.wave - 1) * 0.05);
+  if (rng() >= chance) return undefined;
+  const inv = state.inventory;
+  const eligible = [...inv.placed, ...inv.shelf].filter((i): i is ItemInstance => !!i && upgradeCost(i) !== null &&
+    (!inv.placed.includes(i) || canPlace(inv, i.type, i.x, i.y, i.rot, i.uid, (i.tier ?? 1) + 1).ok));
+  if (!eligible.length) return undefined;
+  const i = eligible[Math.floor(rng() * eligible.length)];
+  return { uid: i.uid, type: i.type, tier: i.tier ?? 1, price: upgradeCost(i)!, status: 'offered' };
 }
 
 export function buyOffer(state: RunState, slot: number): OpResult {
   if (state.phase !== 'shop' || !state.shop) return fail(t('rShopClosed'));
   const o = state.shop.offers[slot];
   if (!o || o.sold) return fail(t('rNotAvailable'));
+  const issue = !state.lab && weaponLoadoutIssue(state.inventory, o.type);
+  if (issue) return fail(issue);
   if (state.money < o.price) return fail(t('needCoins', { n: o.price - state.money }));
   const free = state.inventory.shelf.indexOf(null);
   if (free < 0) return fail(t('rShelfFullSell'));
@@ -283,7 +312,7 @@ export function buyOffer(state: RunState, slot: number): OpResult {
 /** Stockroom: take the free item (shelf full: its sell price in coins instead). Returns true if it went on the shelf. */
 export function takeStockroomItem(state: RunState, o: { type: ItemTypeId; tier: number; double?: boolean }): boolean {
   const free = state.inventory.shelf.indexOf(null);
-  if (free < 0) { addCoins(state, sellPrice(o.type, o.tier, state.build), t('coinStockroom')); return false; }
+  if (free < 0 || (!state.lab && weaponLoadoutIssue(state.inventory, o.type))) { addCoins(state, sellPrice(o.type, o.tier, state.build), t('coinStockroom')); return false; }
   state.inventory.shelf[free] = { uid: newUid(state), type: o.type, x: 0, y: 0, rot: 0, tier: o.tier, ...(o.double ? { double: true } : {}), ...newFlavor(state, o.type), ...newBinder(state, o.type) };
   return true;
 }
@@ -355,6 +384,7 @@ function riseSourdough(state: RunState): boolean {
 
 export function openShop(state: RunState, rng: Rng): void {
   state.phase = 'shop';
+  if (!state.lab) state.shopLevel = shopQuality(state.wave).level;
   const riseWait = ageItems(state);
   recomputeBuild(state); // before the offers: Fresh Fish's price markup starts the shop it begins to stink
   const d = DEPARTMENTS[state.department];
@@ -365,6 +395,7 @@ export function openShop(state: RunState, rng: Rng): void {
   state.shop = { offers: rollOffers(state, rng, state.wave, state.wave === 1 && !carried, carried ? { ...opts, keep: carried } : opts), locked: !!carried, rerolls: 0, repairUsed: false, freeRerollUsed: false, bonusFreeRerolls: m.freeRerolls + (signatureOf(state.starter) === 'freeReroll' ? SIGNATURE.freeReroll.rerolls : 0), shopIndex: state.wave, ...opts };
   if (state.punch?.status === 'done') { state.shop.bonusFreeRerolls += PUNCH_REROLLS; state.punch = undefined; } // Punch Card: the completed goal's free reroll
   state.shop.riseWait = riseWait;
+  state.shop.customer = customerOffer(state);
   rollFlavors(state, rng); // recomputes the build (after sourdough tiers changed)
 }
 
@@ -433,6 +464,8 @@ export function drainPlayer(state: RunState, hp: number, by: ItemTypeId): void {
 
 export function leaveShop(state: RunState, rng: Rng): OpResult {
   if (state.phase !== 'shop' || !state.shop) return fail(t('rShopClosed'));
+  const issue = !state.lab && (weaponLoadoutIssue(state.inventory) || equippedWeaponIssue(state.inventory));
+  if (issue) return fail(issue);
   state.doors = state.lab ? [labDoor(state), ...(canShortcut(state, state.wave) ? ['shortcut' as const] : [])] : rollDoors(state, rng); // a lab aisle has its one door, plus Staff Only while a key is owned
   state.doorZones = rollZones(state, rng, state.doors);
   state.phase = 'route';

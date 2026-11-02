@@ -9,10 +9,20 @@ export default defineItem({
   id: Item.microwave, kind: 'weapon', sets: [Set.kitchen, Set.heat], shape: cells('.##', '##.'), price: 20, tags: ['area'], electrical: true,
   weapon: W,
   // damage and interval per ★ for the text and the shop rows (the stats themselves come from `weapon`)
-  tune: { ...weaponTiers(W), range: W.range, aoe: W.aoe, killRecharge: [0, 0, 1], rechargeMult: 0.5 },
+  tune: { ...weaponTiers(W), range: W.range, aoe: W.aoe, killRecharge: [0, 0, 1], rechargeMult: 0.5, rampBonus: 0.25, rampCap: 3 },
   rows: WEAPON_ROWS,
   text: {
     en: { name: 'Microwave', blurb: 'Ding! Nukes a grocery from across the aisle.', rules: 'Every {cooldown|s} zaps the toughest enemy within {range} (Elites first, then most HP) for {damage} damage, splashing everything within {aoe}. Electrical.', star3: '★3: When a zap knocks out its target, the next one charges in {rechargeMult|pct} of the time.' },
     de: { name: 'Mikrowelle', blurb: 'Kling! Beamt einen Gegner quer durch den Gang.', rules: 'Zappt alle {cooldown|s} den zähsten Gegner im Umkreis von {range} (zuerst Elite, dann meiste LP) für {damage} Schaden, mit Flächenschaden im Umkreis von {aoe}. Elektrisch.', star3: '★3: Schaltet ein Zap sein Ziel aus, lädt der nächste in {rechargeMult|pct} der Zeit.' },
+  },
+  hooks: {
+    'pattern:zap'(ev, _ctx, c) {
+      if (ev.stats.type !== Item.microwave || ev.stage !== 'before' || ev.link !== 0) return;
+      const tracks: Map<string, { target: number; stacks: number }> = c.state.focus ??= new Map();
+      const t = c.tune(), prev = tracks.get(ev.stats.uid);
+      const stacks = prev?.target === ev.target.id ? Math.min(t.rampCap, prev.stacks + 1) : 0;
+      tracks.set(ev.stats.uid, { target: ev.target.id, stacks });
+      ev.damageMult *= 1 + stacks * t.rampBonus;
+    },
   },
 });
