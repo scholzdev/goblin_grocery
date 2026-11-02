@@ -199,6 +199,8 @@ export interface RuntimeCtx {
   // ---- spawning
   spawnShot(spec: ShotSpec): CombatShot | null;
   spawnPool(spec: PoolSpec): void;
+  /** A slush puddle of the `puddle` weapon `weaponUid` (the Snow Cone Machine's own look, stats, slow and Wet) at (x, y). Counts against the shared puddle cap. No effect for other weapons. */
+  spawnPuddle(weaponUid: string, x: number, y: number): void;
   /** Party Popper blast: damages everything within `pop.radius`, never re-triggers poppers. `setPop`: the pink Blast-set look. */
   popperBlast(pos: { x: number; y: number }, pop: { damage: number; radius: number }, setPop?: boolean): void;
   /** A pan sweep of the weapon `weaponUid` at `angle` (`bonus`: the lighter extra sweep, Express Checkout). Fires `pattern:sweep` like any sweep. */

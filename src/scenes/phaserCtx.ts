@@ -13,7 +13,7 @@ import { applyMark } from '../engine/marks';
 import { Reactor, markFrostStun } from '../engine/reactions';
 import type { ArenaScene } from './ArenaScene';
 import type { Enemy } from './enemies';
-import { beamOnce, boltFx, explodeAt, spawnFirePool, sweepOnce } from '../engine/patterns';
+import { beamOnce, boltFx, explodeAt, spawnFirePool, spawnPuddleAt, sweepOnce } from '../engine/patterns';
 import type { Shot } from './weapons';
 import { absorbShield, healPlayer, useRunOnce } from '../engine/playerHealth';
 
@@ -102,6 +102,7 @@ export class PhaserCtx implements RuntimeCtx {
 
   spawnShot(spec: ShotSpec): CombatShot | null { return this.sc.arsenal.spawn(spec.key, spec.x, spec.y, spec.angle, spec.speed, spec.life, spec.damage, spec.stats, spec.maxHits); }
   spawnPool(spec: PoolSpec): void { spawnFirePool(this.sc.arsenal, spec.x, spec.y, spec.r, spec.time, spec.stats, spec.tune); }
+  spawnPuddle(weaponUid: string, x: number, y: number): void { const w = this.sc.arsenal.weaponOf(weaponUid); if (w && w.stats.pattern === 'puddle') spawnPuddleAt(this.sc.arsenal, w, x, y); }
   popperBlast(pos: { x: number; y: number }, pop: { damage: number; radius: number }, setPop = false): void { this.sc.popperBlast(pos.x, pos.y, pop, setPop); }
   sweep(weaponUid: string, angle: number, bonus = false): void { const w = this.sc.arsenal.weaponOf(weaponUid); if (w) sweepOnce(this.sc.arsenal, w, angle, bonus); }
   explode(weaponUid: string, x: number, y: number): void { const w = this.sc.arsenal.weaponOf(weaponUid); if (w) explodeAt(this.sc.arsenal, x, y, w.stats); }

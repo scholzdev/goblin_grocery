@@ -51,6 +51,7 @@ export const RECIPE_ORDER = [
   'bloodyMary', 'tomatoToll', 'tomatoHelmet', 'salsaSplash', 'acidTomato',
   'polarArc', 'frostArmor', 'coldDiscount', 'frozenKernels',
   'goldenKernels', 'butteredPopcorn', 'blanketBarrage', 'chillKernels',
+  'barcodeFlag', 'thermalScan', 'coldChain', 'priceDrop', 'leafPile', 'snowBlower', 'airRaid', 'sporeStorm',
 ] as const;
 
 /**

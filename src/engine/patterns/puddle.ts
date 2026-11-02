@@ -19,17 +19,21 @@ export function spawnFirePool(h: PatternHost, x: number, y: number, r: number, t
   h.puddles.push({ img, x, y, r: r * 0.9, until: h.time + time, nextTick: h.time, stats: st, burnOnly: true, burn: { dps: Math.max(tune.dps, st.burn.dps), duration: Math.max(tune.duration, st.burn.duration), tick: tune.tick } });
 }
 
-function dropPuddle(h: PatternHost, w: { stats: WeaponStats; tune: Readonly<Record<string, number>> }): void {
-  const p = h.sc.player;
+/** A slush puddle of the `puddle` weapon `w` at (x, y): its own look, stats, duration, slow and Wet. Shared by the weapon's drop and `ctx.spawnPuddle` (Snow Blower). */
+export function spawnPuddleAt(h: PatternHost, w: { stats: WeaponStats; tune: Readonly<Record<string, number>> }, x: number, y: number): void {
   if (h.puddles.length >= 14) removePuddle(h, h.puddles[0]);
   const st = w.stats;
   const key = h.looks.get(st.uid)?.puddleKey ?? 'fx_puddle';
-  const x = p.x - p.facing * 40, y = p.y + 4;
   const duration = st.duration * (hasStar3(st.tier) ? w.tune.lifeMult ?? 1 : 1);
   const img = h.sc.add.image(x, y, key).setDepth(DEPTH.decal).setDisplaySize(st.range * 0.6, st.range * 0.4).setAlpha(0.9);
   h.sc.tweens.add({ targets: img, displayWidth: st.range * 2.2, displayHeight: st.range * 1.36, duration: 200, ease: 'Back.Out' });
   h.puddles.push({ img, x, y, r: st.range, until: h.time + duration, nextTick: h.time + 0.1, stats: st, slow: { pct: w.tune.slowPct, duration: w.tune.slowDuration }, wet: w.tune.wet });
   h.sound('splash');
+}
+
+function dropPuddle(h: PatternHost, w: { stats: WeaponStats; tune: Readonly<Record<string, number>> }): void {
+  const p = h.sc.player;
+  spawnPuddleAt(h, w, p.x - p.facing * 40, p.y + 4);
 }
 
 /**

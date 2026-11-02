@@ -60,6 +60,6 @@ export { sweepOnce } from './sweep';
 export { explodeAt } from './mortar';
 export { beamOnce } from './laser';
 export { boltFx } from './zap';
-export { removePuddle, spawnFirePool } from './puddle';
+export { removePuddle, spawnFirePool, spawnPuddleAt } from './puddle';
 export { updateShots } from './projectile';
 export type { Pattern, PatternEnemy, PatternHost, PatternScene, Puddle, Pot, Shot, Sprite, TargetMode, WeaponRt } from './types';
