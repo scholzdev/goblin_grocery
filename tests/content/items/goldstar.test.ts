@@ -54,9 +54,9 @@ describe('Gold Star Sticker: tier lift', () => {
     const starA = { type: 'goldstar' as const, at: [4, 1] as [number, number] }, starB = { type: 'goldstar' as const, at: [3, 3] as [number, number] };
     const range = (specs: Parameters<typeof full>[0]) => full(specs).weapons[0].range;
     const base = ITEMS.toaster.weapon!.range;
-    expect(range([at('toaster'), fan])).toBeCloseTo(base * 1.6, 12); // ★3: +60%
-    expect(range([at('toaster'), fan, starA])).toBeCloseTo(base * 1.75, 12); // effective ★4: +75%
-    expect(range([at('toaster'), fan, starA, starB])).toBeCloseTo(base * 1.75, 12); // two stars: still ★4, not ★5
+    expect(range([at('toaster'), fan])).toBeCloseTo(base * 1.2, 12); // ★3: +20%
+    expect(range([at('toaster'), fan, starA])).toBeCloseTo(base * 1.25, 12); // effective ★4: +25%
+    expect(range([at('toaster'), fan, starA, starB])).toBeCloseTo(base * 1.25, 12); // two stars: still ★4, not ★5
     // A ★3 Hot Sauce at (2,2) touches the Toaster and the lifted fan but no star: it keeps its own tier
     const sauce = at('hotsauce', 3, { at: [2, 2] });
     const damage = (specs: Parameters<typeof full>[0]) => full(specs).weapons[0].damage;

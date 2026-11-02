@@ -110,13 +110,13 @@ describe('adjacency', () => {
     const t = it_('toaster', 0, 0), h = it_('hotsauce', 0, 1), h2 = it_('hotsauce', 1, 1);
     expect(w0(inv(t, h)).damage).toBeCloseTo(9 * 1.25 * 1.06 * 1.1);
     expect(w0(inv(t, h, h2)).damage).toBeCloseTo(9 * 1.25 * 1.06 * 1.1);
-    expect(w0(inv(it_('toaster', 0, 0), it_('fan', 0, 1, 1))).projectileSpeed).toBeCloseTo(540 * 1.3);
+    expect(w0(inv(it_('toaster', 0, 0), it_('fan', 0, 1, 1))).projectileSpeed).toBeCloseTo(540 * 1.1);
   });
   it('two identical fans on one toaster apply fan once', () => {
     const w = w0(inv(it_('toaster', 1, 1), it_('fan', 0, 1), it_('fan', 3, 1)));
     expect(w.buffs).toEqual(['fan']);
-    expect(w.projectileSpeed).toBeCloseTo(540 * 1.3);
-    expect(w.range).toBeCloseTo(455 * 1.3);
+    expect(w.projectileSpeed).toBeCloseTo(540 * 1.1);
+    expect(w.range).toBeCloseTo(455 * 1.1);
   });
 });
 
@@ -127,11 +127,11 @@ describe('recipes', () => {
     const b = computeBuild(inv(toaster(), it_('fan', 0, 1), it_('fuel', 3, 1)));
     const w = b.weapons[0];
     expect(w.recipes).toContain('toastMode');
-    expect(w.count).toBe(3);
-    expect(w.spreadDeg).toBe(22);
+    expect(w.count).toBe(2);
+    expect(w.spreadDeg).toBe(25);
     expect(w.damage).toBeCloseTo(9 * 1.12 * 0.75);
-    expect(w.burn).toEqual({ dps: 2.5, duration: 3, tick: 0.5 });
-    expect(w.projectileSpeed).toBeCloseTo(540 * 1.3);
+    expect(w.burn).toEqual({ dps: 3, duration: 4, tick: 0.5 });
+    expect(w.projectileSpeed).toBeCloseTo(540 * 1.1);
     expect(b.recipes).toHaveLength(1);
     expect(b.recipes[0].supportUids).toHaveLength(2);
   });
@@ -526,10 +526,10 @@ describe('tiers', () => {
     expect(upgradeItem(s, 'i1')).toEqual({ ok: false, reason: 'Already max tier' });
     expect(s).toEqual(b2);
   });
-  it('max-tier fan is +60%; highest tier module wins; no stacking', () => {
-    expect(w0(inv(it_('toaster', 1, 1), mk('fan', 0, 1, 3))).projectileSpeed).toBeCloseTo(540 * 1.6);
+  it('max-tier fan is +20%; highest tier module wins; no stacking', () => {
+    expect(w0(inv(it_('toaster', 1, 1), mk('fan', 0, 1, 3))).projectileSpeed).toBeCloseTo(540 * 1.2);
     const w = w0(inv(it_('toaster', 1, 1), it_('fan', 0, 1), mk('fan', 3, 1, 2)));
-    expect(w.projectileSpeed).toBeCloseTo(540 * 1.45);
+    expect(w.projectileSpeed).toBeCloseTo(540 * 1.15);
     expect(w.buffs).toEqual(['fan']);
   });
   it('price gun crit once, ★2 = 0.225', () => {
@@ -561,13 +561,13 @@ describe('tiers', () => {
     expect(both.bounces).toBe(4);
     expect(w0(inv(it_('fizz', 1, 1), it_('coupon', 3, 1))).recipes).toEqual([]);
   });
-  it('grease fire only via recipe; toaster fuel burns 2.5', () => {
+  it('grease fire only via recipe; toaster fuel burns 3', () => {
     expect(w0(inv(it_('mop', 0, 0))).burn).toBeNull();
     const mop = w0(inv(it_('mop', 0, 0), it_('fuel', 1, 0)));
     expect(mop.recipes).toContain('greaseFire');
-    expect(mop.burn).toEqual({ dps: 5, duration: 2, tick: 0.5 });
-    expect(w0(inv(it_('mop', 0, 0), mk('fuel', 1, 0, 3))).burn!.dps).toBeCloseTo(10); // the ★3 can alone is 3 Heat points: L1, no dps multiplier
-    expect(w0(inv(it_('toaster', 0, 0), it_('fuel', 2, 0))).burn!.dps).toBe(2.5);
+    expect(mop.burn).toEqual({ dps: 6, duration: 3, tick: 0.5 });
+    expect(w0(inv(it_('mop', 0, 0), mk('fuel', 1, 0, 3))).burn!.dps).toBeCloseTo(14); // the ★3 can alone is 3 Heat points: L1, no dps multiplier
+    expect(w0(inv(it_('toaster', 0, 0), it_('fuel', 2, 0))).burn!.dps).toBe(3);
   });
   it('bubble wrap armor is an onPlayerHit hook (content/items/bubblewrap.test.ts); damagePlayer is plain', () => {
     const s = createRun(1);
@@ -607,13 +607,13 @@ describe('legendaries / bundle / shop levels', () => {
     expect(near.cooldown).toBeCloseTo(ITEMS.toaster.weapon!.cooldown / contentTune('powerstrip', 1).adjacent);
     const bat = w0(inv(it_('toaster', 0, 1), it_('powerstrip', 0, 0), it_('battery', 2, 1)));
     expect(bat.cooldown).toBeCloseTo(ITEMS.toaster.weapon!.cooldown / contentTune('powerstrip', 1).adjacent / batE / 1.08);
-    expect(w0(inv(it_('pan', 0, 0), it_('powerstrip', 1, 0))).cooldown).toBeCloseTo(1.15);
+    expect(w0(inv(it_('pan', 0, 0), it_('powerstrip', 1, 0))).cooldown).toBeCloseTo(1.12);
   });
   it('goldstar boosts adjacent fan only', () => {
     const adj = w0(inv(it_('toaster', 1, 1), mk('fan', 0, 1, 3), it_('goldstar', 0, 3)));
-    expect(adj.projectileSpeed).toBeCloseTo(540 * 1.75);
+    expect(adj.projectileSpeed).toBeCloseTo(540 * 1.25);
     const nonAdj = w0(inv(it_('toaster', 1, 1), mk('fan', 0, 1, 3), it_('goldstar', 4, 3)));
-    expect(nonAdj.projectileSpeed).toBeCloseTo(540 * 1.6);
+    expect(nonAdj.projectileSpeed).toBeCloseTo(540 * 1.2);
   });
   it('goldstar lunchbox hp = round(15*1.5)=23 plus Snacks L1 (2 set points), no heal', () => {
     const s = shopRun();
@@ -1016,7 +1016,7 @@ describe('aoe / multi-hit modules', () => {
     expect(w0(inv(it_('toaster', 1, 1), mk('multipack', 0, 1, 3))).count).toBe(3);
     const tm = w0(inv(it_('toaster', 1, 1), it_('fan', 0, 1), it_('fuel', 3, 1), it_('multipack', 1, 0)));
     expect(tm.recipes).toContain('toastMode');
-    expect(tm.count).toBe(4);
+    expect(tm.count).toBe(3);
     expect(w0(inv(it_('nailgun', 1, 1), it_('multipack', 0, 1))).count).toBe(4);
     expect(w0(inv(it_('pan', 0, 0), it_('multipack', 1, 0))).count).toBe(2);
     const lz = w0(inv(it_('laser', 0, 0), it_('multipack', 2, 0)));
@@ -1033,10 +1033,10 @@ describe('aoe / multi-hit modules', () => {
   it('pressure point predicate and burn; spray + fuel gets no burn', () => {
     const w = w0(inv(it_('cooker', 0, 0), it_('fuel', 2, 0)));
     expect(w.recipes).toContain('pressurePoint');
-    expect(w.burn).toEqual({ dps: 2.5, duration: 3, tick: 0.5 });
+    expect(w.burn).toEqual({ dps: 3, duration: 4, tick: 0.5 });
     expect(w0(inv(it_('cooker', 0, 0))).recipes).not.toContain('pressurePoint');
     const sp = w0(inv(it_('spray', 0, 0), it_('fuel', 1, 0)));
-    expect(sp.burn!.dps).toBe(2.5); // universal fuel
+    expect(sp.burn!.dps).toBe(3); // universal fuel
     expect(sp.recipes).toEqual([]);
   });
   it('mist machine arc 120, range 238 (replaces the fan bonus); tape +30', () => {
@@ -1111,12 +1111,12 @@ describe('meta-progression gating', () => {
 
 describe('universal utilities and 2 combos per weapon', () => {
   const cw = (weapon: ItemTypeId, sup: ItemTypeId[]) => computeBuild(cart(weapon, sup)).weapons[0];
-  it('fuel burns on a pan; fan adds 30% reach; battery normal vs electric', () => {
-    expect(cw('pan', ['fuel']).burn!.dps).toBe(2.5);
-    expect(cw('pan', ['fan']).range).toBeCloseTo(ITEMS.pan.weapon!.range * 1.3);
-    expect(cw('vacuum', ['fan']).range).toBeCloseTo(150 * 1.3 * 1.15);
+  it('fuel burns on a pan; fan adds 10% reach; battery normal vs electric', () => {
+    expect(cw('pan', ['fuel']).burn!.dps).toBe(3);
+    expect(cw('pan', ['fan']).range).toBeCloseTo(ITEMS.pan.weapon!.range * 1.1);
+    expect(cw('vacuum', ['fan']).range).toBeCloseTo(150 * 1.1 * 1.15);
     expect(cw('pan', ['fan']).projectileSpeed).toBe(0);
-    expect(cw('pan', ['battery']).cooldown).toBeCloseTo(1.15 / (1 + contentTune('battery', 1).rate));
+    expect(cw('pan', ['battery']).cooldown).toBeCloseTo(1.12 / (1 + contentTune('battery', 1).rate));
     expect(cw('toaster', ['battery']).cooldown).toBeCloseTo(ITEMS.toaster.weapon!.cooldown / batE);
   });
   it('a pan with bell + fuel has both combos; toaster fan+fuel+hotsauce has toastMode and fiveAlarm', () => {
@@ -1134,9 +1134,9 @@ describe('universal utilities and 2 combos per weapon', () => {
       }
     }
   });
-  it('grease fire burn 5 dps and bigger puddle; pressure washer arc 25, x2.5 damage', () => {
+  it('grease fire burn 6 dps and bigger puddle; pressure washer arc 25, x2.5 damage', () => {
     const g = cw('mop', ['fuel']);
-    expect(g.burn!.dps).toBe(5);
+    expect(g.burn!.dps).toBe(6);
     expect(g.range).toBeCloseTo(60 * 1.4);
     const pw = cw('spray', ['battery']);
     expect(pw.recipes).toContain('pressureWasher');
@@ -1451,12 +1451,12 @@ describe('set bonuses', () => {
   });
   it('kitchen L1 damage, cleaning L1 range, tools L1 cooldown, snacks L1 maxHp', () => {
     expect(bw('pan', 'toaster').damage).toBeCloseTo(9 * 1.1 * 1.06); // kitchen L1 x bundle (1 neighbour)
-    expect(bw('mop', 'fan').range).toBeCloseTo(ITEMS.mop.weapon!.range * 1.3 * 1.15);
+    expect(bw('mop', 'fan').range).toBeCloseTo(ITEMS.mop.weapon!.range * 1.1 * 1.15);
     expect(bw('toaster', 'tape', 'magnet').cooldown).toBeCloseTo(ITEMS.toaster.weapon!.cooldown / 1.08);
     expect(b('lunchbox', 'energy').maxHp).toBe(PLAYER.maxHp + Math.round(contentTune('lunchbox', 1).hp) + 10);
   });
   it('heat L1 burn duration, frost L1 slow +0.1 capped at 0.6, blast L1 popper radius', () => {
-    expect(w0(inv(it_('pan', 0, 0), it_('fuel', 1, 0))).burn).toEqual({ dps: 2.5, duration: 3, tick: 0.5 });
+    expect(w0(inv(it_('pan', 0, 0), it_('fuel', 1, 0))).burn).toEqual({ dps: 3, duration: 4, tick: 0.5 });
     expect(w0(inv(it_('pan', 0, 0), it_('ice', 1, 0))).slow!.pct).toBe(0.25); // frost needs 2 types
     expect(computeBuild(inv(it_('fizz', 0, 0), it_('ice', 2, 0))).weapons[0].slow!.pct).toBeCloseTo(0.35);
     expect(computeBuild(inv(it_('vacuum', 0, 0), it_('ice', 2, 0), it_('mop', 0, 3))).weapons.find((w) => w.type === 'vacuum')!.slow!.pct).toBe(0.6); // coldStorage 0.5 + 0.1, frost 2 types
@@ -1471,10 +1471,10 @@ describe('set bonuses', () => {
   it('heat L2: burn dps x1.4 and heat weapons without fuel ignite', () => {
     const w = bw('toaster', 'pan', 'microwave', 'cooker');
     expect(w.burn).toBeNull();
-    expect(w.ignite).toEqual({ chance: 0.15, burn: { dps: 2.5 * 1.4, duration: 3, tick: 0.5 } });
+    expect(w.ignite).toEqual({ chance: 0.15, burn: { dps: 3 * 1.4, duration: 4, tick: 0.5 } });
     expect(bw('toaster', 'pan').ignite).toBeNull();
     const f = w0(inv(it_('pan', 0, 0), it_('fuel', 1, 0), it_('toaster', 0, 3), it_('cooker', 3, 3)));
-    expect(f.burn).toEqual({ dps: 2.5 * 1.4, duration: 3, tick: 0.5 });
+    expect(f.burn).toEqual({ dps: 3 * 1.4, duration: 4, tick: 0.5 });
     expect(f.ignite).toBeNull();
   });
   it('electric: non-zap electrical weapons chain, microwave does not', () => {

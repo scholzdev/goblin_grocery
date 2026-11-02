@@ -41,10 +41,10 @@ describe('wet sims', () => {
     for (const t of ['25% + Frost 10 = 35%', '45% on a wet enemy', '10%', '20%', '0.5 s']) expect(s.notes, t).toContain(t);
   });
 
-  it('wet-steam: a Toaster with a Fuel Can burns 3 s (2.5/s), the Spray Bottle soaks', () => {
+  it('wet-steam: a Toaster with a Fuel Can burns 4 s (3/s), the Spray Bottle soaks', () => {
     const { build } = createSimRun(sim('wet-steam'));
     const toaster = build.weapons.find((w) => w.type === 'toaster')!;
-    expect(toaster.burn).toMatchObject({ dps: 2.5, duration: 3 });
+    expect(toaster.burn).toMatchObject({ dps: 3, duration: 4 });
     expect(build.weapons.map((w) => w.type)).toContain('spray');
     expect(sim('wet-steam').notes).toContain('half as long');
   });

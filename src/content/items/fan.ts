@@ -4,7 +4,7 @@ import { Buff, Item, Set } from '../../engine/ids';
 export default defineItem({
   id: Item.fan, kind: 'module', sets: [Set.cleaning], shape: '1x2', price: 9, buff: Buff.fan,
   unlock: 'starting',
-  tune: { range: [0.1, 0.15, 0.2], speed: [0.1, 0.15, 0.2] }, // bonus range/reach and projectile speed per ★ (1.3 base x TIER.mult)
+  tune: { range: [0.1, 0.15, 0.2], speed: [0.1, 0.15, 0.2] }, // bonus range/reach and projectile speed at ★1 / ★2 / ★3
   text: {
     en: { name: 'Desk Fan', blurb: 'Whoosh. More range for whatever it touches.', rules: 'Any adjacent weapon gains {range|+pct} range or reach and {speed|+pct} projectile speed.' },
     de: { name: 'Tischventilator', blurb: 'Wuusch. Mehr Reichweite für alles, was er berührt.', rules: 'Jede angrenzende Waffe erhält {range|+pct} Reichweite und {speed|+pct} Projektiltempo.' },

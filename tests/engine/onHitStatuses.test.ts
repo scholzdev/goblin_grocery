@@ -25,8 +25,8 @@ describe('burn (WeaponStats.burn)', () => {
     const { fake, stats } = arena([at('nailgun'), at('fuel')]);
     const e = fake.spawnEnemy({ hp: 100 });
     fake.hit(e, 3, stats);
-    expect(fake.callsOf('ignite')).toEqual([{ at: 0, kind: 'ignite', enemy: e.id, burn: { dps: 2.5, duration: 2, tick: 0.5 } }]);
-    expect(e.status).toMatchObject({ burnDps: 2.5, burnUntil: 2, burnTick: 0.5 });
+    expect(fake.callsOf('ignite')).toEqual([{ at: 0, kind: 'ignite', enemy: e.id, burn: { dps: 3, duration: 3, tick: 0.5 } }]);
+    expect(e.status).toMatchObject({ burnDps: 3, burnUntil: 3, burnTick: 0.5 });
   });
 
   it('refreshes instead of stacking: a second hit extends the timer, the dps stays', () => {
@@ -36,8 +36,8 @@ describe('burn (WeaponStats.burn)', () => {
     const firstTick = e.status.nextBurnAt;
     fake.advance(1);
     fake.hit(e, 3, stats); fake.hit(e, 3, stats);
-    expect(e.status.burnDps).toBe(2.5);
-    expect(e.status.burnUntil).toBe(3); // 1 + 2
+    expect(e.status.burnDps).toBe(3);
+    expect(e.status.burnUntil).toBe(4); // 1 + 3
     expect(e.status.nextBurnAt).toBe(firstTick); // still burning: the tick schedule is not restarted
   });
 
@@ -46,9 +46,9 @@ describe('burn (WeaponStats.burn)', () => {
     const e = strong.fake.spawnEnemy({ hp: 100 });
     strong.fake.hit(e, 3, strong.stats);
     strong.fake.advance(1); strong.fake.hit(e, 3, weak.stats);
-    expect(e.status.burnDps).toBe(5); // the ★3 can is 3 Heat points: L1, no dps multiplier
+    expect(e.status.burnDps).toBe(7); // the ★3 can is 3 Heat points: L1, no dps multiplier
     strong.fake.advance(5); strong.fake.hit(e, 3, weak.stats); // the burn is long over
-    expect(e.status.burnDps).toBe(2.5);
+    expect(e.status.burnDps).toBe(3);
   });
 
   it('is not tied to the Fuel Can: a Jelly Beans (heat) burn applies the same way, with its own numbers', () => {
@@ -56,14 +56,14 @@ describe('burn (WeaponStats.burn)', () => {
     expect(stats.buffs).not.toContain('fuel');
     const e = fake.spawnEnemy({ hp: 100 });
     fake.hit(e, 3, stats);
-    expect(e.status.burnDps).toBeCloseTo(1.75, 12);
+    expect(e.status.burnDps).toBeCloseTo(2.1, 12);
   });
 
   it('goes through the aisle burn modifier (heatwave events, departments)', () => {
     const { fake, stats } = arena([at('nailgun'), at('fuel')], { burnMult: 2 });
     const e = fake.spawnEnemy({ hp: 100 });
     fake.hit(e, 3, stats);
-    expect(e.status.burnDps).toBe(5);
+    expect(e.status.burnDps).toBe(6);
   });
 
   it('burn ticks themselves (isDot hits) never re-ignite, and a weapon without burn does nothing', () => {
