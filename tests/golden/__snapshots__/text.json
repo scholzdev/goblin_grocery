@@ -8530,13 +8530,13 @@
     "summary": "Blender touching an Ice Pack: a chilling, wider blade storm."
   },
   "combos.butteredPopcorn.de": {
-    "detail": "Der Popcorn-Cooldown sinkt um 12.",
+    "detail": "Der Popcorn-Cooldown sinkt um 20.",
     "name": "Butterpopcorn",
     "short": "Popp schneller",
     "summary": "Popcorn berührt eine Lunchbox: Die Snacklinie bleibt versorgt."
   },
   "combos.butteredPopcorn.en": {
-    "detail": "Popcorn cooldown is reduced by 12.",
+    "detail": "Popcorn cooldown is reduced by 20.",
     "name": "Buttered Popcorn",
     "short": "Pops faster",
     "summary": "Popcorn touching a Lunchbox: the snack line stays stocked."
@@ -8734,13 +8734,13 @@
     "summary": "Snow Cone Machine touching Popcorn: crunchy ice carries the chill."
   },
   "combos.goldenKernels.de": {
-    "detail": "Körner erhalten +10% Kritchance.",
+    "detail": "Körner erhalten +20% Kritchance.",
     "name": "Goldene Körner",
     "short": "Körner können kritisch treffen",
     "summary": "Popcorn berührt einen Glückskeks: Glückskörner treffen doppelt hart."
   },
   "combos.goldenKernels.en": {
-    "detail": "Kernels gain +10% crit chance.",
+    "detail": "Kernels gain +20% crit chance.",
     "name": "Golden Kernels",
     "short": "Kernels can crit",
     "summary": "Popcorn touching a Fortune Cookie: lucky kernels hit twice as hard."
